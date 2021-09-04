@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="QuickOutline">
+		<item key="com._1c.g5.v8.dt.bsl.ui.outline.BslQuickOutlinePopupDIALOG_WIDTH" value="532"/>
+		<item key="com._1c.g5.v8.dt.bsl.ui.outline.BslQuickOutlinePopupDIALOG_HEIGHT" value="315"/>
+		<item key="com._1c.g5.v8.dt.bsl.ui.outline.BslQuickOutlinePopupDIALOG_USE_PERSISTED_SIZE" value="true"/>
+		<item key="com._1c.g5.v8.dt.bsl.ui.outline.BslQuickOutlinePopupDIALOG_USE_PERSISTED_LOCATION" value="false"/>
+	</section>
+</section>

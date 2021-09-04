@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_app.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_frame.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_main.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_panels.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_pch.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_addserver.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ws_admin_wx\include\wx_connect.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\main.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\wx_app.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\wx_frame.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\wx_panels.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\wx_addserver.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws_admin_wx\src\ws_connect.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\ws_admin_wx\res\checked.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\icon1.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\icon2.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\icon3.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\icon4.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\icon5.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\resurce.wxs">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\sample.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\state1.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\state2.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\state3.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\state4.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\state5.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="..\..\..\ws_admin_wx\res\unchecked.xpm">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\ws_admin_wx\res\sample.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

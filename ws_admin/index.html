@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <link href="./css/styles.css" rel="stylesheet" type="text/css"/>
+    <title>Admin console</title>
+</head>
+<body>
+
+<div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&#8801;</a>
+    <a href="#">Терминал</a>
+    <a href="#">Сервис</a>
+    <a href="#">Клиенты</a>
+    <a href="#">Выйти</a>
+</div>
+
+<div id="main">
+    <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰ open</span>
+    <h2>Консоль администратора</h2>
+    Адрес сервера: <input class="draw-border" id="uri" size="47" value="ws://localhost:8080" style="margin-bottom: 5px;">
+    <button class="echo-button" id="connect" onclick="connect_onclick()">Подключится</button>
+    <button class="echo-button" id="disconnect" onclick="disconnect_onclick()">Отключится</button><br>
+    Имя пользователя: <input class="draw-border" id="userName" size=47 style="margin-bottom: 5px;" value="admin"><br>
+    <pre id="messages" style="width: 600px; height: 400px; white-space: normal; overflow: auto; border: solid 1px #cccccc; margin-bottom: 5px;"></pre>
+    <div style="margin-bottom: 5px;">
+        Команда серверу:<br>
+        <input class="draw-border" id="sendMessage" size="74" value="" onkeyup="sendMessage_onkeyup(event)">
+        <button class="echo-button" id="deliver" onclick="send_onclick()">Отправить</button>
+    </div>
+</div>
+
+<script src="./js/app.js"></script>
+
+</body>
+</html> 

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:Catalog xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="dacd29a4-9761-4e62-82e3-2cb78b40f293">
+  <producedTypes>
+    <objectType typeId="a9e8e600-74af-40a5-a704-da086f35994f" valueTypeId="836d6afc-6a04-4551-90de-3bef2445f333"/>
+    <refType typeId="c504be3f-a29e-4d97-bedc-aec618a802c2" valueTypeId="65166c74-34b0-448f-9d4a-e7cb6aeb1594"/>
+    <selectionType typeId="676512a9-7856-4483-807c-174d2236ea99" valueTypeId="0fe53b38-a361-4bb1-8716-5b123b26ed19"/>
+    <listType typeId="afdb0e06-17f2-4d8c-8240-f23de4a46752" valueTypeId="040cdccf-4b97-4403-a198-e8c648686204"/>
+    <managerType typeId="fb59596b-f19b-4f68-9f4d-bb20d127dda0" valueTypeId="6e63ae47-d113-4136-b675-48c52cadbbe7"/>
+  </producedTypes>
+  <name>Пользователи</name>
+  <synonym>
+    <key>ru</key>
+    <value>Пользователи</value>
+  </synonym>
+  <useStandardCommands>true</useStandardCommands>
+  <inputByString>Catalog.Пользователи.StandardAttribute.Code</inputByString>
+  <inputByString>Catalog.Пользователи.StandardAttribute.Description</inputByString>
+  <fullTextSearchOnInputByString>DontUse</fullTextSearchOnInputByString>
+  <createOnInput>Use</createOnInput>
+  <dataLockControlMode>Managed</dataLockControlMode>
+  <fullTextSearch>Use</fullTextSearch>
+  <hierarchical>true</hierarchical>
+  <levelCount>2</levelCount>
+  <foldersOnTop>true</foldersOnTop>
+  <codeLength>9</codeLength>
+  <descriptionLength>25</descriptionLength>
+  <codeType>String</codeType>
+  <codeAllowedLength>Variable</codeAllowedLength>
+  <checkUnique>true</checkUnique>
+  <autonumbering>true</autonumbering>
+  <defaultPresentation>AsDescription</defaultPresentation>
+  <editType>InDialog</editType>
+  <choiceMode>BothWays</choiceMode>
+  <defaultObjectForm>Catalog.Пользователи.Form.ФормаЭлемента</defaultObjectForm>
+  <defaultFolderForm>Catalog.Пользователи.Form.ФормаГруппы</defaultFolderForm>
+  <defaultListForm>Catalog.Пользователи.Form.ФормаСписка</defaultListForm>
+  <forms uuid="e78e07d0-244f-4b06-a851-3d56a39633ee">
+    <name>ФормаЭлемента</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма элемента</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+  <forms uuid="f71f7faf-e299-40bb-8f15-f5b07e7f79f1">
+    <name>ФормаГруппы</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма группы</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+  <forms uuid="a6015d81-438c-4b73-b577-cee2bbc41f87">
+    <name>ФормаСписка</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма списка</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+</mdclass:Catalog>

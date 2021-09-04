@@ -1,0 +1,7 @@
+{
+"name": "ws_server",
+"host": "localhost",
+"port": 8080,
+"root_dir": "/home/arcady/websockets_src/ws_solution/ws_server/app",
+"debug_dir": "/home/arcady/websockets_src/ws_solution/ws_server/cmake-build-debug"
+}

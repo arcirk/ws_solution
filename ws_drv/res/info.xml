@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<drivers>
+  <component progid="AddIn.arc.WebSocketAddIn" name="WebSocket: WebSocket Клиент." version="1.0.0" type="native"/>
+</drivers>

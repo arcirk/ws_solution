@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:Constant xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:core="http://g5.1c.ru/v8/dt/mcore" xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="356ebb43-d674-40c7-a255-423327eda3e8">
+  <producedTypes>
+    <managerType typeId="cbd18a6c-bf50-4885-bf38-441c6287d296" valueTypeId="c15e9b4e-5b64-4195-aae8-ef569a25f1f7"/>
+    <valueManagerType typeId="d28e9baf-78f7-44aa-b8a3-652f3d8b90e4" valueTypeId="153e6caa-356e-474f-870c-ca470b6788bc"/>
+    <valueKeyType typeId="dc21cdf4-4263-483e-a187-c90b1aceca27" valueTypeId="d1690315-603c-4bbb-8563-6c062a975a42"/>
+  </producedTypes>
+  <name>РежимОтладки</name>
+  <synonym>
+    <key>ru</key>
+    <value>Режим отладки</value>
+  </synonym>
+  <type>
+    <types>Boolean</types>
+  </type>
+  <useStandardCommands>true</useStandardCommands>
+  <minValue xsi:type="core:UndefinedValue"/>
+  <maxValue xsi:type="core:UndefinedValue"/>
+  <dataLockControlMode>Managed</dataLockControlMode>
+</mdclass:Constant>

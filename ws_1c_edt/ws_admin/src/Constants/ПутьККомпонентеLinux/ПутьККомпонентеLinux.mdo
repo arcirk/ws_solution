@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:Constant xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:core="http://g5.1c.ru/v8/dt/mcore" xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="feaa5973-5976-4cce-81cf-7ad9417bc585">
+  <producedTypes>
+    <managerType typeId="41797463-fc32-4213-b7b4-ce4664b261a3" valueTypeId="ad57f845-f5ae-4001-b8a8-66f7c4e59845"/>
+    <valueManagerType typeId="77702ab0-6381-4b43-a0e9-edccf00e04d7" valueTypeId="f2c35c2e-1456-4d4d-9cd4-e75ef56fe77d"/>
+    <valueKeyType typeId="5037dbe6-5361-484e-a2e6-26a6a7a117a3" valueTypeId="1f5674bf-dddc-4fdb-b4dc-350bdd9715be"/>
+  </producedTypes>
+  <name>ПутьККомпонентеLinux</name>
+  <synonym>
+    <key>ru</key>
+    <value>Путь к компоненте linux</value>
+  </synonym>
+  <type>
+    <types>String</types>
+    <stringQualifiers>
+      <length>255</length>
+    </stringQualifiers>
+  </type>
+  <useStandardCommands>true</useStandardCommands>
+  <minValue xsi:type="core:UndefinedValue"/>
+  <maxValue xsi:type="core:UndefinedValue"/>
+  <dataLockControlMode>Managed</dataLockControlMode>
+</mdclass:Constant>

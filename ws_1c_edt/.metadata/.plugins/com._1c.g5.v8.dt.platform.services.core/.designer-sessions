@@ -1,0 +1,6 @@
+#Equinox secure storage version 1.0
+#Tue Jul 27 12:40:59 IRKT 2021
+org.eclipse.equinox.security.preferences.version=1
+/org.eclipse.equinox.secure.storage/verification/org.eclipse.equinox.security.linuxkeystoreintegration=org.eclipse.equinox.security.linuxkeystoreintegration\teFPia46qdd4\=,tQFTzATVKqlAt51E2wTJQw\=\=
+org.eclipse.equinox.security.preferences.cipher=PBEWithMD5AndDES
+org.eclipse.equinox.security.preferences.keyFactory=PBEWithMD5AndDES

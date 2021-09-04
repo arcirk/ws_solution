@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="INFOBASE_UPDATE_CONFIRM_DIALOG_SETTINGS">
+		<item key="DIALOG_WIDTH" value="350"/>
+		<item key="DIALOG_HEIGHT" value="450"/>
+		<item key="DIALOG_X_ORIGIN" value="785"/>
+		<item key="DIALOG_Y_ORIGIN" value="181"/>
+		<item key="DIALOG_FONT_NAME" value="1|Ubuntu|11.0|0|GTK|1|"/>
+	</section>
+</section>

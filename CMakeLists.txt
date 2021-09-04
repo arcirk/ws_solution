@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.19)
+project(ws_solution)
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_server" "${PROJECT_SOURCE_DIR}/ws_server/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client_console" "${PROJECT_SOURCE_DIR}/ws_client_console/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_admin_wx" "${PROJECT_SOURCE_DIR}/ws_admin_wx/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_drv" "${PROJECT_SOURCE_DIR}/ws_drv/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/arc_json" "${PROJECT_SOURCE_DIR}/arc_json/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client" "${PROJECT_SOURCE_DIR}/ws_client/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/tests/test_channels_node" "${PROJECT_SOURCE_DIR}/tests/test_channels_node/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/tests/ws_drv_test" "${PROJECT_SOURCE_DIR}/tests/ws_drv_test/cmake-build-debug")

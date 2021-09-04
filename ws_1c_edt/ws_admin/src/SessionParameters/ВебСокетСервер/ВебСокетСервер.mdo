@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:SessionParameter xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="435ff1c8-c389-492c-b8c5-f4209eac6f96">
+  <name>ВебСокетСервер</name>
+  <synonym>
+    <key>ru</key>
+    <value>Веб сокет сервер</value>
+  </synonym>
+  <type>
+    <types>String</types>
+    <stringQualifiers>
+      <length>100</length>
+    </stringQualifiers>
+  </type>
+</mdclass:SessionParameter>

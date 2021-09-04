@@ -1,0 +1,40 @@
+{
+  "name": "root",
+  "uuid": "0",
+  "parent": {
+    "name": "parent",
+    "uuid": "0"
+  },
+  "channels": [
+    {
+      "name": "Ангарск",
+      "uuid": "1",
+      "parent": "0",
+      "channels":[]
+    },
+    {
+      "name": "Иркутск",
+      "uuid": "2",
+      "parent": "0",
+      "channels":[]
+    },
+    {
+      "name": "Дальний Восток",
+      "uuid": "3",
+      "parent": "0",
+      "channels":[{
+        "name": "Хабаровск",
+        "uuid": "4",
+        "parent": "3",
+        "channels": []
+      },
+        {
+          "name": "Владивосток",
+          "uuid": "5",
+          "parent": "3",
+          "channels": []
+        }
+      ]
+    }
+  ]
+}

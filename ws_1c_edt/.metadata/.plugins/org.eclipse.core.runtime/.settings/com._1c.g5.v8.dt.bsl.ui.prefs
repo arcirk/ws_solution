@@ -1,0 +1,13 @@
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.BSL_Keywords.color=255,0,0
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.BSL_Keywords.style=0
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Brackets.color=209,36,36
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Builtin\ function.color=245,121,0
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Comment.color=0,128,0
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Numbers.color=239,41,41
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Operators.color=239,41,41
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Others.color=14,14,139
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Preprocessor.color=85,87,83
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Preprocessor.style=0
+com._1c.g5.v8.dt.bsl.Bsl.syntaxColorer.tokenStyles.Strings.color=46,52,54
+com._1c.g5.v8.dt.bsl.Bsl.templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>
+eclipse.preferences.version=1

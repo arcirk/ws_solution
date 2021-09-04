@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ConfigDumpInfo xmlns="http://v8.1c.ru/8.3/xcf/dumpinfo" xmlns:xen="http://v8.1c.ru/8.3/xcf/enums" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" format="Hierarchical" version="2.11">
+	<ConfigVersions>
+		<Metadata name="Catalog.Каналы" id="c0c73e08-e7f7-4d19-891e-08d606880536" configVersion="c2ed5c393d8f3e4aa52e3fce90fcb6da00000000"/>
+		<Metadata name="Catalog.Каналы.Form.ФормаСписка" id="595d9a6e-c898-4694-a0af-98c206f8dae5" configVersion="6062c2e8e372b94ab6e859254c59919c00000000"/>
+		<Metadata name="Catalog.Каналы.Form.ФормаСписка.Form" id="595d9a6e-c898-4694-a0af-98c206f8dae5.0" configVersion="09d47ada6605a34f9c1bc0e5bff28faa00000000"/>
+		<Metadata name="CommonForm.ФормаКонстант" id="83ad83a4-99a1-40d1-b315-ff33b0bd192e" configVersion="6f7b8eb70f3e23478acb44595424231c00000000"/>
+		<Metadata name="CommonForm.ФормаКонстант.Form" id="83ad83a4-99a1-40d1-b315-ff33b0bd192e.0" configVersion="73b8a6e3c3793b4d86c5cf57ab03ff1200000000"/>
+		<Metadata name="Configuration.ws_admin" id="8be672d3-01ff-40f3-822c-62d6a3e660e0" configVersion="a6432f66b22552469d214d8c49ea919b00000000"/>
+		<Metadata name="Configuration.ws_admin.ClientApplicationInterface" id="9884b24d-db33-4881-83fb-29af162d56b3.b" configVersion="9781136838eb554287da220155fe87ac00000000"/>
+		<Metadata name="Configuration.ws_admin.CommandInterface" id="9884b24d-db33-4881-83fb-29af162d56b3.a" configVersion="c3b54ea50b45c64a8626a63280f1f13500000000"/>
+		<Metadata name="Configuration.ws_admin.HomePageWorkArea" id="9884b24d-db33-4881-83fb-29af162d56b3.8" configVersion="1f532e7db4e1914c9815fd873ab6612600000000"/>
+		<Metadata name="Configuration.ws_admin.MainSectionCommandInterface" id="9884b24d-db33-4881-83fb-29af162d56b3.9" configVersion="b677c3fb4d5e0d418050474d252ca46d00000000"/>
+		<Metadata name="Constant.АдресСервера" id="3b7db04a-fe91-4e98-b0fc-0d8f8f93affb" configVersion="d6f71b9ac2d06042bbd095d7e26c0ae000000000"/>
+		<Metadata name="Constant.ДомашнийКаталог" id="71894c97-be8d-4a84-9d14-62ff32d00bc3" configVersion="f0a4dfb3fc0ca5488bad42ba04d84bfd00000000"/>
+		<Metadata name="Constant.КаталогФайловКофигурации" id="fc46b87b-85ba-4be7-91ca-f06bc208c139" configVersion="2d308d89fb4f5742ac21036a1775bc4800000000"/>
+		<Metadata name="Constant.ПортСервера" id="76ff49e2-1b48-425b-8920-7a9d1e590994" configVersion="6878c953e20acc43b8bf4b099c4344ea00000000"/>
+		<Metadata name="Language.Русский" id="19e2ff55-7013-493f-9456-2bc90ca45cb5" configVersion="76d7dbb90e844d499c30533769f2f9e300000000"/>
+		<Metadata name="Subsystem.Сервер" id="f2bc9a3c-89ad-4075-8111-14c34c96e3dc" configVersion="a851947749608c4a92219c97ccb76e7700000000"/>
+		<Metadata name="Subsystem.Сервер.CommandInterface" id="f2bc9a3c-89ad-4075-8111-14c34c96e3dc.1" configVersion="a06ef7b037b50d43a1f5780735bf9daf00000000"/>
+	</ConfigVersions>
+</ConfigDumpInfo>
