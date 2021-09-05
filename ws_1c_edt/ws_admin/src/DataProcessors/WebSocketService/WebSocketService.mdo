@@ -38,4 +38,12 @@
     <usePurposes>PersonalComputer</usePurposes>
     <usePurposes>MobileDevice</usePurposes>
   </forms>
+  <templates uuid="33afb07e-0ea1-4406-9a7f-0f8fe98dd1d7">
+    <name>ПолеЧата</name>
+    <synonym>
+      <key>ru</key>
+      <value>Поле чата</value>
+    </synonym>
+    <templateType>TextDocument</templateType>
+  </templates>
 </mdclass:DataProcessor>
