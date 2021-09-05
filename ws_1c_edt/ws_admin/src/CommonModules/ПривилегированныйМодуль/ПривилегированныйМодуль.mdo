@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:CommonModule xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="baa76495-9bdb-4a89-ad94-dd7d5b216b6e">
+  <name>ПривилегированныйМодуль</name>
+  <synonym>
+    <key>ru</key>
+    <value>Привилегированный модуль</value>
+  </synonym>
+  <server>true</server>
+  <serverCall>true</serverCall>
+  <privileged>true</privileged>
+</mdclass:CommonModule>

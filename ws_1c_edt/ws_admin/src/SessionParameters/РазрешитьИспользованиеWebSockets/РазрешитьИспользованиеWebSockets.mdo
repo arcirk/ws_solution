@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:SessionParameter xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="abc68f6e-7697-43f1-934e-41be493f20c6">
+  <name>РазрешитьИспользованиеWebSockets</name>
+  <synonym>
+    <key>ru</key>
+    <value>Разрешить использование web sockets</value>
+  </synonym>
+  <type>
+    <types>Boolean</types>
+  </type>
+</mdclass:SessionParameter>

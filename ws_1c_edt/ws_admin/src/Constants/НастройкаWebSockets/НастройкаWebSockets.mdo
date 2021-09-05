@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:Constant xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:core="http://g5.1c.ru/v8/dt/mcore" xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="cf0cd66e-9946-4874-8bd8-e657a1fe2ca6">
+  <producedTypes>
+    <managerType typeId="e810556d-3985-4686-8044-06ec626f7b76" valueTypeId="4855ede3-d2e5-46d2-844f-dc18c5ebdf6c"/>
+    <valueManagerType typeId="8ad267a8-f18d-4258-8d37-81d3f530f292" valueTypeId="b46b9fb1-1c21-41a3-9875-7280af5c77af"/>
+    <valueKeyType typeId="f556567a-6992-4415-8916-2a5a6881b8be" valueTypeId="64938f68-5633-4ee8-b6aa-1475903808ec"/>
+  </producedTypes>
+  <name>НастройкаWebSockets</name>
+  <synonym>
+    <key>ru</key>
+    <value>Настройка web sockets</value>
+  </synonym>
+  <type>
+    <types>String</types>
+    <stringQualifiers/>
+  </type>
+  <useStandardCommands>true</useStandardCommands>
+  <minValue xsi:type="core:UndefinedValue"/>
+  <maxValue xsi:type="core:UndefinedValue"/>
+  <dataLockControlMode>Managed</dataLockControlMode>
+</mdclass:Constant>

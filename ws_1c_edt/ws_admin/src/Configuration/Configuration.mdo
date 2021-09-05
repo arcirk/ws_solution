@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mdclass:Configuration xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="8be672d3-01ff-40f3-822c-62d6a3e660e0">
-  <name>ws_admin</name>
+  <name>ws_client</name>
   <synonym>
     <key>ru</key>
-    <value>Ws admin</value>
+    <value>WebSocket клиент</value>
   </synonym>
   <containedObjects classId="9cd510cd-abfc-11d4-9434-004095e12fc7" objectId="9884b24d-db33-4881-83fb-29af162d56b3"/>
   <containedObjects classId="9fcd25a0-4822-11d4-9414-008048da11f9" objectId="67a4fbdb-300a-444a-9c52-9a7be974d436"/>
@@ -39,30 +39,27 @@
     </synonym>
     <languageCode>ru</languageCode>
   </languages>
-  <subsystems>Subsystem.Сервер</subsystems>
-  <subsystems>Subsystem.Тестирование</subsystems>
-  <sessionParameters>SessionParameter.ИдентификаторПриложения</sessionParameters>
-  <sessionParameters>SessionParameter.ВебСокетСервер</sessionParameters>
-  <sessionParameters>SessionParameter.ПортВебСокетСервера</sessionParameters>
+  <subsystems>Subsystem.НСИ</subsystems>
+  <subsystems>Subsystem.Администрирование</subsystems>
+  <sessionParameters>SessionParameter.ТекущийПользователь</sessionParameters>
+  <sessionParameters>SessionParameter.ТекущийВнешнийПользователь</sessionParameters>
+  <sessionParameters>SessionParameter.ИдетификаторСеанса</sessionParameters>
+  <sessionParameters>SessionParameter.WebSocketsДрайверЗагружен</sessionParameters>
+  <sessionParameters>SessionParameter.НастройкаWebSockets</sessionParameters>
+  <sessionParameters>SessionParameter.РазрешитьИспользованиеWebSockets</sessionParameters>
+  <roles>Role.ПолныеПрава</roles>
   <commonTemplates>CommonTemplate.ws_client</commonTemplates>
   <commonModules>CommonModule.WebSocketКлиент</commonModules>
   <commonModules>CommonModule.WebSocketСервер</commonModules>
   <commonModules>CommonModule.ОбщегоНазначения</commonModules>
   <commonModules>CommonModule.Пользователи</commonModules>
-  <constants>Constant.ПутьККомпонентеLinux</constants>
-  <constants>Constant.Порт</constants>
-  <constants>Constant.ДомашнийКаталог</constants>
-  <constants>Constant.КаталогФайловКофигурации</constants>
-  <constants>Constant.КаталогОтладки</constants>
-  <constants>Constant.Сервер</constants>
-  <constants>Constant.РабочийКаталог</constants>
-  <constants>Constant.ИмяВнешнейКомпоненты</constants>
-  <constants>Constant.ИдентификаторОбъекта</constants>
-  <constants>Constant.РежимОтладки</constants>
+  <commonModules>CommonModule.РаботаСJSON</commonModules>
+  <commonModules>CommonModule.ПривилегированныйМодуль</commonModules>
+  <commonModules>CommonModule.ПользователиСервер</commonModules>
+  <constants>Constant.НастройкаWebSockets</constants>
+  <constants>Constant.РазрешитьИспользованиеWebSocketsService</constants>
   <commonForms>CommonForm.ФормаКонстант</commonForms>
-  <catalogs>Catalog.Каналы</catalogs>
   <catalogs>Catalog.Пользователи</catalogs>
-  <dataProcessors>DataProcessor.КонсольАдминистратора</dataProcessors>
-  <dataProcessors>DataProcessor.Чат</dataProcessors>
-  <dataProcessors>DataProcessor.ТестированиеКомпоненты</dataProcessors>
+  <catalogs>Catalog.УчетныеЗаписиПользователей</catalogs>
+  <dataProcessors>DataProcessor.WebSocketService</dataProcessors>
 </mdclass:Configuration>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:DataProcessor xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="a9505498-cc79-4b78-8356-7b677cdd3782">
+  <producedTypes>
+    <objectType typeId="2c5be7cb-1db2-4e27-8467-96fbcdb4bd9c" valueTypeId="aa0ee356-46e3-4139-9861-bfac6bc781de"/>
+    <managerType typeId="619622ec-017b-4a05-820f-30ebb17ca45b" valueTypeId="611e2ddc-41c2-4796-8b89-872332ba4ab2"/>
+  </producedTypes>
+  <name>WebSocketService</name>
+  <synonym>
+    <key>ru</key>
+    <value>Web socket service</value>
+  </synonym>
+  <useStandardCommands>true</useStandardCommands>
+  <defaultForm>DataProcessor.WebSocketService.Form.Форма</defaultForm>
+  <forms uuid="5033bbb2-1616-4ff1-95e7-fa45fb90361b">
+    <name>Форма</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+  <forms uuid="c495fe4d-1444-47ef-8883-15d4f97a808e">
+    <name>ФормаЧат</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма чат</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+  <forms uuid="8e089c39-68e2-4516-aba6-4128bd6fb9f9">
+    <name>РегистрацияПользователя</name>
+    <synonym>
+      <key>ru</key>
+      <value>Регистрация пользователя</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+</mdclass:DataProcessor>
