@@ -1315,21 +1315,17 @@
     <items xsi:type="form:FormGroup">
       <name>Группа1</name>
       <id>98</id>
-      <items xsi:type="form:FormField">
+      <items xsi:type="form:Decoration">
         <name>Консоль</name>
-        <id>38</id>
+        <id>100</id>
         <visible>true</visible>
         <enabled>true</enabled>
         <userVisible>
           <common>true</common>
         </userVisible>
-        <dataPath xsi:type="form:DataPath">
-          <segments>Консоль</segments>
-        </dataPath>
-        <titleLocation>None</titleLocation>
         <extendedTooltip>
           <name>КонсольРасширеннаяПодсказка</name>
-          <id>40</id>
+          <id>102</id>
           <visible>true</visible>
           <enabled>true</enabled>
           <userVisible>
@@ -1344,7 +1340,7 @@
         </extendedTooltip>
         <contextMenu>
           <name>КонсольКонтекстноеМеню</name>
-          <id>39</id>
+          <id>101</id>
           <visible>true</visible>
           <enabled>true</enabled>
           <userVisible>
@@ -1352,17 +1348,15 @@
           </userVisible>
           <autoFill>true</autoFill>
         </contextMenu>
-        <type>LabelField</type>
-        <editMode>Enter</editMode>
-        <showInHeader>true</showInHeader>
-        <headerHorizontalAlign>Left</headerHorizontalAlign>
-        <showInFooter>true</showInFooter>
-        <extInfo xsi:type="form:LabelFieldExtInfo">
-          <height>10</height>
-          <autoMaxHeight>true</autoMaxHeight>
-          <horizontalStretch>true</horizontalStretch>
+        <type>Label</type>
+        <height>10</height>
+        <autoMaxHeight>true</autoMaxHeight>
+        <maxHeight>20</maxHeight>
+        <horizontalStretch>true</horizontalStretch>
+        <extInfo xsi:type="form:LabelDecorationExtInfo">
+          <horizontalAlign>Left</horizontalAlign>
           <backColor xsi:type="core:ColorRef">
-            <color>Style.FormTextColor</color>
+            <color>Style.ButtonTextColor</color>
           </backColor>
         </extInfo>
       </items>
@@ -1677,8 +1671,7 @@
     </title>
     <id>7</id>
     <valueType>
-      <types>String</types>
-      <stringQualifiers/>
+      <types>FormattedString</types>
     </valueType>
     <view>
       <common>true</common>
