@@ -546,6 +546,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 4;
     else if (command == "get_user_info")
         return params == 1;
+    else if (command == "get_group_list")
+        return params == 1;
     else
         return false;
 }
@@ -566,6 +568,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("update_user");
     commands.emplace_back("get_messages");
     commands.emplace_back("get_user_info");
+    commands.emplace_back("get_group_list");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -585,12 +588,14 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::add_new_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "get_users")
         return  std::bind(&shared_state::get_db_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-   else if (command == "update_user")
+    else if (command == "update_user")
         return  std::bind(&shared_state::update_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-   else if (command == "get_messages")
+    else if (command == "get_messages")
         return  std::bind(&shared_state::get_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-   else if (command == "get_user_info")
+    else if (command == "get_user_info")
         return  std::bind(&shared_state::get_user_info, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "get_group_list")
+        return  std::bind(&shared_state::get_group_list, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -980,6 +985,19 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arc_json::ws_json *pa
         delete json;
     } else{
         err = "Ошибка получения данных пользователя!";
+        return false;
+    }
+
+    return true;
+}
+
+bool shared_state::get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                                  std::string &err, std::string &custom_result) {
+    std::string query = "SELECT * FROM Channels";
+    err = "";
+    sqlite3Db->execute(query, "Channels", custom_result, err);
+
+    if (!err.empty()){
         return false;
     }
 

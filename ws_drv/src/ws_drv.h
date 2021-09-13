@@ -95,6 +95,8 @@ private:
 
     void get_user_info(const variant_t &user_uuid, const variant_t &uuid_form);
 
+    void get_group_list(const variant_t &uuid_form);
+
     ws_client* client;
     variant_t _client_param;
 

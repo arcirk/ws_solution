@@ -105,6 +105,7 @@ namespace arc_sqlite {
             case tables::eChannels:
                 result =		",\n token    TEXT NOT NULL";
                 result.append(",\n public   INTEGER");
+                result.append(",\n parent   TEXT");
                 break;
             case tables::eMessages:
                 result =		 ",\n message  TEXT";

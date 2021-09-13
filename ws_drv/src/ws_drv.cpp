@@ -101,6 +101,7 @@ ws_drv::ws_drv() {
     AddMethod(L"GetTZOffset", L"ПолучитьСмещениеВременнойЗоны", this, &ws_drv::get_tz_offset);
     AddMethod(L"GetMessages", L"ПолучитьСообщения", this, &ws_drv::get_messages);
     AddMethod(L"GetUserInfo", L"ПолучитьИнформациюОПользователе", this, &ws_drv::get_user_info);
+    AddMethod(L"GetGroupList", L"ПолучитьСписокГрупп", this, &ws_drv::get_group_list);
 
 }
 
@@ -469,6 +470,21 @@ void ws_drv::get_user_info(const variant_t &user_uuid, const variant_t &uuid_for
         boost::property_tree::json_parser::write_json(_ss, pt);
 
         send_command_("get_user_info", _uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
+}
+
+void ws_drv::get_group_list(const variant_t &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        send_command_("get_group_list", _uuid_form, "");
 
     }catch (std::exception& e){
         message("error: " + std::string (e.what()));
