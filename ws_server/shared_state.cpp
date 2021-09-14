@@ -235,28 +235,14 @@ send(const std::string& message, std::string command, bool to_base64)
 
     //отправка сообщения всем клиентам
 
-    //как я понял далее мы создаем список для отправки сообщения всем
-    //блокируя поток чтобы избежать подключения новых клиентов во время отправки сообщения
-    //изменяю на map
-
-    // Создаем локальный список всех слабых указателей, представляющих
-    // сеансы, поэтому мы можем выполнить фактическую отправку без
-    // удерживаем мьютекс:
     std::vector<boost::weak_ptr<websocket_session>> v;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-//        v.reserve(sessions_.size());
-//        for(auto p : sessions_)
-//            v.emplace_back(p->weak_from_this());
         v.reserve(sessions_.size());
         for(auto p : sessions_)
             v.emplace_back(p.second->weak_from_this());
     }
 
-    // For each session in our local list, try to acquire a strong
-    // pointer. If successful, then deliver the message on that session.
-    // Для каждой сессии в нашем локальном списке стараемся получить сильную
-    // указатель. В случае успеха отправьте сообщение в этом сеансе.
     for(auto const& wp : v)
         if(auto sp = wp.lock()){
             if (to_base64){
@@ -381,94 +367,6 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
 
         delete params;
     }
-
-
-//        if (vec_command.size() == 1) {
-//            if (command == "get_channels") //получить список каналов
-//                {
-//                result = get_active_users();
-//
-//                } else if (command == "send_all_message") {
-//                if (vec_message.size() > 0){
-//                    if (!vec_message[0].empty()){
-//                        auto * new_msg = new arc_json::ws_message(uuid, "admin", vec_message[0], "send_all_message", "Console");
-//                        std::string sz_new_msg = new_msg->get_json(true);
-//                        send(sz_new_msg, uuid);
-//                        delete new_msg;
-//                        result = "success";
-//                    }
-//                }
-//            } else if (command == "get_uuid") {
-//                result = to_string(uuid);
-//
-//            } else if (command == "set_client_param") {
-//                std::string err = "error";
-////                if(set_client_param(uuid, msg->get_uuid(), msg->get_name(), msg->get_hash(), err, msg->get_user_uuid(), msg->get_app_name())){
-////                    result = "set_client_param: success";
-////                } else
-////                    result = "set_client_param: " + err;
-//
-//            }else if (command == "add_user"){
-//                std::string err = "";
-//                _add_new_user(msg->get_name(), msg->get_hash(), msg->get_role(), arc_json::uuid_to_string(msg->get_uuid()), msg->get_pref(), err,
-//                             true);
-//                if (err.empty())
-//                    result = "add_user: success";
-//                else
-//                    result = "add_user: " + err;
-//            } else if (command == "set_client_param") {
-//                std::string err = "error";
-////                if(set_client_param(uuid, msg->get_uuid(), msg->get_name(), msg->get_hash(), err, msg->get_user_uuid(), msg->get_app_name())){
-////                    result = "set_client_param: success";
-////                } else
-////                    result = "set_client_param: " + err;
-//            }else if (command == "subscribe_to_channel") {
-//                std::string err = "error";
-//                if(subscribe_to_channel(msg, uuid_form)){
-//                    result = "subscribe_to_channel: join channel success";
-//                } else
-//                    result = "subscribe_to_channel: " + err;
-//            }
-//            else if (command == "subscribe_close_channel") {
-//                subscribe_close_channel(msg);
-//                result = "subscribe_close_channel: close channel success";
-//            }
-//        }else if (vec_command.size() == 2) {
-//            if (command == "set_name") {
-//                websocket_session* session = get_session(uuid);
-//                session->set_name(vec_command[1]);
-//                result = "success";
-//
-//            }else if (command == "send_private_message") {
-//                if (vec_message.size() > 0){
-//                    boost::uuids::uuid uuid_{};
-//                    if (arc_json::is_valid_uuid(vec_command[1], uuid_)){
-//                        if (!vec_message[0].empty()){
-//                            send_private_message(vec_message[0], uuid_, uuid);
-//                            result = vec_message[0];
-//                        }
-//                    }
-//                }
-//
-//            }else if (command == "message") {
-//                if (vec_message.size() > 0){
-//                    boost::uuids::uuid uuid_{};
-//                    if (arc_json::is_valid_uuid(vec_command[1], uuid_)){
-//                        if (!vec_message[0].empty()){
-//                            send_private_message(vec_message[0], uuid_, uuid);
-//                            result = vec_message[0];
-//                        }
-//                    }
-//                }
-//
-//            }
-//
-//        }else if (vec_command.size() == 3){
-//
-//        }else if (vec_command.size() == 4){
-//
-//        }
-//    }
     delete msg;
 
     return result;
