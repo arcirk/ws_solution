@@ -103,9 +103,10 @@ namespace arc_sqlite {
                 result.append(	",\n Performance TEXT");
                 break;
             case tables::eChannels:
-                result =		",\n token    TEXT NOT NULL";
-                result.append(",\n public   INTEGER");
-                result.append(",\n parent   TEXT");
+                result = ",\n Parent      TEXT (36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'";
+                //result =		",\n token    TEXT NOT NULL";
+//                result.append(",\n public   INTEGER");
+//                result.append(",\n Parent   TEXT (36)");
                 break;
             case tables::eMessages:
                 result =		 ",\n message  TEXT";
@@ -502,18 +503,18 @@ namespace arc_sqlite {
         try {
             for (auto iter = sets.begin(); iter < sets.end(); iter++) {
                 _set.append(iter->key);
-                if (iter != --sets.end())
-                    _set.append(",\n");
+//                if (iter != --sets.end())
+//                    _set.append(",\n");
 
                 if (iter->value.type() == typeid(std::string)){
                     std::string value = boost::get<std::string>(iter->value);
-                    _set.append("'" + value + "'");
+                    _set.append(" = '" + value + "'");
                     if (iter != --sets.end())
                         _set.append(",\n");
                 }else if (iter->value.type() == typeid(long int)){
                     long int res = boost::get<long int>(iter->value);
                     std::string value = std::to_string(res);
-                    _set.append("'" + value + "'");
+                    _set.append(" = '" + value + "'");
                     if (iter != --sets.end())
                         _set.append(",\n");
                 }
@@ -522,18 +523,18 @@ namespace arc_sqlite {
 
             for (auto iter = where.begin(); iter < where.end(); iter++) {
                 _where.append(iter->key);
-                if (iter != --where.end())
-                    _where.append(",\n");
+//                if (iter != --where.end())
+//                    _where.append(",\n");
 
                 if (iter->value.type() == typeid(std::string)){
                     std::string value = boost::get<std::string>(iter->value);
-                    _where.append("'" + value + "'");
+                    _where.append(" = '" + value + "'");
                     if (iter != --where.end())
                         _where.append(" AND \n");
                 }else if (iter->value.type() == typeid(long int)){
                     long int res = boost::get<long int>(iter->value);
                     std::string value = std::to_string(res);
-                    _where.append("'" + value + "'");
+                    _where.append(" = '" + value + "'");
                     if (iter != --where.end())
                         _where.append(" AND \n");
                 }
