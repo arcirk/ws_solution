@@ -267,4 +267,20 @@ namespace arc_json{
         }
         return "";
     }
+
+    void ws_json::addObject(_Document * doc, std::vector<content_value> &values) {
+
+        if (!doc->IsObject()){
+            std::cerr << "Документ должен быть типом 'Object'!";
+            return;
+        }
+
+        for (auto iter : values){
+            addMember(doc, iter);
+        }
+
+    }
+    void ws_json::addObject(std::vector<content_value> &values){
+        addObject(this, values);
+    }
 }

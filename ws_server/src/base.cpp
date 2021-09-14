@@ -99,7 +99,7 @@ namespace arc_sqlite {
         {
             case tables::eUsers:
                 result =		",\n hash    TEXT UNIQUE NOT NULL";
-                result.append(	",\n role TEXT");
+                result.append(	",\n role TEXT DEFAULT client");
                 result.append(	",\n Performance TEXT");
                 break;
             case tables::eChannels:
@@ -438,7 +438,7 @@ namespace arc_sqlite {
         return i;
     }
 
-    bool sqlite3_db::incert(tables tableType, std::vector<arc_json::content_value> vals, std::string& err) {
+    bool sqlite3_db::incert(tables tableType, std::vector<arc_json::content_value> values, std::string& err) {
 
         std::string table = get_table_name(tableType);
 
@@ -446,24 +446,24 @@ namespace arc_sqlite {
         query.append(table);
 
         std::string into = "\n(";
-        std::string values = "\n(";
+        std::string values_ = "\n(";
         try {
-            for (auto iter = vals.begin(); iter < vals.end(); iter++) {
+            for (auto iter = values.begin(); iter < values.end(); iter++) {
                 into.append(iter->key);
-                if (iter != --vals.end())
+                if (iter != --values.end())
                     into.append(",\n");
 
                 if (iter->value.type() == typeid(std::string)){
                     std::string value = boost::get<std::string>(iter->value);
-                    values.append("'" + value + "'");
-                    if (iter != --vals.end())
-                        values.append(",\n");
+                    values_.append("'" + value + "'");
+                    if (iter != --values.end())
+                        values_.append(",\n");
                 }else if (iter->value.type() == typeid(long int)){
                     long int res = boost::get<long int>(iter->value);
                     std::string value = std::to_string(res);
-                    values.append("'" + value + "'");
-                    if (iter != --vals.end())
-                        values.append(",\n");
+                    values_.append("'" + value + "'");
+                    if (iter != --values.end())
+                        values_.append(",\n");
                 }
 
             }
@@ -473,10 +473,10 @@ namespace arc_sqlite {
         }
 
         into.append("\n)");
-        values.append("\n)");
+        values_.append("\n)");
         query.append(into);
         query.append("\nVALUES\n");
-        query.append(values + ";");
+        query.append(values_ + ";");
 
         err = "";
 
@@ -488,6 +488,75 @@ namespace arc_sqlite {
 
         return true;
 
+    }
+
+    bool sqlite3_db::update(tables tableType, std::vector<arc_json::content_value> &sets, std::vector<arc_json::content_value> &where, std::string &err) {
+
+        std::string table = get_table_name(tableType);
+
+        std::string query = "UPDATE ";
+        query.append(table);
+
+        std::string _set = "\n SET ";
+        std::string _where = "\n WHERE ";
+        try {
+            for (auto iter = sets.begin(); iter < sets.end(); iter++) {
+                _set.append(iter->key);
+                if (iter != --sets.end())
+                    _set.append(",\n");
+
+                if (iter->value.type() == typeid(std::string)){
+                    std::string value = boost::get<std::string>(iter->value);
+                    _set.append("'" + value + "'");
+                    if (iter != --sets.end())
+                        _set.append(",\n");
+                }else if (iter->value.type() == typeid(long int)){
+                    long int res = boost::get<long int>(iter->value);
+                    std::string value = std::to_string(res);
+                    _set.append("'" + value + "'");
+                    if (iter != --sets.end())
+                        _set.append(",\n");
+                }
+
+            }
+
+            for (auto iter = where.begin(); iter < where.end(); iter++) {
+                _where.append(iter->key);
+                if (iter != --where.end())
+                    _where.append(",\n");
+
+                if (iter->value.type() == typeid(std::string)){
+                    std::string value = boost::get<std::string>(iter->value);
+                    _where.append("'" + value + "'");
+                    if (iter != --where.end())
+                        _where.append(" AND \n");
+                }else if (iter->value.type() == typeid(long int)){
+                    long int res = boost::get<long int>(iter->value);
+                    std::string value = std::to_string(res);
+                    _where.append("'" + value + "'");
+                    if (iter != --where.end())
+                        _where.append(" AND \n");
+                }
+
+            }
+        }catch (std::exception& e){
+            err = e.what();
+            return false;
+        }
+
+        _set.append("\n");
+        _where.append("\n");
+        query.append(_set);
+        query.append(_where + ";");
+
+        err = "";
+
+        exec(query, err);
+
+        if (!err.empty())
+            return false;
+
+        return true;
     }
 
     std::string sqlite3_db::get_channel_token(const boost::uuids::uuid &first, const boost::uuids::uuid &second) {

@@ -141,7 +141,8 @@ namespace arc_sqlite {
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, std::string>> &table, std::string &error);
 
-        bool incert(tables tableType, std::vector<arc_json::content_value> vals, std::string& err = (std::string &) "");
+        bool incert(tables tableType, std::vector<arc_json::content_value> values, std::string& err = (std::string &) "");
+        bool update(tables tableType, std::vector<arc_json::content_value> &sets, std::vector<arc_json::content_value> &where, std::string& err = (std::string &) "");
 
         std::string get_channel_token(const boost::uuids::uuid& first, const boost::uuids::uuid& second);
 

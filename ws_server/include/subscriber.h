@@ -23,6 +23,7 @@ public:
     bool authorized = false;
     boost::uuids::uuid	user_uuid_;
     std::string app_name_ = "Console";
+    std::string role_ = "client";
     //explicit
     //subscriber(std::string  name, boost::uuids::uuid &&uuid);
 
@@ -30,6 +31,7 @@ public:
     virtual void deliver(const boost::shared_ptr<const std::string> &msg) = 0;
     virtual boost::uuids::uuid & get_uuid();
     virtual boost::uuids::uuid & get_user_uuid();
+    virtual const std::string & get_role();
 
     [[nodiscard]] std::string get_name() const;
     void set_name(std::string &name);
@@ -37,6 +39,7 @@ public:
     void set_user_uuid(boost::uuids::uuid &uuid);
     void set_app_name(const std::string &app_name);
     [[nodiscard]] std::string get_app_name() const;
+    void set_role(const std::string &role);
 
 
 private:

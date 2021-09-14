@@ -25,6 +25,8 @@ namespace arc_json{
         static void addMember(_Document * doc, content_value& value);
         void addMember(content_value value) { addMember(this, value); };
         void addObjectMember(_Value * object, content_value val);
+        void addObject(_Document * doc, std::vector<content_value> &values);
+        void addObject(std::vector<content_value> &values);
 
         static void set_object(_Document *doc);
         void set_object(){set_object(this);};

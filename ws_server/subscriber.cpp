@@ -37,3 +37,11 @@ void subscriber::set_app_name(const std::string &app_name) {
 std::string subscriber::get_app_name() const {
     return app_name_;
 }
+
+const std::string &subscriber::get_role() {
+    return role_;
+}
+
+void subscriber::set_role(const std::string &role) {
+    role_ = role;
+}

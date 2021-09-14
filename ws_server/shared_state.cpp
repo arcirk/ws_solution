@@ -548,6 +548,10 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "get_group_list")
         return params == 1;
+    else if (command == "add_group")
+        return params == 3;
+    else if (command == "edit_group")
+        return params == 4;
     else
         return false;
 }
@@ -569,6 +573,8 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_messages");
     commands.emplace_back("get_user_info");
     commands.emplace_back("get_group_list");
+    commands.emplace_back("add_group");
+    commands.emplace_back("edit_group");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -596,6 +602,10 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::get_user_info, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "get_group_list")
         return  std::bind(&shared_state::get_group_list, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "add_group")
+        return  std::bind(&shared_state::add_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "edit_group")
+        return  std::bind(&shared_state::edit_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -628,12 +638,21 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
 
         session->set_name(name);
 
+        std::string role = "client";
+
         if (!session->authorized){
 
             if (!hash.empty()){
                 std::cout << session->get_name() << ":" << hash << std::endl;
-                int result = sqlite3Db->exec("select _id from Users where hash = '" + hash + "';");
+                //int result = sqlite3Db->exec("select _id from Users where hash = '" + hash + "';");
+                std::vector<std::map<std::string, std::string>> table;
+                err = "";
+                int result = sqlite3Db->execute("select _id, role from Users where hash = '" + hash + "';",
+                                                "Users", table, err);
                 session->authorized = result > 0;
+                if (result > 0){
+                    role = table[0].at("role");
+                }
             }
 
         }
@@ -644,6 +663,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
             session->set_uuid(new_uuid);
             session->set_user_uuid(user_uuid);
             session->set_app_name(app_name);
+            session->set_role(role);
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
             send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arc_json::uuid_to_string(session->get_uuid()), "set_client_param");
@@ -1002,4 +1022,114 @@ bool shared_state::get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json *p
     }
 
     return true;
+}
+
+bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                             std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string group_name = params->getStringMember("name");
+    std::string group_presentation = params->getStringMember("presentation");
+    std::string group_parent = params->getStringMember("parent");
+    boost::uuids::uuid _uuid = boost::uuids::random_generator()();
+
+    std::string _group_parent;
+    if (group_parent.empty()){
+        _group_parent = arc_json::nil_uuid();
+    } else
+        _group_parent = group_parent;
+
+    std::vector<arc_json::content_value> fields;
+
+    fields.emplace_back(arc_json::content_value("FirstField", group_name));
+    fields.emplace_back(arc_json::content_value("SecondField", group_presentation));
+    fields.emplace_back(arc_json::content_value("Ref", arc_json::uuid_to_string(_uuid)));
+    fields.emplace_back(arc_json::content_value("Parent", _group_parent));
+
+    err = "";
+    sqlite3Db->incert(arc_sqlite::tables::eChannels, fields, err);
+
+    if (!err.empty())
+        return false;
+    else{
+        auto * obj = new arc_json::ws_json();
+        obj->set_object();
+        obj->addObject(fields);
+        custom_result = obj->to_string();
+        delete obj;
+        return true;
+    }
+
+}
+bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                              std::string &err, std::string &custom_result) {
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string group_name = params->getStringMember("name");
+    std::string group_presentation = params->getStringMember("presentation");
+    std::string group_parent = params->getStringMember("parent");
+    std::string _uuid = params->getStringMember("ref");
+
+    if (_uuid.empty()){
+        err = "не указан идентификатор группы!";
+        return false;
+    }
+
+    std::vector<arc_json::content_value> _sets;
+
+    _sets.emplace_back(arc_json::content_value("FirstField", group_name));
+    _sets.emplace_back(arc_json::content_value("SecondField", group_presentation));
+    _sets.emplace_back(arc_json::content_value("Parent", group_parent));
+
+    std::vector<arc_json::content_value> _where;
+    _where.emplace_back(arc_json::content_value("Ref", _uuid));
+
+    err = "";
+    sqlite3Db->update(arc_sqlite::tables::eChannels, _sets, _where, err);
+
+    if (!err.empty())
+        return false;
+    else{
+        _sets.emplace_back(arc_json::content_value("Ref", _uuid));
+        auto * obj = new arc_json::ws_json();
+        obj->set_object();
+        obj->addObject(_sets);
+        custom_result = obj->to_string();
+        delete obj;
+        return true;
+    }
+}
+
+bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                                std::string &err, std::string &custom_result) {
+
 }

@@ -102,6 +102,8 @@ ws_drv::ws_drv() {
     AddMethod(L"GetMessages", L"ПолучитьСообщения", this, &ws_drv::get_messages);
     AddMethod(L"GetUserInfo", L"ПолучитьИнформациюОПользователе", this, &ws_drv::get_user_info);
     AddMethod(L"GetGroupList", L"ПолучитьСписокГрупп", this, &ws_drv::get_group_list);
+    AddMethod(L"AddGroup", L"ДобавитьГруппу", this, &ws_drv::add_group);
+    AddMethod(L"EditGroup", L"ИзменитьГруппу", this, &ws_drv::edit_group);
 
 }
 
@@ -485,6 +487,53 @@ void ws_drv::get_group_list(const variant_t &uuid_form) {
         std::string _uuid_form = std::get<std::string>(uuid_form);
 
         send_command_("get_group_list", _uuid_form, "");
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
+}
+
+void
+ws_drv::add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        pt.add("name", std::get<std::string>(name));
+        pt.add("presentation", std::get<std::string>(presentation));
+        pt.add("parent", std::get<std::string>(uuid_parent));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command_("add_group", _uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
+}
+
+void ws_drv::edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation,
+                        const variant_t &uuid_parent, const variant_t &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        pt.add("name", std::get<std::string>(name));
+        pt.add("presentation", std::get<std::string>(presentation));
+        pt.add("parent", std::get<std::string>(uuid_parent));
+        pt.add("ref", std::get<std::string>(uuid_group));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command_("edit_group", _uuid_form, _ss.str());
 
     }catch (std::exception& e){
         message("error: " + std::string (e.what()));

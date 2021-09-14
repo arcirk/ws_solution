@@ -84,18 +84,14 @@ private:
     void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
 
     std::string get_hash(const variant_t &usr, const variant_t &pwd);
-
     variant_t currentDate();
-
     variant_t current_date_in_seconds();
-
     variant_t get_tz_offset();
-
     void get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form);
-
     void get_user_info(const variant_t &user_uuid, const variant_t &uuid_form);
-
     void get_group_list(const variant_t &uuid_form);
+    void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
+    void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
 
     ws_client* client;
     variant_t _client_param;
