@@ -552,6 +552,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 3;
     else if (command == "edit_group")
         return params == 4;
+    else if (command == "remove_group")
+        return params == 1;
     else
         return false;
 }
@@ -575,6 +577,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_group_list");
     commands.emplace_back("add_group");
     commands.emplace_back("edit_group");
+    commands.emplace_back("remove_group");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -606,6 +609,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::add_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "edit_group")
         return  std::bind(&shared_state::edit_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "remove_group")
+        return  std::bind(&shared_state::remove_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -1132,4 +1137,22 @@ bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *param
 bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
+    std::string _uuid = params->getStringMember("ref");
+    if (_uuid.empty()){
+        err = "не указан идентификатор группы!";
+        return false;
+    }
+
+    std::string query = "DELETE FROM Channels\n"
+                        "WHERE Ref = '" + _uuid + "' OR\n"
+                        "Parent = '" + _uuid + "';";
+
+    err = "";
+    sqlite3Db->exec(query, err);
+    if(!err.empty())
+        return false;
+
+    custom_result = params->to_string();
+
+    return true;
 }

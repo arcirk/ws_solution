@@ -114,8 +114,8 @@ namespace arc_sqlite {
                 result.append(",\n date     INTEGER");
                 break;
             case tables::eSubscribers:
-                result =		   ",\n channel    TEXT NOT NULL REFERENCES Channels (token)";
-                result.append(	",\n user_uuid  TEXT (36)");
+                result =		   ",\n channel    TEXT (36) NOT NULL REFERENCES Channels (Ref)";
+                result.append(	",\n user_uuid  TEXT (36) REFERENCES Users (Ref)");
                 break;
 //            case lttables::eBarcodes:
 //                result =		",\n Barcode            TEXT (128) UNIQUE";
@@ -644,6 +644,7 @@ namespace arc_sqlite {
         return result;
 
     }
+
 
 
 }

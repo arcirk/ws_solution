@@ -92,6 +92,7 @@ private:
     void get_group_list(const variant_t &uuid_form);
     void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
     void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
+    void remove_group(const variant_t &uuid_group, const variant_t &uuid_form);
 
     ws_client* client;
     variant_t _client_param;
