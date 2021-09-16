@@ -107,6 +107,7 @@ ws_drv::ws_drv() {
     AddMethod(L"RemoveGroup", L"УдалитьГруппу", this, &ws_drv::remove_group);
     AddMethod(L"GetUsers", L"ПолучитьПользователей", this, &ws_drv::get_users);
     AddMethod(L"SetParent", L"УстановитьГруппу", this, &ws_drv::set_parent);
+    AddMethod(L"RemoveUser", L"УдалитьПользователя", this, &ws_drv::remove_user);
 
 }
 
@@ -598,6 +599,26 @@ void ws_drv::set_parent(const variant_t &user_uuid, const variant_t &uuid_group,
         boost::property_tree::json_parser::write_json(_ss, pt);
 
         send_command_("set_parent", _uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
+}
+
+void ws_drv::remove_user(const variant_t &user_uuid, const variant_t &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        pt.add("ref", std::get<std::string>(user_uuid));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command_("remove_user", _uuid_form, _ss.str());
 
     }catch (std::exception& e){
         message("error: " + std::string (e.what()));

@@ -566,6 +566,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "set_parent")
         return params == 2;
+    else if (command == "remove_user")
+        return params == 1;
     else
         return false;
 }
@@ -591,6 +593,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("edit_group");
     commands.emplace_back("remove_group");
     commands.emplace_back("set_parent");
+    commands.emplace_back("remove_user");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -626,6 +629,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::remove_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "set_parent")
         return  std::bind(&shared_state::set_parent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "remove_user")
+        return  std::bind(&shared_state::remove_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -1159,6 +1164,21 @@ bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *param
 
 bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
                                 std::string &err, std::string &custom_result) {
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
 
     std::string _uuid = params->getStringMember("ref");
     if (_uuid.empty()){
@@ -1183,6 +1203,21 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *par
 bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
                               std::string &err, std::string &custom_result) {
 
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
     std::string _uuid = params->getStringMember("user");
     if (_uuid.empty()){
         err = "не указан идентификатор пользователя!";
@@ -1197,6 +1232,44 @@ bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *param
     std::string query = "UPDATE Users\n"
                         " SET channel = '" + _parent + "'\n"
                         " WHERE Ref = '" + _uuid + "';";
+
+    err = "";
+    sqlite3Db->exec(query, err);
+    if(!err.empty())
+        return false;
+
+    custom_result = params->to_string();
+
+    return true;
+}
+
+bool shared_state::remove_user(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                               std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->getStringMember("ref");
+    if (_uuid.empty()){
+        err = "не указан идентификатор пользователя!!";
+        return false;
+    }
+
+    std::string query = "DELETE FROM Users\n"
+                        "WHERE Ref = '" + _uuid + "';";
 
     err = "";
     sqlite3Db->exec(query, err);
