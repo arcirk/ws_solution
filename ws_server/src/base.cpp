@@ -101,6 +101,7 @@ namespace arc_sqlite {
                 result =		",\n hash    TEXT UNIQUE NOT NULL";
                 result.append(	",\n role TEXT DEFAULT client");
                 result.append(	",\n Performance TEXT");
+                result.append(	",\n channel TEXT (36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'");
                 break;
             case tables::eChannels:
                 result = ",\n Parent      TEXT (36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'";

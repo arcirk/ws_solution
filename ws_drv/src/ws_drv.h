@@ -93,6 +93,8 @@ private:
     void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
     void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
     void remove_group(const variant_t &uuid_group, const variant_t &uuid_form);
+    void get_users(const variant_t &uuid_group, const variant_t &uuid_form);
+    void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
 
     ws_client* client;
     variant_t _client_param;

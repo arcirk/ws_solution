@@ -87,6 +87,7 @@ private:
     bool add_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
     bool edit_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
     bool remove_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_parent(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
 
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
@@ -94,10 +95,8 @@ private:
     void send_private_message(const std::string &message, boost::uuids::uuid &recipient,
                               boost::uuids::uuid &sender);
 
-
-
     void _add_new_user(const std::string &usr, const std::string &pwd, const std::string &role,
-                       const std::string &uuid, const std::string &perf, std::string& error = (std::string &) "", bool pwd_is_hash = false);
+                       const std::string &uuid, const std::string &perf, const std::string &parent = (std::string &) "", std::string& error = (std::string &) "", bool pwd_is_hash = false);
 
 
 

@@ -105,6 +105,8 @@ ws_drv::ws_drv() {
     AddMethod(L"AddGroup", L"ДобавитьГруппу", this, &ws_drv::add_group);
     AddMethod(L"EditGroup", L"ИзменитьГруппу", this, &ws_drv::edit_group);
     AddMethod(L"RemoveGroup", L"УдалитьГруппу", this, &ws_drv::remove_group);
+    AddMethod(L"GetUsers", L"ПолучитьПользователей", this, &ws_drv::get_users);
+    AddMethod(L"SetParent", L"УстановитьГруппу", this, &ws_drv::set_parent);
 
 }
 
@@ -560,4 +562,44 @@ void ws_drv::remove_group(const variant_t &uuid_group, const variant_t &uuid_for
         message("error: " + std::string (e.what()));
     }
 
+}
+
+void ws_drv::get_users(const variant_t &uuid_group, const variant_t &uuid_form) {
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        pt.add("channel", std::get<std::string>(uuid_group));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command_("get_users", _uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
+}
+
+void ws_drv::set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = std::get<std::string>(uuid_form);
+
+        pt.add("parent", std::get<std::string>(uuid_group));
+        pt.add("user", std::get<std::string>(user_uuid));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command_("set_parent", _uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        message("error: " + std::string (e.what()));
+    }
 }

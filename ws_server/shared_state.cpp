@@ -56,7 +56,7 @@ shared_state(std::string doc_root)
 }
 
 void shared_state::_add_new_user(const std::string &usr, const std::string &pwd, const std::string &role,
-                                 const std::string &uuid, const std::string &perf, std::string& error, bool pwd_is_hash) {
+                                 const std::string &uuid, const std::string &perf, const std::string &parent, std::string& error, bool pwd_is_hash) {
 
     std::string  hash;
     if (!pwd_is_hash)
@@ -72,11 +72,16 @@ void shared_state::_add_new_user(const std::string &usr, const std::string &pwd,
 
     std::vector<arc_json::content_value> fields;
 
+    std::string _parent = parent;
+    if (_parent.empty())
+        _parent = arc_json::nil_uuid();
+
     fields.emplace_back(arc_json::content_value("FirstField", usr));
     fields.emplace_back(arc_json::content_value("SecondField", perf));
     fields.emplace_back(arc_json::content_value("Ref", arc_json::uuid_to_string(_uuid)));
     fields.emplace_back(arc_json::content_value("hash", hash));
     fields.emplace_back(arc_json::content_value("role", role));
+    fields.emplace_back(arc_json::content_value("channel", _parent));
 
     sqlite3Db->incert(arc_sqlite::tables::eUsers, fields, error);
 
@@ -291,6 +296,7 @@ std::string
 shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::string &command, std::string &uuid_form,
                       std::string &res)
 {
+
     //формат сообщения
     //cmd base64
 
@@ -343,6 +349,8 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
 
         command = msg->get_command();
 
+        std::cout << "run command: " << command << std::endl;
+
         uuid_form = msg->get_uuid_form();
 
         if (!is_valid_command_name(command)){
@@ -378,6 +386,8 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
             result = command + ": " + err;
             res = "error";
         }
+
+        std::cout << "end command: " << command << std::endl;
 
         delete params;
     }
@@ -537,7 +547,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "subscribe_exit_channel")
         return params == 3;
     else if (command == "add_user")
-        return params == 8;
+        return params == 6;
     else if (command == "get_users")
         return params == 1;
     else if (command == "update_user")
@@ -554,6 +564,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 4;
     else if (command == "remove_group")
         return params == 1;
+    else if (command == "set_parent")
+        return params == 2;
     else
         return false;
 }
@@ -578,6 +590,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("add_group");
     commands.emplace_back("edit_group");
     commands.emplace_back("remove_group");
+    commands.emplace_back("set_parent");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -611,6 +624,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::edit_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "remove_group")
         return  std::bind(&shared_state::remove_group, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "set_parent")
+        return  std::bind(&shared_state::set_parent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -853,7 +868,8 @@ bool shared_state::add_new_user(boost::uuids::uuid &uuid, arc_json::ws_json* par
             params->getStringMember("pwd"), //pwd
             params->getStringMember("role"), //role
             params->getStringMember("uuid"), //uuid
-            params->getStringMember("pref"), //perf
+            params->getStringMember("perf"), //perf
+            params->getStringMember("parent"), //perf
             err,
             false);
     if (!err.empty())
@@ -865,7 +881,14 @@ bool shared_state::add_new_user(boost::uuids::uuid &uuid, arc_json::ws_json* par
 bool shared_state::get_db_users(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
+    std::string channel = params->getStringMember("channel");
+
     std::string query = "SELECT * FROM Users";
+
+    if (!channel.empty()){
+        query += " WHERE channel = '" + channel + "'";
+    }
+
     err = "";
     sqlite3Db->execute(query, "Users", custom_result, err);
 
@@ -1146,6 +1169,34 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *par
     std::string query = "DELETE FROM Channels\n"
                         "WHERE Ref = '" + _uuid + "' OR\n"
                         "Parent = '" + _uuid + "';";
+
+    err = "";
+    sqlite3Db->exec(query, err);
+    if(!err.empty())
+        return false;
+
+    custom_result = params->to_string();
+
+    return true;
+}
+
+bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                              std::string &err, std::string &custom_result) {
+
+    std::string _uuid = params->getStringMember("user");
+    if (_uuid.empty()){
+        err = "не указан идентификатор пользователя!";
+        return false;
+    }
+
+    std::string _parent = params->getStringMember("parent");
+    if (_uuid.empty()){
+        _parent = arc_json::nil_uuid();
+    }
+
+    std::string query = "UPDATE Users\n"
+                        " SET channel = '" + _parent + "'\n"
+                        " WHERE Ref = '" + _uuid + "';";
 
     err = "";
     sqlite3Db->exec(query, err);
