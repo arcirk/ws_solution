@@ -8,4 +8,5 @@
   <includeHelpInContents>true</includeHelpInContents>
   <includeInCommandInterface>true</includeInCommandInterface>
   <content>DataProcessor.WebSocketService</content>
+  <content>DataProcessor.ЗагрузкаНачальныхДанных</content>
 </mdclass:Subsystem>

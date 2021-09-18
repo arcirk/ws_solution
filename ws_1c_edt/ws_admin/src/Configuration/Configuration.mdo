@@ -61,4 +61,5 @@
   <catalogs>Catalog.Пользователи</catalogs>
   <catalogs>Catalog.УчетныеЗаписиПользователей</catalogs>
   <dataProcessors>DataProcessor.WebSocketService</dataProcessors>
+  <dataProcessors>DataProcessor.ЗагрузкаНачальныхДанных</dataProcessors>
 </mdclass:Configuration>

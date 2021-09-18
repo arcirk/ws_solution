@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdclass:ExternalDataProcessor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:core="http://g5.1c.ru/v8/dt/mcore" xmlns:mdclass="http://g5.1c.ru/v8/dt/metadata/mdclass" uuid="c780aecc-7961-47c9-80df-9a5ca795c7a5">
+  <producedTypes>
+    <objectType typeId="220fee42-f8be-4a2d-be7d-57d83a5f0611" valueTypeId="b69b0906-aa55-413d-8cd3-784645be295d"/>
+  </producedTypes>
+  <name>ЗагрузкаНачальныхДанных</name>
+  <synonym>
+    <key>ru</key>
+    <value>Загрузка начальных данных</value>
+  </synonym>
+  <containedObjects classId="c3831ec8-d8d5-4f93-8a22-f9bfae07327f" objectId="d11be1db-d803-4c58-8695-456c1e0c6b9b"/>
+  <defaultForm>ExternalDataProcessor.ЗагрузкаНачальныхДанных.Form.Форма</defaultForm>
+  <attributes uuid="26d0fc84-34a2-4cfd-9906-b02d9f33688c">
+    <name>АдресВебСервиса</name>
+    <synonym>
+      <key>ru</key>
+      <value>Адрес веб сервиса</value>
+    </synonym>
+    <type>
+      <types>String</types>
+      <stringQualifiers/>
+    </type>
+    <minValue xsi:type="core:UndefinedValue"/>
+    <maxValue xsi:type="core:UndefinedValue"/>
+  </attributes>
+  <forms uuid="2b43489c-33f9-4aa8-b752-de0d3469b18d">
+    <name>Форма</name>
+    <synonym>
+      <key>ru</key>
+      <value>Форма</value>
+    </synonym>
+    <usePurposes>PersonalComputer</usePurposes>
+    <usePurposes>MobileDevice</usePurposes>
+  </forms>
+</mdclass:ExternalDataProcessor>

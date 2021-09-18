@@ -28,4 +28,8 @@ d811fcff-7017-4e66-b8b2-39b94ea70cc9
 {5,2b2de968-2c46-484a-9e7f-0f74bdd7f15e,"Константа.РазрешитьИспользованиеWebSocketsService",4},
 {4,"WebSocketService",13},
 {4,"_$PerformError$_",14},
-{3,"BackgroundJob",3}
+{3,"BackgroundJob",3},
+{2,"sqlserver",2},
+{13,2,2},
+{4,"_$Data$_.Delete",15},
+{4,"_$Transaction$_.Rollback",16}
