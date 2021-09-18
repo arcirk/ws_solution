@@ -3,6 +3,10 @@
   <items xsi:type="form:FormField">
     <name>СостояниеПодключения</name>
     <id>95</id>
+    <titleFont xsi:type="core:FontDef">
+      <height>8.0</height>
+      <bold>true</bold>
+    </titleFont>
     <visible>true</visible>
     <enabled>true</enabled>
     <userVisible>
@@ -44,6 +48,10 @@
     <extInfo xsi:type="form:LabelFieldExtInfo">
       <autoMaxWidth>true</autoMaxWidth>
       <autoMaxHeight>true</autoMaxHeight>
+      <font xsi:type="core:FontDef">
+        <height>8.0</height>
+        <bold>true</bold>
+      </font>
     </extInfo>
   </items>
   <items xsi:type="form:FormGroup">
@@ -670,6 +678,14 @@
             <event>OnActivateRow</event>
             <name>ДеревоГруппПриАктивизацииСтроки</name>
           </handlers>
+          <handlers>
+            <event>BeforeDeleteRow</event>
+            <name>ДеревоГруппПередУдалением</name>
+          </handlers>
+          <handlers>
+            <event>BeforeRowChange</event>
+            <name>ДеревоГруппПередНачаломИзменения</name>
+          </handlers>
           <searchStringAddition>
             <visible>true</visible>
             <enabled>true</enabled>
@@ -1190,6 +1206,7 @@
               <autoMaxWidth>true</autoMaxWidth>
               <autoMaxHeight>true</autoMaxHeight>
               <placementArea>UserCmds</placementArea>
+              <check>true</check>
               <representationInContextMenu>Auto</representationInContextMenu>
             </items>
             <items xsi:type="form:Button">
@@ -1241,6 +1258,10 @@
           <handlers>
             <event>BeforeRowChange</event>
             <name>ПользователиВБазеПередНачаломИзменения</name>
+          </handlers>
+          <handlers>
+            <event>BeforeDeleteRow</event>
+            <name>ПользователиВБазеПередУдалением</name>
           </handlers>
           <searchStringAddition>
             <visible>true</visible>
@@ -1657,6 +1678,10 @@
     <items xsi:type="form:Button">
       <name>ОчиститьКонсоль</name>
       <id>91</id>
+      <title>
+        <key>ru</key>
+        <value>Очистить лог</value>
+      </title>
       <visible>true</visible>
       <enabled>true</enabled>
       <userVisible>
@@ -1799,7 +1824,6 @@
       <representation>WeakSeparation</representation>
       <showLeftMargin>true</showLeftMargin>
       <united>true</united>
-      <showTitle>true</showTitle>
       <throughAlign>Auto</throughAlign>
       <currentRowUse>Auto</currentRowUse>
     </extInfo>
@@ -1897,6 +1921,37 @@
       <placementArea>UserCmds</placementArea>
       <representationInContextMenu>Auto</representationInContextMenu>
     </items>
+    <items xsi:type="form:Button">
+      <name>ФормаПоказыватьЛог</name>
+      <id>136</id>
+      <visible>true</visible>
+      <enabled>true</enabled>
+      <userVisible>
+        <common>true</common>
+      </userVisible>
+      <extendedTooltip>
+        <name>ФормаПоказыватьЛогРасширеннаяПодсказка</name>
+        <id>137</id>
+        <visible>true</visible>
+        <enabled>true</enabled>
+        <userVisible>
+          <common>true</common>
+        </userVisible>
+        <type>Label</type>
+        <autoMaxWidth>true</autoMaxWidth>
+        <autoMaxHeight>true</autoMaxHeight>
+        <extInfo xsi:type="form:LabelDecorationExtInfo">
+          <horizontalAlign>Left</horizontalAlign>
+        </extInfo>
+      </extendedTooltip>
+      <commandName>Form.Command.ПоказыватьЛог</commandName>
+      <representation>Auto</representation>
+      <autoMaxWidth>true</autoMaxWidth>
+      <autoMaxHeight>true</autoMaxHeight>
+      <placementArea>UserCmds</placementArea>
+      <check>true</check>
+      <representationInContextMenu>Auto</representationInContextMenu>
+    </items>
     <visible>true</visible>
     <enabled>true</enabled>
     <userVisible>
@@ -1916,6 +1971,10 @@
   <handlers>
     <event>BeforeClose</event>
     <name>ПередЗакрытием</name>
+  </handlers>
+  <handlers>
+    <event>OnCreateAtServer</event>
+    <name>ПриСозданииНаСервере</name>
   </handlers>
   <autoTitle>true</autoTitle>
   <autoUrl>true</autoUrl>
@@ -2553,6 +2612,28 @@
     <picture xsi:type="core:PictureRef">
       <picture>StdPicture.MoveItem</picture>
     </picture>
+    <action xsi:type="form:FormCommandHandlerContainer">
+      <handler>
+        <name>ПереместитьВГруппу</name>
+      </handler>
+    </action>
+    <currentRowUse>Auto</currentRowUse>
+  </formCommands>
+  <formCommands>
+    <name>ПоказыватьЛог</name>
+    <title>
+      <key>ru</key>
+      <value>Показывать лог</value>
+    </title>
+    <id>18</id>
+    <use>
+      <common>true</common>
+    </use>
+    <action xsi:type="form:FormCommandHandlerContainer">
+      <handler>
+        <name>ПоказыватьЛог</name>
+      </handler>
+    </action>
     <currentRowUse>Auto</currentRowUse>
   </formCommands>
   <commandInterface>
