@@ -40,10 +40,19 @@ find_package(Boost REQUIRED COMPONENTS regex)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories("../arc_json")
 #include_directories(${SQLITE3_INCLUDE_DIRS})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set (NMOS_CPP_SYSTEM_LIBS bcrypt.lib)
+else()
+    set (NMOS_CPP_SYSTEM_LIBS )
+endif()
+
 target_link_libraries(ws_server PRIVATE
         ${Boost_LIBRARIES}
         arc_json
-        ${CMAKE_DL_LIBS})
+        ${CMAKE_DL_LIBS}
+        ${NMOS_CPP_SYSTEM_LIBS}
+        )
         #${SQLITE3_LIBRARIES}
 
 add_custom_command(TARGET ws_server PRE_BUILD
