@@ -47,6 +47,10 @@ class shared_state
 public:
     explicit
     shared_state(std::string doc_root);
+    ~shared_state(){
+        sqlite3Db->close();
+        delete sqlite3Db;
+    };
 
     std::string const&
     doc_root() const noexcept

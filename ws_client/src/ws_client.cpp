@@ -52,14 +52,14 @@ ws_client::ws_client(net::io_context &io_context, const std::string& client_para
 
 
 }
-void
-ws_client::
-to_channel(const std::string &message, const std::string &uuid_sub, const std::string &uuid_form) {
-
-    std::string msg = "cmd message ";
-    msg.append(uuid_form + " ");
-    //msg.append(arc_json::get_message(get_uuid(), message, get_name(), "", true, get_app_name(), uuid_form));
-}
+//void
+//ws_client::
+//to_channel(const std::string &message, const std::string &uuid_sub, const std::string &uuid_form) {
+//
+//    std::string msg = "cmd message ";
+//    msg.append(uuid_form + " ");
+//    //msg.append(arc_json::get_message(get_uuid(), message, get_name(), "", true, get_app_name(), uuid_form));
+//}
 
 void
 ws_client::
@@ -185,7 +185,7 @@ on_connect(session * sess){
 //    auto const ss = boost::make_shared<std::string const>(std::move(command));
 //    sess->send(ss);
 
-    concole_log("log: client connection success");
+    console_log("log: client connection success");
 }
 
 void
@@ -200,7 +200,7 @@ ws_client::on_stop() {
 
     }
 
-    concole_log("log: client on_stop");
+    console_log("log: client on_stop");
 }
 
 void
