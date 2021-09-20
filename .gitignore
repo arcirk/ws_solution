@@ -102,3 +102,7 @@ ws_admin_js/public/
 out/
 tests/test_channels_node/cmake-build-debug
 bin/
+/ws_admin_qt/build-ws_admin_qt-Desktop_Qt_6_1_2_GCC_64bit-Debug/
+/ws_admin_qt/build-ws_admin_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/ws_admin_qt/build-ws_admin_qt-Desktop_Qt_6_2_0_GCC_64bit-Profile/
+/ws_admin_qt/build-ws_admin_qt-Desktop_Qt_6_2_0_GCC_64bit-Release/
