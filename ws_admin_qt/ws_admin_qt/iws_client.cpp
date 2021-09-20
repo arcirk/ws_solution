@@ -1,6 +1,13 @@
 #include "iws_client.h"
 #include <QJsonObject>
 
+#ifdef _WINDOWS
+#include <iostream>
+#include <thread>
+#else
+#include <boost/thread/thread.hpp>
+#endif // _WINDOWS
+
 IClient::IClient(const std::string& _host, const int& _port)
 {
     host = _host;
@@ -261,11 +268,35 @@ void IClient::remove_user(const std::string &user_uuid, const std::string &uuid_
 
 void IClient::open(){
 
-    QJsonObject m_currentJsonObject = QJsonObject();
-    m_currentJsonObject.insert("uuid", ServerHost);
-    m_currentJsonObject.insert("ServerPort", ServerPort);
-    m_currentJsonObject.insert("RootUser", RootUser);
-    m_currentJsonObject.insert("Hash", Hash);
-    m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
-    m_currentJsonObject.insert("ServerName", ServerName);
+    app_uuid = arc_json::random_uuid();
+    user_uuid = arc_json::random_uuid();
+    client_uuid = arc_json::random_uuid();\
+
+//    QJsonObject m_currentJsonObject = QJsonObject();
+
+//    m_currentJsonObject.insert("uuid", app_uuid.c_str());
+//    m_currentJsonObject.insert("name", admin_name.c_str());
+//    m_currentJsonObject.insert("hash", hash.c_str());
+//    m_currentJsonObject.insert("app_name", "admin_concole");
+//    m_currentJsonObject.insert("user_uuid", user_uuid.c_str());
+
+    boost::property_tree::ptree pt;
+
+    pt.add("uuid", app_uuid);
+    pt.add("name", admin_name);
+    pt.add("hash", hash);
+    pt.add("app_name", "admin_concole");
+    pt.add("user_uuid", user_uuid);
+
+    std::stringstream _ss;
+    boost::property_tree::json_parser::write_json(_ss, pt);
+
+    _client_param = _ss.str();
+
+#ifdef _WINDOWS
+    std::thread(std::bind(&ws_drv::start_, this)).detach();
+#else
+    boost::thread(boost::bind(&IClient::start, this)).detach();
+#endif
+
 }

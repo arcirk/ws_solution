@@ -14,6 +14,7 @@
 class IClient{
 
 public:
+    std::string app_uuid;
     std::string user_uuid;
     std::string client_uuid;
     std::string host;

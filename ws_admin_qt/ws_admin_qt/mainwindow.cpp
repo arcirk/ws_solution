@@ -38,6 +38,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    if(client){
+        if(client->started()){
+            client->close();
+        }
+    }
     delete settings;
     delete ui;
 }
@@ -80,6 +85,14 @@ void MainWindow::on_mnuStartSession_triggered()
         return;
     }
 
+    if(settings->Hash.isEmpty()){
+        return;
+    }
+
+    client->admin_name = settings->RootUser.toStdString();
+    client->hash = settings->Hash.toStdString();
+
+    client->open();
 
 }
 

@@ -40,3 +40,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     config.json
+
+LIBS += -L"/usr/local/lib"
+LIBS += -lboost_thread
+

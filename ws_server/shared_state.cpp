@@ -541,7 +541,10 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
         boost::uuids::uuid new_uuid = arc_json::string_to_uuid(params->getStringMember("uuid"), true);
         std::string name = params->getStringMember("name");
         std::string pwd = params->getStringMember("pwd");
-        std::string hash = arc_json::get_hash(name, pwd);
+        std::string hash = params->getStringMember("hash"); //если указан хеш пароль игронится
+        if (hash.empty())
+            hash = arc_json::get_hash(name, pwd);
+
         std::string app_name = params->getStringMember("app_name");
         boost::uuids::uuid user_uuid = arc_json::string_to_uuid(params->getStringMember("user_uuid"), true);
 

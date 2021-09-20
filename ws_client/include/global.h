@@ -354,8 +354,10 @@ namespace arc_json{
         return result;
     }
 
-//#endif
-
-
+    static std::string random_uuid(){
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        return uuid_to_string(uuid);
+    }
 
 }
+#endif //ARC_JSON_SOLUTION_GLOBAL_H
