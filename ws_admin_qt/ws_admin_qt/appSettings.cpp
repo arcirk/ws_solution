@@ -9,8 +9,9 @@ appSettings::appSettings()
     , ServerPort(8080)
     , RootUser("admin")
     , ServerBinDir("host")
+    , ServerName("NoName")
 {
-    Hash = arc_json::get_hash("adminadmin");
+    Hash = arc_json_qt::get_hash("adminadmin");
 }
 
 bool appSettings::init(){
@@ -53,7 +54,10 @@ bool appSettings::init(){
     if (iter != m_currentJsonObject.end()){
         Hash = iter.value().toString();
     }
-
+    iter = m_currentJsonObject.find("ServerName");
+    if (iter != m_currentJsonObject.end()){
+        ServerName = iter.value().toString();
+    }
     return true;
 }
 
@@ -65,6 +69,7 @@ void appSettings::save_settings(){
     m_currentJsonObject.insert("RootUser", RootUser);
     m_currentJsonObject.insert("Hash", Hash);
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
+    m_currentJsonObject.insert("ServerName", ServerName);
 
     QString saveFileName = "config.json";
     QFileInfo fileInfo(saveFileName);
@@ -80,3 +85,4 @@ void appSettings::save_settings(){
     jsonFile.write(QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented));
     jsonFile.close();   // Закрываем файл
 }
+

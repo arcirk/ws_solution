@@ -45,7 +45,7 @@ void OptionsDlg::on_buttonBox_accepted()
     _settings->ServerBinDir = ui->ServerBinDir->text();
     _settings->ServerPort = ui->ServerPort->value();
     if(ui->editPwd->isChecked()){
-        Hash = arc_json::get_hash(_settings->RootUser + ui->Password->text());
+        Hash = arc_json_qt::get_hash(_settings->RootUser + ui->Password->text());
         _settings->Hash = Hash;
     }
 

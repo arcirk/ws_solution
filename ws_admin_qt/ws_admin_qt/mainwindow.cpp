@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -11,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
     QDockWidget *docObjectTree = new QDockWidget(tr("Дерево объектов сервера"), this);
     docObjectTree->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     treeServerObjects = new QTreeWidget(docObjectTree);
-
 
     docObjectTree->setWidget(treeServerObjects);
     addDockWidget(Qt::LeftDockWidgetArea, docObjectTree);
@@ -29,10 +26,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     docObjectTree->setGeometry(rc);
 
-//    treeServerObjects->setColumnCount(1);
-//    QStringList headers;
-//    headers << tr("Объекты");
-//    treeServerObjects->setHeaderLabels(headers);
+    treeServerObjects->setColumnCount(1);
+    QStringList headers;
+    headers << tr("Объекты");
+    treeServerObjects->setHeaderLabels(headers);
+
+    client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort);
+
+    fillTree();
 }
 
 MainWindow::~MainWindow()
@@ -53,8 +54,32 @@ void MainWindow::on_mnuOptions_triggered()
     delete optDlg;
 }
 
-//void MainWindow::loadTree(){
+void MainWindow::fillTree(){
+
+   treeServerObjects->clear();
+
+   QTreeWidgetItem * root = new QTreeWidgetItem(MainWindow::itTopItem);
+   root-> setText (0, "root");
+   treeServerObjects->addTopLevelItem(root);
+
+   QTreeWidgetItem * itemServer = new QTreeWidgetItem(MainWindow::itTopItem);
+   itemServer->setText(0, serverView());
+   root->addChild(itemServer);
+
+}
+
+QString MainWindow::serverView(){
+
+    return settings->ServerName + " [" + settings->ServerHost + ":" + QString::number(settings->ServerPort) + "]";
+
+}
+
+void MainWindow::on_mnuStartSession_triggered()
+{
+    if (client->started()) {
+        return;
+    }
 
 
+}
 
-//}

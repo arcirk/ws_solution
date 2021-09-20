@@ -40,8 +40,6 @@
 
 using boost::property_tree::ptree;
 
-
-
 namespace arc_json{
 
     static constexpr time_t const NULL_TIME = -1;
@@ -77,34 +75,6 @@ namespace arc_json{
         return v;
     }
 
-    static bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result) {
-        using namespace boost::uuids;
-
-        try {
-            result = string_generator()(maybe_uuid);
-            return result.version() != uuid::version_unknown;
-        } catch(...) {
-            return false;
-        }
-    }
-
-    static std::string base64_encode(const std::string &s) {
-        namespace bai = boost::archive::iterators;
-
-        std::stringstream os;
-
-        // convert binary values to base64 characters
-        typedef bai::base64_from_binary
-        // retrieve 6 bit integers from a sequence of 8 bit bytes
-                <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
-
-        std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
-                  std::ostream_iterator<char>(os));
-
-        os << base64_padding[s.size() % 3];
-        return os.str();
-    }
-
     static std::string base64_decode(const std::string &s) {
         namespace bai = boost::archive::iterators;
 
@@ -124,6 +94,46 @@ namespace arc_json{
         std::copy(base64_dec(s.data()), base64_dec(s.data() + size),
                   std::ostream_iterator<char>(os));
 
+        return os.str();
+    }
+
+
+    static std::string uuid_to_string(boost::uuids::uuid& uuid){
+        return boost::lexical_cast<std::string>(uuid);
+    }
+
+    static bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result) {
+        using namespace boost::uuids;
+
+        try {
+            result = string_generator()(maybe_uuid);
+            return result.version() != uuid::version_unknown;
+        } catch(...) {
+            return false;
+        }
+    }
+
+    static boost::uuids::uuid string_to_uuid(const std::string& sz_uuid) {
+
+        boost::uuids::uuid uuid{};
+        is_valid_uuid(sz_uuid, uuid);
+        return uuid;
+
+    }
+    static std::string base64_encode(const std::string &s) {
+        namespace bai = boost::archive::iterators;
+
+        std::stringstream os;
+
+        // convert binary values to base64 characters
+        typedef bai::base64_from_binary
+        // retrieve 6 bit integers from a sequence of 8 bit bytes
+                <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
+
+        std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
+                  std::ostream_iterator<char>(os));
+
+        os << base64_padding[s.size() % 3];
         return os.str();
     }
 
@@ -149,14 +159,109 @@ namespace arc_json{
         return v;
     }
 
-    static boost::uuids::uuid string_to_uuid(const std::string& sz_uuid) {
+    static bool parse(const std::string& json, ptree& pt){
+        try {
 
-        boost::uuids::uuid uuid{};
-        arc_json::is_valid_uuid(sz_uuid, uuid);
-        return uuid;
+            std::stringstream data(json);
+            boost::property_tree::json_parser::read_json(data, pt);
+
+        }catch(std::exception&){
+            return false;
+        }
+
+        return true;
+    }
+
+    static std::string get_member(ptree& pt, const std::string& key){
+        try {
+            return pt.get<std::string>(key);
+        }catch (std::exception&){
+            return "";
+        }
+    }
+    static long int getSecondsSince1970Until(std::string dateAndHour) {
+
+        tm tm = {};
+        std::stringstream ss(dateAndHour);
+        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+
+        std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(mktime(&tm));
+
+
+        return
+                std::chrono::duration_cast<std::chrono::seconds>(
+                        tp.time_since_epoch()).count();
 
     }
 
+    static long int tz_offset(time_t when = NULL_TIME)
+    {
+        if (when == NULL_TIME)
+            when = std::time(nullptr);
+        auto const tm = *std::localtime(&when);
+        std::ostringstream os;
+        os << std::put_time(&tm, "%z");
+        std::string s = os.str();
+        // s is in ISO 8601 format: "±HHMM"
+        int h = std::stoi(s.substr(0,3), nullptr, 10);
+        int m = std::stoi(s[0]+s.substr(3), nullptr, 10);
+
+        return (h-1) * 3600 + m * 60;
+    }
+
+    static long int current_date_seconds() {
+
+        tm current{};
+        time_t t = time(nullptr);
+
+    #ifdef _WINDOWS
+        localtime_s(&current, &t);
+    #else
+        localtime_r(&t, &current);
+    #endif
+
+        std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(mktime(&current));
+
+        return
+                std::chrono::duration_cast<std::chrono::seconds>(
+                        tp.time_since_epoch()).count();
+
+    }
+
+    static void localtime(tm& current, const time_t& t){
+    #ifdef _WINDOWS
+          localtime_s(&current, &t);
+    #else
+          localtime_r(&t, &current);
+    #endif
+    }
+    static std::string get_sha1(const std::string& p_arg)
+    {
+        boost::uuids::detail::sha1 sha1;
+        sha1.process_bytes(p_arg.data(), p_arg.size());
+        unsigned hash[5] = {0};
+        sha1.get_digest(hash);
+
+        // Back to string
+        char buf[41] = {0};
+
+        for (int i = 0; i < 5; i++)
+        {
+            std::sprintf(buf + (i << 3), "%08x", hash[i]);
+        }
+
+        return std::string(buf);
+    }
+
+    static std::string get_hash(const std::string& usr, const std::string& pwd){
+        std::string _usr(usr);
+        std::string _pwd(pwd);
+
+        boost::trim(_usr);
+        boost::to_upper(_usr);
+
+        return get_sha1(_usr + _pwd);
+    }
     static std::string get_message(boost::uuids::uuid &uuid,
                                    const std::string& msg,
                                    const std::string& name = "anonymous",
@@ -223,38 +328,6 @@ namespace arc_json{
 
     }
 
-    static std::string uuid_to_string(boost::uuids::uuid& uuid){
-        return boost::lexical_cast<std::string>(uuid);
-    }
-
-    static std::string get_sha1(const std::string& p_arg)
-    {
-        boost::uuids::detail::sha1 sha1;
-        sha1.process_bytes(p_arg.data(), p_arg.size());
-        unsigned hash[5] = {0};
-        sha1.get_digest(hash);
-
-        // Back to string
-        char buf[41] = {0};
-
-        for (int i = 0; i < 5; i++)
-        {
-            std::sprintf(buf + (i << 3), "%08x", hash[i]);
-        }
-
-        return std::string(buf);
-    }
-
-    static std::string get_hash(const std::string& usr, const std::string& pwd){
-        std::string _usr(usr);
-        std::string _pwd(pwd);
-
-        boost::trim(_usr);
-        boost::to_upper(_usr);
-
-        return get_sha1(_usr + _pwd);
-    }
-
     static std::string parse_param(const std::string& param){
 
         ptree pt;
@@ -281,74 +354,8 @@ namespace arc_json{
         return result;
     }
 
-    static bool parse(const std::string& json, ptree& pt){
-        try {
-
-            std::stringstream data(json);
-            boost::property_tree::json_parser::read_json(data, pt);
-
-        }catch(std::exception&){
-            return false;
-        }
-
-        return true;
-    }
-
-    static std::string get_member(ptree& pt, const std::string& key){
-        try {
-            return pt.get<std::string>(key);
-        }catch (std::exception&){
-            return "";
-        }
-    }
-    static long int getSecondsSince1970Until(std::string dateAndHour) {
-
-        tm tm = {};
-        std::stringstream ss(dateAndHour);
-        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
-
-        std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(mktime(&tm));
+//#endif
 
 
-        return
-                std::chrono::duration_cast<std::chrono::seconds>(
-                        tp.time_since_epoch()).count();
 
-    }
-
-    static long int tz_offset(time_t when = NULL_TIME)
-    {
-        if (when == NULL_TIME)
-            when = std::time(nullptr);
-        auto const tm = *std::localtime(&when);
-        std::ostringstream os;
-        os << std::put_time(&tm, "%z");
-        std::string s = os.str();
-        // s is in ISO 8601 format: "±HHMM"
-        int h = std::stoi(s.substr(0,3), nullptr, 10);
-        int m = std::stoi(s[0]+s.substr(3), nullptr, 10);
-
-        return (h-1) * 3600 + m * 60;
-    }
-
-    static long int current_date_seconds() {
-
-        tm current{};
-        time_t t = time(nullptr);
-
-#ifdef _WINDOWS
-        localtime_s(&current, &t);
-#else
-        localtime_r(&t, &current);
-#endif
-
-        std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(mktime(&current));
-
-        return
-                std::chrono::duration_cast<std::chrono::seconds>(
-                        tp.time_since_epoch()).count();
-
-    }
 }
-
-#endif //ARC_JSON_SOLUTION_GLOBAL_H

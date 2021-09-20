@@ -8,6 +8,8 @@
 #include "optionsdlg.h"
 #include "AppSettings.h"
 
+#include "iws_client.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -19,14 +21,15 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
 private slots:
     void on_mnuOptions_triggered();
 
-    void on_mnuObjectTree_triggered();
+    void on_mnuStartSession_triggered();
 
-    //void loadTree();
 private:
+
+    enum    treeItemType{itTopItem=1001,itGroupItem,itImageItem};
+
     Ui::MainWindow *ui;
     QTreeWidget* treeServerObjects;
     QListWidget * listServerObjects;
@@ -36,6 +39,11 @@ private:
     appSettings * settings;
 
     QDockWidget *docObjectTree;
+
+    void fillTree();
+    QString serverView();
+
+    IClient * client;
 
 };
 #endif // MAINWINDOW_H

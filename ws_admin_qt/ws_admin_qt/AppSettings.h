@@ -16,7 +16,7 @@ public:
     QString RootUser;
     QString Hash;
     QString ServerBinDir;
-
+    QString ServerName;
 };
 
 #endif // APPSETTINGS_H

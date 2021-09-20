@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Консоль администрирования</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -52,6 +52,8 @@
      <string>Сервер</string>
     </property>
     <addaction name="mnuOptions"/>
+    <addaction name="separator"/>
+    <addaction name="mnuStartSession"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -89,6 +91,11 @@
   <action name="action_4">
    <property name="text">
     <string>Закрыть</string>
+   </property>
+  </action>
+  <action name="mnuStartSession">
+   <property name="text">
+    <string>Подключится</string>
    </property>
   </action>
  </widget>
