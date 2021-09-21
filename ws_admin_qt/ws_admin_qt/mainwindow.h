@@ -31,6 +31,8 @@ private slots:
 
     void on_action_4_triggered();
 
+    void on_mnuDisconnect_triggered();
+
 private:
 
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
@@ -46,11 +48,12 @@ private:
     QDockWidget *docObjectTree;
 
     void fillTree();
+    void update_branch(const QString& branch_name, const QString& serverResp);
     QString serverView();
     void processServeResponse(const std::string& response);
 
     IClient * client;
 
-    QTreeWidgetItem * findTreeItem(const QString& source);
+    QTreeWidgetItem * findTreeItem(const QString& source, int col = 0);
 };
 #endif // MAINWINDOW_H

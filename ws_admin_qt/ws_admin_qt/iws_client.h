@@ -27,7 +27,9 @@ public:
 
     explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback);
-    ~IClient();
+    ~IClient(){
+        close();
+    };
 
     void ext_message(const std::string& msg);
 

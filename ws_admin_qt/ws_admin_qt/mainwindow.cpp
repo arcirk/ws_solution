@@ -2,8 +2,9 @@
 #include "ui_mainwindow.h"
 
 #include "../../ws_client/include/global.h"
-#include <QJsonObject>
-#include <QJsonDocument>
+#include "serveresponse.h"
+//#include <QJsonObject>
+//#include <QJsonDocument>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -52,11 +53,14 @@ void MainWindow::ext_message(const std::string &msg){
 
 MainWindow::~MainWindow()
 {
-    if(client){
-        if(client->started()){
-            client->close();
-        }
-    }
+//    if(client){
+//        if(client->started()){
+//            client->close();
+//        }
+
+//    }
+
+    delete client;
     delete settings;
     delete ui;
 }
@@ -92,8 +96,31 @@ void MainWindow::fillTree(){
    itemServer->setText(0, serverView());
    itemServer->setToolTip(0, serverView());
    itemServer->setText(1, "ServerName");
+   if(client->started()){
+       QTreeWidgetItem * itemActiveUsers = new QTreeWidgetItem(MainWindow::itTopItem);
+       itemActiveUsers->setText(0,"Активные подключения");
+       itemActiveUsers->setToolTip(0, "Активные подключения");
+       itemActiveUsers->setText(1, "ActiveUsers");
+       itemServer->addChild(itemActiveUsers);
+   }else
+   {
+       QTreeWidgetItem * itemErr = new QTreeWidgetItem(MainWindow::itTopItem);
+       itemErr->setText(0,"Сервер не доступен");
+       itemErr->setToolTip(0, "Сервер не доступен");
+       itemServer->addChild(itemErr);
+   }
    root->addChild(itemServer);
 
+}
+
+void MainWindow::update_branch(const QString &branch_name, const QString& serverResp){
+
+    QTreeWidgetItem * item = findTreeItem(branch_name);
+    if(item){
+        //item->
+    }else{
+
+    }
 }
 
 QString MainWindow::serverView(){
@@ -136,40 +163,28 @@ void MainWindow::processServeResponse(const std::string &response){
         return;
 
     QString q_json = QString::fromStdString(json);
-    QJsonDocument doc(QJsonDocument::fromJson(q_json.toUtf8()));
+    ServeResponse * resp = new ServeResponse(q_json);
 
-    if(!doc.isNull())
+    if(!resp->isParse){
+        delete resp;
+        return;
+    }
+
+    if(resp->result == "error"){
+        qDebug() << resp->command;
+        QMessageBox::critical(nullptr, "Ошибка", resp->message);
+        if(resp->command == "set_client_param")
+            client->close();
+    }else
     {
-        if(doc.isObject())
-        {
-            QJsonObject obj = doc.object();
-            auto message = obj.find("message");
-            auto result = obj.find("result");
-            if(result.value().isString()){
-                if(result.value().toString() == "error" && message->isString()){
-                    QMessageBox::critical(nullptr, "Ошибка", message.value().toString());
-//                    if(!client->started())
-//                        fillTree();
-                    return;
-                }
-            }else
-            {
-                auto command = obj.find("command");
-                if(command->isString()){
-                    if(command->toString() == "set_client_param"){
-                        client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
-                    }else if(command->toString() == "get_active_users"){
-                        qDebug() << message->toString();
-                    }
-                }
-            }
-        }
-        else
-        {
-            //qDebug() << "Document is not an object" << endl;
+        if(resp->command == "set_client_param"){
+            client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
+        }else if(resp->command == "get_active_users"){
+            qDebug() << resp->message;
         }
     }
 
+    delete resp;
 
 }
 
@@ -178,12 +193,20 @@ void MainWindow::on_action_4_triggered()
     QApplication::exit();
 }
 
-QTreeWidgetItem * MainWindow::findTreeItem(const QString &source){
+QTreeWidgetItem * MainWindow::findTreeItem(const QString &source, int col){
 
-    QList<QTreeWidgetItem*> clist = treeServerObjects->findItems(source, Qt::MatchContains|Qt::MatchRecursive, 0);
+    QList<QTreeWidgetItem*> clist = treeServerObjects->findItems(source, Qt::MatchContains|Qt::MatchRecursive, col);
     if(clist.count() > 0)
         return clist[0];
 
     return nullptr;
 
 }
+
+void MainWindow::on_mnuDisconnect_triggered()
+{
+    if(client->started()){
+        client->close();
+    }
+}
+

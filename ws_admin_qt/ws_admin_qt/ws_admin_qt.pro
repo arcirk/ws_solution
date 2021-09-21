@@ -15,7 +15,8 @@ SOURCES += \
     iws_client.cpp \
     main.cpp \
     mainwindow.cpp \
-    optionsdlg.cpp
+    optionsdlg.cpp \
+    serveresponse.cpp
 
 HEADERS += \
     ../../ws_client/include/beast.h \
@@ -27,7 +28,8 @@ HEADERS += \
     global.h \
     iws_client.h \
     mainwindow.h \
-    optionsdlg.h
+    optionsdlg.h \
+    serveresponse.h
 
 FORMS += \
     mainwindow.ui \

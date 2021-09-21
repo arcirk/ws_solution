@@ -123,6 +123,7 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 void
 session::start_read()
 {
+
     //Установка крайнего срока для операции чтения.
     deadline_.expires_after(std::chrono::seconds(30));
 
@@ -137,13 +138,20 @@ void
 session::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred){
+
     if (stopped_)
         return;
 
     boost::ignore_unused(bytes_transferred);
 
+    if(ec == websocket::error::closed){
+        //stop();
+        client_->error("read", "Сервер не доступен!");
+        return;
+    }
+
+
     if(ec){
-        stop();
         return fail(ec, "read");
     }
 
@@ -183,6 +191,10 @@ session::on_write(
 
     boost::ignore_unused(bytes_transferred);
 
+    if(ec == websocket::error::closed){
+        return;
+    }
+
     if(ec)
         return fail(ec, "write");
 
@@ -203,16 +215,17 @@ session::on_write(
 }
 
 void
-session::stop()
+session::stop(bool eraseObjOnly)
 {
     stopped_ = true;
     deadline_.cancel();
     heartbeat_timer_.cancel();
     client_->on_stop();
-    ws_.async_close(websocket::close_code::normal,
-        beast::bind_front_handler(
-                &session::on_close,
-                shared_from_this()));
+    if(!eraseObjOnly)
+        ws_.async_close(websocket::close_code::normal,
+            beast::bind_front_handler(
+                    &session::on_close,
+                    shared_from_this()));
 }
 
 void
@@ -267,26 +280,16 @@ session::check_deadline()
     if (stopped_)
         return;
 
-    // Check whether the deadline has passed. We compare the deadline against
-    // the current time since a new asynchronous operation may have moved the
-    // deadline before this actor had a chance to run.
     if (deadline_.expiry() <= steady_timer::clock_type::now())
     {
-        // The deadline has passed. The socket is closed so that any outstanding
-        // asynchronous operations are cancelled.
-        // Close the WebSocket connection
         ws_.async_close(websocket::close_code::normal,
                         beast::bind_front_handler(
                                 &session::on_close,
                                 shared_from_this()));
 
-        // There is no longer an active deadline. The expiry is set to the
-        // maximum time point so that the actor takes no action until a new
-        // deadline is set.
         deadline_.expires_at((steady_timer::time_point::max)());
     }
 
-    // Put the actor back to sleep.
     deadline_.async_wait(std::bind(&session::check_deadline, this));
 
 

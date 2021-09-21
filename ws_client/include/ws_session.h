@@ -68,7 +68,7 @@ class session : public boost::enable_shared_from_this<session>
                     std::size_t bytes_transferred);
 
             void
-            stop();
+            stop(bool eraseObjOnly = false);
 
             void
             send(boost::shared_ptr<std::string const> const& ss);
