@@ -307,7 +307,7 @@ void IClient::open(){
     _client_param = _ss.str();
 
 #ifdef _WINDOWS
-    std::thread(std::bind(&ws_drv::start_, this)).detach();
+    std::thread(std::bind(&IClient::start, this)).detach();
 #else
     boost::thread(boost::bind(&IClient::start, this)).detach();
 #endif

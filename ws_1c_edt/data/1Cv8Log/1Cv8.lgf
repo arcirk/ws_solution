@@ -35,4 +35,5 @@ d811fcff-7017-4e66-b8b2-39b94ea70cc9
 {4,"_$Transaction$_.Rollback",16},
 {1,44e50746-3b5d-486e-af5d-eeedc17240be,"Лохова Надежда",3},
 {13,2,3},
-{13,2,1}
+{13,2,1},
+{4,"_$InfoBase$_.ConfigUpdate",17}

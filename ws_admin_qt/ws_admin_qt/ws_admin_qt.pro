@@ -29,7 +29,8 @@ HEADERS += \
     iws_client.h \
     mainwindow.h \
     optionsdlg.h \
-    serveresponse.h
+    serveresponse.h \
+    stdfx.h
 
 FORMS += \
     mainwindow.ui \
@@ -44,5 +45,8 @@ DISTFILES += \
     config.json
 
 LIBS += -L"/usr/local/lib"
+LIBS += F:/lib/vcpkg/installed/x64-windows/lib
 LIBS += -lboost_thread
+INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
+PRECOMPILED_HEADER = stdfx.h
