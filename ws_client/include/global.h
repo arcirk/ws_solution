@@ -359,5 +359,8 @@ namespace arc_json{
         return uuid_to_string(uuid);
     }
 
+    static std::string nil_uuid(){
+        return "00000000-0000-0000-0000-000000000000";
+    }
 }
 #endif //ARC_JSON_SOLUTION_GLOBAL_H

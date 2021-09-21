@@ -22,7 +22,7 @@ void
 session::run(
         char const* host,
         char const* port, ws_client * client)
-        {
+{
 
     client_ = client;
 
@@ -46,12 +46,12 @@ session::run(
             beast::bind_front_handler(
                     &session::on_resolve,
                     shared_from_this()));
-        }
-        void
-        session::on_resolve(
-                beast::error_code ec,
-                tcp::resolver::results_type results)
-                {
+}
+void
+session::on_resolve(
+        beast::error_code ec,
+        tcp::resolver::results_type results)
+{
     if(ec)
         return fail(ec, "resolve");
 
@@ -64,13 +64,14 @@ session::run(
             beast::bind_front_handler(
                     &session::on_connect,
                     shared_from_this()));
-                }
-                void
-                session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
-                {
-    if(ec)
+}
+void
+session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+{
+    if(ec){
+        stopped_ = true;
         return fail(ec, "connect");
-
+    }
     // Turn off the timeout on the tcp_stream, because
     // the websocket stream has its own timeout system.
     beast::get_lowest_layer(ws_).expires_never();

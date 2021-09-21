@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>461</width>
-    <height>299</height>
+    <height>326</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    <property name="geometry">
     <rect>
      <x>15</x>
-     <y>260</y>
+     <y>288</y>
      <width>436</width>
      <height>32</height>
     </rect>
@@ -38,10 +38,10 @@
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
+     <x>12</x>
+     <y>6</y>
      <width>441</width>
-     <height>136</height>
+     <height>172</height>
     </rect>
    </property>
    <property name="title">
@@ -50,8 +50,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>30</y>
+      <x>11</x>
+      <y>65</y>
       <width>81</width>
       <height>17</height>
      </rect>
@@ -63,8 +63,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>55</y>
+      <x>11</x>
+      <y>92</y>
       <width>67</width>
       <height>17</height>
      </rect>
@@ -76,8 +76,8 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>85</y>
+      <x>11</x>
+      <y>120</y>
       <width>121</width>
       <height>17</height>
      </rect>
@@ -89,8 +89,8 @@
    <widget class="QPushButton" name="btnSelectDir">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>85</y>
+      <x>405</x>
+      <y>120</y>
       <width>26</width>
       <height>26</height>
      </rect>
@@ -102,8 +102,8 @@
    <widget class="QDoubleSpinBox" name="ServerPort">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>55</y>
+      <x>141</x>
+      <y>90</y>
       <width>65</width>
       <height>26</height>
      </rect>
@@ -121,8 +121,8 @@
    <widget class="QLineEdit" name="ServerHost">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>25</y>
+      <x>141</x>
+      <y>60</y>
       <width>291</width>
       <height>25</height>
      </rect>
@@ -131,10 +131,33 @@
    <widget class="QLineEdit" name="ServerBinDir">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>85</y>
+      <x>141</x>
+      <y>120</y>
       <width>266</width>
       <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>36</y>
+      <width>67</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Имя:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ServerName">
+    <property name="geometry">
+     <rect>
+      <x>141</x>
+      <y>30</y>
+      <width>292</width>
+      <height>25</height>
      </rect>
     </property>
    </widget>
@@ -143,8 +166,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>150</y>
-     <width>441</width>
+     <y>178</y>
+     <width>442</width>
      <height>101</height>
     </rect>
    </property>
@@ -224,7 +247,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>405</x>
       <y>65</y>
       <width>26</width>
       <height>25</height>

@@ -11,6 +11,8 @@
     #include "../../ws_client/include/ws_client.h"
 #endif // _WINDOWS
 
+//typedef std::function<void(std::string)> _callback_message;
+
 class IClient{
 
 public:
@@ -24,7 +26,7 @@ public:
     std::string hash;
 
     explicit
-    IClient(const std::string& _host, const int& _port);
+    IClient(const std::string& _host, const int& _port, _callback_message& callback);
     ~IClient();
 
     void ext_message(const std::string& msg);
@@ -57,6 +59,7 @@ private:
 
     ws_client * client;
     std::string _client_param;
+    _callback_message callback_msg;
 
     int open_as(const std::string &param);
     void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);

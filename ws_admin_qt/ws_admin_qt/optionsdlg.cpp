@@ -17,6 +17,7 @@ OptionsDlg::OptionsDlg(appSettings * settings, QWidget *parent) :
     ui->ServerBinDir->setText(_settings->ServerBinDir);
     ui->RootUser->setText(_settings->RootUser);
     ui->Password->setText(_settings->Hash);
+    ui->ServerName->setText(_settings->ServerName);
     Hash = "";
 
 }
@@ -45,6 +46,8 @@ void OptionsDlg::on_buttonBox_accepted()
     _settings->ServerHost = ui->ServerHost->text();
     _settings->ServerBinDir = ui->ServerBinDir->text();
     _settings->ServerPort = ui->ServerPort->value();
+    _settings->ServerName = ui->ServerName->text();
+
     if(ui->editPwd->isChecked()){
         //Hash = arc_json_qt::get_hash(_settings->RootUser + ui->Password->text());
         Hash = arc_json::get_hash(_settings->RootUser.toStdString(), ui->Password->text().toStdString()).c_str();

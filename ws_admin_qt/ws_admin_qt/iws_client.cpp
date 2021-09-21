@@ -8,10 +8,12 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-IClient::IClient(const std::string& _host, const int& _port)
+IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
     host = _host;
     port = _port;
+    callback_msg = callback;
+    client = nullptr;
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -39,7 +41,10 @@ void IClient::send_command(const std::string &cmd, const std::string &uuid_form,
 }
 
 void IClient::ext_message(const std::string& msg) {
-    std::cout << msg << std::endl;
+    //std::cout << msg << std::endl;
+    if(callback_msg){
+        callback_msg(msg);
+    }
 }
 
 void IClient::close() {
@@ -69,13 +74,21 @@ void IClient::start() {
 
     client->open(host.c_str(), std::to_string(port).c_str(), callback);
 
+    delete client;
+    client = nullptr;
+
 }
 
 bool IClient::started() {
     bool result = false;
-    if (client){
-        result = client->started();
-    }
+//    try {
+        if (client){
+            result = client->started();
+        }
+//    }  catch(std::exception&) {
+//        return false;
+//    }
+
     return result;
 }
 

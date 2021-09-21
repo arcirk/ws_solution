@@ -20,36 +20,10 @@ ws_client::ws_client(net::io_context &io_context, const std::string& client_para
     _started = false;
     decode_message = false;
     _client_param = client_param;
-
-//    if (uuid.empty()){
-        set_uuid();
-//    }else
-//        set_uuid(uuid);
-//
-//    if (user_uuid.empty())
-        set_user_uuid();
-//    else
-//        set_user_uuid(user_uuid);
-//
-//    if (name.empty())
-        set_name("anonymous");
-//    else
-//        set_name(name);
-//
-
-//
-//    if (app_name.empty())
-        _app_name = "unknown";
-//    else
-//        _app_name = app_name;
-//
-//    _hash = arc_json::get_hash(name, pwd);
-//
-//    if (!uuid_form.empty())
-//        _uuid_form = "00000000-0000-0000-0000-000000000000";
-//    else
-//        _uuid_form = uuid_form;
-
+    set_uuid();
+    set_user_uuid();
+    set_name("anonymous");
+    _app_name = "unknown";
 
 }
 //void
@@ -65,18 +39,6 @@ void
 ws_client::
 send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, const std::string& uuid_form, const std::string& command)
 {
-
-//    std::string _message;
-//    bool is_cmd = false;
-//
-//    if (arc_json::is_cmd(message)){
-//        if (format_cmd){
-//            _message = arc_json::format_command_message(message);
-//            if (_message == "error")
-//                return;
-//        }
-//        is_cmd = true;
-//    }
 
 
     std::string _uuid_form = uuid_form;
@@ -364,7 +326,7 @@ void ws_client::error(const std::string &what, const std::string &err) {
         //
         //#endif // _WINDOWS
 
-        std::string desc = "error ";
+        std::string desc = "";// "error ";
         desc.append(what);
         desc.append(": ");
         desc.append(_err);
@@ -374,7 +336,7 @@ void ws_client::error(const std::string &what, const std::string &err) {
         std::string msg = arc_json::get_message(get_uuid(), desc, get_name(), uuid_channel, true, get_app_name(), "", "", "", "error");
 
         _callback_msg(msg);
-        //_callback_msg("error");
+
     }
 }
 

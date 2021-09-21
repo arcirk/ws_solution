@@ -21,14 +21,19 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    void ext_message(const std::string& msg);
+
 private slots:
     void on_mnuOptions_triggered();
 
     void on_mnuStartSession_triggered();
 
+    void on_action_4_triggered();
+
 private:
 
-    enum    treeItemType{itTopItem=1001,itGroupItem,itImageItem};
+    enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
     Ui::MainWindow *ui;
     QTreeWidget* treeServerObjects;
@@ -42,8 +47,10 @@ private:
 
     void fillTree();
     QString serverView();
+    void processServeResponse(const std::string& response);
 
     IClient * client;
 
+    QTreeWidgetItem * findTreeItem(const QString& source);
 };
 #endif // MAINWINDOW_H
