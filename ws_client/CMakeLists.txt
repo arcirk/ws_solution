@@ -3,7 +3,7 @@ project(ws_client)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(ws_client
+add_library(ws_client SHARED
         include/beast.h
         include/net.h
         include/ws_session.h
