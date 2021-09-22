@@ -7,11 +7,12 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
+IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_message_w error_callback)
 {
     host = _host;
     port = _port;
     callback_msg = callback;
+    err_callback = error_callback;
     client = nullptr;
 }
 
@@ -63,7 +64,7 @@ void IClient::close() {
 
 void IClient::start() {
 
-    _callback_message callback = std::bind(&IClient::ext_message, this, std::placeholders::_1);
+   //_callback_message callback = std::bind(&IClient::ext_message, this, std::placeholders::_1);
 
     boost::asio::io_context ioc;
 
@@ -71,7 +72,8 @@ void IClient::start() {
 
     client = new ws_client(ioc, _client_param);
 
-    client->open(host.c_str(), std::to_string(port).c_str(), callback);
+    //client->open(host.c_str(), std::to_string(port).c_str(), callback);
+    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, err_callback);
 
     delete client;
     client = nullptr;
@@ -278,7 +280,7 @@ void IClient::remove_user(const std::string &user_uuid, const std::string &uuid_
     }
 }
 
-void IClient::open(){
+void IClient::open(bool new_thread){
 
     app_uuid = arc_json::random_uuid();
     user_uuid = arc_json::random_uuid();
@@ -305,11 +307,14 @@ void IClient::open(){
 
     _client_param = _ss.str();
 
-#ifdef _WINDOWS
-    std::thread(std::bind(&IClient::start, this)).detach();
-#else
-    boost::thread(boost::bind(&IClient::start, this)).detach();
-#endif
+    if (new_thread){
+    #ifdef _WINDOWS
+        std::thread(std::bind(&IClient::start, this)).detach();
+    #else
+        boost::thread(boost::bind(&IClient::start, this)).detach();
+    #endif
+    }else
+        start();
 
 }
 

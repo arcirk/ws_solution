@@ -5,6 +5,9 @@
 #include "../include/ws_session.h"
 #include "../include/ws_client.h"
 
+//#include <boost/locale.hpp>
+//#include <locale>
+
 session::
 session(net::io_context& ioc)
 : resolver_(net::make_strand(ioc))
@@ -259,9 +262,33 @@ session::on_close(beast::error_code ec)
 void
 session::fail(beast::error_code ec, char const* what)
 {
-    std::cerr << what << ": " << ec.message() << "\n";
+//    using namespace boost::locale::conv;
+//
+//    std::wstring _msg = utf_to_utf<wchar_t>(ec.message());
 
-    client_->error(what, ec.message());
+//    boost::locale::generator g;
+//    g.locale_cache_enabled(true);
+//    std::locale loc = g(boost::locale::util::get_system_locale());
+//    std::wstring _msg = boost::locale::conv::to_utf<wchar_t>(ec.message(), loc);
+
+    //std::string _msg = utf_to_utf<char>(ec.message());
+
+//    std::wcerr << what << ": " << _msg << "\n";
+
+    //client_->error(what, ec.message());
+    //
+
+    //std::cerr << what << ": " << ec.message() << "\n";
+    std::ostringstream ss;
+    //std::ostream& str = arc_json::report(ec);
+
+    ss << arc_json::report(ec);
+
+    std::string _msg = ss.str();
+
+    std::cerr << what << ": " << arc_json::report(ec) << "\n";
+
+    client_->error(what, _msg);
 }
 
 void

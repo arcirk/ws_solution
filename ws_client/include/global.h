@@ -25,6 +25,9 @@
 #include <string>
 #include <iomanip>
 
+#include <boost/system/error_code.hpp>
+#include <ostream>
+
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -43,6 +46,25 @@
 using boost::property_tree::ptree;
 
 namespace arc_json{
+
+    struct report
+    {
+        report(boost::system::error_code ec) : ec(ec) {}
+
+        void operator()(std::ostream& os) const
+        {
+            os << ec.category().name() << " : " << ec.value() << " : " << ec.message();
+        }
+
+        boost::system::error_code ec;
+
+        friend std::ostream& operator<<(std::ostream& os, report rep)
+        {
+            rep(os);
+            return os;
+        }
+
+    };
 
     static constexpr time_t const NULL_TIME = -1;
 
@@ -382,5 +404,6 @@ namespace arc_json{
     static std::string nil_uuid(){
         return "00000000-0000-0000-0000-000000000000";
     }
+
 }
 #endif //ARC_JSON_SOLUTION_GLOBAL_H

@@ -20,7 +20,9 @@ add_executable(ws_admin_qt
         serveresponse.cpp
         serveresponse.h
         stdfx.h
-        ws_admin_qt.pro)
+        ws_admin_qt.pro
+        popup.cpp
+        popup.h)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -28,15 +30,18 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
+include_directories("../../ws_client/include")
+link_directories(../../ws_client/cmake-build-debug)
+#target_link_libraries(ws_admin_qt PUBLIC ws_client)
+
 target_link_libraries(ws_admin_qt
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
+        ws_client
         )
 
-include_directories("../../ws_client/include")
-link_directories(../../ws_client/cmake-build-debug)
-target_link_libraries(ws_admin_qt ws_client)
+
 
 target_precompile_headers(ws_admin_qt
         PUBLIC

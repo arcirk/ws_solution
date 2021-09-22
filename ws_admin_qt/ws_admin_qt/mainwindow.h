@@ -11,6 +11,8 @@
 //#include "iws_client.h"
 #include "../../ws_client/include/iws_client.h"
 
+#include "popup.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -24,6 +26,8 @@ public:
     ~MainWindow();
 
     void ext_message(const std::string& msg);
+
+    void start();
 
 private slots:
     void on_mnuOptions_triggered();
@@ -56,5 +60,8 @@ private:
     IClient * client;
 
     QTreeWidgetItem * findTreeItem(const QString& source, int col = 0);
+
+    PopUp *popUp;       // Объявляем объект всплывающего сообщения
+
 };
 #endif // MAINWINDOW_H

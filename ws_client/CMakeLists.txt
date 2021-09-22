@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 project(ws_client VERSION 1.0.1 DESCRIPTION "websocket client")
 
 set(CMAKE_CXX_STANDARD 17)
+set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
 #SHARED
 add_library(ws_client SHARED
@@ -32,6 +33,7 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(Boost REQUIRED COMPONENTS regex)
+#find_package(Boost REQUIRED COMPONENTS locale)
 include_directories(${Boost_INCLUDE_DIRS})
 
 target_link_libraries( ws_client

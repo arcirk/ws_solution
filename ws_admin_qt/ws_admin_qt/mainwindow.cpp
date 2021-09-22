@@ -10,11 +10,17 @@
 //#include <QJsonObject>
 //#include <QJsonDocument>
 
+#include <thread>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //qRegisterMetaType("QtMsgType");
+    //connect(this, &ui::logFromMainThread, this, &ui::logFromMainThreadSlot);
+
     QDockWidget *docObjectTree = new QDockWidget(tr("Дерево объектов сервера"), this);
     docObjectTree->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     treeServerObjects = new QTreeWidget(docObjectTree);
@@ -149,8 +155,17 @@ void MainWindow::on_mnuStartSession_triggered()
     client->host = settings->ServerHost.toStdString();
     client->port = settings->ServerPort;
 
-    client->open();
+    //client->open();
 
+    #ifdef _WINDOWS
+    std::thread(std::bind(&MainWindow::start, this)).detach();
+    #else
+    boost::thread(boost::bind(&IClient::start, this)).detach();
+    #endif
+}
+
+void MainWindow::start(){
+    client->open(false);
 }
 
 void MainWindow::processServeResponse(const std::string &response){
@@ -167,7 +182,7 @@ void MainWindow::processServeResponse(const std::string &response){
         return;
 
     QString q_json = QString::fromStdString(json);
-    ServeResponse * resp = new ServeResponse(q_json);
+    auto resp = new ServeResponse(q_json);
 
     if(!resp->isParse){
         delete resp;
@@ -176,7 +191,9 @@ void MainWindow::processServeResponse(const std::string &response){
 
     if(resp->result == "error"){
         qDebug() << resp->command;
-        QMessageBox::critical(nullptr, "Ошибка", resp->message);
+        //QMessageBox::critical(nullptr, "Ошибка", resp->message);
+        popUp->setPopupText(resp->message);
+        popUp->show();
         if(resp->command == "set_client_param")
             client->close();
     }else
