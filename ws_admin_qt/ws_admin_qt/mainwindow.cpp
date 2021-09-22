@@ -1,7 +1,11 @@
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "../../ws_client/include/global.h"
+#include "stdfx.h"
+//#include "iws_client.h"
+
+//#include "../../ws_client/include/global.h"
 #include "serveresponse.h"
 //#include <QJsonObject>
 //#include <QJsonDocument>

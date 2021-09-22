@@ -8,4 +8,6 @@
 
 #endif
 
+#include "iws_client.h"
+
 #endif // STDFX_H

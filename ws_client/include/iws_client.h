@@ -1,17 +1,21 @@
 #ifndef IWS_CLIENT_H
 #define IWS_CLIENT_H
 
+//#define __IWS_CLIENT_ __declspec(dllexport)
+
 #include <iostream>
 #include <string>
 
 #ifdef _WINDOWS
-    #include "../../ws_client/include/net.h"
-    #include "../../ws_client/include/ws_client.h"
+    #include "net.h"
+    #include "ws_client.h"
 #else
-    #include "../../ws_client/include/ws_client.h"
+    #include "ws_client.h"
 #endif // _WINDOWS
 
 //typedef std::function<void(std::string)> _callback_message;
+
+
 
 class IClient{
 
@@ -37,7 +41,7 @@ public:
     void open();
     std::string get_client_info();
     std::string get_current_name();
-    std::string get_hash(const std::string &usr, const std::string &pwd);
+    static std::string get_hash(const std::string &usr, const std::string &pwd);
 
     void get_messages(const std::string &uuid_sub, long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &user_uuid, const std::string &uuid_form);

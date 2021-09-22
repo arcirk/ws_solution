@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(ws_client)
+project(ws_client VERSION 1.0.1 DESCRIPTION "websocket client")
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -10,7 +10,14 @@ add_library(ws_client SHARED
         include/ws_client.h
         include/global.h
         src/ws_session.cpp
-        src/ws_client.cpp)
+        src/ws_client.cpp
+        src/iws_client.cpp
+        include/iws_client.h)
+
+set_target_properties(ws_client PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION 1
+        PUBLIC_HEADER include/iws_client.h)
 
 if (UNIX)
     SET(CMAKE_CXX_FLAGS -pthread)

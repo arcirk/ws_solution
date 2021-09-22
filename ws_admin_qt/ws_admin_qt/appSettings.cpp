@@ -1,5 +1,8 @@
+#include "stdfx.h"
 #include "AppSettings.h"
-#include "global.h"
+//#include "global.h"
+//#include "iws_client.h"
+
 #include <QFileInfo>
 #include <QDir>
 #include <QJsonDocument>
@@ -11,7 +14,8 @@ appSettings::appSettings()
     , ServerBinDir("host")
     , ServerName("NoName")
 {
-    Hash = arc_json_qt::get_hash("adminadmin");
+    Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
+
 }
 
 bool appSettings::init(){

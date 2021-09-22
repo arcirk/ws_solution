@@ -1,5 +1,4 @@
-#include "iws_client.h"
-#include <QJsonObject>
+#include "../include/iws_client.h"
 
 #ifdef _WINDOWS
 #include <iostream>
@@ -298,7 +297,7 @@ void IClient::open(){
     pt.add("uuid", app_uuid);
     pt.add("name", admin_name);
     pt.add("hash", hash);
-    pt.add("app_name", "admin_concole");
+    pt.add("app_name", "admin_console");
     pt.add("user_uuid", user_uuid);
 
     std::stringstream _ss;
@@ -312,4 +311,8 @@ void IClient::open(){
     boost::thread(boost::bind(&IClient::start, this)).detach();
 #endif
 
+}
+
+std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
+    return arc_json::get_hash(usr, pwd);
 }

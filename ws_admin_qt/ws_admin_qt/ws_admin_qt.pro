@@ -9,24 +9,22 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    ../../ws_client/src/ws_client.cpp \
-    ../../ws_client/src/ws_session.cpp \
+#    ../../ws_client/src/ws_client.cpp \
+#    ../../ws_client/src/ws_session.cpp \
     appSettings.cpp \
-    iws_client.cpp \
     main.cpp \
     mainwindow.cpp \
     optionsdlg.cpp \
     serveresponse.cpp
 
 HEADERS += \
-    ../../ws_client/include/beast.h \
-    ../../ws_client/include/global.h \
-    ../../ws_client/include/net.h \
-    ../../ws_client/include/ws_client.h \
-    ../../ws_client/include/ws_session.h \
+#    ../../ws_client/include/beast.h \
+#    ../../ws_client/include/global.h \
+#    ../../ws_client/include/net.h \
+#    ../../ws_client/include/ws_client.h \
+#    ../../ws_client/include/ws_session.h \
     AppSettings.h \
     global.h \
-    iws_client.h \
     mainwindow.h \
     optionsdlg.h \
     serveresponse.h \
@@ -45,8 +43,15 @@ DISTFILES += \
     config.json
 
 LIBS += -L"/usr/local/lib"
-LIBS += F:/lib/vcpkg/installed/x64-windows/lib
+
+LIBS += -L"../../ws_client/cmake-build-debug"
+
+INCLUDEPATH += ../../ws_client/include
+
+#LIBS += F:/lib/vcpkg/installed/x64-windows/lib
+#INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
+
 LIBS += -lboost_thread
-INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
+LIBS += -lws_client
 
 PRECOMPILED_HEADER = stdfx.h

@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include "stdfx.h"
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QTreeView>
@@ -8,7 +8,7 @@
 #include "optionsdlg.h"
 #include "AppSettings.h"
 
-#include "iws_client.h"
+//#include "iws_client.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

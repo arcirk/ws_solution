@@ -1,8 +1,9 @@
+#include "stdfx.h"
 #include "optionsdlg.h"
 #include "ui_optionsdlg.h"
 #include <QFileDialog>
-#include "global.h"
-#include "../../ws_client/include/global.h"
+//#include "global.h"
+//#include "../../ws_client/include/global.h"
 
 OptionsDlg::OptionsDlg(appSettings * settings, QWidget *parent) :
     QDialog(parent),
@@ -50,7 +51,7 @@ void OptionsDlg::on_buttonBox_accepted()
 
     if(ui->editPwd->isChecked()){
         //Hash = arc_json_qt::get_hash(_settings->RootUser + ui->Password->text());
-        Hash = arc_json::get_hash(_settings->RootUser.toStdString(), ui->Password->text().toStdString()).c_str();
+        Hash = QString::fromStdString(IClient::get_hash(_settings->RootUser.toStdString(), ui->Password->text().toStdString()).c_str());
         _settings->Hash = Hash;
     }
 
