@@ -51,7 +51,9 @@ namespace arc_json{
     typedef std::vector<T_str>      T_vec;
     typedef std::function<void(std::string)> _command;
 
-    static UNUSED_VAR std::string remove_text_enclosed_in_quotation_marks(const  std::string& text){
+    //UNUSED_VAR
+    [[maybe_unused]]
+    static  std::string remove_text_enclosed_in_quotation_marks(const  std::string& text){
         boost::regex reg("(\").*?\\1");
         return boost::regex_replace(text, reg, "");
     }
@@ -65,8 +67,9 @@ namespace arc_json{
         }
         return (int)v.size();
     }
-
-    static UNUSED_VAR T_vec get_text_in_quotation_marks(const T_str& line){
+    //UNUSED_VAR
+    [[maybe_unused]]
+    static  T_vec get_text_in_quotation_marks(const T_str& line){
         T_vec  v;
 
         //int size =
@@ -77,7 +80,8 @@ namespace arc_json{
         return v;
     }
 
-    static UNUSED_VAR std::string base64_decode(const std::string &s) {
+    [[maybe_unused]]
+    static std::string base64_decode(const std::string &s) {
         namespace bai = boost::archive::iterators;
 
         std::stringstream os;
@@ -114,8 +118,8 @@ namespace arc_json{
             return false;
         }
     }
-
-    static UNUSED_VAR boost::uuids::uuid string_to_uuid(const std::string& sz_uuid) {
+    [[maybe_unused]]
+    static boost::uuids::uuid string_to_uuid(const std::string& sz_uuid) {
 
         boost::uuids::uuid uuid{};
         is_valid_uuid(sz_uuid, uuid);
@@ -161,7 +165,8 @@ namespace arc_json{
         return v;
     }
 
-    static UNUSED_VAR bool parse(const std::string& json, ptree& pt){
+    [[maybe_unused]]
+    static bool parse(const std::string& json, ptree& pt){
         try {
 
             std::stringstream data(json);
@@ -174,14 +179,17 @@ namespace arc_json{
         return true;
     }
 
-    static UNUSED_VAR std::string get_member(ptree& pt, const std::string& key){
+    [[maybe_unused]]
+    static std::string get_member(ptree& pt, const std::string& key){
         try {
             return pt.get<std::string>(key);
         }catch (std::exception&){
             return "";
         }
     }
-    static UNUSED_VAR long int getSecondsSince1970Until(std::string dateAndHour) {
+
+    [[maybe_unused]]
+    static long int getSecondsSince1970Until(std::string dateAndHour) {
 
         tm tm = {};
         std::stringstream ss(dateAndHour);
@@ -196,7 +204,8 @@ namespace arc_json{
 
     }
 
-    static UNUSED_VAR long int tz_offset(time_t when = NULL_TIME)
+    [[maybe_unused]]
+    static long int tz_offset(time_t when = NULL_TIME)
     {
         if (when == NULL_TIME)
             when = std::time(nullptr);
@@ -211,7 +220,8 @@ namespace arc_json{
         return (h-1) * 3600 + m * 60;
     }
 
-    static UNUSED_VAR long int current_date_seconds() {
+    [[maybe_unused]]
+    static long int current_date_seconds() {
 
         tm current{};
         time_t t = time(nullptr);
@@ -230,7 +240,8 @@ namespace arc_json{
 
     }
 
-    static UNUSED_VAR void localtime(tm& current, const time_t& t){
+    [[maybe_unused]]
+    static void localtime(tm& current, const time_t& t){
     #ifdef _WINDOWS
           localtime_s(&current, &t);
     #else
@@ -264,7 +275,9 @@ namespace arc_json{
 
         return get_sha1(_usr + _pwd);
     }
-    static UNUSED_VAR std::string get_message(boost::uuids::uuid &uuid,
+
+    [[maybe_unused]]
+    static std::string get_message(boost::uuids::uuid &uuid,
                                    const std::string& msg,
                                    const std::string& name = "anonymous",
                                    boost::uuids::uuid uuid_channel = boost::uuids::uuid{},
@@ -304,7 +317,8 @@ namespace arc_json{
         return _msg;
     }
 
-    static UNUSED_VAR bool is_cmd(const std::string& msg)
+    [[maybe_unused]]
+    static bool is_cmd(const std::string& msg)
     {
         std::string cmd = msg.substr(0, 3);
 
@@ -317,7 +331,8 @@ namespace arc_json{
     }
 
     //проверка формата команды -- cmd command params ...
-    static UNUSED_VAR std::string format_command_message(const std::string& cmd){
+    [[maybe_unused]]
+    static std::string format_command_message(const std::string& cmd){
 
         arc_json::T_vec v = arc_json::split(cmd, " ");
         if (v.size() <= 1){
@@ -330,7 +345,8 @@ namespace arc_json{
 
     }
 
-    static UNUSED_VAR std::string parse_param(const std::string& param){
+    [[maybe_unused]]
+    static std::string parse_param(const std::string& param){
 
         ptree pt;
         std::stringstream data(param);
@@ -356,12 +372,14 @@ namespace arc_json{
         return result;
     }
 
-    static UNUSED_VAR std::string random_uuid(){
+    [[maybe_unused]]
+    static std::string random_uuid(){
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         return uuid_to_string(uuid);
     }
 
-    static UNUSED_VAR std::string nil_uuid(){
+    [[maybe_unused]]
+    static std::string nil_uuid(){
         return "00000000-0000-0000-0000-000000000000";
     }
 }
