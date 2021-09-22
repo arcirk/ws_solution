@@ -9,3 +9,4 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/arc_json" "${PROJECT_SOURCE_DIR}/arc_jso
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client" "${PROJECT_SOURCE_DIR}/ws_client/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests/test_channels_node" "${PROJECT_SOURCE_DIR}/tests/test_channels_node/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests/ws_drv_test" "${PROJECT_SOURCE_DIR}/tests/ws_drv_test/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_admin_qt/ws_admin_qt" "${PROJECT_SOURCE_DIR}/ws_admin_qt/ws_admin_qt/cmake-build-debug")
