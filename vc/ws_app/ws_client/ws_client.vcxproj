@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -114,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;WSCLIENT_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;BOOST_ALL_DYN_LINK;_WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -123,6 +123,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,11 +145,13 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\ws_client\include\beast.h" />
     <ClInclude Include="..\..\..\ws_client\include\global.h" />
+    <ClInclude Include="..\..\..\ws_client\include\iws_client.h" />
     <ClInclude Include="..\..\..\ws_client\include\net.h" />
     <ClInclude Include="..\..\..\ws_client\include\ws_client.h" />
     <ClInclude Include="..\..\..\ws_client\include\ws_session.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\ws_client\src\iws_client.cpp" />
     <ClCompile Include="..\..\..\ws_client\src\ws_client.cpp" />
     <ClCompile Include="..\..\..\ws_client\src\ws_session.cpp" />
   </ItemGroup>

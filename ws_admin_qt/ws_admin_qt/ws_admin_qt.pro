@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+#    ../../ws_client/src/iws_client.cpp \
 #    ../../ws_client/src/ws_client.cpp \
 #    ../../ws_client/src/ws_session.cpp \
     appSettings.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
 HEADERS += \
 #    ../../ws_client/include/beast.h \
 #    ../../ws_client/include/global.h \
+#    ../../ws_client/include/iws_client.h \
 #    ../../ws_client/include/net.h \
 #    ../../ws_client/include/ws_client.h \
 #    ../../ws_client/include/ws_session.h \
@@ -42,16 +44,18 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     config.json
 
-LIBS += -L"/usr/local/lib"
+unix:LIBS += -L"/usr/local/lib"
 
 LIBS += -L"../../ws_client/cmake-build-debug"
+#LIBS += -L"C:/src/GitHub/ws_solution/ws_client/cmake-build-debug"
+#LIBS += -L"C:/src/GitHub/ws_solution/vc/ws_app/x64/Debug/ws_client.dll"
 
 INCLUDEPATH += ../../ws_client/include
 
-#LIBS += F:/lib/vcpkg/installed/x64-windows/lib
-#INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
+windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
+windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
-LIBS += -lboost_thread
+unix:LIBS += -lboost_thread
 LIBS += -lws_client
 
 PRECOMPILED_HEADER = stdfx.h

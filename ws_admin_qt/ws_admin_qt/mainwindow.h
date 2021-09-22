@@ -9,6 +9,7 @@
 #include "AppSettings.h"
 
 //#include "iws_client.h"
+#include "../../ws_client/include/iws_client.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

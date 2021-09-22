@@ -16,8 +16,9 @@
 //typedef std::function<void(std::string)> _callback_message;
 
 
+//__IWS_CLIENT_
 
-class IClient{
+class  IClient{
 
 public:
     std::string app_uuid;

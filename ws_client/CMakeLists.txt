@@ -3,6 +3,7 @@ project(ws_client VERSION 1.0.1 DESCRIPTION "websocket client")
 
 set(CMAKE_CXX_STANDARD 17)
 
+#SHARED
 add_library(ws_client SHARED
         include/beast.h
         include/net.h
