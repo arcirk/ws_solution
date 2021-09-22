@@ -37,3 +37,7 @@ target_link_libraries(ws_admin_qt
 include_directories("../../ws_client/include")
 link_directories(../../ws_client/cmake-build-debug)
 target_link_libraries(ws_admin_qt ws_client)
+
+target_precompile_headers(ws_admin_qt
+        PUBLIC
+        stdfx.h)

@@ -3,7 +3,7 @@
 
 #if defined WIN64
 
-    #define _WINDOWS
+    //#define _WINDOWS
     #include "../../ws_client/include/net.h"
     //#pragma comment(lib, "ws_client.lib")
 #endif

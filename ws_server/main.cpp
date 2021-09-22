@@ -18,6 +18,10 @@
 */
 //------------------------------------------------------------------------------
 
+#ifdef _WINDOWS
+#include <SDKDDKVer.h>
+#endif
+
 #include "./include/listener.hpp"
 #include "./include/shared_state.hpp"
 
