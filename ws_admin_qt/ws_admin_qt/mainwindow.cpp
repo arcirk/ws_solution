@@ -267,6 +267,7 @@ void MainWindow::on_display_notify(const QString &msg) {
 
 void MainWindow::on_fill_node(const QString& command, const QString& resp){
 
+    //ToDo: навести красоту в коде
     if (command == "get_active_users"){
        // treeChObjects->setModel(nullptr);
 
@@ -275,12 +276,27 @@ void MainWindow::on_fill_node(const QString& command, const QString& resp){
             if (doc.isArray()){
                 int rowCount = doc.array().count();
                 auto * model = new QStandardItemModel(rowCount, 4);
+                model->setHorizontalHeaderItem(0, new QStandardItem("Пользователь"));
+                model->setHorizontalHeaderItem(1, new QStandardItem("Идентификатор клиента"));
+                model->setHorizontalHeaderItem(2, new QStandardItem("Идентификатор пользователя"));
+                model->setHorizontalHeaderItem(3, new QStandardItem("Приложение"));
                 int index = 0;
                 for (auto row : doc.array()){
                     if (row.isObject()){
-                        QString name = ServeResponse::getStringMember(row, "name");
+                        QJsonObject loopObj = row.toObject();
+                        QString name = ServeResponse::getStringMember(loopObj, "name");
+                        QString uuid = ServeResponse::getStringMember(loopObj, "uuid");
+                        QString user_uuid = ServeResponse::getStringMember(loopObj, "user_uuid");
+                        QString app_name = ServeResponse::getStringMember(loopObj, "app_name");
                         auto *item = new QStandardItem(name);
-                        model->setItem(index++, 0, item);
+                        auto *item1 = new QStandardItem(uuid);
+                        auto *item2 = new QStandardItem(user_uuid);
+                        auto *item3 = new QStandardItem(app_name);
+                        model->setItem(index, 0, item);
+                        model->setItem(index, 1, item1);
+                        model->setItem(index, 2, item2);
+                        model->setItem(index, 3, item3);
+                        index++;
                     }
                 }
                 treeChObjects->setModel(model);
