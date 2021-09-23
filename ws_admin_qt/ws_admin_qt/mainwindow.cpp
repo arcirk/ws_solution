@@ -10,7 +10,9 @@
 //#include <QJsonObject>
 //#include <QJsonDocument>
 
+#ifdef _WINDOWS
 #include <thread>
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,6 +57,10 @@ MainWindow::MainWindow(QWidget *parent)
     fillTree();
 
     treeServerObjects->expandAll();
+
+    connect(this, SIGNAL(display_error(const QString&,const QString&)),
+                     this,
+                     SLOT(on_display_error(const QString&,const QString&)));
 }
 
 void MainWindow::ext_message(const std::string &msg){
@@ -155,13 +161,13 @@ void MainWindow::on_mnuStartSession_triggered()
     client->host = settings->ServerHost.toStdString();
     client->port = settings->ServerPort;
 
-    //client->open();
+    client->open();
 
-    #ifdef _WINDOWS
-    std::thread(std::bind(&MainWindow::start, this)).detach();
-    #else
-    boost::thread(boost::bind(&IClient::start, this)).detach();
-    #endif
+//    #ifdef _WINDOWS
+//    std::thread(std::bind(&MainWindow::start, this)).detach();
+//    #else
+//    boost::thread(boost::bind(&MainWindow::start, this)).detach();
+//    #endif
 }
 
 void MainWindow::start(){
@@ -190,10 +196,13 @@ void MainWindow::processServeResponse(const std::string &response){
     }
 
     if(resp->result == "error"){
-        qDebug() << resp->command;
+        //qDebug() << resp->command;
         //QMessageBox::critical(nullptr, "Ошибка", resp->message);
-        popUp->setPopupText(resp->message);
-        popUp->show();
+        //popUp->setPopupText(resp->message);
+        //popUp->show();
+
+        display_error(resp->command, resp->message);
+
         if(resp->command == "set_client_param")
             client->close();
     }else
@@ -231,3 +240,7 @@ void MainWindow::on_mnuDisconnect_triggered()
     }
 }
 
+void MainWindow::on_display_error(const QString& what, const QString& err) {
+    //qDebug() << err;
+    QMessageBox::critical(nullptr, what, err);
+}

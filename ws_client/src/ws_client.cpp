@@ -313,76 +313,15 @@ std::string ws_client::get_client_info() {
 void ws_client::error(const std::string &what, const std::string &err) {
     if (_callback_msg)
     {
-
-        std::string _err(err);
-
-        //#ifdef _WINDOWS
-        //
-        //        boost::locale::generator g;
-        //        g.locale_cache_enabled(true);
-        //        std::locale loc = g(boost::locale::util::get_system_locale());
-        //        _err = boost::locale::conv::to_utf<char>(err, loc);
-        //
-        //        //using namespace boost::locale::conv;
-        //        //_err = utf_to_utf<char>(err);
-        //
-        //#endif // _WINDOWS
-
-        std::string desc = "";// "error ";
+        std::string desc;// "error ";
         desc.append(what);
         desc.append(": ");
-        desc.append(_err);
+        desc.append(err);
 
-        boost::uuids::uuid  uuid_channel{};
-
-        std::string msg = arc_json::get_message(get_uuid(), desc, get_name(), uuid_channel, true, get_app_name(), "", "", "", "error");
-
+        std::string msg = arc_json::get_message(get_uuid(), desc, get_name(), boost::uuids::uuid{}, true, get_app_name(), "", "", what, "error");
         _callback_msg(msg);
-
     }
 }
-
-//std::string ws_client::create_message(const std::string &uuid, const std::string &msg, const std::string &name,
-//                                      const std::string &uuid_channel, const std::string &app_name,
-//                                      const std::string &uuid_form, const std::string &hash, const std::string &command,
-//                                      const std::string& role, const std::string &result, const std::string &user_uuid) {
-//
-//    try{
-//        if (uuid.empty()){
-//            return "error";
-//        }
-//
-//        boost::uuids::uuid _uuid{};
-//
-//        if (!arc_json::is_valid_uuid(uuid, _uuid)){
-//            _uuid = boost::uuids::random_generator()();
-//        }
-//        boost::uuids::uuid uuid_channel_{};
-//        if (!uuid_channel.empty())
-//            uuid_channel_ = arc_json::string_to_uuid(uuid_channel);
-//
-//        boost::uuids::uuid user_uuid_{};
-//        if (!user_uuid.empty())
-//            user_uuid_ = arc_json::string_to_uuid(user_uuid);
-//
-//        return arc_json::get_message(_uuid,
-//                                     msg,
-//                                     name,
-//                                     uuid_channel_,
-//                                     true,
-//                                     app_name,
-//                                     uuid_form,
-//                                     hash,
-//                                     command,
-//                                     result,
-//                                     role,
-//                                     user_uuid_);
-//    }catch (std::exception & e){
-//
-//        return e.what();
-//    }
-//
-//}
 
 boost::uuids::uuid& ws_client::get_user_uuid() {
     return _user_uuid;

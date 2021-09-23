@@ -38,6 +38,8 @@ private slots:
 
     void on_mnuDisconnect_triggered();
 
+    void on_display_error(const QString& what, const QString& err);
+
 private:
 
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
@@ -62,6 +64,9 @@ private:
     QTreeWidgetItem * findTreeItem(const QString& source, int col = 0);
 
     PopUp *popUp;       // Объявляем объект всплывающего сообщения
+
+    signals:
+    void display_error(const QString& what, const QString& err);
 
 };
 #endif // MAINWINDOW_H
