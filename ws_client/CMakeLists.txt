@@ -37,18 +37,18 @@ find_package(Boost REQUIRED COMPONENTS regex)
 #find_package(Boost REQUIRED COMPONENTS locale)
 include_directories(${Boost_INCLUDE_DIRS})
 
-if (UNIX)
+#if (UNIX)
 target_link_libraries(ws_client
         ${Boost_LIBRARIES}
         Boost::thread
         ${NMOS_CPP_SYSTEM_LIBS}
         )
-else()
-    target_link_libraries(ws_client
-        ${Boost_LIBRARIES}
-        ${NMOS_CPP_SYSTEM_LIBS}
-        )
-endif()
+#else()
+#    target_link_libraries(ws_client
+#        ${Boost_LIBRARIES}
+#        ${NMOS_CPP_SYSTEM_LIBS}
+#        )
+#endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
     target_compile_options(ws_client PRIVATE -Wall -Wextra -Wunreachable-code -Wpedantic)
