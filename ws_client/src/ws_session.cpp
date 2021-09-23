@@ -164,6 +164,14 @@ session::on_read(
         return;
     }
 
+    if(ec.value() == 109){
+        std::string err = ec.message();
+#ifdef _WINDOWS
+        err = "Соединение разровано другой стороной!";
+#endif
+        client_->error("read", err);
+        return;
+    }
 
     if(ec){
         return fail(ec, "read");

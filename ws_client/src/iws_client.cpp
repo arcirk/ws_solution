@@ -285,14 +285,6 @@ void IClient::open(bool new_thread){
     user_uuid = arc_json::random_uuid();
     client_uuid = arc_json::random_uuid();\
 
-//    QJsonObject m_currentJsonObject = QJsonObject();
-
-//    m_currentJsonObject.insert("uuid", app_uuid.c_str());
-//    m_currentJsonObject.insert("name", admin_name.c_str());
-//    m_currentJsonObject.insert("hash", hash.c_str());
-//    m_currentJsonObject.insert("app_name", "admin_concole");
-//    m_currentJsonObject.insert("user_uuid", user_uuid.c_str());
-
     boost::property_tree::ptree pt;
 
     pt.add("uuid", app_uuid);

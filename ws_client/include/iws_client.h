@@ -39,7 +39,7 @@ public:
     void ext_message(const std::string& msg);
 
     void close();
-    void open(bool new_thread = false);
+    void open(bool new_thread = true);
     std::string get_client_info();
     std::string get_current_name();
     static std::string get_hash(const std::string &usr, const std::string &pwd);

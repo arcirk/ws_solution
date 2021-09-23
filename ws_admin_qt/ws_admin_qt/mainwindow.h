@@ -40,6 +40,8 @@ private slots:
 
     void on_display_error(const QString& what, const QString& err);
 
+    void on_display_notify(const QString& msg);
+
 private:
 
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
@@ -67,6 +69,6 @@ private:
 
     signals:
     void display_error(const QString& what, const QString& err);
-
+    void display_notify(const QString& msg);
 };
 #endif // MAINWINDOW_H

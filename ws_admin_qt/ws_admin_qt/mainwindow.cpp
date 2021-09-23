@@ -62,6 +62,10 @@ MainWindow::MainWindow(QWidget *parent)
                      this,
                      SLOT(on_display_error(const QString&,const QString&)));
 
+    connect(this, SIGNAL(display_notify(const QString&)),
+            this,
+            SLOT(on_display_notify(const QString&)));
+
     popUp = new PopUp();
 
 }
@@ -72,15 +76,9 @@ void MainWindow::ext_message(const std::string &msg){
 
 MainWindow::~MainWindow()
 {
-//    if(client){
-//        if(client->started()){
-//            client->close();
-//        }
-
-//    }
-
     delete client;
     delete settings;
+    delete popUp;
     delete ui;
 }
 
@@ -200,7 +198,7 @@ void MainWindow::processServeResponse(const std::string &response){
 
     if(resp->result == "error"){
 
-        //display_error(resp->command, resp->message);
+        display_error(resp->command, resp->message);
 
         if(resp->command == "set_client_param")
             client->close();
@@ -208,8 +206,11 @@ void MainWindow::processServeResponse(const std::string &response){
     {
         if(resp->command == "set_client_param"){
             client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
+            display_notify("Подключился к серверу.");
+
         }else if(resp->command == "get_active_users"){
-            qDebug() << resp->message;
+            //qDebug() << resp->message;
+            //display_notify()
         }
     }
 
@@ -236,12 +237,19 @@ void MainWindow::on_mnuDisconnect_triggered()
 {
     if(client->started()){
         client->close();
+        display_notify("Отключился от сервера.");
     }
 }
 
 void MainWindow::on_display_error(const QString& what, const QString& err) {
     //qDebug() << err;
     //QMessageBox::critical(nullptr, "Ошибка", err);
+
     popUp->setPopupText(err);
+    popUp->show();
+}
+
+void MainWindow::on_display_notify(const QString &msg) {
+    popUp->setPopupText(msg);
     popUp->show();
 }
