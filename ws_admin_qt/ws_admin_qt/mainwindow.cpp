@@ -200,7 +200,7 @@ void MainWindow::processServeResponse(const std::string &response){
 
     if(resp->result == "error"){
 
-        display_error(resp->command, resp->message);
+        //display_error(resp->command, resp->message);
 
         if(resp->command == "set_client_param")
             client->close();
