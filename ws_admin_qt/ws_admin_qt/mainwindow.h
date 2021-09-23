@@ -42,13 +42,17 @@ private slots:
 
     void on_display_notify(const QString& msg);
 
+    void fillTree();
+
+    void on_fill_node(const QString& command, const QString& resp);
+
 private:
 
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
     Ui::MainWindow *ui;
     QTreeWidget* treeServerObjects;
-    QListWidget * listServerObjects;
+    QTreeView * treeChObjects;
 
     OptionsDlg * optDlg;
 
@@ -56,7 +60,7 @@ private:
 
     QDockWidget *docObjectTree;
 
-    void fillTree();
+
     void update_branch(const QString& branch_name, const QString& serverResp);
     QString serverView();
     void processServeResponse(const std::string& response);
@@ -70,5 +74,8 @@ private:
     signals:
     void display_error(const QString& what, const QString& err);
     void display_notify(const QString& msg);
+    void fill_tree_();
+    void fill_node(const QString& command, const QString& resp);
+
 };
 #endif // MAINWINDOW_H

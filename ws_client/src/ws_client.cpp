@@ -157,7 +157,7 @@ ws_client::on_stop() {
     {
         _started = false;
         boost::uuids::uuid  uuid_channel{};
-        std::string msg = arc_json::get_message(get_uuid(), "client leave", get_name(), uuid_channel, true);
+        std::string msg = arc_json::get_message(get_uuid(), "client leave", get_name(), uuid_channel, true, get_app_name(), "", "", "close_connections");
         _callback_msg(msg);
 
     }

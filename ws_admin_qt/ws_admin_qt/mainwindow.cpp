@@ -56,8 +56,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     fillTree();
 
-    treeServerObjects->expandAll();
-
     connect(this, SIGNAL(display_error(const QString&,const QString&)),
                      this,
                      SLOT(on_display_error(const QString&,const QString&)));
@@ -66,8 +64,17 @@ MainWindow::MainWindow(QWidget *parent)
             this,
             SLOT(on_display_notify(const QString&)));
 
+    connect(this, SIGNAL(fill_tree_()),
+            this,
+            SLOT(fillTree()));
+
+    connect(this, SIGNAL(fill_node(const QString&,const QString&)),
+            this,
+            SLOT(on_fill_node(const QString&,const QString&)));
+
     popUp = new PopUp();
 
+    treeChObjects = ui->treeChildObjectServers;
 }
 
 void MainWindow::ext_message(const std::string &msg){
@@ -128,6 +135,7 @@ void MainWindow::fillTree(){
    }
    root->addChild(itemServer);
 
+   treeServerObjects->expandAll();
 }
 
 void MainWindow::update_branch(const QString &branch_name, const QString& serverResp){
@@ -207,10 +215,14 @@ void MainWindow::processServeResponse(const std::string &response){
         if(resp->command == "set_client_param"){
             client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
             display_notify("Подключился к серверу.");
-
+            fill_tree_();
         }else if(resp->command == "get_active_users"){
             //qDebug() << resp->message;
             //display_notify()
+            fill_node(resp->command, resp->message);
+        }else if(resp->command == "close_connections"){
+            display_notify("Отключился от сервера.");
+            fill_tree_();
         }
     }
 
@@ -237,7 +249,6 @@ void MainWindow::on_mnuDisconnect_triggered()
 {
     if(client->started()){
         client->close();
-        display_notify("Отключился от сервера.");
     }
 }
 
@@ -252,4 +263,39 @@ void MainWindow::on_display_error(const QString& what, const QString& err) {
 void MainWindow::on_display_notify(const QString &msg) {
     popUp->setPopupText(msg);
     popUp->show();
+}
+
+void MainWindow::on_fill_node(const QString& command, const QString& resp){
+
+    if (command == "get_active_users"){
+       // treeChObjects->setModel(nullptr);
+
+        QJsonDocument doc = ServeResponse::parseResp(resp);
+        if (!doc.isNull()){
+            if (doc.isArray()){
+                int rowCount = doc.array().count();
+                auto * model = new QStandardItemModel(rowCount, 4);
+                int index = 0;
+                for (auto row : doc.array()){
+                    if (row.isObject()){
+                        QString name = ServeResponse::getStringMember(row, "name");
+                        auto *item = new QStandardItem(name);
+                        model->setItem(index++, 0, item);
+                    }
+                }
+                treeChObjects->setModel(model);
+            }
+        }
+
+//        auto * model = new QStandardItemModel(4, 4);
+//        for (int row = 0; row < 4; ++row) {
+//            for (int column = 0; column < 4; ++column) {
+//                auto *item = new QStandardItem(QString("row %0, column %1").arg(row).arg(column));
+//                model->setItem(row, column, item);
+//            }
+//        }
+//        treeChObjects->setModel(model);
+    }
+
+
 }
