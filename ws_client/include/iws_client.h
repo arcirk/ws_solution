@@ -31,7 +31,7 @@ public:
     std::string hash;
 
     explicit
-    IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_message_w error_callback = nullptr);
+    IClient(const std::string& _host, const int& _port, _callback_message& callback);
     ~IClient(){
         close();
     };
@@ -67,7 +67,6 @@ private:
     ws_client * client;
     std::string _client_param;
     _callback_message callback_msg;
-    _callback_message_w err_callback;
 
     int open_as(const std::string &param);
     void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);

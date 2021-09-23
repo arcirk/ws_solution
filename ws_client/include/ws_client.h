@@ -20,7 +20,6 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 typedef std::function<void(std::string)> _callback_message;
-typedef std::function<void(std::wstring)> _callback_message_w;
 
 class ws_client{
 
@@ -34,7 +33,7 @@ public:
     void open(const char *host, const char *port);
     void open(const char *host, const char *port, const char *name);
     void open(const char *host, const char *port, const char *name, const char *uuid);
-    void open(const char* host, const char* port, _callback_message& msg, _callback_message_w& error_msg);
+    void open(const char* host, const char* port, _callback_message& msg);
     void send(const std::string &message, bool is_cmd = true, const std::string& sub_user_uuid = "", const std::string& uuid_form = "", const std::string& command = "message");
 //    void
 //    to_channel(const std::string &message, const std::string& uuid_sub, const std::string& uuid_form);
@@ -56,8 +55,6 @@ public:
 
     void error(const std::string &what, const std::string &err);
 
-    void error(const std::string &what, const std::wstring &err);
-
     static boost::uuids::uuid string_to_uuid(const std::string& uuid){return arc_json::string_to_uuid(uuid);};
     static std::string get_hash(const std::string& name,
                                 const std::string& pwd){return arc_json::get_sha1(name + pwd);};
@@ -73,7 +70,6 @@ private:
     boost::uuids::uuid uuid_{};
     std::string name_;
     _callback_message _callback_msg;
-    _callback_message_w _err_callback;
 
     std::string _client_param;
 

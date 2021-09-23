@@ -7,12 +7,11 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_message_w error_callback)
+IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
     host = _host;
     port = _port;
     callback_msg = callback;
-    err_callback = error_callback;
     client = nullptr;
 }
 
@@ -73,7 +72,7 @@ void IClient::start() {
     client = new ws_client(ioc, _client_param);
 
     //client->open(host.c_str(), std::to_string(port).c_str(), callback);
-    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, err_callback);
+    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg);
 
     delete client;
     client = nullptr;

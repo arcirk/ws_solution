@@ -84,10 +84,9 @@ open(const char *host, const char *port) {
 
 void
 ws_client::
-open(const char* host, const char* port, _callback_message& msg, _callback_message_w& error_msg) {
+open(const char* host, const char* port, _callback_message& msg) {
 
     _callback_msg = msg;
-    _err_callback = error_msg;
 
     boost::make_shared<session>(ioc)->run(host, port, this);
     ioc.run();

@@ -61,6 +61,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(display_error(const QString&,const QString&)),
                      this,
                      SLOT(on_display_error(const QString&,const QString&)));
+
+    popUp = new PopUp();
+
 }
 
 void MainWindow::ext_message(const std::string &msg){
@@ -196,10 +199,6 @@ void MainWindow::processServeResponse(const std::string &response){
     }
 
     if(resp->result == "error"){
-        //qDebug() << resp->command;
-        //QMessageBox::critical(nullptr, "Ошибка", resp->message);
-        //popUp->setPopupText(resp->message);
-        //popUp->show();
 
         display_error(resp->command, resp->message);
 
@@ -243,6 +242,6 @@ void MainWindow::on_mnuDisconnect_triggered()
 void MainWindow::on_display_error(const QString& what, const QString& err) {
     //qDebug() << err;
     //QMessageBox::critical(nullptr, "Ошибка", err);
-//    popUp->setPopupText(err);
-//    popUp->show();
+    popUp->setPopupText(err);
+    popUp->show();
 }

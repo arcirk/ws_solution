@@ -37,11 +37,18 @@ find_package(Boost REQUIRED COMPONENTS regex)
 #find_package(Boost REQUIRED COMPONENTS locale)
 include_directories(${Boost_INCLUDE_DIRS})
 
-target_link_libraries( ws_client
+if (UNIX)
+target_link_libraries(ws_client
         ${Boost_LIBRARIES}
         Boost::thread
         ${NMOS_CPP_SYSTEM_LIBS}
         )
+else()
+    target_link_libraries(ws_client
+        ${Boost_LIBRARIES}
+        ${NMOS_CPP_SYSTEM_LIBS}
+        )
+endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
     target_compile_options(ws_client PRIVATE -Wall -Wextra -Wunreachable-code -Wpedantic)
@@ -54,17 +61,19 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(ws_client PRIVATE /W4 /w44265 /w44061 /w44062 )
 endif()
 
-ADD_CUSTOM_COMMAND(
-        TARGET ${TARGET}
-        POST_BUILD
-        COMMENT "Update lib..."
-        COMMAND ${CMAKE_COMMAND} -E rm ../../ws_admin_qt/ws_admin_qt/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ADD_CUSTOM_COMMAND(
+            TARGET ${TARGET}
+            POST_BUILD
+            COMMENT "Update lib..."
+            COMMAND ${CMAKE_COMMAND} -E rm ../../ws_admin_qt/ws_admin_qt/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 
-ADD_CUSTOM_COMMAND(
-        TARGET ${TARGET}
-        POST_BUILD
-        COMMENT "Copying lib..."
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX}
-        ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
-)
+    ADD_CUSTOM_COMMAND(
+            TARGET ${TARGET}
+            POST_BUILD
+            COMMENT "Copying lib..."
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
+    )
+endif ()
