@@ -86,6 +86,16 @@ void
 websocket_session::
 on_read(beast::error_code ec, std::size_t)
 {
+
+    if (ec.value() == 2){
+        std::cerr << "read: " << "End of file" << std::endl;
+        return;
+    }
+
+//    if( ec == net::error::operation_aborted ||
+//        ec == websocket::error::closed)
+//            return;
+
     // Handle the error, if any
     if(ec)
         return fail(ec, "read");
