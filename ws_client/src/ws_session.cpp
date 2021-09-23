@@ -71,7 +71,8 @@ session::on_resolve(
 void
 session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
 {
-    if (ec.value() == 111){ //connection refused
+    //std::cout << ec.value() << std::endl;
+    if (ec.value() == 111 || ec.value() == 10061){ //connection refused
         std::string err = ec.message();
 #ifdef _WINDOWS
     err = "В соединении отказано";

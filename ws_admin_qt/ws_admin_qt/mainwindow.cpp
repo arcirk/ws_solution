@@ -242,5 +242,7 @@ void MainWindow::on_mnuDisconnect_triggered()
 
 void MainWindow::on_display_error(const QString& what, const QString& err) {
     //qDebug() << err;
-    QMessageBox::critical(nullptr, what, err);
+    //QMessageBox::critical(nullptr, "Ошибка", err);
+//    popUp->setPopupText(err);
+//    popUp->show();
 }

@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 project(ws_client VERSION 1.0.1 DESCRIPTION "websocket client")
 
 set(CMAKE_CXX_STANDARD 17)
-set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(TARGET ws_client)
 
 #SHARED
 add_library(ws_client SHARED
@@ -52,3 +53,18 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(ws_client PRIVATE /W4 /w44265 /w44061 /w44062 )
 endif()
+
+ADD_CUSTOM_COMMAND(
+        TARGET ${TARGET}
+        POST_BUILD
+        COMMENT "Update lib..."
+        COMMAND ${CMAKE_COMMAND} -E rm ../../ws_admin_qt/ws_admin_qt/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX})
+
+
+ADD_CUSTOM_COMMAND(
+        TARGET ${TARGET}
+        POST_BUILD
+        COMMENT "Copying lib..."
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX}
+        ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
+)
