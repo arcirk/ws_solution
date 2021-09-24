@@ -31,51 +31,52 @@ public:
 
 private slots:
     void on_mnuOptions_triggered();
-
     void on_mnuStartSession_triggered();
-
     void on_action_4_triggered();
-
     void on_mnuDisconnect_triggered();
-
     void on_display_error(const QString& what, const QString& err);
-
     void on_display_notify(const QString& msg);
-
     void fillTree();
-
     void on_fill_node(const QString& command, const QString& resp);
+    void on_treeSrvObjects_itemSelectionChanged();
+    void on_fill_group_tree(const QString& resp);
 
 private:
-
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
     Ui::MainWindow *ui;
+
     QTreeWidget* treeServerObjects;
-    QTreeView * treeChObjects;
-
+    QTableWidget * listChildServerObjects;
+    QTreeWidget * treeChannelsObjects;
     OptionsDlg * optDlg;
-
     appSettings * settings;
-
     QDockWidget *docObjectTree;
-
+    PopUp *popUp;       // Объявляем объект всплывающего сообщения
+    IClient * client;
 
     void update_branch(const QString& branch_name, const QString& serverResp);
     QString serverView();
     void processServeResponse(const std::string& response);
 
-    IClient * client;
+    void resizeColumns();
+    void initItemList();
+    void initTreeObjectsList();
 
     QTreeWidgetItem * findTreeItem(const QString& source, int col = 0);
 
-    PopUp *popUp;       // Объявляем объект всплывающего сообщения
+    void fillList(const QString& nodeName);
+    void load_group_tree(QTreeWidgetItem* currentItem, QTableWidget* initialData);
+    QTreeWidgetItem * new_tree_item(const QString& text, const QString& toolType = "", const QString& nextColVal = "");
+
+    void fill_property_values(QJsonObject* jsonObject, QTreeWidgetItem* item);
 
     signals:
     void display_error(const QString& what, const QString& err);
     void display_notify(const QString& msg);
     void fill_tree_();
     void fill_node(const QString& command, const QString& resp);
+    void fill_group_tree(const QString& resp);
 
 };
 #endif // MAINWINDOW_H

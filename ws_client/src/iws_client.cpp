@@ -312,3 +312,7 @@ void IClient::open(bool new_thread){
 std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
     return arc_json::get_hash(usr, pwd);
 }
+
+std::string IClient::get_app_uuid() {
+    return app_uuid;
+}

@@ -10,6 +10,8 @@ public:
 
     bool init();
     void save_settings();
+    QString getJson();
+    QJsonObject getJsonObject();
 
     QString ServerHost;
     int ServerPort;
@@ -17,6 +19,7 @@ public:
     QString Hash;
     QString ServerBinDir;
     QString ServerName;
+    QString ServerStatus;
 };
 
 #endif // APPSETTINGS_H

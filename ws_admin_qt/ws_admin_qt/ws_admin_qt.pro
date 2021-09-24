@@ -13,6 +13,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     optionsdlg.cpp \
+    popup.cpp \
     serveresponse.cpp
 
 HEADERS += \
@@ -20,6 +21,7 @@ HEADERS += \
     global.h \
     mainwindow.h \
     optionsdlg.h \
+    popup.h \
     serveresponse.h \
     stdfx.h
 

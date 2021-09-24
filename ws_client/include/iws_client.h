@@ -56,6 +56,8 @@ public:
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
     bool started();
 
+    std::string get_app_uuid();
+
     tm currentDate();
     long int current_date_in_seconds();
     long int get_tz_offset();

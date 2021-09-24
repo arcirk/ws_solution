@@ -14,6 +14,7 @@ appSettings::appSettings()
     , RootUser("admin")
     , ServerBinDir("host")
     , ServerName("NoName")
+    , ServerStatus("Не подключен")
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
 
@@ -57,7 +58,7 @@ bool appSettings::init(){
     }
     iter = m_currentJsonObject.find("ServerBinDir");
     if (iter != m_currentJsonObject.end()){
-        Hash = iter.value().toString();
+        ServerBinDir = iter.value().toString();
     }
     iter = m_currentJsonObject.find("ServerName");
     if (iter != m_currentJsonObject.end()){
@@ -91,3 +92,27 @@ void appSettings::save_settings(){
     jsonFile.close();   // Закрываем файл
 }
 
+QString appSettings::getJson() {
+    QJsonObject m_currentJsonObject = QJsonObject();
+    m_currentJsonObject.insert("ServerHost", ServerHost);
+    m_currentJsonObject.insert("ServerPort", ServerPort);
+    m_currentJsonObject.insert("RootUser", RootUser);
+    m_currentJsonObject.insert("Hash", Hash);
+    m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
+    m_currentJsonObject.insert("ServerName", ServerName);
+    return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
+}
+
+QJsonObject appSettings::getJsonObject() {
+
+    QJsonObject m_currentJsonObject = QJsonObject();
+    m_currentJsonObject.insert("ServerHost", ServerHost);
+    m_currentJsonObject.insert("ServerPort", ServerPort);
+    m_currentJsonObject.insert("RootUser", RootUser);
+    m_currentJsonObject.insert("Hash", Hash);
+    m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
+    m_currentJsonObject.insert("ServerName", ServerName);
+    m_currentJsonObject.insert("ServerStatus", ServerStatus);
+    return m_currentJsonObject;
+
+}

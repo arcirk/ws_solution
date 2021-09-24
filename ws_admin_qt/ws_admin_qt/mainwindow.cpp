@@ -3,12 +3,7 @@
 #include "ui_mainwindow.h"
 
 #include "stdfx.h"
-//#include "iws_client.h"
-
-//#include "../../ws_client/include/global.h"
 #include "serveresponse.h"
-//#include <QJsonObject>
-//#include <QJsonDocument>
 
 #ifdef _WINDOWS
 #include <thread>
@@ -20,61 +15,48 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    //qRegisterMetaType("QtMsgType");
-    //connect(this, &ui::logFromMainThread, this, &ui::logFromMainThreadSlot);
-
-    QDockWidget *docObjectTree = new QDockWidget(tr("Дерево объектов сервера"), this);
-    docObjectTree->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    treeServerObjects = new QTreeWidget(docObjectTree);
-
-    docObjectTree->setWidget(treeServerObjects);
-    addDockWidget(Qt::LeftDockWidgetArea, docObjectTree);
-
-    //listServerObjects = new QListWidget(this);
-
-    QAction *pQCmd = docObjectTree->toggleViewAction();
-    ui->mnuView->addAction(pQCmd);
-
     settings = new appSettings();
     settings->init();
 
-    QRect rc = docObjectTree->geometry();
-    rc.setLeft(10);
-
-    docObjectTree->setGeometry(rc);
-
-    treeServerObjects->setColumnCount(2);
-    treeServerObjects->setColumnHidden(1, true);
-
-    QStringList headers;
-    headers << tr("Объекты");
-    treeServerObjects->setHeaderLabels(headers);
-
     _callback_message callback = std::bind(&MainWindow::ext_message, this, std::placeholders::_1);
-
     client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort, callback);
 
-    fillTree();
+    QDockWidget *docObjectTree = ui->dockSrvObjects;
+    docObjectTree->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
-    connect(this, SIGNAL(display_error(const QString&,const QString&)),
-                     this,
-                     SLOT(on_display_error(const QString&,const QString&)));
+    initItemList();
+    initTreeObjectsList();
 
-    connect(this, SIGNAL(display_notify(const QString&)),
-            this,
-            SLOT(on_display_notify(const QString&)));
+    treeChannelsObjects = ui->treeShannels;
+    treeChannelsObjects->setColumnHidden(1, true);
 
-    connect(this, SIGNAL(fill_tree_()),
-            this,
-            SLOT(fillTree()));
-
-    connect(this, SIGNAL(fill_node(const QString&,const QString&)),
-            this,
-            SLOT(on_fill_node(const QString&,const QString&)));
+    connect(this, SIGNAL(display_error(QString,QString)), this, SLOT(on_display_error(QString,QString)));
+    connect(this, SIGNAL(display_notify(QString)), this, SLOT(on_display_notify(QString)));
+    connect(this, SIGNAL(fill_tree_()), this, SLOT(fillTree()));
+    connect(this, SIGNAL(fill_node(QString,QString)), this, SLOT(on_fill_node(QString,QString)));
+    connect(this, SIGNAL(fill_group_tree(QString)), this, SLOT(on_fill_group_tree(QString)));
 
     popUp = new PopUp();
 
-    treeChObjects = ui->treeChildObjectServers;
+    ui->treeShannels->setVisible(false);
+
+}
+
+void MainWindow::initItemList() {
+    listChildServerObjects = ui->listChildSrvObjects;
+}
+
+void MainWindow::initTreeObjectsList() {
+
+    treeServerObjects = ui->treeSrvObjects;
+    QAction *pQCmd = ui->dockSrvObjects->toggleViewAction();
+    ui->mnuView->addAction(pQCmd);
+    treeServerObjects->setColumnCount(2);
+    treeServerObjects->setColumnHidden(1, true);
+    QStringList headers;
+    headers << tr("Объекты");
+    treeServerObjects->setHeaderLabels(headers);
+    fillTree();
 }
 
 void MainWindow::ext_message(const std::string &msg){
@@ -112,30 +94,42 @@ void MainWindow::fillTree(){
 
    treeServerObjects->clear();
 
-   QTreeWidgetItem * root = new QTreeWidgetItem(MainWindow::itTopItem);
+   auto * root = new QTreeWidgetItem(MainWindow::itTopItem);
    root-> setText (0, "root");
+   root->setText(1, "root");
    treeServerObjects->addTopLevelItem(root);
 
-   QTreeWidgetItem * itemServer = new QTreeWidgetItem(MainWindow::itTopItem);
+   auto * itemServer = new QTreeWidgetItem(MainWindow::itTopItem);
    itemServer->setText(0, serverView());
    itemServer->setToolTip(0, serverView());
    itemServer->setText(1, "ServerName");
    if(client->started()){
-       QTreeWidgetItem * itemActiveUsers = new QTreeWidgetItem(MainWindow::itTopItem);
+       auto * itemActiveUsers = new QTreeWidgetItem(MainWindow::itTopItem);
        itemActiveUsers->setText(0,"Активные подключения");
        itemActiveUsers->setToolTip(0, "Активные подключения");
        itemActiveUsers->setText(1, "ActiveUsers");
        itemServer->addChild(itemActiveUsers);
+       auto * itemUsers = new QTreeWidgetItem(MainWindow::itTopItem);
+       itemUsers->setText(0,"Пользователи");
+       itemUsers->setToolTip(0, "Пользователи");
+       itemUsers->setText(1, "Users");
+       itemServer->addChild(itemUsers);
    }else
    {
-       QTreeWidgetItem * itemErr = new QTreeWidgetItem(MainWindow::itTopItem);
+       auto * itemErr = new QTreeWidgetItem(MainWindow::itTopItem);
        itemErr->setText(0,"Сервер не доступен");
+       itemErr->setText(1,"error");
        itemErr->setToolTip(0, "Сервер не доступен");
        itemServer->addChild(itemErr);
    }
    root->addChild(itemServer);
 
    treeServerObjects->expandAll();
+   treeServerObjects->setCurrentItem(
+       treeServerObjects->topLevelItem(0),    // item
+       0,                          // column
+       QItemSelectionModel::Select // command
+   );
 }
 
 void MainWindow::update_branch(const QString &branch_name, const QString& serverResp){
@@ -206,24 +200,25 @@ void MainWindow::processServeResponse(const std::string &response){
 
     if(resp->result == "error"){
 
-        display_error(resp->command, resp->message);
+        emit display_error(resp->command, resp->message);
 
         if(resp->command == "set_client_param")
             client->close();
     }else
     {
         if(resp->command == "set_client_param"){
-            client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
-            display_notify("Подключился к серверу.");
-            fill_tree_();
+            //client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
+            emit display_notify("Подключился к серверу.");
+            emit fill_tree_();
         }else if(resp->command == "get_active_users"){
-            //qDebug() << resp->message;
-            //display_notify()
-            fill_node(resp->command, resp->message);
+            emit fill_node(resp->command, resp->message);
         }else if(resp->command == "close_connections"){
-            display_notify("Отключился от сервера.");
-            fill_tree_();
+            emit display_notify("Отключился от сервера.");
+            emit fill_tree_();
+        }else if (resp->command == "get_group_list"){
+           fill_group_tree(resp->message);
         }
+
     }
 
     delete resp;
@@ -267,51 +262,141 @@ void MainWindow::on_display_notify(const QString &msg) {
 
 void MainWindow::on_fill_node(const QString& command, const QString& resp){
 
-    //ToDo: навести красоту в коде
-    if (command == "get_active_users"){
-       // treeChObjects->setModel(nullptr);
+    if (command == "get_active_users") {
 
         QJsonDocument doc = ServeResponse::parseResp(resp);
-        if (!doc.isNull()){
-            if (doc.isArray()){
-                int rowCount = doc.array().count();
-                auto * model = new QStandardItemModel(rowCount, 4);
-                model->setHorizontalHeaderItem(0, new QStandardItem("Пользователь"));
-                model->setHorizontalHeaderItem(1, new QStandardItem("Идентификатор клиента"));
-                model->setHorizontalHeaderItem(2, new QStandardItem("Идентификатор пользователя"));
-                model->setHorizontalHeaderItem(3, new QStandardItem("Приложение"));
-                int index = 0;
-                for (auto row : doc.array()){
-                    if (row.isObject()){
-                        QJsonObject loopObj = row.toObject();
-                        QString name = ServeResponse::getStringMember(loopObj, "name");
-                        QString uuid = ServeResponse::getStringMember(loopObj, "uuid");
-                        QString user_uuid = ServeResponse::getStringMember(loopObj, "user_uuid");
-                        QString app_name = ServeResponse::getStringMember(loopObj, "app_name");
-                        auto *item = new QStandardItem(name);
-                        auto *item1 = new QStandardItem(uuid);
-                        auto *item2 = new QStandardItem(user_uuid);
-                        auto *item3 = new QStandardItem(app_name);
-                        model->setItem(index, 0, item);
-                        model->setItem(index, 1, item1);
-                        model->setItem(index, 2, item2);
-                        model->setItem(index, 3, item3);
-                        index++;
-                    }
-                }
-                treeChObjects->setModel(model);
+        if (!doc.isNull()) {
+            if (doc.isArray()) {
+                ServeResponse::loadTableFromJson(listChildServerObjects, doc.array());
+                resizeColumns();
+            }
+        }
+    }
+
+}
+
+void MainWindow::on_treeSrvObjects_itemSelectionChanged()
+{
+    auto item = treeServerObjects->currentItem();
+
+    qDebug() << item->text(1);
+
+    fillList(item->text(1));
+}
+
+void MainWindow::resizeColumns(){
+    listChildServerObjects->horizontalHeader()->setResizeContentsPrecision(QHeaderView::Fixed);
+//    for (int i = 0; i < listChildServerObjects->columnCount() - 1; ++i) {
+//        listChildServerObjects->setColumnWidth(i, 200);
+//    }
+    listChildServerObjects->resizeColumnsToContents();
+}
+
+void MainWindow::fillList(const QString &nodeName) {
+    listChildServerObjects->clear();
+    listChildServerObjects->setColumnCount(0);
+    listChildServerObjects->setRowCount(0);
+
+    if (nodeName == "ServerName"){
+        ServeResponse::loadTableFromJson(listChildServerObjects, settings->getJsonObject());
+        resizeColumns();
+        ui->treeShannels->setVisible(false);
+    }else if (nodeName == "ActiveUsers"){
+        ui->treeShannels->setVisible(false);
+        client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
+    }else if (nodeName == "Users"){
+        ui->treeShannels->setVisible(true);
+        client->get_group_list(client->get_app_uuid());
+    }
+}
+
+void MainWindow::on_fill_group_tree(const QString &resp) {
+
+    QString nil_uuid = QString::fromStdString(arc_json::nil_uuid());
+
+    treeChannelsObjects->clear();
+    treeChannelsObjects->setColumnCount(0);
+
+//    auto * root = new QTreeWidgetItem(MainWindow::itTopItem);
+//    root-> setText (0, "root");
+//    root->setText(1, nil_uuid);
+//    treeChannelsObjects->addTopLevelItem(root);
+
+    QJsonDocument doc = ServeResponse::parseResp(resp);
+
+    if (doc.isNull())
+        return;
+
+    auto * m_dataTable = new QTableWidget();
+    if (doc.isArray()) {
+
+        if (doc.array().count() == 0)
+            return;
+
+        QJsonObject reference = doc.array()[0].toObject();
+
+        //Создаем таблицу значений для удобства поиска дочерних элементов
+        ServeResponse::loadTableFromJson(m_dataTable, doc.array());
+        //Создаем заголовки по первой структуре в массиве
+        ServeResponse::set_header_tree(treeChannelsObjects, reference);
+        //Индекс поля parent
+        int iParent = ServeResponse::get_index_member(reference, "parent");
+        int iColCount = (int)reference.count();
+
+        //Заполняем дерево
+        for (int i = 0; i < m_dataTable->rowCount() - 1; ++i) {
+            QTableWidgetItem* parentValue = m_dataTable->item(i, iParent);
+            if (parentValue->text().isEmpty() || parentValue->text() == nil_uuid){
+//                QString name = m_dataTable->item(i, 0)->text();
+//                QString id = m_dataTable->item(i, 0)->text();
+                //QTreeWidgetItem * item = new_tree_item(name, )
             }
         }
 
-//        auto * model = new QStandardItemModel(4, 4);
-//        for (int row = 0; row < 4; ++row) {
-//            for (int column = 0; column < 4; ++column) {
-//                auto *item = new QStandardItem(QString("row %0, column %1").arg(row).arg(column));
-//                model->setItem(row, column, item);
+
+//        QList<QTableWidgetItem *> m_ListParent = m_dataTable->findItems("parent", Qt::MatchEndsWith);
+//        if (m_ListParent.empty() ){
+//            return;
+//        }
+//        QTableWidgetItem * parent = m_ListParent[0];
+//        int indexParentColumn = m_dataTable->column(parent);
+
+//        for (int i = 0; i < m_dataTable->rowCount() - 1; ++i) {
+//            QTableWidgetItem* parentValue = m_dataTable->item(i, indexParentColumn);
+//            if (parentValue->text().isEmpty() || parentValue->text() == nil_uuid){
+//                QString name = m_dataTable->item(i, 0)->text();
+//                QString id = m_dataTable->item(i, 0)->text();
+//                //QTreeWidgetItem * item = new_tree_item(name, )
 //            }
 //        }
-//        treeChObjects->setModel(model);
     }
 
+}
 
+void MainWindow::fill_property_values(QJsonObject *jsonObject, QTreeWidgetItem *item) {
+
+//    treeChannelsObjects->
+//    for (auto row = jsonObject->constBegin(); row != jsonObject->constEnd(); ++row)
+//    {
+//
+//    }
+    
+}
+
+void MainWindow::load_group_tree(QTreeWidgetItem *currentItem, QTableWidget *initialData) {
+
+
+}
+
+QTreeWidgetItem * MainWindow::new_tree_item(const QString &text, const QString &toolType, const QString &nextColVal) {
+
+    auto * item = new QTreeWidgetItem(MainWindow::itTopItem);
+    item->setText(0, text);
+    if (!toolType.isEmpty()){
+        item->setToolTip(0, toolType);
+    }
+    if (!nextColVal.isEmpty()){
+        item->setText(1, nextColVal);
+    }
+    return item;
 }
