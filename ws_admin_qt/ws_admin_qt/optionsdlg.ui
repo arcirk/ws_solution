@@ -128,16 +128,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="ServerBinDir">
-    <property name="geometry">
-     <rect>
-      <x>141</x>
-      <y>120</y>
-      <width>266</width>
-      <height>41</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
@@ -158,6 +148,16 @@
       <y>30</y>
       <width>292</width>
       <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="ServerBinDir">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>120</y>
+      <width>261</width>
+      <height>41</height>
      </rect>
     </property>
    </widget>

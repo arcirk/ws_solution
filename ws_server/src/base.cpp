@@ -5,6 +5,7 @@
 #include <arc_json.h>
 #include "../include/base.h"
 
+//ToDo: исправить код получения типа данных колонки col_count
 
 namespace arc_sqlite {
 
@@ -243,19 +244,6 @@ namespace arc_sqlite {
         int i = 0;
         int rc;
 
-        std::vector<std::string> col_types;
-        std::string table_info = "PRAGMA table_info(" + table_name + ")";
-
-        if (sqlite3_prepare_v2(db, table_info.c_str(), -1, &pStmt, NULL))
-        {
-            sqlite3_finalize(pStmt);
-        }
-
-        while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW)
-        {
-            const char* p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, 2));
-            col_types.emplace_back(p);
-        }
 
         if (sqlite3_exec(db, query.c_str(), 0, 0, &err))
         {
@@ -284,11 +272,7 @@ namespace arc_sqlite {
             for (j = 0; j < col_count; j++)
             {
 
-                std::string sz_col_type = "TEXT";
-                if (j<col_types.size())
-                {
-                    sz_col_type = col_types.at(j);
-                }
+                int iColType = sqlite3_column_type(pStmt, j);
 
                 const char* p;
 
@@ -299,7 +283,7 @@ namespace arc_sqlite {
                 if (table_name == "Users" && val.key == "hash")
                     continue;
 
-                if ((sz_col_type == "TEXT") || (sz_col_type == "TEXT (36)"))
+                if (iColType == SQLITE3_TEXT)// ((sz_col_type == "TEXT") || (sz_col_type == "TEXT (36)"))
                 {
                     p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, j));
                     if (p != NULL)
@@ -307,13 +291,17 @@ namespace arc_sqlite {
                     else
                         val.value = "";
                 }
-                else if (sz_col_type == "INTEGER")
+                else if (iColType == SQLITE_INTEGER) //(sz_col_type == "INTEGER")
                 {
                     val.value = (long int)sqlite3_column_int(pStmt, j);
                 }
-                else if (sz_col_type == "REAL")
+                else if (iColType == SQLITE_FLOAT) //(sz_col_type == "REAL")
                 {
                     val.value = sqlite3_column_double(pStmt, j);
+                }
+                else if (iColType == SQLITE_NULL) //(sz_col_type == "REAL")
+                {
+                    val.value = "null";
                 }
                 else
 

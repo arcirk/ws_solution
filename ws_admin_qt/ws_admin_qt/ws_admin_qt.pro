@@ -50,3 +50,6 @@ unix:LIBS += -lboost_thread
 LIBS += -lws_client
 
 PRECOMPILED_HEADER = stdfx.h
+
+RESOURCES += \
+    resourse.qrc

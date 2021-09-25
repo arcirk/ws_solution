@@ -43,46 +43,6 @@ QJsonDocument ServeResponse::parseResp(const QString &resp){
 
 }
 
-QString ServeResponse::getStringMember(QJsonDocument &doc, const QString &key){
-
-    if(doc.isObject())
-    {
-        QJsonObject obj = doc.object();
-        auto _message = obj.find(key);
-
-        if(_message->isString()){
-            return _message.value().toString();
-        }
-    }
-
-    return "";
-}
-
-QString ServeResponse::getStringMember(QJsonObject &obj, const QString &key){
-
-    auto _message = obj.find(key);
-
-    if(_message->isString()){
-        return _message.value().toString();
-    }
-
-    return "";
-}
-
-void ServeResponse::loadTableFromJson(QTableWidget *table, const QString &json) {
-
-//    QJsonDocument result = parseResp(json);
-//
-//    if (result.isNull())
-//        return;
-//
-//    if (result.isObject()){
-//        table->clear();
-//        table->setColumnCount(result.object().count());
-//    }
-
-}
-
 void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonObject& json) {
 
     table->setColumnCount(2);
@@ -195,6 +155,82 @@ int ServeResponse::get_index_member(const QJsonObject &jsonObject, const QString
     return index;
 }
 
-QTreeWidgetItem *ServeResponse::new_tree_item(const QJsonObject& jsonObject) {
-    return nullptr;
+QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<QString, int> header) {
+
+    if (doc.isNull())
+        return nullptr;
+
+    QJsonArray array = doc.array();
+    int rowCount = (int)array.count();
+    int colCount = (int)header.size();
+    auto * model = new QStandardItemModel(rowCount, colCount);
+    int index = 0;
+
+    foreach ( const auto& Key, header.keys() )
+    {
+        const auto& Value = header[Key];
+        model->setHorizontalHeaderItem(Value, new QStandardItem(Key));
+    }
+
+    index = 0;
+
+    auto * proxyModel = new QSortFilterProxyModel();
+
+    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    {
+        QJsonObject currentObject = it->toObject();
+        for (auto col = currentObject.constBegin(); col != currentObject.constEnd(); ++col){
+            const auto& indexCol = header[col.key()];;
+            QStandardItem *itemVal = nullptr;
+            if (col.value().isString())
+                itemVal = new QStandardItem(col.value().toString());
+            else if (col.value().isDouble())
+                itemVal = new QStandardItem(QString::number(col.value().toInteger()));
+            else if (col.value().isBool())
+                itemVal = new QStandardItem(QString::number(col.value().toBool()));
+            model->setItem(index, indexCol, itemVal);
+
+        }
+        index++;
+    }
+    proxyModel->setSourceModel(model);
+
+    return proxyModel;
+}
+QSortFilterProxyModel * ServeResponse::get_proxyModel(const QString& resp) {
+
+    QJsonDocument doc = parseResp(resp);
+
+    if (doc.isNull())
+        return nullptr;
+
+    return get_proxyModel(doc, QMap<QString, int>());
+}
+
+QMap<QString, int> ServeResponse::get_header(QJsonObject *obj, QString firstCol) {
+
+    QList<QString> list;
+    QMap<QString, int> header;
+    int index = 0;
+
+    for (auto col = obj->constBegin(); col != obj->constEnd(); col++)
+    {
+        if (firstCol.isEmpty()){
+            header.insert(col.key(), index);
+            index++;
+        }else{
+            if (col.key() != firstCol)
+                list.push_back(col.key());
+            else
+                list.insert(0, col.key());
+        }
+    }
+
+    if (!list.empty()){
+        for (int j = 0; j < list.count(); ++j) {
+            header.insert(list.at(j), j);
+        }
+    }
+
+    return header;
 }

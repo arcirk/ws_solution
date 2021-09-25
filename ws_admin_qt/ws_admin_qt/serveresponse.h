@@ -9,6 +9,9 @@
 #include <QTableWidgetItem>
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
+#include <QSortFilterProxyModel>
+#include <QStandardItemModel>
+#include <QAbstractTableModel>
 
 class ServeResponse
 {
@@ -20,20 +23,18 @@ public:
     QString result;
     bool isParse;
 
-    bool read_server_response(const QString& json);
-
-    static QString getStringMember(QJsonDocument& doc, const QString& key);
-    static QString getStringMember(QJsonObject &obj, const QString& key);
-
     static QJsonDocument parseResp(const QString& resp);
 
-    static void loadTableFromJson(QTableWidget* table, const QString& json);
     static void loadTableFromJson(QTableWidget* table, const QJsonObject& json);
     static void loadTableFromJson(QTableWidget* table, QJsonArray arr);
 
     static void set_header_tree(QTreeWidget* tree, const QJsonObject& jsonObject);
-    static QTreeWidgetItem *  new_tree_item(const QJsonObject& jsonObject);
     static int get_index_member(const QJsonObject& jsonObject, const QString& memberKey);
+
+    static QSortFilterProxyModel * get_proxyModel(const QString& resp);
+    static QSortFilterProxyModel *get_proxyModel(QJsonDocument &doc, QMap<QString, int> header);
+
+    static QMap<QString, int> get_header(QJsonObject *obj, QString firstCol);
 
 private:
 

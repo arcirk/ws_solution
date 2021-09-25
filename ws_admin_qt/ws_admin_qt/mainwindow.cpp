@@ -5,6 +5,8 @@
 #include "stdfx.h"
 #include "serveresponse.h"
 
+#include <QModelIndex>
+
 #ifdef _WINDOWS
 #include <thread>
 #endif
@@ -27,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     initItemList();
     initTreeObjectsList();
 
-    treeChannelsObjects = ui->treeShannels;
+    treeChannelsObjects = ui->treeChannels;
     treeChannelsObjects->setColumnHidden(1, true);
 
     connect(this, SIGNAL(display_error(QString,QString)), this, SLOT(on_display_error(QString,QString)));
@@ -35,10 +37,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(fill_tree_()), this, SLOT(fillTree()));
     connect(this, SIGNAL(fill_node(QString,QString)), this, SLOT(on_fill_node(QString,QString)));
     connect(this, SIGNAL(fill_group_tree(QString)), this, SLOT(on_fill_group_tree(QString)));
+    connect(this, SIGNAL(fill_users(QString)), this, SLOT(on_fill_users(QString)));
 
     popUp = new PopUp();
 
-    ui->treeShannels->setVisible(false);
+    ui->toolBtnGroupBox->addStretch();
+    ui->toolBottonsUsers->addStretch();
+    group_panel_setVisible(false);
+
 
 }
 
@@ -132,20 +138,8 @@ void MainWindow::fillTree(){
    );
 }
 
-void MainWindow::update_branch(const QString &branch_name, const QString& serverResp){
-
-    QTreeWidgetItem * item = findTreeItem(branch_name);
-    if(item){
-        //item->
-    }else{
-
-    }
-}
-
 QString MainWindow::serverView(){
-
     return settings->ServerName + " [" + settings->ServerHost + ":" + QString::number(settings->ServerPort) + "]";
-
 }
 
 void MainWindow::on_mnuStartSession_triggered()
@@ -217,6 +211,9 @@ void MainWindow::processServeResponse(const std::string &response){
             emit fill_tree_();
         }else if (resp->command == "get_group_list"){
            fill_group_tree(resp->message);
+        }else if (resp->command == "get_users"){
+            //qDebug() << resp->message;
+            fill_users(resp->message);
         }
 
     }
@@ -251,7 +248,7 @@ void MainWindow::on_display_error(const QString& what, const QString& err) {
     //qDebug() << err;
     //QMessageBox::critical(nullptr, "Ошибка", err);
 
-    popUp->setPopupText(err);
+    popUp->setPopupText(what + ": " + err);
     popUp->show();
 }
 
@@ -279,17 +276,15 @@ void MainWindow::on_treeSrvObjects_itemSelectionChanged()
 {
     auto item = treeServerObjects->currentItem();
 
-    qDebug() << item->text(1);
-
-    fillList(item->text(1));
+    if(item)
+        fillList(item->text(1));
 }
 
 void MainWindow::resizeColumns(){
     listChildServerObjects->horizontalHeader()->setResizeContentsPrecision(QHeaderView::Fixed);
-//    for (int i = 0; i < listChildServerObjects->columnCount() - 1; ++i) {
-//        listChildServerObjects->setColumnWidth(i, 200);
-//    }
-    listChildServerObjects->resizeColumnsToContents();
+    for (int i = 0; i < listChildServerObjects->columnCount() ; ++i) {
+        listChildServerObjects->resizeColumnToContents(i);
+    }
 }
 
 void MainWindow::fillList(const QString &nodeName) {
@@ -300,103 +295,171 @@ void MainWindow::fillList(const QString &nodeName) {
     if (nodeName == "ServerName"){
         ServeResponse::loadTableFromJson(listChildServerObjects, settings->getJsonObject());
         resizeColumns();
-        ui->treeShannels->setVisible(false);
+        group_panel_setVisible(false);
     }else if (nodeName == "ActiveUsers"){
-        ui->treeShannels->setVisible(false);
+        group_panel_setVisible(false);
         client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
     }else if (nodeName == "Users"){
-        ui->treeShannels->setVisible(true);
+        group_panel_setVisible(true);
         client->get_group_list(client->get_app_uuid());
     }
 }
 
-void MainWindow::on_fill_group_tree(const QString &resp) {
+void MainWindow::group_panel_setVisible(bool visible){
+    ui->panelGroupUsers->setVisible(visible);
+}
 
-    QString nil_uuid = QString::fromStdString(arc_json::nil_uuid());
+void MainWindow::on_fill_group_tree(const QString &resp) {
 
     treeChannelsObjects->clear();
     treeChannelsObjects->setColumnCount(0);
 
-//    auto * root = new QTreeWidgetItem(MainWindow::itTopItem);
-//    root-> setText (0, "root");
-//    root->setText(1, nil_uuid);
-//    treeChannelsObjects->addTopLevelItem(root);
-
     QJsonDocument doc = ServeResponse::parseResp(resp);
+    QJsonObject reference = doc.array()[0].toObject();
+    QMap<QString, int> header = ServeResponse::get_header(&reference, "SecondField");
 
-    if (doc.isNull())
+    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(doc, header);
+
+    if (!model)
         return;
 
-    auto * m_dataTable = new QTableWidget();
-    if (doc.isArray()) {
+    tree_group_create_columns(header, treeChannelsObjects);
+    tree_create_root_items(model, treeChannelsObjects, header);
 
-        if (doc.array().count() == 0)
+    group_header = header;
+}
+
+
+void MainWindow::load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header) {
+
+    QString parentRef = root->text(header["Ref"]);
+
+    if (parentRef.isEmpty())
+        return;
+
+    model->setFilterFixedString(parentRef);
+    model->setFilterKeyColumn(header["Parent"]);
+
+    for (int i = 0; i < model->rowCount(); ++i) {
+        auto * item = new QTreeWidgetItem(MainWindow::itTopItem);
+        foreach ( const auto& Key, header.keys() )
+        {
+            QModelIndex modelIndex = model->index(i, header[Key]);
+            QVariant parentValue = model->data(modelIndex);
+            QString value = parentValue.toString();
+
+            item->setText(header[Key], value);
+            item->setToolTip(header[Key], value);
+        }
+        root->addChild(item);
+    }
+
+    for (int i = 0; i < root->childCount(); i++)
+    {
+        QTreeWidgetItem *child = root->child(i);
+        load_group_tree(model, child, header);
+    }
+}
+
+void MainWindow::tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header){
+
+    auto * root = new QTreeWidgetItem(MainWindow::itTopItem);
+    root-> setText (0, "root");
+    root->setText(header["Ref"], "00000000-0000-0000-0000-000000000000");
+    tree->addTopLevelItem(root);
+    load_group_tree(model, root, header);
+    tree->expandAll();
+
+}
+
+void MainWindow::tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree) {
+
+    tree->setColumnCount(header.count());
+    auto item = new QTreeWidgetItem();
+
+    foreach ( const auto& Key, header.keys() )
+    {
+        const auto& Value = header[Key];
+        item->setText(Value, Key);
+        //qDebug() << "\t{" << Key << "," << Value << "}";
+    }
+    tree->setHeaderItem(item);
+
+    for (int i = 0; i < header.size() ; ++i) {
+        if (header["SecondField"] != i) {
+            tree->setColumnHidden(i, true);
+        }
+    }
+
+    tree->resizeColumnToContents(header["SecondField"]);
+}
+
+void MainWindow::list_create_columns(QMap<QString, int> header, QListWidget* list) {
+
+//    list->setColumnCount(header.count());
+//    auto item = new QTreeWidgetItem();
+//
+//            foreach ( const auto& Key, header.keys() )
+//        {
+//            const auto& Value = header[Key];
+//            item->setText(Value, Key);
+//            //qDebug() << "\t{" << Key << "," << Value << "}";
+//        }
+//    tree->setHeaderItem(item);
+
+}
+
+void MainWindow::on_treeChannels_itemActivated(QTreeWidgetItem *item, int column)
+{
+    qDebug() << item->text(column) << "on_treeChannels_itemActivated";;
+}
+
+
+void MainWindow::on_treeChannels_itemChanged(QTreeWidgetItem *item, int column)
+{
+    qDebug() << item->text(column) << "on_treeChannels_itemChanged";
+}
+
+
+void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
+{
+    if (group_header.size() > 0 && current){
+
+        QString group_uuid = current->text(group_header["Ref"]);
+        if (group_uuid.isEmpty())
             return;
-
-        QJsonObject reference = doc.array()[0].toObject();
-
-        //Создаем таблицу значений для удобства поиска дочерних элементов
-        ServeResponse::loadTableFromJson(m_dataTable, doc.array());
-        //Создаем заголовки по первой структуре в массиве
-        ServeResponse::set_header_tree(treeChannelsObjects, reference);
-        //Индекс поля parent
-        int iParent = ServeResponse::get_index_member(reference, "parent");
-        int iColCount = (int)reference.count();
-
-        //Заполняем дерево
-        for (int i = 0; i < m_dataTable->rowCount() - 1; ++i) {
-            QTableWidgetItem* parentValue = m_dataTable->item(i, iParent);
-            if (parentValue->text().isEmpty() || parentValue->text() == nil_uuid){
-//                QString name = m_dataTable->item(i, 0)->text();
-//                QString id = m_dataTable->item(i, 0)->text();
-                //QTreeWidgetItem * item = new_tree_item(name, )
-            }
+        if (client->started()){
+            client->get_users(group_uuid.toStdString(), arc_json::nil_uuid());
         }
 
+    }
+}
+void MainWindow::on_fill_users(const QString& resp){
 
-//        QList<QTableWidgetItem *> m_ListParent = m_dataTable->findItems("parent", Qt::MatchEndsWith);
-//        if (m_ListParent.empty() ){
-//            return;
-//        }
-//        QTableWidgetItem * parent = m_ListParent[0];
-//        int indexParentColumn = m_dataTable->column(parent);
+    listChildServerObjects->clear();
+    listChildServerObjects->setColumnCount(0);
+    listChildServerObjects->setRowCount(0);
 
-//        for (int i = 0; i < m_dataTable->rowCount() - 1; ++i) {
-//            QTableWidgetItem* parentValue = m_dataTable->item(i, indexParentColumn);
-//            if (parentValue->text().isEmpty() || parentValue->text() == nil_uuid){
-//                QString name = m_dataTable->item(i, 0)->text();
-//                QString id = m_dataTable->item(i, 0)->text();
-//                //QTreeWidgetItem * item = new_tree_item(name, )
-//            }
-//        }
+    QJsonDocument doc = ServeResponse::parseResp(resp);
+    ServeResponse::loadTableFromJson(listChildServerObjects, doc.array());
+    for (int i = 0; i < listChildServerObjects->columnCount() ; ++i) {
+        listChildServerObjects->resizeColumnToContents(i);
     }
 
-}
-
-void MainWindow::fill_property_values(QJsonObject *jsonObject, QTreeWidgetItem *item) {
-
-//    treeChannelsObjects->
-//    for (auto row = jsonObject->constBegin(); row != jsonObject->constEnd(); ++row)
-//    {
+//    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(doc);
 //
-//    }
-    
-}
-
-void MainWindow::load_group_tree(QTreeWidgetItem *currentItem, QTableWidget *initialData) {
+//    QJsonObject reference = doc.array()[0].toObject();
+//    QMap<QString, int> header = ServeResponse::get_header(&reference);
 
 
 }
 
-QTreeWidgetItem * MainWindow::new_tree_item(const QString &text, const QString &toolType, const QString &nextColVal) {
-
-    auto * item = new QTreeWidgetItem(MainWindow::itTopItem);
-    item->setText(0, text);
-    if (!toolType.isEmpty()){
-        item->setToolTip(0, toolType);
-    }
-    if (!nextColVal.isEmpty()){
-        item->setText(1, nextColVal);
-    }
-    return item;
+void MainWindow::on_mnuServerRun_triggered()
+{
+    QString program = settings->ServerBinDir + "/ws_server";
+    QProcess *myProcess = new QProcess(this);
+    myProcess->setWorkingDirectory(settings->ServerBinDir);
+    myProcess->start(program);
+    myProcess->waitForFinished(-1);
 }
+

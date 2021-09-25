@@ -946,7 +946,8 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arc_json::ws_json *pa
 
 bool shared_state::get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
                                   std::string &err, std::string &custom_result) {
-    std::string query = "SELECT * FROM Channels";
+
+    std::string query = "SELECT SecondField, FirstField, Ref, Parent FROM Channels;";
     err = "";
     sqlite3Db->execute(query, "Channels", custom_result, err);
 

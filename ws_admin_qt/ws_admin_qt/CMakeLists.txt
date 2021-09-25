@@ -22,7 +22,8 @@ add_executable(ws_admin_qt
         stdfx.h
         ws_admin_qt.pro
         popup.cpp
-        popup.h)
+        popup.h
+        resourse.qrc)
 
 find_package(Qt6 COMPONENTS
         Core

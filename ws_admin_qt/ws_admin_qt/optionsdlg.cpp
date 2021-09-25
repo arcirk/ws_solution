@@ -46,7 +46,7 @@ void OptionsDlg::on_buttonBox_accepted()
 {
     _settings->RootUser = ui->RootUser->text();
     _settings->ServerHost = ui->ServerHost->text();
-    _settings->ServerBinDir = ui->ServerBinDir->text();
+    _settings->ServerBinDir = ui->ServerBinDir->toPlainText();
     _settings->ServerPort = ui->ServerPort->value();
     _settings->ServerName = ui->ServerName->text();
 

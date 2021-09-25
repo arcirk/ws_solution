@@ -312,12 +312,12 @@ std::string ws_client::get_client_info() {
 void ws_client::error(const std::string &what, const std::string &err) {
     if (_callback_msg)
     {
-        std::string desc;// "error ";
-        desc.append(what);
-        desc.append(": ");
-        desc.append(err);
+        //std::string desc;// "error ";
+        //desc.append(what);
+        //desc.append(": ");
+        //desc.append(err);
 
-        std::string msg = arc_json::get_message(get_uuid(), desc, get_name(), boost::uuids::uuid{}, true, get_app_name(), "", "", what, "error");
+        std::string msg = arc_json::get_message(get_uuid(), err, get_name(), boost::uuids::uuid{}, true, get_app_name(), "", "", what, "error");
         _callback_msg(msg);
     }
 }
