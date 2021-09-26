@@ -26,7 +26,8 @@ public:
     static QJsonDocument parseResp(const QString& resp);
 
     static void loadTableFromJson(QTableWidget* table, const QJsonObject& json);
-    static void loadTableFromJson(QTableWidget* table, QJsonArray arr);
+    static void loadTableFromJson(QTableWidget* table, const QJsonArray& arr);
+    static void loadTableFromJson(QTableWidget *table, const QJsonArray& array, const QMap<QString, int> &header);
 
     static void set_header_tree(QTreeWidget* tree, const QJsonObject& jsonObject);
     static int get_index_member(const QJsonObject& jsonObject, const QString& memberKey);

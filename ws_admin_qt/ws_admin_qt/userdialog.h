@@ -42,8 +42,14 @@ public:
     explicit UserDialog(QWidget *parent = nullptr, Ui::user_info * usr_info = nullptr);
     ~UserDialog();
 
+
+
 private slots:
     void on_toolButton_clicked();
+
+    void on_btnEditPwd_clicked(bool checked);
+
+    void on_buttonBox_accepted();
 
 private:
     Ui::UserDialog *ui;

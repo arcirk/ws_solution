@@ -6,6 +6,7 @@
 #include "serveresponse.h"
 
 #include <QModelIndex>
+#include <QHeaderView>
 
 #include "userdialog.h"
 
@@ -291,6 +292,9 @@ void MainWindow::resizeColumns(){
 }
 
 void MainWindow::fillList(const QString &nodeName) {
+
+    current_node = nodeName;
+
     listChildServerObjects->clear();
     listChildServerObjects->setColumnCount(0);
     listChildServerObjects->setRowCount(0);
@@ -451,10 +455,21 @@ void MainWindow::on_fill_users(const QString& resp){
     listChildServerObjects->setRowCount(0);
 
     QJsonDocument doc = ServeResponse::parseResp(resp);
-    ServeResponse::loadTableFromJson(listChildServerObjects, doc.array());
+    QJsonObject reference = doc.array()[0].toObject();
+    QMap<QString, int> header;
+
+    header.insert("FirstField", 0);
+    header.insert("SecondField", 1);
+    header.insert("role", 2);
+    header.insert("Ref", 3);
+    header.insert("channel", 4);
+
+    ServeResponse::loadTableFromJson(listChildServerObjects, doc.array(), header);
+
     for (int i = 0; i < listChildServerObjects->columnCount() ; ++i) {
         listChildServerObjects->resizeColumnToContents(i);
     }
+
 
 //    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(doc);
 //
@@ -467,7 +482,7 @@ void MainWindow::on_fill_users(const QString& resp){
 void MainWindow::on_mnuServerRun_triggered()
 {
     QString program = settings->ServerBinDir + "/ws_server";
-    QProcess *myProcess = new QProcess(this);
+    auto *myProcess = new QProcess(this);
     myProcess->setWorkingDirectory(settings->ServerBinDir);
     myProcess->start(program);
     myProcess->waitForFinished(-1);
@@ -476,8 +491,28 @@ void MainWindow::on_mnuServerRun_triggered()
 
 void MainWindow::on_btnAddUser_clicked()
 {
-    UserDialog * dlg = new UserDialog(this);
+    auto * dlg = new UserDialog(this);
     dlg->setModal(true);
     dlg->show();
+}
+
+
+void MainWindow::on_listChildSrvObjects_itemActivated(QTableWidgetItem *item)
+{
+    if (current_node == "Users"){
+        auto * usr_info = new Ui::user_info();
+
+        usr_info->name = listChildServerObjects->item(listChildServerObjects->currentRow(), 0)->text();
+        usr_info->pres = listChildServerObjects->item(listChildServerObjects->currentRow(), 1)->text();
+        usr_info->role = listChildServerObjects->item(listChildServerObjects->currentRow(), 2)->text();
+        usr_info->uuid = listChildServerObjects->item(listChildServerObjects->currentRow(), 3)->text();
+
+        auto * dlg = new UserDialog(this, usr_info);
+        dlg->setModal(true);
+        dlg->show();
+
+        delete usr_info;
+    }
+
 }
 

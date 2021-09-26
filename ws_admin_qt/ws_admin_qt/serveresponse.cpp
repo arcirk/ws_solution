@@ -1,4 +1,5 @@
 #include "serveresponse.h"
+#include <QHeaderView>
 
 ServeResponse::ServeResponse(const QString& resp)
 {
@@ -75,7 +76,47 @@ void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonObject& js
 
 }
 
-void ServeResponse::loadTableFromJson(QTableWidget *table, QJsonArray array) {
+void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonArray& array, const QMap<QString, int>&header){
+
+    auto rowCount = array.count();
+    table->setRowCount((int)rowCount);
+    table->setColumnCount((int)header.count());
+
+    for (auto col = header.constBegin(); col != header.constEnd(); ++col)
+    {
+        const QString& key = col.key();
+        table->setHorizontalHeaderItem(col.value(), new QTableWidgetItem(key));
+    }
+
+    int index = 0;
+    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    {
+        if(it->isObject()){
+            QJsonObject currentObject = it->toObject();
+            for (const auto& col : header.keys())
+            {
+                const QString& key = col;
+                auto rowVal = currentObject.find(key);
+
+                QTableWidgetItem *itemVal = nullptr;
+                if (rowVal.value().isString())
+                    itemVal = new QTableWidgetItem(rowVal.value().toString());
+                else if (rowVal.value().isDouble())
+                    itemVal = new QTableWidgetItem(QString::number(rowVal.value().toInteger()));
+
+                if (itemVal){
+                    itemVal->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                    table->setItem(index, header[col], itemVal);
+                }
+            }
+
+            index++;
+        }
+    }
+
+}
+
+void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonArray& array) {
 
     auto rowCount = array.count();
     table->setRowCount((int)rowCount);
@@ -197,6 +238,7 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<Q
 
     return proxyModel;
 }
+
 QSortFilterProxyModel * ServeResponse::get_proxyModel(const QString& resp) {
 
     QJsonDocument doc = parseResp(resp);

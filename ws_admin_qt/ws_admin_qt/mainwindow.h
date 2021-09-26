@@ -51,6 +51,8 @@ private slots:
 
     void on_btnAddUser_clicked();
 
+    void on_listChildSrvObjects_itemActivated(QTableWidgetItem *item);
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -65,6 +67,7 @@ private:
     PopUp *popUp;       // Объявляем объект всплывающего сообщения
     IClient * client;
     QMap<QString, int> group_header;
+    QString current_node;
 
     QString serverView();
     void processServeResponse(const std::string& response);
