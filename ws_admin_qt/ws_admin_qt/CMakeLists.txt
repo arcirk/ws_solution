@@ -23,7 +23,13 @@ add_executable(ws_admin_qt
         ws_admin_qt.pro
         popup.cpp
         popup.h
-        resourse.qrc)
+        resourse.qrc
+        directoryinfobasedialog.cpp
+        directoryinfobasedialog.h
+        directoryinfobasedialog.ui
+        userdialog.cpp
+        userdialog.h
+        userdialog.ui)
 
 find_package(Qt6 COMPONENTS
         Core

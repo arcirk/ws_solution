@@ -7,6 +7,8 @@
 
 #include <QModelIndex>
 
+#include "userdialog.h"
+
 #ifdef _WINDOWS
 #include <thread>
 #endif
@@ -43,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->toolBtnGroupBox->addStretch();
     ui->toolBottonsUsers->addStretch();
-    group_panel_setVisible(false);
+    group_panel_setVisible(false, false);
 
 
 }
@@ -136,6 +138,7 @@ void MainWindow::fillTree(){
        0,                          // column
        QItemSelectionModel::Select // command
    );
+    group_panel_setVisible(false, false);
 }
 
 QString MainWindow::serverView(){
@@ -295,18 +298,25 @@ void MainWindow::fillList(const QString &nodeName) {
     if (nodeName == "ServerName"){
         ServeResponse::loadTableFromJson(listChildServerObjects, settings->getJsonObject());
         resizeColumns();
-        group_panel_setVisible(false);
+        group_panel_setVisible(false, false);
     }else if (nodeName == "ActiveUsers"){
-        group_panel_setVisible(false);
+        group_panel_setVisible(false, true);
         client->send_command(std::string("get_active_users"), arc_json::nil_uuid(), std::string(""));
     }else if (nodeName == "Users"){
-        group_panel_setVisible(true);
+        group_panel_setVisible(true, false);
         client->get_group_list(client->get_app_uuid());
     }
 }
 
-void MainWindow::group_panel_setVisible(bool visible){
+void MainWindow::group_panel_setVisible(bool visible, bool isSessions) {
     ui->panelGroupUsers->setVisible(visible);
+    ui->btnAddUser->setVisible(visible);
+    ui->btnDeleteUser->setVisible(visible);
+    ui->btnEditUser->setVisible(visible);
+    ui->btnToGroup->setVisible(visible);
+    ui->btnViewMode->setVisible(visible);
+    ui->btnKillSession->setVisible(isSessions);
+    ui->btnSendMessage->setVisible(isSessions);
 }
 
 void MainWindow::on_fill_group_tree(const QString &resp) {
@@ -461,5 +471,13 @@ void MainWindow::on_mnuServerRun_triggered()
     myProcess->setWorkingDirectory(settings->ServerBinDir);
     myProcess->start(program);
     myProcess->waitForFinished(-1);
+}
+
+
+void MainWindow::on_btnAddUser_clicked()
+{
+    UserDialog * dlg = new UserDialog(this);
+    dlg->setModal(true);
+    dlg->show();
 }
 

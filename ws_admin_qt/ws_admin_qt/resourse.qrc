@@ -11,5 +11,7 @@
         <file>res/new_element.png</file>
         <file>res/list_tree.png</file>
         <file>res/move_element.png</file>
+        <file>res/send.svg</file>
+        <file>res/KillSession.png</file>
     </qresource>
 </RCC>

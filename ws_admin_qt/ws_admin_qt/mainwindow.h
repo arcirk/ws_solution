@@ -49,6 +49,8 @@ private slots:
 
     void on_mnuServerRun_triggered();
 
+    void on_btnAddUser_clicked();
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -79,7 +81,7 @@ private:
     void list_create_columns(QMap<QString, int> header, QListWidget* list);
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
 
-    void group_panel_setVisible(bool visible);
+    void group_panel_setVisible(bool visible, bool isSessions);
 
     signals:
     void display_error(const QString& what, const QString& err);

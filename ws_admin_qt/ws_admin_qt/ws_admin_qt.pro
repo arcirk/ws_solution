@@ -10,24 +10,30 @@ CONFIG += c++17
 
 SOURCES += \
     appSettings.cpp \
+    directoryinfobasedialog.cpp \
     main.cpp \
     mainwindow.cpp \
     optionsdlg.cpp \
     popup.cpp \
-    serveresponse.cpp
+    serveresponse.cpp \
+    userdialog.cpp
 
 HEADERS += \
     AppSettings.h \
+    directoryinfobasedialog.h \
     global.h \
     mainwindow.h \
     optionsdlg.h \
     popup.h \
     serveresponse.h \
-    stdfx.h
+    stdfx.h \
+    userdialog.h
 
 FORMS += \
+    directoryinfobasedialog.ui \
     mainwindow.ui \
-    optionsdlg.ui
+    optionsdlg.ui \
+    userdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
