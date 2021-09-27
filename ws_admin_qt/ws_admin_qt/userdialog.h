@@ -40,7 +40,7 @@ public:
 
     }
 
-    std::string to_json(){
+    [[nodiscard]] std::string to_json() const{
 
         QJsonObject jsonObject = QJsonObject();
         jsonObject.insert("user", name);
@@ -51,6 +51,31 @@ public:
         jsonObject.insert("parent", parent);
 
         return QJsonDocument(jsonObject).toJson(QJsonDocument::Indented).toStdString();
+    }
+
+    [[nodiscard]] std::string to_json_set_data(const QList<QString>& fields) const{
+
+        QJsonObject jsonObject = QJsonObject();
+
+        for (const auto& val : fields) {
+            if (val == "FirstField")
+                jsonObject.insert("FirstField", name);
+            if (val == "SecondField")
+                jsonObject.insert("SecondField", pres);
+            if (val == "hash")
+                jsonObject.insert("hash", hash);
+            if (val == "parent")
+                jsonObject.insert("parent", parent);
+        }
+
+        QJsonObject where = QJsonObject();
+        where.insert("Ref", uuid);
+
+        QJsonObject jsonParent = QJsonObject();
+        jsonParent.insert("set", jsonObject);
+        jsonParent.insert("where", where);
+
+        return QJsonDocument(jsonParent).toJson(QJsonDocument::Indented).toStdString();
     }
 };
 

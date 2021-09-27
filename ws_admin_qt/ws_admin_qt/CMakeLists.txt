@@ -29,7 +29,13 @@ add_executable(ws_admin_qt
         directoryinfobasedialog.ui
         userdialog.cpp
         userdialog.h
-        userdialog.ui)
+        userdialog.ui
+        groupdialog.cpp
+        groupdialog.h
+        groupdialog.ui
+        selectgroupdialog.cpp
+        selectgroupdialog.h
+        selectgroupdialog.ui)
 
 find_package(Qt6 COMPONENTS
         Core

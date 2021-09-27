@@ -9,6 +9,8 @@
 #include <QHeaderView>
 
 #include "userdialog.h"
+#include "selectgroupdialog.h"
+#include "groupdialog.h"
 
 #ifdef _WINDOWS
 #include <thread>
@@ -222,6 +224,8 @@ void MainWindow::processServeResponse(const std::string &response){
             on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
         }else if (resp->command == "remove_user"){
             on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+        }else if (resp->command == "update_user"){
+            on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
         }
     }
 
@@ -403,21 +407,6 @@ void MainWindow::tree_group_create_columns(QMap<QString, int> header, QTreeWidge
     tree->resizeColumnToContents(header["SecondField"]);
 }
 
-void MainWindow::list_create_columns(QMap<QString, int> header, QListWidget* list) {
-
-//    list->setColumnCount(header.count());
-//    auto item = new QTreeWidgetItem();
-//
-//            foreach ( const auto& Key, header.keys() )
-//        {
-//            const auto& Value = header[Key];
-//            item->setText(Value, Key);
-//            //qDebug() << "\t{" << Key << "," << Value << "}";
-//        }
-//    tree->setHeaderItem(item);
-
-}
-
 void MainWindow::on_treeChannels_itemActivated(QTreeWidgetItem *item, int column)
 {
     qDebug() << item->text(column) << "on_treeChannels_itemActivated";;
@@ -432,7 +421,7 @@ void MainWindow::on_treeChannels_itemChanged(QTreeWidgetItem *item, int column)
 
 void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-    if (group_header.size() > 0 && current){
+    if (group_header.count() > 0 && current){
 
         QString group_uuid = current->text(group_header["Ref"]);
         if (group_uuid.isEmpty())
@@ -520,28 +509,35 @@ void MainWindow::on_btnAddUser_clicked()
 void MainWindow::on_listChildSrvObjects_itemActivated(QTableWidgetItem *item)
 {
     if (current_node == "Users"){
+
         auto * usr_info = new Ui::user_info();
 
-        usr_info->name = listChildServerObjects->item(listChildServerObjects->currentRow(), 0)->text();
-        usr_info->pres = listChildServerObjects->item(listChildServerObjects->currentRow(), 1)->text();
-        usr_info->role = listChildServerObjects->item(listChildServerObjects->currentRow(), 2)->text();
-        usr_info->uuid = listChildServerObjects->item(listChildServerObjects->currentRow(), 3)->text();
-        usr_info->parent = ui->treeChannels->currentItem()->text(group_header["Ref"]);
+        try {
+            usr_info->name = listChildServerObjects->item(listChildServerObjects->currentRow(), 0)->text();
+            usr_info->pres = listChildServerObjects->item(listChildServerObjects->currentRow(), 1)->text();
+            usr_info->role = listChildServerObjects->item(listChildServerObjects->currentRow(), 2)->text();
+            usr_info->uuid = listChildServerObjects->item(listChildServerObjects->currentRow(), 3)->text();
+            usr_info->parent = ui->treeChannels->currentItem()->text(group_header["Ref"]);
+        }  catch (QException& e) {
+            QMessageBox::critical(this, "Ошибка", e.what());
+            return;
+        }
+
 
         auto * dlg = new UserDialog(this, usr_info);
         dlg->setModal(true);
         dlg->exec();
 
         if (usr_info->accepted){
-            std::string param = usr_info->to_json();
-            client->send_command("edit_user", arc_json::nil_uuid(), param);
+
+            std::string param = user_change_request_parameters(usr_info);
+            client->send_command("update_user", arc_json::nil_uuid(), param);
         }
 
         delete usr_info;
     }
 
 }
-
 
 void MainWindow::on_btnDeleteUser_clicked()
 {
@@ -560,6 +556,112 @@ void MainWindow::on_btnDeleteUser_clicked()
 
 }
 
-QString MainWindow::user_change_request_parameters(const QString& ref, const QString& hash){
+std::string MainWindow::user_change_request_parameters(Ui::user_info *usr_info) {
+
+    QList<QString> fields;
+    fields.push_back("FirstField");
+    fields.push_back("SecondField");
+    fields.push_back("role");
+
+    if (!usr_info->password.isEmpty()){
+        usr_info->hash = QString::fromStdString(arc_json::get_hash(usr_info->name.toStdString(), usr_info->password.toStdString()));
+        fields.push_back("hash");
+    }
+
+    return usr_info->to_json_set_data(fields);
 
 }
+void MainWindow::on_btnEditUser_clicked()
+{
+    if (current_node == "Users"){
+
+        if (listChildServerObjects->currentRow() == -1){
+            QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+            return;
+        }
+
+        auto * usr_info = new Ui::user_info();
+
+        try {
+            usr_info->name = listChildServerObjects->item(listChildServerObjects->currentRow(), 0)->text();
+            usr_info->pres = listChildServerObjects->item(listChildServerObjects->currentRow(), 1)->text();
+            usr_info->role = listChildServerObjects->item(listChildServerObjects->currentRow(), 2)->text();
+            usr_info->uuid = listChildServerObjects->item(listChildServerObjects->currentRow(), 3)->text();
+            usr_info->parent = ui->treeChannels->currentItem()->text(group_header["Ref"]);
+        }  catch (QException& e) {
+            QMessageBox::critical(this, "Ошибка", e.what());
+            return;
+        }
+
+        auto * dlg = new UserDialog(this, usr_info);
+        dlg->setModal(true);
+        dlg->exec();
+
+        if (usr_info->accepted){
+
+            std::string param = user_change_request_parameters(usr_info);
+            client->send_command("update_user", arc_json::nil_uuid(), param);
+        }
+
+        delete usr_info;
+    }
+}
+
+
+void MainWindow::on_btnAddGroup_clicked()
+{
+    auto* dlg = new GroupDialog(this);
+    dlg->setModal(true);
+    dlg->exec();
+}
+
+void MainWindow::on_btnEditGroup_clicked()
+{
+    auto* dlg = new GroupDialog(this);
+    dlg->setModal(true);
+    dlg->exec();
+}
+
+
+void MainWindow::on_btnDelGroup_clicked()
+{
+    if (current_node == "Users"){
+
+        QTreeWidgetItem* current = ui->treeChannels->currentItem();
+
+        if (!current){
+            QMessageBox::critical(this, "Ошибка", "Не выбрана группа!");
+            return;
+        }
+
+        if(current->text(group_header["Ref"]).isEmpty() || current->text(group_header["Ref"]) == QString::fromStdString(arc_json::nil_uuid())){
+            QMessageBox::critical(this, "Ошибка", "Нельзя удалить текущую группу!");
+            return;
+        }
+
+        auto result =  QMessageBox::question(this, "Удаление группы", "Удалить текущую группу?"
+                                                                      "\nВсе подчиненные группы будут удалены!"
+                                                                      "\nВсе пользователи будут перемещены в корневую группу!");
+
+        if(result == QMessageBox::Yes){
+            QString user_uuid = current->text(group_header["Ref"]);
+            client->remove_group(user_uuid.toStdString(), arc_json::nil_uuid());
+        }
+
+    }
+}
+
+
+void MainWindow::on_btnToGroup_clicked()
+{
+    auto* dlg = new SelectGroupDialog(this);
+    dlg->setModal(true);
+    dlg->exec();
+}
+
+
+void MainWindow::on_action_triggered()
+{
+    QApplication::aboutQt();
+}
+

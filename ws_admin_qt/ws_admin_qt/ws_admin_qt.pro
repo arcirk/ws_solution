@@ -11,10 +11,12 @@ CONFIG += c++17
 SOURCES += \
     appSettings.cpp \
     directoryinfobasedialog.cpp \
+    groupdialog.cpp \
     main.cpp \
     mainwindow.cpp \
     optionsdlg.cpp \
     popup.cpp \
+    selectgroupdialog.cpp \
     serveresponse.cpp \
     userdialog.cpp
 
@@ -22,17 +24,21 @@ HEADERS += \
     AppSettings.h \
     directoryinfobasedialog.h \
     global.h \
+    groupdialog.h \
     mainwindow.h \
     optionsdlg.h \
     popup.h \
+    selectgroupdialog.h \
     serveresponse.h \
     stdfx.h \
     userdialog.h
 
 FORMS += \
     directoryinfobasedialog.ui \
+    groupdialog.ui \
     mainwindow.ui \
     optionsdlg.ui \
+    selectgroupdialog.ui \
     userdialog.ui
 
 # Default rules for deployment.

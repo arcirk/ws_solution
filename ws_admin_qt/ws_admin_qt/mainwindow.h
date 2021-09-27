@@ -13,6 +13,7 @@
 #include "../../ws_client/include/iws_client.h"
 
 #include "popup.h"
+#include "userdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -55,6 +56,18 @@ private slots:
 
     void on_btnDeleteUser_clicked();
 
+    void on_btnEditUser_clicked();
+
+    void on_btnAddGroup_clicked();
+
+    void on_btnEditGroup_clicked();
+
+    void on_btnDelGroup_clicked();
+
+    void on_btnToGroup_clicked();
+
+    void on_action_triggered();
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -81,9 +94,8 @@ private:
     void fillList(const QString& nodeName);
     static void load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header);
     static void tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree);
-    void list_create_columns(QMap<QString, int> header, QListWidget* list);
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
-    QString user_change_request_parameters(const QString& ref, const QString& hash);
+    std::string user_change_request_parameters(Ui::user_info *usr_info);
     void group_panel_setVisible(bool visible, bool isSessions);
 
     signals:
