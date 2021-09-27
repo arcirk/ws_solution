@@ -218,8 +218,11 @@ void MainWindow::processServeResponse(const std::string &response){
         }else if (resp->command == "get_users"){
             //qDebug() << resp->message;
             fill_users(resp->message);
+        }else if (resp->command == "add_user"){
+            on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+        }else if (resp->command == "remove_user"){
+            on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
         }
-
     }
 
     delete resp;
@@ -329,6 +332,8 @@ void MainWindow::on_fill_group_tree(const QString &resp) {
     treeChannelsObjects->setColumnCount(0);
 
     QJsonDocument doc = ServeResponse::parseResp(resp);
+    if(doc.array().isEmpty())
+        return;
     QJsonObject reference = doc.array()[0].toObject();
     QMap<QString, int> header = ServeResponse::get_header(&reference, "SecondField");
 
@@ -455,6 +460,8 @@ void MainWindow::on_fill_users(const QString& resp){
     listChildServerObjects->setRowCount(0);
 
     QJsonDocument doc = ServeResponse::parseResp(resp);
+    if (doc.array().isEmpty())
+        return;
     QJsonObject reference = doc.array()[0].toObject();
     QMap<QString, int> header;
 
@@ -491,9 +498,32 @@ void MainWindow::on_mnuServerRun_triggered()
 
 void MainWindow::on_btnAddUser_clicked()
 {
-    auto * dlg = new UserDialog(this);
+    if (!client->started())
+    {
+        popUp->setPopupText("Требуется подключение к серверу!");
+        popUp->show();
+        return;
+    }
+
+    auto * usr_info = new Ui::user_info();
+    usr_info->new_user = true;
+    QTreeWidgetItem * item = ui->treeChannels->currentItem();
+    if (item){
+        usr_info->parent = item->text(group_header["Ref"]);
+    } else
+        usr_info->parent = QString::fromStdString(arc_json::nil_uuid());
+
+    auto * dlg = new UserDialog(this, usr_info);
     dlg->setModal(true);
-    dlg->show();
+    dlg->exec();
+
+    if (usr_info->accepted){
+        std::string param = usr_info->to_json();
+        client->send_command("add_user", arc_json::nil_uuid(), param);
+    }
+
+    delete usr_info;
+
 }
 
 
@@ -506,13 +536,40 @@ void MainWindow::on_listChildSrvObjects_itemActivated(QTableWidgetItem *item)
         usr_info->pres = listChildServerObjects->item(listChildServerObjects->currentRow(), 1)->text();
         usr_info->role = listChildServerObjects->item(listChildServerObjects->currentRow(), 2)->text();
         usr_info->uuid = listChildServerObjects->item(listChildServerObjects->currentRow(), 3)->text();
+        usr_info->parent = ui->treeChannels->currentItem()->text(group_header["Ref"]);
 
         auto * dlg = new UserDialog(this, usr_info);
         dlg->setModal(true);
-        dlg->show();
+        dlg->exec();
+
+        if (usr_info->accepted){
+            std::string param = usr_info->to_json();
+            client->send_command("edit_user", arc_json::nil_uuid(), param);
+        }
 
         delete usr_info;
     }
 
 }
 
+
+void MainWindow::on_btnDeleteUser_clicked()
+{
+    QTableWidgetItem * item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
+    if (!item){
+        QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+        return;
+    }
+
+    auto result =  QMessageBox::question(this, "Удаление пользователя", "Удалить текущего пользователя?");
+
+    if(result == QMessageBox::Yes){
+        QString user_uuid = item->text();
+        client->remove_user(user_uuid.toStdString(), arc_json::nil_uuid());
+    }
+
+}
+
+QString MainWindow::user_change_request_parameters(const QString& ref, const QString& hash){
+
+}

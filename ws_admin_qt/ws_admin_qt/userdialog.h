@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <utility>
 #include "iws_client.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace Ui {
 
@@ -15,19 +17,40 @@ public:
     QString password;
     QString uuid;
     QString role;
+    QString parent;
+    bool new_user;
+    bool accepted;
 
     ~user_info()= default;
-    explicit user_info(QString _name = "NewUser",
+    explicit user_info(QString _name = "Новый пользователь",
               QString _uuid = QString::fromStdString(arc_json::nil_uuid()),
-              QString _pres = "NewUser",
-              QString _role = "user")
+              QString _pres = "Новый пользователь",
+              QString _role = "user",
+              QString _parent = "")
         : name(std::move(_name)),
           pres(std::move(_pres)),
           uuid(std::move(_uuid)),
-          role(std::move(_role))
+          role(std::move(_role)),
+          parent(std::move(_parent))
     {
         password = "";
         hash = "";
+        new_user = false;
+        accepted = false;
+
+    }
+
+    std::string to_json(){
+
+        QJsonObject jsonObject = QJsonObject();
+        jsonObject.insert("user", name);
+        jsonObject.insert("pwd", password);
+        jsonObject.insert("role", role);
+        jsonObject.insert("uuid", uuid);
+        jsonObject.insert("perf", pres);
+        jsonObject.insert("parent", parent);
+
+        return QJsonDocument(jsonObject).toJson(QJsonDocument::Indented).toStdString();
     }
 };
 

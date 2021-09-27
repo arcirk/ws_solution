@@ -53,6 +53,8 @@ private slots:
 
     void on_listChildSrvObjects_itemActivated(QTableWidgetItem *item);
 
+    void on_btnDeleteUser_clicked();
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -83,7 +85,7 @@ private:
     static void tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree);
     void list_create_columns(QMap<QString, int> header, QListWidget* list);
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
-
+    QString user_change_request_parameters(const QString& ref, const QString& hash);
     void group_panel_setVisible(bool visible, bool isSessions);
 
     signals:

@@ -10,15 +10,13 @@ UserDialog::UserDialog(QWidget *parent, Ui::user_info * usr_info) :
 {
     ui->setupUi(this);
 
-    new_user = false;
+    new_user = usr_info->new_user;
 
-    if(!usr_info){
-        _usr_info = new Ui::user_info();
+    _usr_info = usr_info;
+
+    if(new_user){
         _usr_info->uuid = QString::fromStdString(arc_json::random_uuid());
-        new_user = true;
-        this->setWindowTitle("Новый пользователь");
-    } else
-        _usr_info = usr_info;
+    }
 
     ui->cmbRole->addItem("admin", "admin");
     ui->cmbRole->addItem("user", "user");
@@ -34,9 +32,6 @@ UserDialog::UserDialog(QWidget *parent, Ui::user_info * usr_info) :
 
 UserDialog::~UserDialog()
 {
-    if (new_user)
-        delete _usr_info;
-
     delete ui;
 }
 
@@ -67,6 +62,8 @@ void UserDialog::on_buttonBox_accepted()
     _usr_info->pres = ui->txtPresentation->text();
     _usr_info->uuid = ui->txtUUID->text();
     _usr_info->role = ui->cmbRole->currentText();
+    _usr_info->accepted = true;
+
     if(ui->btnEditPwd->isChecked())
         _usr_info->password = ui->txtPassword->text();
 
