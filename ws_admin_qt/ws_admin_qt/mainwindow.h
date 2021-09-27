@@ -78,8 +78,6 @@ private:
     void initItemList();
     void initTreeObjectsList();
 
-    QTreeWidgetItem * findTreeItem(const QString& source, int col = 0);
-
     void fillList(const QString& nodeName);
     static void load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header);
     static void tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree);

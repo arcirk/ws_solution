@@ -234,16 +234,6 @@ void MainWindow::on_action_4_triggered()
     QApplication::exit();
 }
 
-QTreeWidgetItem * MainWindow::findTreeItem(const QString &source, int col){
-
-    QList<QTreeWidgetItem*> clist = treeServerObjects->findItems(source, Qt::MatchContains|Qt::MatchRecursive, col);
-    if(clist.count() > 0)
-        return clist[0];
-
-    return nullptr;
-
-}
-
 void MainWindow::on_mnuDisconnect_triggered()
 {
     if(client->started()){
