@@ -6,7 +6,8 @@
 #include "../include/base.h"
 
 //ToDo: исправить код получения типа данных колонки col_count
-
+//ToDo: убрать аргумент в execute table_name, более не нужен
+//ToDo: удалить код и таблицы подписчиков, таблица не нужна
 namespace arc_sqlite {
 
     static int callback(void* data, int argc, char** argv, char** azColName)
@@ -116,8 +117,8 @@ namespace arc_sqlite {
                 result.append(",\n date     INTEGER");
                 break;
             case tables::eSubscribers:
-                result =		   ",\n channel    TEXT (36) NOT NULL REFERENCES Channels (Ref)";
-                result.append(	",\n user_uuid  TEXT (36) REFERENCES Users (Ref)");
+                result =		   ",\n channel    TEXT (36) NOT NULL";
+                result.append(	",\n user_uuid  TEXT (36)");
                 break;
 //            case lttables::eBarcodes:
 //                result =		",\n Barcode            TEXT (128) UNIQUE";

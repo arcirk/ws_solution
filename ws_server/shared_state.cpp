@@ -1087,53 +1087,97 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *par
         return false;
     }
 
-    std::string query = "DELETE FROM Channels\n"
-                        "WHERE Ref = '" + _uuid + "' OR\n"
-                        "Parent = '" + _uuid + "';";
-
-    err = "";
-    sqlite3Db->exec(query, err);
+    //удаляем группу вместе с подчиненными элементами
+    //пользователей перемещаем в root группу
+    remove_group_hierarchy(_uuid, err);
     if(!err.empty())
         return false;
-
     custom_result = params->to_string();
 
     return true;
 }
 
-void shared_state::delete_all_child_group(const std::string &current_uuid) {
+void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::string &err) {
 
     std::set<int> m_idList;
-
-    std::string query = "select _id form Channels where 'Ref' = '" + current_uuid + "';";
-
+    std::string query = "SELECT _id FROM Channels WHERE Ref = '" + current_uuid + "';";
     std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
 
-    std::string err;
-
+    //Получаем _id верхнего узла иерархии по uuid и добавляем его в общий список set
+    err = "";
     int result = sqlite3Db->execute(query, "Channels", table, err);
 
+    if (!err.empty()){
+        return;
+    }
     if (result > 0){
         std::map<std::string, boost::variant<std::string, double, int>> row = table[0];
         if(row["_id"].type() == typeid(int))
             m_idList.insert(boost::get<int>(row["_id"]));
     }
 
-    if (m_idList.empty())
+    if (m_idList.empty()){
+        err = "Группа в списке не найдена!";
         return;
+    }
 
-    delete_child_group(current_uuid, m_idList);
+    //собираем идентификаторы всей иерархии рекурсивно
+    get_group_hierarchy_keys(current_uuid, m_idList, err);
 
-    //delete ...
+    //подготавливаем список ключей для перемещения пользователей в группу root
+    query = "SELECT Users._id FROM Users INNER JOIN Channels ON Users.channel = Channels.Ref WHERE Channels._id IN (";
+
+    for (auto itr = m_idList.begin(); itr != m_idList.end() ; ++itr) {
+        query.append(std::to_string(*itr));
+        if (itr !=  --m_idList.end())
+            query.append(",");
+    }
+    query.append(");");
+    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> tableUsers;
+    err = "";
+    sqlite3Db->execute(query, "Users", tableUsers, err);
+    if (!err.empty()){
+        return;
+    }
+
+    //Перемещаем
+    query = "UPDATE Users SET channel = '" + arc_json::nil_uuid() + "' WHERE _id in (";
+    for (auto itr = tableUsers.begin(); itr != tableUsers.end() ; ++itr) {
+        std::map<std::string, boost::variant<std::string, double, int>> row = *itr;
+        if(row["_id"].type() == typeid(int))
+            query.append(std::to_string(boost::get<int>(row["_id"])));
+        if (itr !=  --tableUsers.end())
+            query.append(",");
+    }
+    query.append(");");
+    err = "";
+    sqlite3Db->exec(query, err);
+
+    std::cout << query << std::endl;
+
+    if (!err.empty()){
+        return;
+    }
+
+    //удаляем группы
+    query = "DELETE FROM Channels WHERE _id in (";
+    for (auto itr = m_idList.begin(); itr != m_idList.end() ; ++itr) {
+        query.append(std::to_string(*itr));
+        if (itr !=  --m_idList.end())
+            query.append(",");
+    }
+    query.append(");");
+    err = "";
+    sqlite3Db->exec(query, err);
+
 }
 
-void shared_state::delete_child_group(const std::string &current_uuid, std::set<int> vec_uuid) {
+void shared_state::get_group_hierarchy_keys(const std::string &current_uuid, std::set<int> &vec_uuid, std::string &err) {
 
-    std::string query = "select _id, Ref form Channels where 'Parent' = '" + current_uuid + "';";
+    std::string query = "select _id, Ref from Channels where Parent = '" + current_uuid + "';";
 
     std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
-    std::string err;
-
+    err = "";
     int result = sqlite3Db->execute(query, "Channels", table, err);
 
     if (result > 0){
@@ -1142,9 +1186,8 @@ void shared_state::delete_child_group(const std::string &current_uuid, std::set<
             vec_uuid.insert(boost::get<int>(row["_id"]));
 
         std::string parent = boost::get<std::string>(row["Ref"]);
-        delete_child_group(parent, vec_uuid);
+        get_group_hierarchy_keys(parent, vec_uuid, err);
     }
-
 
 }
 

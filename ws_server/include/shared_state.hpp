@@ -112,9 +112,9 @@ private:
     static bool is_valid_command_name(const std::string &command);
     cmd_func get_cmd_func(const std::string& command);
 
-    void delete_child_group(const std::string& current_uuid, std::set<int> vec_uuid);
+    void get_group_hierarchy_keys(const std::string &current_uuid, std::set<int> &vec_uuid, std::string &err);
 
-    void delete_all_child_group(const std::string& group_uuid)
+    void remove_group_hierarchy(const std::string &current_uuid, std::string &err);
 };
 
 
