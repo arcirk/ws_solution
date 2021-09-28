@@ -95,7 +95,7 @@ private:
     static void load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header);
     static void tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree);
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
-    std::string user_change_request_parameters(Ui::user_info *usr_info);
+    static std::string user_change_request_parameters(Ui::user_info *usr_info);
     void group_panel_setVisible(bool visible, bool isSessions);
 
     signals:

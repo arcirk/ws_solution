@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_set>
 #include <map>
-
+#include <set>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators e
@@ -112,7 +112,9 @@ private:
     static bool is_valid_command_name(const std::string &command);
     cmd_func get_cmd_func(const std::string& command);
 
+    void delete_child_group(const std::string& current_uuid, std::set<int> vec_uuid);
 
+    void delete_all_child_group(const std::string& group_uuid)
 };
 
 

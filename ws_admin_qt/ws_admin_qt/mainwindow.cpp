@@ -14,6 +14,8 @@
 
 #ifdef _WINDOWS
 #include <thread>
+//#else
+//#include <boost/thread/thread.hpp>
 #endif
 
 MainWindow::MainWindow(QWidget *parent)
@@ -226,7 +228,14 @@ void MainWindow::processServeResponse(const std::string &response){
             on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
         }else if (resp->command == "update_user"){
             on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+        }else if (resp->command == "add_group"){
+            client->get_group_list(client->get_app_uuid());
+        }else if (resp->command == "edit_group"){
+            client->get_group_list(client->get_app_uuid());
+        }else if (resp->command == "remove_group"){
+            client->get_group_list(client->get_app_uuid());
         }
+
     }
 
     delete resp;
@@ -610,16 +619,64 @@ void MainWindow::on_btnEditUser_clicked()
 
 void MainWindow::on_btnAddGroup_clicked()
 {
-    auto* dlg = new GroupDialog(this);
+    auto * info = new Ui::group_info();
+    info->new_group = true;
+
+    QTreeWidgetItem* item = ui->treeChannels->currentItem();
+    if (item){
+        info->parent_uuid = item->text(group_header["Ref"]);
+        info->parent_name = item->text(group_header["SecondField"]);
+    }
+    else{
+        info->parent_uuid = QString::fromStdString(arc_json::nil_uuid());
+        info->parent_name = "root";
+    }
+
+    auto* dlg = new GroupDialog(this, info);
     dlg->setModal(true);
     dlg->exec();
+
+    if (info ->accepted)
+        client->add_group(info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), arc_json::nil_uuid());
+
+    delete info;
 }
 
 void MainWindow::on_btnEditGroup_clicked()
 {
-    auto* dlg = new GroupDialog(this);
+    QTreeWidgetItem* item = ui->treeChannels->currentItem();
+
+    if (!item){
+        QMessageBox::critical(this, "Ошибка", "Не выбрана группа!");
+        return;
+    }
+
+    if (item->text(group_header["Ref"]).isEmpty() || item->text(group_header["Ref"]) == QString::fromStdString(arc_json::nil_uuid())){
+        QMessageBox::critical(this, "Ошибка", "Нельзя изменить текущую группу!");
+        return;
+    }
+
+    auto * info = new Ui::group_info();
+    info->group_uuid = item->text(group_header["Ref"]);
+    info->group_name = item->text(group_header["FirstField"]);
+    info->group_presentation = item->text(group_header["SecondField"]);
+    QTreeWidgetItem* itemParent = item->parent();
+    if (itemParent){
+        info->parent_uuid = item->parent()->text(group_header["Ref"]);
+        info->parent_name = item->parent()->text(group_header["SecondField"]);
+    }
+    else{
+        info->parent_uuid = QString::fromStdString(arc_json::nil_uuid());
+        info->parent_name = "root";
+    }
+    auto* dlg = new GroupDialog(this, info);
     dlg->setModal(true);
     dlg->exec();
+
+    if (info ->accepted)
+        client->edit_group(info->group_uuid.toStdString(), info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), arc_json::nil_uuid());
+
+    delete info;
 }
 
 
@@ -640,7 +697,7 @@ void MainWindow::on_btnDelGroup_clicked()
         }
 
         auto result =  QMessageBox::question(this, "Удаление группы", "Удалить текущую группу?"
-                                                                      "\nВсе подчиненные группы будут удалены!"
+                                                                      "\nВсе подчиненные группы и пользователи этих групп будут удалены!"
                                                                       "\nВсе пользователи будут перемещены в корневую группу!");
 
         if(result == QMessageBox::Yes){

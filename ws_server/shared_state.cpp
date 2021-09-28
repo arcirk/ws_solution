@@ -83,7 +83,7 @@ void shared_state::_add_new_user(const std::string &usr, const std::string &pwd,
     fields.emplace_back(arc_json::content_value("role", role));
     fields.emplace_back(arc_json::content_value("channel", _parent));
 
-    sqlite3Db->incert(arc_sqlite::tables::eUsers, fields, error);
+    sqlite3Db->insert(arc_sqlite::tables::eUsers, fields, error);
 
     if (error.empty())
         std::cout << "Регистрация пользователя - "<< usr << ":" << hash << std::endl;
@@ -996,7 +996,7 @@ bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params
     fields.emplace_back(arc_json::content_value("Parent", _group_parent));
 
     err = "";
-    sqlite3Db->incert(arc_sqlite::tables::eChannels, fields, err);
+    sqlite3Db->insert(arc_sqlite::tables::eChannels, fields, err);
 
     if (!err.empty())
         return false;
@@ -1099,6 +1099,53 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *par
     custom_result = params->to_string();
 
     return true;
+}
+
+void shared_state::delete_all_child_group(const std::string &current_uuid) {
+
+    std::set<int> m_idList;
+
+    std::string query = "select _id form Channels where 'Ref' = '" + current_uuid + "';";
+
+    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
+
+    std::string err;
+
+    int result = sqlite3Db->execute(query, "Channels", table, err);
+
+    if (result > 0){
+        std::map<std::string, boost::variant<std::string, double, int>> row = table[0];
+        if(row["_id"].type() == typeid(int))
+            m_idList.insert(boost::get<int>(row["_id"]));
+    }
+
+    if (m_idList.empty())
+        return;
+
+    delete_child_group(current_uuid, m_idList);
+
+    //delete ...
+}
+
+void shared_state::delete_child_group(const std::string &current_uuid, std::set<int> vec_uuid) {
+
+    std::string query = "select _id, Ref form Channels where 'Parent' = '" + current_uuid + "';";
+
+    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
+    std::string err;
+
+    int result = sqlite3Db->execute(query, "Channels", table, err);
+
+    if (result > 0){
+        std::map<std::string, boost::variant<std::string, double, int>> row = table[0];
+        if(row["_id"].type() == typeid(int))
+            vec_uuid.insert(boost::get<int>(row["_id"]));
+
+        std::string parent = boost::get<std::string>(row["Ref"]);
+        delete_child_group(parent, vec_uuid);
+    }
+
+
 }
 
 bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,

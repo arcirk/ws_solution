@@ -153,6 +153,17 @@ session::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred){
 
+    //std::cerr << ec.value() << std::endl;
+
+    if(ec.value() == 2){
+        std::string err = ec.message();
+#ifdef _WINDOWS
+        err = "Соединение разорвано!";
+#endif
+        client_->error("read", err);
+        return;
+    }
+
     if (stopped_)
         return;
 
@@ -172,6 +183,8 @@ session::on_read(
         client_->error("read", err);
         return;
     }
+
+
 
     if(ec){
         return fail(ec, "read");

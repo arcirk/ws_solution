@@ -323,7 +323,6 @@ namespace arc_sqlite {
 
         sqlite3_finalize(pStmt);
 
-
         json = obj_json->to_string();
 
         return i;
@@ -428,7 +427,7 @@ namespace arc_sqlite {
         return i;
     }
 
-    bool sqlite3_db::incert(tables tableType, std::vector<arc_json::content_value> values, std::string& err) {
+    bool sqlite3_db::insert(tables tableType, std::vector<arc_json::content_value> values, std::string& err) {
 
         std::string table = get_table_name(tableType);
 
@@ -593,7 +592,7 @@ namespace arc_sqlite {
 
             std::string err;
 
-            bool result = incert(eMessages, values, err);
+            bool result = insert(eMessages, values, err);
 
             if (!result)
                 if (!err.empty())
@@ -634,6 +633,88 @@ namespace arc_sqlite {
 
     }
 
+    int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, boost::variant<std::string, double, int>>> &table, std::string &error){
+
+        sqlite3_stmt* pStmt;
+        char* err = 0;
+        int i = 0;
+        int rc;
+
+
+        if (sqlite3_exec(db, query.c_str(), 0, 0, &err))
+        {
+            std::cerr << "Ошибка SQL запроса : " << err << std::endl;
+            sqlite3_free(err);
+        }
+
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &pStmt, NULL))
+        {
+            sqlite3_finalize(pStmt);
+        }
+
+        while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW)
+        {
+            unsigned int col_count = sqlite3_data_count(pStmt);
+
+            std::map<std::string, boost::variant<std::string, double, int>> row;
+
+            for (unsigned int j = 0; j < col_count; j++)
+            {
+
+                int iColType = sqlite3_column_type(pStmt, j);
+
+                const char* p;
+
+                std::string key = reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
+                boost::variant<std::string, double, int> value;
+
+                if (table_name == "Users" && key == "hash")
+                    continue;
+
+                if (iColType == SQLITE3_TEXT)// ((sz_col_type == "TEXT") || (sz_col_type == "TEXT (36)"))
+                {
+                    p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, j));
+                    if (p != NULL)
+                        value = std::string(p);
+                    else
+                        value = "";
+                }
+                else if (iColType == SQLITE_INTEGER) //(sz_col_type == "INTEGER")
+                {
+                    value = (int)sqlite3_column_int(pStmt, j);
+                }
+                else if (iColType == SQLITE_FLOAT) //(sz_col_type == "REAL")
+                {
+                    value = sqlite3_column_double(pStmt, j);
+                }
+                else if (iColType == SQLITE_NULL) //(sz_col_type == "REAL")
+                {
+                    value = "null";
+                }
+                else
+
+                {
+                    p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, j));
+                    if (p != NULL)
+                        value = std::string(p);
+                    else
+                        value = "";
+                }
+
+                row.insert(std::pair<std::string, boost::variant<std::string, double, int>>(key, value));
+
+            }
+
+            table.push_back(row);
+
+            i++;
+        }
+
+        sqlite3_finalize(pStmt);
+
+        return i;
+    }
 
 
 }
+

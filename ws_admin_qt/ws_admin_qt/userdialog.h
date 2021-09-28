@@ -88,7 +88,7 @@ class UserDialog : public QDialog
 
 public:
     explicit UserDialog(QWidget *parent = nullptr, Ui::user_info * usr_info = nullptr);
-    ~UserDialog();
+    ~UserDialog() override;
 
 
 
