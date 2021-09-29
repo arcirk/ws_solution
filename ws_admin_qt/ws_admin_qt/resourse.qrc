@@ -14,4 +14,8 @@
         <file>res/send.svg</file>
         <file>res/KillSession.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>Chat.qml</file>
+        <file>ChatForm.ui.qml</file>
+    </qresource>
 </RCC>
