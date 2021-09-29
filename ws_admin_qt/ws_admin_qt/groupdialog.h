@@ -46,7 +46,6 @@ private:
     Ui::GroupDialog *ui;
     Ui::group_info* _info;
 
-
 };
 
 #endif // GROUPDIALOG_H

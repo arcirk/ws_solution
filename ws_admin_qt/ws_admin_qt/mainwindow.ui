@@ -182,6 +182,12 @@
              <iconset resource="resourse.qrc">
               <normaloff>:/new/icons/res/list_tree.png</normaloff>:/new/icons/res/list_tree.png</iconset>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>

@@ -68,6 +68,8 @@ private slots:
 
     void on_action_triggered();
 
+    void on_btnViewMode_clicked();
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -83,6 +85,7 @@ private:
     IClient * client;
     QMap<QString, int> group_header;
     QString current_node;
+    bool view_mode_hierarchy;
 
     QString serverView();
     void processServeResponse(const std::string& response);
@@ -97,6 +100,9 @@ private:
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
     static std::string user_change_request_parameters(Ui::user_info *usr_info);
     void group_panel_setVisible(bool visible, bool isSessions);
+    void set_header_aliases(QTableWidget* table);
+
+    void get_tree_model();
 
     signals:
     void display_error(const QString& what, const QString& err);

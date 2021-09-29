@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->toolBottonsUsers->addStretch();
     group_panel_setVisible(false, false);
 
-
+    view_mode_hierarchy = true;
 }
 
 void MainWindow::initItemList() {
@@ -234,6 +234,8 @@ void MainWindow::processServeResponse(const std::string &response){
             client->get_group_list(client->get_app_uuid());
         }else if (resp->command == "remove_group"){
             client->get_group_list(client->get_app_uuid());
+        }else if (resp->command == "set_parent"){
+            on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
         }
 
     }
@@ -275,11 +277,37 @@ void MainWindow::on_fill_node(const QString& command, const QString& resp){
         if (!doc.isNull()) {
             if (doc.isArray()) {
                 ServeResponse::loadTableFromJson(listChildServerObjects, doc.array());
+                set_header_aliases(listChildServerObjects);
                 resizeColumns();
             }
         }
     }
 
+}
+
+void MainWindow::set_header_aliases(QTableWidget* table) {
+
+    for (int i = 0; i < table->columnCount(); ++i) {
+        auto item = table->horizontalHeaderItem(i);
+        if (item->text() == "app_name")
+            item->setText("Приложение");
+        else if (item->text() == "name")
+            item->setText("Имя");
+        else if (item->text() == "user_uuid")
+            item->setText("Идентификатор пользователя");
+        else if (item->text() == "uuid")
+            item->setText("Идентификатор");
+        else if (item->text() == "FirstField")
+            item->setText("Имя");
+        else if (item->text() == "SecondField")
+            item->setText("Представление");
+        else if (item->text() == "Ref")
+            item->setText("Ссылка");
+        else if (item->text() == "channel")
+            item->setText("Группа");
+        else if (item->text() == "role")
+            item->setText("Роль");
+    }
 }
 
 void MainWindow::on_treeSrvObjects_itemSelectionChanged()
@@ -346,9 +374,13 @@ void MainWindow::on_fill_group_tree(const QString &resp) {
         return;
 
     tree_group_create_columns(header, treeChannelsObjects);
+
     tree_create_root_items(model, treeChannelsObjects, header);
 
     group_header = header;
+
+    auto headerItem = treeChannelsObjects->headerItem();
+    headerItem->setText(group_header["SecondField"], "Группы пользователей");
 }
 
 
@@ -430,15 +462,26 @@ void MainWindow::on_treeChannels_itemChanged(QTreeWidgetItem *item, int column)
 
 void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-    if (group_header.count() > 0 && current){
+    if (view_mode_hierarchy){
+        if (group_header.count() > 0 && current) {
 
-        QString group_uuid = current->text(group_header["Ref"]);
-        if (group_uuid.isEmpty())
-            return;
-        if (client->started()){
-            client->get_users(group_uuid.toStdString(), arc_json::nil_uuid());
+            QString group_uuid = current->text(group_header["Ref"]);
+            if (group_uuid.isEmpty())
+                return;
+            if (client->started()) {
+                client->get_users(group_uuid.toStdString(), arc_json::nil_uuid());
+            }
+
         }
+    } else{
+        if (group_header.count() > 0 && current) {
 
+            QString group_uuid = current->text(group_header["Ref"]);
+            if (group_uuid.isEmpty() || group_uuid == QString::fromStdString(arc_json::nil_uuid())){
+                client->get_users("", arc_json::nil_uuid());
+            }
+
+        }
     }
 }
 void MainWindow::on_fill_users(const QString& resp){
@@ -460,6 +503,8 @@ void MainWindow::on_fill_users(const QString& resp){
     header.insert("channel", 4);
 
     ServeResponse::loadTableFromJson(listChildServerObjects, doc.array(), header);
+
+    set_header_aliases(listChildServerObjects);
 
     for (int i = 0; i < listChildServerObjects->columnCount() ; ++i) {
         listChildServerObjects->resizeColumnToContents(i);
@@ -711,14 +756,38 @@ void MainWindow::on_btnDelGroup_clicked()
 
 void MainWindow::on_btnToGroup_clicked()
 {
-    auto* dlg = new SelectGroupDialog(this);
-    dlg->setModal(true);
-    dlg->exec();
+    if (current_node == "Users"){
+        if (listChildServerObjects->currentRow() == -1){
+            QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+            return;
+        }
+        auto* dlg = new SelectGroupDialog(this, treeChannelsObjects->model());
+        dlg->setModal(true);
+        dlg->exec();
+
+        QTableWidgetItem* item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
+
+        if(dlg->dlgAccepted){
+            client->set_parent(item->text().toStdString(), dlg->selected_group_uuid.toStdString(), arc_json::nil_uuid());
+        }
+    }
 }
 
 
 void MainWindow::on_action_triggered()
 {
-    QApplication::aboutQt();
+        QApplication::aboutQt();
+}
+
+void MainWindow::on_btnViewMode_clicked()
+{
+    view_mode_hierarchy = !view_mode_hierarchy;
+    if(view_mode_hierarchy){
+        on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+    }else{
+        if (client->started()){
+            client->get_users("", arc_json::nil_uuid());
+        }
+    }
 }
 
