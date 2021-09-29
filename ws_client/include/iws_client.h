@@ -45,21 +45,22 @@ public:
     static std::string get_hash(const std::string &usr, const std::string &pwd);
 
     void get_messages(const std::string &uuid_sub, long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
-    void get_user_info(const std::string &user_uuid, const std::string &uuid_form);
+    void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
     void get_group_list(const std::string &uuid_form);
     void add_group(const std::string &name, const std::string &presentation, const std::string &uuid_parent, const std::string &uuid_form);
     void edit_group(const std::string &uuid_group, const std::string &name, const std::string &presentation, const std::string &uuid_parent, const std::string &uuid_form);
     void remove_group(const std::string &uuid_group, const std::string &uuid_form);
     void get_users(const std::string &uuid_group, const std::string &uuid_form);
-    void set_parent(const std::string &user_uuid, const std::string &uuid_group, const std::string &uuid_form);
-    void remove_user(const std::string &user_uuid, const std::string &uuid_form);
+    void set_parent(const std::string &_user_uuid, const std::string &uuid_group, const std::string &uuid_form);
+    void remove_user(const std::string &_user_uuid, const std::string &uuid_form);
+    void kill_session(const std::string &_user_uuid, const std::string &uuid_form);
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
     bool started();
 
-    std::string get_app_uuid();
+    std::string get_app_uuid() const;
 
-    tm currentDate();
-    long int current_date_in_seconds();
+    static tm currentDate();
+    static long int current_date_in_seconds();
     long int get_tz_offset();
 
 private:

@@ -465,6 +465,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 2;
     else if (command == "remove_user")
         return params == 1;
+    else if (command == "kill_session")
+        return params == 1;
     else
         return false;
 }
@@ -491,6 +493,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("remove_group");
     commands.emplace_back("set_parent");
     commands.emplace_back("remove_user");
+    commands.emplace_back("kill_session");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -528,6 +531,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::set_parent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "remove_user")
         return  std::bind(&shared_state::remove_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "kill_session")
+        return  std::bind(&shared_state::kill_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -1270,4 +1275,40 @@ bool shared_state::remove_user(boost::uuids::uuid &uuid, arc_json::ws_json *para
     custom_result = params->to_string();
 
     return true;
+}
+
+bool shared_state::kill_session(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                                std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->getStringMember("ref");
+    if (_uuid.empty()){
+        err = "не указан идентификатор пользователя!!";
+        return false;
+    }
+
+    boost::uuids::uuid kill_uuid = arc_json::string_to_uuid(_uuid);
+    auto  kill_sess = get_session(kill_uuid);
+    if (kill_sess)
+        kill_sess->close();
+    else
+        return false;
+
+    return true;
+
 }

@@ -8,8 +8,10 @@
 #include "optionsdlg.h"
 #include "AppSettings.h"
 #include <QAbstractTableModel>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlComponent>
+#include <QtQml/QQmlDebuggingEnabler>
 
-//#include "iws_client.h"
 #include "../../ws_client/include/iws_client.h"
 
 #include "popup.h"
@@ -70,6 +72,12 @@ private slots:
 
     void on_btnViewMode_clicked();
 
+    void on_btnKillSession_triggered(QAction *arg1);
+
+    void on_btnSendMessage_clicked();
+
+    void on_btnKillSession_clicked();
+
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};
 
@@ -86,6 +94,9 @@ private:
     QMap<QString, int> group_header;
     QString current_node;
     bool view_mode_hierarchy;
+    QQmlEngine *engine;
+    QQmlComponent *chat_qml;
+    QObject *dialog = Q_NULLPTR;
 
     QString serverView();
     void processServeResponse(const std::string& response);

@@ -236,8 +236,18 @@ void MainWindow::processServeResponse(const std::string &response){
             client->get_group_list(client->get_app_uuid());
         }else if (resp->command == "set_parent"){
             on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+        }else if (resp->command == "kill_session"){
+            if (current_node == "ActiveUsers")
+                fillList(current_node);
+        }else if (resp->command == "client_leave"){
+            if (current_node == "ActiveUsers")
+                fillList(current_node);
+        }else if (resp->command == "client_join") {
+            if (current_node == "ActiveUsers")
+                fillList(current_node);
+        }else{
+            emit display_notify("Команда без обработчика: " + resp->command);
         }
-
     }
 
     delete resp;
@@ -788,6 +798,40 @@ void MainWindow::on_btnViewMode_clicked()
         if (client->started()){
             client->get_users("", arc_json::nil_uuid());
         }
+    }
+}
+
+
+void MainWindow::on_btnKillSession_triggered(QAction *arg1)
+{
+    //
+}
+
+
+void MainWindow::on_btnSendMessage_clicked()
+{
+    engine = new QQmlEngine(this);
+    chat_qml = new QQmlComponent(engine, QUrl(QStringLiteral("qrc:/Chat.qml")), this);
+    QMetaObject::invokeMethod(dialog, "show", Qt::ConnectionType::AutoConnection, QGenericReturnArgument(), Q_ARG(QVariant, QVariant(QString::fromStdString(arc_json::nil_uuid()))));
+}
+
+
+void MainWindow::on_btnKillSession_clicked()
+{
+    if (current_node == "ActiveUsers"){
+        if (listChildServerObjects->currentRow() == -1){
+            QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+            return;
+        }
+
+        QTableWidgetItem* item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
+
+        auto result =  QMessageBox::question(this, "Удаление сессии", "Удалить текущую сессию пользователя?");
+
+        if(result == QMessageBox::Yes){
+            client->kill_session(item->text().toStdString(), arc_json::nil_uuid());
+        }
+
     }
 }
 

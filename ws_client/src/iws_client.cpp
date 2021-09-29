@@ -22,7 +22,7 @@ void IClient::send_command(const std::string &cmd, const std::string &uuid_form,
         if (!started())
             return;
 
-        std::string _cmd = cmd;
+        const std::string& _cmd = cmd;
         std::string _uuid_form = uuid_form;
         std::string _param = param;
 
@@ -134,13 +134,13 @@ void IClient::get_messages(const std::string &uuid_sub, long int &start_date, co
 
 }
 
-void IClient::get_user_info(const std::string &user_uuid, const std::string &uuid_form) {
+void IClient::get_user_info(const std::string &_user_uuid, const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
 
     try {
 
-        pt.add("user_uuid", user_uuid);
+        pt.add("_user_uuid", _user_uuid);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
@@ -242,14 +242,14 @@ void IClient::get_users(const std::string &uuid_group, const std::string &uuid_f
     }
 }
 
-void IClient::set_parent(const std::string &user_uuid, const std::string &uuid_group, const std::string &uuid_form) {
+void IClient::set_parent(const std::string &_user_uuid, const std::string &uuid_group, const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
 
     try {
 
         pt.add("parent", uuid_group);
-        pt.add("user", user_uuid);
+        pt.add("user", _user_uuid);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
@@ -261,18 +261,36 @@ void IClient::set_parent(const std::string &user_uuid, const std::string &uuid_g
     }
 }
 
-void IClient::remove_user(const std::string &user_uuid, const std::string &uuid_form) {
+void IClient::remove_user(const std::string &_user_uuid, const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
 
     try {
 
-        pt.add("ref", user_uuid);
+        pt.add("ref", _user_uuid);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
 
         send_command("remove_user", uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
+void IClient::kill_session(const std::string &_user_uuid, const std::string &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        pt.add("ref", _user_uuid);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("kill_session", uuid_form, _ss.str());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
@@ -313,6 +331,6 @@ std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
     return arc_json::get_hash(usr, pwd);
 }
 
-std::string IClient::get_app_uuid() {
+std::string IClient::get_app_uuid() const {
     return app_uuid;
 }
