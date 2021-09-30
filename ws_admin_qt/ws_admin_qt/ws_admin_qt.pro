@@ -55,6 +55,7 @@ DISTFILES += \
 unix:LIBS += -L"/usr/local/lib"
 
 LIBS += -L"../../ws_client/cmake-build-debug"
+windows:LIBS += -L"C:/src/GitHub/ws_solution/ws_client/cmake-build-debug"
 
 INCLUDEPATH += ../../ws_client/include
 

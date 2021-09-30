@@ -62,7 +62,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    ADD_CUSTOM_COMMAND(
+#[[    ADD_CUSTOM_COMMAND(
             TARGET ${TARGET}
             POST_BUILD
             COMMENT "Update lib..."
@@ -75,5 +75,5 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             COMMENT "Copying lib..."
             COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX}
             ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
-    )
+    )]]
 endif ()

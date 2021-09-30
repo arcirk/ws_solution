@@ -46,6 +46,8 @@ find_package(Qt6 COMPONENTS
         Gui
         Widgets
         QuickWidgets
+        OpenGL
+        QmlModels
         REQUIRED)
 
 include_directories("../../ws_client/include")
@@ -59,6 +61,8 @@ target_link_libraries(ws_admin_qt
         Qt6::Quick
         Qt6::Qml
         Qt6::QuickWidgets
+        Qt6::OpenGL
+        Qt6::QmlModels
         ws_client
         )
 
@@ -77,5 +81,8 @@ add_custom_command(
         $<TARGET_FILE:Qt6::Network>
         $<TARGET_FILE:Qt6::Qml>
         $<TARGET_FILE:Qt6::Quick>
+        $<TARGET_FILE:Qt6::OpenGL>
+        $<TARGET_FILE:Qt6::QmlModels>
         $<TARGET_FILE:Qt6::QuickWidgets>
-        $<TARGET_FILE_DIR:ws_admin_qt>)
+        $<TARGET_FILE_DIR:ws_admin_qt>
+        $<TARGET_FILE_DIR:ws_client>)
