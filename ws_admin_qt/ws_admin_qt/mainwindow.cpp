@@ -810,9 +810,13 @@ void MainWindow::on_btnKillSession_triggered(QAction *arg1)
 
 void MainWindow::on_btnSendMessage_clicked()
 {
-    engine = new QQmlEngine(this);
-    chat_qml = new QQmlComponent(engine, QUrl(QStringLiteral("qrc:/Chat.qml")), this);
-    QMetaObject::invokeMethod(dialog, "show", Qt::ConnectionType::AutoConnection, QGenericReturnArgument(), Q_ARG(QVariant, QVariant(QString::fromStdString(arc_json::nil_uuid()))));
+//    engine = new QQmlEngine(this);
+//    chat_qml = new QQmlComponent(engine, QUrl(QStringLiteral("qrc:/Chat.qml")), this);
+//    QMetaObject::invokeMethod(dialog, "show", Qt::ConnectionType::AutoConnection, QGenericReturnArgument(), Q_ARG(QVariant, QVariant(QString::fromStdString(arc_json::nil_uuid()))));
+
+    ChatBoxDialog * chatBox = new ChatBoxDialog(this);
+
+    chatBox->show();
 }
 
 

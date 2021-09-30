@@ -1,13 +1,13 @@
-import QtQuick 2.4
-//import QtQuick.Dialogs 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 
-ChatForm {
-    id: chatForm
-    width: 250
-    height: 300
+Item {
 
-    function show(x){
-        //calendar.selectedDate = x
-        chatForm.open()
+    Text {
+        id: text
+        text: qsTr("Hello world")
+
+        anchors.centerIn: parent
     }
+
 }

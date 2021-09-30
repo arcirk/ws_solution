@@ -8,6 +8,7 @@
 #include "optionsdlg.h"
 #include "AppSettings.h"
 #include <QAbstractTableModel>
+
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlComponent>
 #include <QtQml/QQmlDebuggingEnabler>
@@ -16,6 +17,7 @@
 
 #include "popup.h"
 #include "userdialog.h"
+#include "chatboxdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -94,9 +96,10 @@ private:
     QMap<QString, int> group_header;
     QString current_node;
     bool view_mode_hierarchy;
-    QQmlEngine *engine;
-    QQmlComponent *chat_qml;
-    QObject *dialog = Q_NULLPTR;
+
+//    QQmlEngine *engine;
+//    QQmlComponent *chat_qml;
+//    QObject *dialog = Q_NULLPTR;
 
     QString serverView();
     void processServeResponse(const std::string& response);

@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui quickwidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     appSettings.cpp \
+    chatboxdialog.cpp \
     directoryinfobasedialog.cpp \
     groupdialog.cpp \
     main.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     AppSettings.h \
+    chatboxdialog.h \
     directoryinfobasedialog.h \
     global.h \
     groupdialog.h \
@@ -34,6 +36,7 @@ HEADERS += \
     userdialog.h
 
 FORMS += \
+    chatboxdialog.ui \
     directoryinfobasedialog.ui \
     groupdialog.ui \
     mainwindow.ui \
@@ -65,3 +68,5 @@ PRECOMPILED_HEADER = stdfx.h
 
 RESOURCES += \
     resourse.qrc
+
+QT += quick qml

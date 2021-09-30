@@ -35,12 +35,17 @@ add_executable(ws_admin_qt
         groupdialog.ui
         selectgroupdialog.cpp
         selectgroupdialog.h
-        selectgroupdialog.ui)
+        selectgroupdialog.ui
+        Chat.qml
+        chatboxdialog.h
+        chatboxdialog.cpp
+        chatboxdialog.ui)
 
 find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        QuickWidgets
         REQUIRED)
 
 include_directories("../../ws_client/include")
@@ -51,6 +56,9 @@ target_link_libraries(ws_admin_qt
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
+        Qt6::Quick
+        Qt6::Qml
+        Qt6::QuickWidgets
         ws_client
         )
 
@@ -59,3 +67,15 @@ target_link_libraries(ws_admin_qt
 target_precompile_headers(ws_admin_qt
         PUBLIC
         stdfx.h)
+
+add_custom_command(
+        TARGET ws_admin_qt POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:Qt6::Widgets>
+        $<TARGET_FILE:Qt6::Core>
+        $<TARGET_FILE:Qt6::Gui>
+        $<TARGET_FILE:Qt6::Network>
+        $<TARGET_FILE:Qt6::Qml>
+        $<TARGET_FILE:Qt6::Quick>
+        $<TARGET_FILE:Qt6::QuickWidgets>
+        $<TARGET_FILE_DIR:ws_admin_qt>)
