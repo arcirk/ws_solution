@@ -3,11 +3,37 @@ import QtQuick.Controls 2.12
 
 Item {
 
-    Text {
-        id: text
-        text: qsTr("Hello world")
+    ListModel {
+            id: dataModel
 
-        anchors.centerIn: parent
-    }
+            ListElement {
+                color: "orange"
+                text: "first"
+            }
+            ListElement {
+                color: "lightgreen"
+                text: "second"
+            }
+            ListElement {
+                color: "orchid"
+                text: "third"
+            }
+            ListElement {
+                color: "tomato"
+                text: "fourth"
+            }
+        }
+
+        ListView {
+            id: view
+            model: dataModel
+            spacing: defMargin/2
+            clip: true
+            delegate: ListDelegate{
+                text: model.text
+                color: model.color
+            }
+        }
+
 
 }

@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QQuickWidget>
+#include <QStringListModel>
 
 namespace Ui {
 class ChatBoxDialog;
@@ -14,7 +15,7 @@ class ChatBoxDialog : public QDialog
 
 public:
     explicit ChatBoxDialog(QWidget *parent = nullptr);
-    ~ChatBoxDialog();
+    ~ChatBoxDialog() override;
 
 private:
     Ui::ChatBoxDialog *ui;

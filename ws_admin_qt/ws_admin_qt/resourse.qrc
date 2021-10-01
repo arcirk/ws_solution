@@ -16,5 +16,6 @@
     </qresource>
     <qresource prefix="/">
         <file>Chat.qml</file>
+        <file>ListDelegate.qml</file>
     </qresource>
 </RCC>
