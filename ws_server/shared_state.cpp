@@ -598,12 +598,13 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
 
         if (session->authorized){
 
+            sessions_.erase(uuid);
+
             session->set_uuid(new_uuid);
             session->set_user_uuid(user_uuid);
             session->set_app_name(app_name);
             session->set_role(role);
 
-            sessions_.erase(uuid);
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
             send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arc_json::uuid_to_string(session->get_uuid()), "client_join");

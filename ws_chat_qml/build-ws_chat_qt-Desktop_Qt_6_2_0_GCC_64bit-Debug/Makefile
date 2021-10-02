@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = ws_chat_qt1.0.0
-DISTDIR = /home/arcady/src/chat/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_chat_qt1.0.0
+DISTDIR = /home/arcady/GitHub/ws_solution/ws_chat_qml/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_chat_qt1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/opt/Qt/6.2.0/gcc_64/lib
 LIBS          = $(SUBLIBS) /opt/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /opt/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /opt/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /opt/Qt/6.2.0/gcc_64/lib/libQt6Network.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
@@ -69,11 +69,6 @@ DIST          = /opt/Qt/6.2.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
@@ -114,10 +109,6 @@ DIST          = /opt/Qt/6.2.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_packetprotocol_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qml.pri \
@@ -139,24 +130,6 @@ DIST          = /opt/Qt/6.2.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2_private.pri \
@@ -174,12 +147,8 @@ DIST          = /opt/Qt/6.2.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickshapes_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_svg.pri \
@@ -264,11 +233,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
@@ -309,10 +273,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_packetprotocol_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qml.pri \
@@ -334,24 +294,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2_private.pri \
@@ -369,12 +311,8 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickshapes_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_svg.pri \
@@ -456,11 +394,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 /opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf:
 /opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri:
@@ -501,10 +434,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_packetprotocol_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioning_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_positioningquick_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_printsupport_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qml.pri:
@@ -526,24 +455,6 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_qmlxmllistmodel_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3d_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetimport_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dassetutils_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3deffects_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dhelpers_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3diblbaker_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dparticles_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3druntimerender_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick3dutils_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quick_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickcontrols2_private.pri:
@@ -561,12 +472,8 @@ Makefile: ../ws_chat_qt/ws_chat_qt.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++/qm
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickshapes_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktemplates2_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quicktimeline_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_quickwidgets_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_shadertools_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_sql_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_svg.pri:
@@ -755,7 +662,6 @@ moc_usermessages.cpp: ../ws_chat_qt/usermessages.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -778,7 +684,7 @@ moc_usermessages.cpp: ../ws_chat_qt/usermessages.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		moc_predefs.h \
 		/opt/Qt/6.2.0/gcc_64/libexec/moc
-	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/src/chat/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/src/chat/ws_chat_qt -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_chat_qt/usermessages.h -o moc_usermessages.cpp
+	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/ws_chat_qml/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/ws_chat_qml/ws_chat_qt -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_chat_qt/usermessages.h -o moc_usermessages.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -855,7 +761,6 @@ main.o: ../ws_chat_qt/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicatio
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -901,7 +806,6 @@ main.o: ../ws_chat_qt/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicatio
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpoint.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsize.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmargins.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtGui/qguiapplication_platform.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/QQmlApplicationEngine \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlapplicationengine.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlengine.h \
@@ -992,7 +896,6 @@ usermessages.o: ../ws_chat_qt/usermessages.cpp ../ws_chat_qt/usermessages.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
