@@ -467,6 +467,10 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "kill_session")
         return params == 1;
+    else if (command == "set_uuid")
+        return params == 2;
+    else if (command == "set_app_name")
+        return params == 2;
     else
         return false;
 }
@@ -477,7 +481,6 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_client_param");
     commands.emplace_back("get_active_users");
     commands.emplace_back("send_all_message");
-    commands.emplace_back("get_uuid");
     commands.emplace_back("add_user");
     commands.emplace_back("subscribe_to_channel");
     commands.emplace_back("subscribe_exit_channel");
@@ -494,6 +497,8 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_parent");
     commands.emplace_back("remove_user");
     commands.emplace_back("kill_session");
+    commands.emplace_back("set_uuid");
+    commands.emplace_back("set_app_name");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -533,6 +538,10 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::remove_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "kill_session")
         return  std::bind(&shared_state::kill_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "set_uuid")
+        return  std::bind(&shared_state::set_uuid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "set_app_name")
+        return  std::bind(&shared_state::set_app_name, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -589,11 +598,12 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
 
         if (session->authorized){
 
-            sessions_.erase(uuid);
             session->set_uuid(new_uuid);
             session->set_user_uuid(user_uuid);
             session->set_app_name(app_name);
             session->set_role(role);
+
+            sessions_.erase(uuid);
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
             send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arc_json::uuid_to_string(session->get_uuid()), "client_join");
@@ -1308,6 +1318,96 @@ bool shared_state::kill_session(boost::uuids::uuid &uuid, arc_json::ws_json *par
         kill_sess->close();
     else
         return false;
+
+    return true;
+
+}
+
+bool shared_state::set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                                std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->getStringMember("uuid_set");
+    if (_uuid.empty()){
+        err = "не указан идентификатор сессии!!";
+        return false;
+    }
+
+    boost::uuids::uuid uuid_set = arc_json::string_to_uuid(_uuid);
+    auto  session_set = get_session(uuid_set);
+    if (!session_set) //такой сессии не существует
+        return false;
+
+    std::string _new_uuid = params->getStringMember("new_uuid");
+    if (_new_uuid.empty())
+        return false;
+
+    boost::uuids::uuid new_uuid = arc_json::string_to_uuid(_new_uuid);
+
+    auto  session_valid = get_session(uuid_set);
+    if (session_valid) //сессия с таким идентификатором уже  существует
+        return false;
+
+    //обновляем uuid сессии
+    sessions_.erase(uuid_set);
+    session_set->set_uuid(new_uuid);
+    sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session_set->get_uuid(), session_set));
+
+    return true;
+}
+
+bool shared_state::set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                            std::string &err, std::string &custom_result) {
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->getStringMember("uuid_set");
+    if (_uuid.empty()){
+        err = "не указан идентификатор сессии!!";
+        return false;
+    }
+
+    boost::uuids::uuid uuid_set = arc_json::string_to_uuid(_uuid);
+
+    std::string new_app_name = params->getStringMember("new_app_name");
+    if (new_app_name.empty())
+        return false;
+
+    if (uuid != uuid_set){
+        auto  session_set = get_session(uuid_set);
+        if (session_set)
+            session_set->set_app_name(new_app_name);
+        else
+            return false;
+    } else
+        current_sess->set_app_name(new_app_name);
 
     return true;
 

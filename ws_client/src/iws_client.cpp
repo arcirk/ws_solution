@@ -13,6 +13,9 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     port = _port;
     callback_msg = callback;
     client = nullptr;
+    app_name = "admin_console";
+    client_uuid = arc_json::random_uuid();
+    user_uuid = arc_json::nil_uuid();
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -308,7 +311,7 @@ void IClient::open(bool new_thread){
     pt.add("uuid", app_uuid);
     pt.add("name", admin_name);
     pt.add("hash", hash);
-    pt.add("app_name", "admin_console");
+    pt.add("app_name", app_name);
     pt.add("user_uuid", user_uuid);
 
     std::stringstream _ss;
@@ -334,3 +337,41 @@ std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
 std::string IClient::get_app_uuid() const {
     return app_uuid;
 }
+
+void IClient::set_app_name(const std::string &session_uuid, const std::string &new_app_name) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        pt.add("uuid_set", session_uuid);
+        pt.add("new_app_name", new_app_name);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("set_app_name", arc_json::nil_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
+void IClient::set_uuid(const std::string &session_uuid, const std::string &new_uuid) {
+    boost::property_tree::ptree pt;
+
+    try {
+
+        pt.add("uuid_set", session_uuid);
+        pt.add("new_uuid", new_uuid);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("set_uuid", arc_json::nil_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+

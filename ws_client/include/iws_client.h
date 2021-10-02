@@ -56,6 +56,8 @@ public:
     void kill_session(const std::string &_user_uuid, const std::string &uuid_form);
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
     bool started();
+    void set_app_name(const std::string &session_uuid, const std::string& new_app_name);
+    void set_uuid(const std::string &session_uuid, const std::string& new_uuid);
 
     std::string get_app_uuid() const;
 
