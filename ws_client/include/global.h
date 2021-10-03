@@ -22,7 +22,6 @@
 #include <fstream>
 #include <chrono>
 #include <sstream>
-#include <string>
 #include <iomanip>
 
 #include <boost/system/error_code.hpp>

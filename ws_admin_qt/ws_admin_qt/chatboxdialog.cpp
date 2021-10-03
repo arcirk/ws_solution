@@ -4,11 +4,14 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 
-ChatBoxDialog::ChatBoxDialog(QWidget *parent) :
+ChatBoxDialog::ChatBoxDialog(QWidget *parent, UsersGroupsModel *groupModel) :
     QDialog(parent),
     ui(new Ui::ChatBoxDialog)
 {
     ui->setupUi(this);
+
+    _groupModel = groupModel;
+
     ui->quickWidget->setSource(QUrl(QStringLiteral("qrc:/Chat.qml")));
 
     QStringListModel listModel;

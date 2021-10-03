@@ -12,6 +12,7 @@
 #include "selectgroupdialog.h"
 #include "groupdialog.h"
 
+
 #ifdef _WINDOWS
 #include <thread>
 //#else
@@ -53,6 +54,9 @@ MainWindow::MainWindow(QWidget *parent)
     group_panel_setVisible(false, false);
 
     view_mode_hierarchy = true;
+
+    groupModel = new UsersGroupsModel(this);
+
 }
 
 void MainWindow::initItemList() {

@@ -19,6 +19,8 @@
 #include "userdialog.h"
 #include "chatboxdialog.h"
 
+#include "usersgroupsmodel.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -96,6 +98,7 @@ private:
     QMap<QString, int> group_header;
     QString current_node;
     bool view_mode_hierarchy;
+    UsersGroupsModel * groupModel;
 
 //    QQmlEngine *engine;
 //    QQmlComponent *chat_qml;

@@ -19,7 +19,8 @@ SOURCES += \
     popup.cpp \
     selectgroupdialog.cpp \
     serveresponse.cpp \
-    userdialog.cpp
+    userdialog.cpp \
+    usersgroupsmodel.cpp
 
 HEADERS += \
     AppSettings.h \
@@ -33,7 +34,8 @@ HEADERS += \
     selectgroupdialog.h \
     serveresponse.h \
     stdfx.h \
-    userdialog.h
+    userdialog.h \
+    usersgroupsmodel.h
 
 FORMS += \
     chatboxdialog.ui \
@@ -71,3 +73,7 @@ RESOURCES += \
     resourse.qrc
 
 QT += quick qml
+
+#CONFIG += c++11
+
+#include (/home/arcady/GitHub/SortFilterProxyModel-master/SortFilterProxyModel.pri)

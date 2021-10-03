@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>AuthorizationForm.qml</file>
+        <file>GroupItems.qml</file>
+        <file>ListMessages.qml</file>
+    </qresource>
+</RCC>

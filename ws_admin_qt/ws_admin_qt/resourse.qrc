@@ -17,5 +17,7 @@
     <qresource prefix="/">
         <file>Chat.qml</file>
         <file>ListDelegate.qml</file>
+        <file>GroupPage.qml</file>
+        <file>ListMessages.qml</file>
     </qresource>
 </RCC>
