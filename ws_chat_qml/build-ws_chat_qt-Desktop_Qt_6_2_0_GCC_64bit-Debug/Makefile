@@ -590,7 +590,10 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_qml.cpp
 qrc_qml.cpp: ../ws_chat_qt/qml.qrc \
 		/opt/Qt/6.2.0/gcc_64/libexec/rcc \
-		../ws_chat_qt/main.qml
+		../ws_chat_qt/TreeGroupPage.qml \
+		../ws_chat_qt/main.qml \
+		../ws_chat_qt/NavigationDrawer.qml \
+		../ws_chat_qt/ListMessages.qml
 	/opt/Qt/6.2.0/gcc_64/libexec/rcc -name qml ../ws_chat_qt/qml.qrc -o qrc_qml.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h

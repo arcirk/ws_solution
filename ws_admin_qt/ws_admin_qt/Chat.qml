@@ -14,8 +14,4 @@ Item {
                 color: model.color
             }
         }
-
-        footer: TabBar {
-            // ...
-        }
 }
