@@ -7,7 +7,7 @@ UsersGroupsModel::UsersGroupsModel(QObject *parent)
 
 QModelIndex UsersGroupsModel::index(int row, int column, const QModelIndex &parent) const
 {
-    return this->index(row, column, parent());
+    //return this->index(row, column, parent());
 }
 
 QModelIndex UsersGroupsModel::parent(const QModelIndex &index) const

@@ -6,7 +6,9 @@ Page {
     id: root
 
     header: ToolBar {
+
         ToolButton {
+            height: 25
             text: qsTr("Выход")
             anchors.left: parent.left
             anchors.leftMargin: 10
@@ -28,30 +30,39 @@ Page {
         bottomMargin: 48
         rightMargin: 48
         spacing: 20
-        model:  ["Ангарск", "Иркутск", "Улан-Удэ", "Чита", "Хабаровск", "Владивосток"]
+        model:  groupModel //["Ангарск", "Иркутск", "Улан-Удэ", "Чита", "Хабаровск", "Владивосток"]
         delegate: ItemDelegate {
+
             Rectangle
               {
-                color: "blue"
-
+                id: avatar
+                color: Qt.rgba(Math.random(), Math.random(), Math.random(), 1);//random returns a random number from 0 to 1
                 width: parent.height
                 height: parent.height
 
                 radius: width * 0.5;
 
-                //anchors.horizontalCenter: parent.horizontalCenter;
+                Label {
+                    //id: _av
+                    text: qsTr(model.text.substring(0,1)) //qsTr(modelData.substring(0,1))
+                    color: "white"
+                    anchors.centerIn: parent
+                }
               }
 
-            text: modelData
+            text: model.text//modelData
             width: listView.width - listView.leftMargin - listView.rightMargin
-//            height: avatar.implicitHeight
-//            leftPadding: avatar.implicitWidth + 32
-            onClicked: root.StackView.view.push("qrc:/ListMessages.qml", { inConversationWith: modelData })
+            onClicked: {
+//                if(model.rowCount() === 0)
+//                   root.StackView.view.push("qrc:/ListMessages.qml", { inConversationWith: model.text })
+//                else
+                    model.setFiler(model.parent)
+            }
 
-//            Image {
-//                id: avatar
-//                source: "qrc:/" + model.display.replace(" ", "_") + ".png"
-//            }
+
+            //height: avatar.implicitHeight
+            leftPadding: avatar.implicitWidth + 32
+
         }
     }
 

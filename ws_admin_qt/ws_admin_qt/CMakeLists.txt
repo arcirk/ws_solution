@@ -39,7 +39,13 @@ add_executable(ws_admin_qt
         Chat.qml
         chatboxdialog.h
         chatboxdialog.cpp
-        chatboxdialog.ui)
+        chatboxdialog.ui
+        usersgroupsmodel.h
+        usersgroupsmodel.cpp
+        GroupPage.qml
+        ListDelegate.qml
+        ListMessages.qml
+        ws_chat_qt.qml)
 
 find_package(Qt6 COMPONENTS
         Core

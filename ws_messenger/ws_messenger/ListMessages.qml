@@ -9,8 +9,9 @@ Page {
 
     header: ToolBar {
         ToolButton {
-            text: qsTr("Назад")
-            anchors.left: parent.left
+            height: 25
+            text: qsTr("<<Назад")
+            anchors.left: parent.lieft
             anchors.leftMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             onClicked: listMessages.StackView.view.pop()

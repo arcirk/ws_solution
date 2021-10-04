@@ -4,5 +4,6 @@
         <file>AuthorizationForm.qml</file>
         <file>GroupItems.qml</file>
         <file>ListMessages.qml</file>
+        <file>res/nilImage.png</file>
     </qresource>
 </RCC>

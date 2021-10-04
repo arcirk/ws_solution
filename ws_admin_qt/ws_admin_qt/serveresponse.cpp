@@ -215,7 +215,7 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<Q
 
     index = 0;
 
-    auto * proxyModel = new QSortFilterProxyModel();
+    auto proxyModel = new QSortFilterProxyModel();
 
     for (auto it = array.constBegin(); it != array.constEnd(); ++it)
     {

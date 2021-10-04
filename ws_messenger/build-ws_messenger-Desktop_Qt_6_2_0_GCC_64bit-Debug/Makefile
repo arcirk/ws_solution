@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = ws_messenger1.0.0
-DISTDIR = /home/arcady/GitHub/new/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_messenger1.0.0
+DISTDIR = /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_messenger1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/opt/Qt/6.2.0/gcc_64/lib
 LIBS          = $(SUBLIBS) /opt/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /opt/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /opt/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /opt/Qt/6.2.0/gcc_64/lib/libQt6Network.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
@@ -52,9 +52,17 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ../ws_messenger/main.cpp qrc_qml.cpp
-OBJECTS       = main.o \
-		qrc_qml.o
+SOURCES       = ../ws_messenger/customproxymodel.cpp \
+		../ws_messenger/groupsmodel.cpp \
+		../ws_messenger/main.cpp qrc_qml.cpp \
+		moc_customproxymodel.cpp \
+		moc_groupsmodel.cpp
+OBJECTS       = customproxymodel.o \
+		groupsmodel.o \
+		main.o \
+		qrc_qml.o \
+		moc_customproxymodel.o \
+		moc_groupsmodel.o
 DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/unix.conf \
@@ -66,32 +74,7 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
@@ -99,8 +82,6 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri \
@@ -133,8 +114,6 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
@@ -219,11 +198,8 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri \
@@ -270,7 +246,10 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/features/exceptions.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/features/yacc.prf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/features/lex.prf \
-		../ws_messenger/ws_messenger.pro  ../ws_messenger/main.cpp
+		../ws_messenger/ws_messenger.pro ../ws_messenger/customproxymodel.h \
+		../ws_messenger/groupsmodel.h ../ws_messenger/customproxymodel.cpp \
+		../ws_messenger/groupsmodel.cpp \
+		../ws_messenger/main.cpp
 QMAKE_TARGET  = ws_messenger
 DESTDIR       = 
 TARGET        = ws_messenger
@@ -292,32 +271,7 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
@@ -325,8 +279,6 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri \
@@ -359,8 +311,6 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
@@ -445,11 +395,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri \
@@ -516,32 +463,7 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf:
 /opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri:
@@ -549,8 +471,6 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri:
@@ -583,8 +503,6 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri:
@@ -669,11 +587,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri:
@@ -745,7 +660,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../ws_messenger/qml.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /opt/Qt/6.2.0/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../ws_messenger/main.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../ws_messenger/customproxymodel.h ../ws_messenger/groupsmodel.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../ws_messenger/customproxymodel.cpp ../ws_messenger/groupsmodel.cpp ../ws_messenger/main.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -777,7 +693,8 @@ qrc_qml.cpp: ../ws_messenger/qml.qrc \
 		../ws_messenger/GroupItems.qml \
 		../ws_messenger/AuthorizationForm.qml \
 		../ws_messenger/main.qml \
-		../ws_messenger/ListMessages.qml
+		../ws_messenger/ListMessages.qml \
+		../ws_messenger/res/nilImage.png
 	/opt/Qt/6.2.0/gcc_64/libexec/rcc -name qml ../ws_messenger/qml.qrc -o qrc_qml.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h
@@ -786,8 +703,182 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /opt/Qt/6.2.0/gcc_64/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /opt/Qt/6.2.0/gcc_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all:
+compiler_moc_header_make_all: moc_customproxymodel.cpp moc_groupsmodel.cpp
 compiler_moc_header_clean:
+	-$(DEL_FILE) moc_customproxymodel.cpp moc_groupsmodel.cpp
+moc_customproxymodel.cpp: ../ws_messenger/customproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QSortFilterProxyModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsortfilterproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractitemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhash.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainertools_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtcore-config.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtmetamacros.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpair.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydatapointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydataops.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringliteral.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qanystringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qutf8stringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringtokenizer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterator.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmath.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcoreevent.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetacontainer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtaggedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qproperty.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpropertyprivate.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvariant.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdebug.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtextstream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringconverter.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qset.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontiguouscache.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h \
+		moc_predefs.h \
+		/opt/Qt/6.2.0/gcc_64/libexec/moc
+	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/src/git/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/customproxymodel.h -o moc_customproxymodel.cpp
+
+moc_groupsmodel.cpp: ../ws_messenger/groupsmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractitemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhash.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainertools_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtcore-config.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtmetamacros.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpair.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydatapointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydataops.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringliteral.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qanystringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qutf8stringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringtokenizer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterator.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmath.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcoreevent.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetacontainer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtaggedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qproperty.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpropertyprivate.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvariant.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdebug.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtextstream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringconverter.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qset.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontiguouscache.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		moc_predefs.h \
+		/opt/Qt/6.2.0/gcc_64/libexec/moc
+	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/src/git/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/groupsmodel.h -o moc_groupsmodel.cpp
+
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
@@ -798,9 +889,178 @@ compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean 
+compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean 
 
 ####### Compile
+
+customproxymodel.o: ../ws_messenger/customproxymodel.cpp ../ws_messenger/customproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QSortFilterProxyModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsortfilterproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractitemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhash.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainertools_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtcore-config.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtmetamacros.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpair.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydatapointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydataops.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringliteral.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qanystringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qutf8stringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringtokenizer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterator.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmath.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcoreevent.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetacontainer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtaggedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qproperty.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpropertyprivate.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvariant.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdebug.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtextstream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringconverter.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qset.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontiguouscache.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o customproxymodel.o ../ws_messenger/customproxymodel.cpp
+
+groupsmodel.o: ../ws_messenger/groupsmodel.cpp ../ws_messenger/groupsmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractitemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhash.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainertools_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobal.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qconfig.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtcore-config.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsysinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlogging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qflags.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnumeric.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qversiontagging.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstring.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qchar.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qrefcount.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qnamespace.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtmetamacros.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpair.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydatapointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qarraydataops.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearrayview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringliteral.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qanystringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qutf8stringview.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringtokenizer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterator.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringlist.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qalgorithms.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmath.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcoreevent.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetacontainer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontainerinfo.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtaggedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qobject_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qproperty.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpropertyprivate.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvariant.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qshareddata_impl.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdebug.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qtextstream.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qstringconverter.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qset.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontiguouscache.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o groupsmodel.o ../ws_messenger/groupsmodel.cpp
 
 main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplication \
 		/opt/Qt/6.2.0/gcc_64/include/QtGui/qguiapplication.h \
@@ -863,6 +1123,7 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -908,6 +1169,7 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpoint.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsize.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmargins.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qguiapplication_platform.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/QQmlApplicationEngine \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlapplicationengine.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlengine.h \
@@ -932,11 +1194,43 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetaobject.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlregistration.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlerror.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlabstracturlinterceptor.h
+		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlabstracturlinterceptor.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/QStandardItemModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qstandarditemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractitemmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qbrush.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qcolor.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qrgb.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qrgba64.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qimage.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qpaintdevice.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qrect.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qpixelformat.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qtransform.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qpolygon.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qregion.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qline.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qpixmap.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qfont.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtGui/qicon.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QSortFilterProxyModel \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsortfilterproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qabstractproxymodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtQml/QQmlContext \
+		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlcontext.h \
+		../ws_messenger/groupsmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../ws_messenger/main.cpp
 
 qrc_qml.o: qrc_qml.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_qml.o qrc_qml.cpp
+
+moc_customproxymodel.o: moc_customproxymodel.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_customproxymodel.o moc_customproxymodel.cpp
+
+moc_groupsmodel.o: moc_groupsmodel.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_groupsmodel.o moc_groupsmodel.cpp
 
 ####### Install
 
