@@ -6,7 +6,7 @@ Page {
     id: root
 
     header: ToolBar {
-
+        id: tBar
         ToolButton {
             height: 25
             text: qsTr("Выход")
@@ -22,6 +22,44 @@ Page {
         }
     }
 
+//    Row {
+//        id: pathRow
+//        anchors.top: tBar.bottom
+//        anchors.left: parent.left
+//        anchors.right: parent.right
+//        height: 25
+
+//    }
+
+//    RowLayout {
+//        id: pathRow
+//        spacing: 10
+//        anchors.horizontalCenter: parent.horizontalCenter
+//        ToolButton {
+//            property int counter: 1
+//            text: "Add"
+//            onClicked: {
+//                var btn = buttonComponent.createObject(toolBar)
+//                btn.tooltip = qsTr("Button #%1").arg(++counter)
+//                toolBar.addButton(btn)
+//                tableView.currentRow = toolBar.count - 1
+//            }
+//        }
+//        ToolButton {
+//            text: "Remove"
+//            enabled: toolBar.count > 0 && tableView.currentRow !== -1
+//            onClicked: {
+//                toolBar.removeButton(toolBar.buttons[tableView.currentRow])
+//            }
+//        }
+//        ToolButton {
+//            text: "Clear"
+//            enabled: toolBar.count > 0
+//            onClicked: {
+//                toolBar.clear()
+//            }
+//        }
+//    }
     ListView {
         id: listView
         anchors.fill: parent
@@ -54,9 +92,15 @@ Page {
             width: listView.width - listView.leftMargin - listView.rightMargin
             onClicked: {
 //                if(model.rowCount() === 0)
-//                   root.StackView.view.push("qrc:/ListMessages.qml", { inConversationWith: model.text })
+                   root.StackView.view.push("qrc:/ListMessages.qml", { inConversationWith: model.text })
 //                else
-                    model.setFiler(model.parent)
+
+                //groupModel.setFilter(model.uuid)
+
+                //                    var btn = tabButton.createObject(ToolButton, {text: "ToolButton " + (++number)})
+//                    tBar.bottomInset(btn);
+                    //var btn = pathRow.createObject(ToolButton, {text: "ToolButton " + (++number)})
+
             }
 
 

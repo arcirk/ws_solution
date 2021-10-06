@@ -58,6 +58,7 @@ public:
     bool started();
     void set_app_name(const std::string &session_uuid, const std::string& new_app_name);
     void set_uuid(const std::string &session_uuid, const std::string& new_uuid);
+    void get_users_catalog(const std::string &uuid_form);
 
     std::string get_app_uuid() const;
 

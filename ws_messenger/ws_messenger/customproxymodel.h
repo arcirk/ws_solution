@@ -10,7 +10,7 @@ public:
 
     explicit CustomProxyModel(QObject *parent = nullptr);
 
-    void setFilter(QString uuid_parent);
+    Q_INVOKABLE void setFilter(QString uuid_parent);
 };
 
 #endif // CUSTOMPROXYMODEL_H

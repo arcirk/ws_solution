@@ -1,6 +1,6 @@
-QT += quick
+QT += quick gui quickwidgets qml
 
-CONFIG += c++11
+CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -30,3 +30,8 @@ DISTFILES += \
 HEADERS += \
     customproxymodel.h \
     groupsmodel.h
+
+unix:LIBS += -L"/usr/local/lib"
+LIBS += -L"../../ws_client/cmake-build-debug"
+unix:LIBS += -lboost_thread
+LIBS += -lws_client

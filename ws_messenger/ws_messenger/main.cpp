@@ -46,9 +46,7 @@ int main(int argc, char *argv[])
     engine.load(url);
 
     CustomProxyModel* model = getItemModel();
-    model->setFilter("0");
-//    model->setFilterFixedString("0");
-//    model->setFilterRole(GroupsModel::Roles::ParentRole);
+    //model->setFilter("0");
 
     QQmlContext  * context = engine.rootContext();
     context->setContextProperty("groupModel", model);

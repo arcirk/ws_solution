@@ -30,7 +30,7 @@ void start(){
     }
     client->admin_name = "admin";
     client->hash = IClient::get_hash("admin", "admin");
-    client->host = "192.168.43.4";
+    client->host = "192.168.10.80";
     client->port = 8080;
     client->app_name = "console";
     client->open();
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "Russian");
 
     _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-    client = new IClient("192.168.43.18", 8080, callback);
+    client = new IClient("192.168.10.80", 8080, callback);
 
     std::string line;
 
@@ -79,7 +79,12 @@ int main(int argc, char** argv)
             std::cout << "started: " << client->started() << std::endl;
             continue;
         }
-
+        else if (line == "get_catalog")
+        {
+            if (client->started())
+                client->get_users_catalog("0");
+            continue;
+        }
     }
 
 

@@ -375,3 +375,21 @@ void IClient::set_uuid(const std::string &session_uuid, const std::string &new_u
     }
 }
 
+void IClient::get_users_catalog(const std::string &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        pt.add("uuid_form", uuid_form);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("get_users_catalog", arc_json::nil_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+

@@ -32,26 +32,24 @@ shared_state(std::string doc_root)
 
     if (result == 0){
         _add_new_user("admin", "admin", "admin", "", "admin");
-
-
-//        INSERT INTO Users (
-//                FirstField,
-//                SecondField,
-//                Ref,
-//                hash,
-//                role,
-//                Performance
-//                )
-//                VALUES (
-//                        'admin',
-//                        'admin',
-//                        'e89dd4ff-e25a-4c9d-9611-85a7c379eda7',
-//                        'hash',
-//                        'admin',
-//                        'admin'
-//                        );
-
     }
+    //справочник пользователей
+    query = "CREATE VIEW IF NOT EXISTS UsersCatalog AS "
+            "    SELECT FirstField, "
+            "           SecondField, "
+            "           Ref, "
+            "           Parent, "
+            "           1 AS IsGroup "
+            "      FROM Channels "
+            "    UNION "
+            "    SELECT FirstField, "
+            "           SecondField, "
+            "           Ref, "
+            "           channel AS Parent, "
+            "           0 AS IsGroup "
+            "      FROM Users;";
+
+    result = sqlite3Db->exec(query);
 
 }
 
@@ -471,6 +469,10 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 2;
     else if (command == "set_app_name")
         return params == 2;
+    else if (command == "exec_query")
+        return params == 1;
+    else if (command == "get_users_catalog")
+        return params == 1;
     else
         return false;
 }
@@ -499,6 +501,8 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("kill_session");
     commands.emplace_back("set_uuid");
     commands.emplace_back("set_app_name");
+    commands.emplace_back("exec_query");
+    commands.emplace_back("get_users_catalog");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -542,6 +546,10 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::set_uuid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "set_app_name")
         return  std::bind(&shared_state::set_app_name, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "exec_query")
+        return  std::bind(&shared_state::exec_query, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else if (command == "get_users_catalog")
+        return  std::bind(&shared_state::get_users_catalog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -1412,4 +1420,41 @@ bool shared_state::set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json *par
 
     return true;
 
+}
+
+bool shared_state::exec_query(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                              std::string &err, std::string &custom_result) {
+
+    std::string query = params->getStringMember("query");
+    if (query.empty())
+        return false;
+
+    err = "";
+    std::string szResult;
+    int result = sqlite3Db->execute(query, "", szResult, err);
+    if (err.empty())
+        custom_result = szResult;
+    else
+        return false;
+
+    return true;
+
+}
+
+bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+                                     std::string &err, std::string &custom_result) {
+//    std::string query = "SELECT FirstField, SecondField, Ref, Parent, 1 AS IsGroup FROM Channels "
+//                        "UNION "
+//                        "SELECT FirstField, SecondField, Ref, channel AS Parent, 0 AS IsGroup FROM Users;";
+
+    std::string query = "select * from UsersCatalog;";
+    err = "";
+    std::string szResult;
+    int result = sqlite3Db->execute(query, "", szResult, err);
+    if (err.empty())
+        custom_result = szResult;
+    else
+        return false;
+
+    return true;
 }

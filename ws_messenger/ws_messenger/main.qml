@@ -7,6 +7,8 @@ ApplicationWindow {
     visible: true
     title: qsTr("Чат")
 
+    property int number: 0
+
     StackView {
         id: stackView
         anchors.fill: parent

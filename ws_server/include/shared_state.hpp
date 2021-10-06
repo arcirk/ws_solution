@@ -96,6 +96,8 @@ private:
     bool kill_session(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
     bool set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
     bool set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+    bool exec_query(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_users_catalog(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
 
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
