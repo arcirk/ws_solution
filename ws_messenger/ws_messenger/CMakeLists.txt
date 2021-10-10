@@ -15,6 +15,10 @@ add_executable(ws_messenger
         main.cpp
         main.qml
         qml.qrc
+        groupsmodel.cpp
+        groupsmodel.h
+        customproxymodel.cpp
+        customproxymodel.h
         )
 
 find_package(Qt6 COMPONENTS

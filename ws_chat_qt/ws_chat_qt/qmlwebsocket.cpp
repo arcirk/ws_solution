@@ -25,7 +25,12 @@ void QmlWebSocket::open(const QString& user_name, const QString& user_password)
         return;
     }
 
-    settings->Hash = QString::fromStdString( arc_json::get_hash(user_name.toStdString(), user_password.toStdString()));
+    if (!user_password.isEmpty()) {
+        settings->Hash = QString::fromStdString( arc_json::get_hash(user_name.toStdString(), user_password.toStdString()));
+    }
+    if (settings->Hash.isEmpty()) {
+        settings->Hash = QString::fromStdString( arc_json::get_hash(user_name.toStdString(), user_password.toStdString()));
+    }
     settings->RootUser = user_name;
 
     client->admin_name = settings->RootUser.toStdString();
@@ -61,13 +66,21 @@ void QmlWebSocket::processServeResponse(const QString &jsonResp)
     if(resp->result == "error"){
 
             emit display_error(resp->command, resp->message);
+            emit qmlError(resp->command, resp->message);
 
             if(resp->command == "set_client_param")
                 client->close();
 
     }else
     {
-
+        if(resp->command == "set_client_param"){
+            emit display_notify("Подключился к серверу.");
+            emit connectionSuccess();
+            client->get_users_catalog("");
+        }else if (resp->command == "get_users_catalog"){
+            //qDebug() << resp->message;
+            emit user_catalog(resp->message);
+        }
 
     }
 }
@@ -75,4 +88,46 @@ void QmlWebSocket::processServeResponse(const QString &jsonResp)
 appSettings *QmlWebSocket::get_settings()
 {
     return settings;
+}
+
+const QString QmlWebSocket::getUserName()
+{
+    if(settings)
+        return settings->RootUser;
+    else
+        return "";
+}
+
+void QmlWebSocket::setUserName(const QString &name)
+{
+    if(settings)
+        settings->RootUser = name;
+
+    user = name;
+}
+
+const QString QmlWebSocket::getHash()
+{
+    if(settings){
+        return settings->Hash;
+    }else
+        return "";
+}
+
+bool QmlWebSocket::isStarted()
+{
+    if(client){
+        return client->started();
+    }else
+        return false;
+}
+
+const QString QmlWebSocket::getActivePage()
+{
+    return activePage;
+}
+
+void QmlWebSocket::setActivePage(const QString& page)
+{
+    activePage = page;
 }

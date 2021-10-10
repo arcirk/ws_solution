@@ -13,6 +13,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     popup.cpp \
+    qmlmessage.cpp \
     qmlwebsocket.cpp \
     serveresponse.cpp \
     settingsdialog.cpp
@@ -21,6 +22,7 @@ HEADERS += \
     appsettings.h \
     mainwindow.h \
     popup.h \
+    qmlmessage.h \
     qmlwebsocket.h \
     serveresponse.h \
     settingsdialog.h \
@@ -43,9 +45,9 @@ RESOURCES += \
     res.qrc
 
 unix:LIBS += -L"/usr/local/lib"
-LIBS += -L"/home/arcady/src/git/ws_solution/ws_client/cmake-build-debug"
+LIBS += -L"../../ws_client/cmake-build-debug"
 unix:LIBS += -lboost_thread
 LIBS += -lws_client
-INCLUDEPATH += /home/arcady/src/git/ws_solution/ws_client/include
+INCLUDEPATH += ../../ws_client/include
 
 PRECOMPILED_HEADER = stdfx.h

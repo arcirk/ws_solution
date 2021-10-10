@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = ws_messenger1.0.0
-DISTDIR = /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_messenger1.0.0
+DISTDIR = /home/arcady/GitHub/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/ws_messenger1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/opt/Qt/6.2.0/gcc_64/lib
 LIBS          = $(SUBLIBS) /opt/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /opt/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /opt/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /opt/Qt/6.2.0/gcc_64/lib/libQt6Network.so /opt/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
@@ -74,7 +74,32 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
@@ -82,6 +107,8 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri \
@@ -114,6 +141,8 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
@@ -198,8 +227,11 @@ DIST          = ../ws_messenger/AuthorizationForm.qml \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri \
@@ -271,7 +303,32 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri \
-		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri \
@@ -279,6 +336,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri \
@@ -311,6 +370,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri \
@@ -395,8 +456,11 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri \
+		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri \
@@ -463,7 +527,32 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/common/g++-unix.conf:
 /opt/Qt/6.2.0/gcc_64/mkspecs/qconfig.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_ext_libpng.pri:
-/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bodymovin_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_charts_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_chartsqml.pri:
@@ -471,6 +560,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core5compat_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_core_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri:
@@ -503,6 +594,8 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_linguist_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_network_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_openglwidgets.pri:
@@ -587,8 +680,11 @@ Makefile: ../ws_messenger/ws_messenger.pro /opt/Qt/6.2.0/gcc_64/mkspecs/linux-g+
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_client_hw_integration_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_wayland_egl_compositor_hw_integration_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri:
+/opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri:
 /opt/Qt/6.2.0/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri:
@@ -768,7 +864,6 @@ moc_customproxymodel.cpp: ../ws_messenger/customproxymodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -792,7 +887,7 @@ moc_customproxymodel.cpp: ../ws_messenger/customproxymodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h \
 		moc_predefs.h \
 		/opt/Qt/6.2.0/gcc_64/libexec/moc
-	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/src/git/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/customproxymodel.h -o moc_customproxymodel.cpp
+	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/customproxymodel.h -o moc_customproxymodel.cpp
 
 moc_groupsmodel.cpp: ../ws_messenger/groupsmodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel \
@@ -854,7 +949,6 @@ moc_groupsmodel.cpp: ../ws_messenger/groupsmodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -877,7 +971,7 @@ moc_groupsmodel.cpp: ../ws_messenger/groupsmodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		moc_predefs.h \
 		/opt/Qt/6.2.0/gcc_64/libexec/moc
-	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/src/git/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/src/git/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/groupsmodel.h -o moc_groupsmodel.cpp
+	/opt/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/ws_messenger/build-ws_messenger-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/opt/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/ws_messenger/ws_messenger -I/opt/Qt/6.2.0/gcc_64/include -I/opt/Qt/6.2.0/gcc_64/include/QtQuick -I/opt/Qt/6.2.0/gcc_64/include/QtOpenGL -I/opt/Qt/6.2.0/gcc_64/include/QtGui -I/opt/Qt/6.2.0/gcc_64/include/QtQmlModels -I/opt/Qt/6.2.0/gcc_64/include/QtQml -I/opt/Qt/6.2.0/gcc_64/include/QtNetwork -I/opt/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../ws_messenger/groupsmodel.h -o moc_groupsmodel.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -955,7 +1049,6 @@ customproxymodel.o: ../ws_messenger/customproxymodel.cpp ../ws_messenger/customp
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -976,7 +1069,9 @@ customproxymodel.o: ../ws_messenger/customproxymodel.cpp ../ws_messenger/customp
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcontiguouscache.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/qregularexpression.h \
+		../ws_messenger/groupsmodel.h \
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o customproxymodel.o ../ws_messenger/customproxymodel.cpp
 
 groupsmodel.o: ../ws_messenger/groupsmodel.cpp ../ws_messenger/groupsmodel.h \
@@ -1039,7 +1134,6 @@ groupsmodel.o: ../ws_messenger/groupsmodel.cpp ../ws_messenger/groupsmodel.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -1123,7 +1217,6 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmetatype.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qcompare.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qvarlengtharray.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/qscopeguard.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qdatastream.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiodevicebase.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qiterable.h \
@@ -1169,7 +1262,6 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qpoint.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qsize.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtCore/qmargins.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtGui/qguiapplication_platform.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/QQmlApplicationEngine \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlapplicationengine.h \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlengine.h \
@@ -1220,7 +1312,8 @@ main.o: ../ws_messenger/main.cpp /opt/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplicat
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/QQmlContext \
 		/opt/Qt/6.2.0/gcc_64/include/QtQml/qqmlcontext.h \
 		../ws_messenger/groupsmodel.h \
-		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel
+		/opt/Qt/6.2.0/gcc_64/include/QtCore/QAbstractListModel \
+		../ws_messenger/customproxymodel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../ws_messenger/main.cpp
 
 qrc_qml.o: qrc_qml.cpp 

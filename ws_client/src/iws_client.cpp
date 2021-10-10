@@ -381,7 +381,12 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
 
     try {
 
-        pt.add("uuid_form", uuid_form);
+        std::string _uuid_form = uuid_form;
+
+        if (uuid_form.empty()){
+            _uuid_form = arc_json::nil_uuid();
+        }
+        pt.add("uuid_form", _uuid_form);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);

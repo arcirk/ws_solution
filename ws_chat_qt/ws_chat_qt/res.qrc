@@ -1,6 +1,11 @@
 <RCC>
     <qresource prefix="/qml">
-        <file>AuthForm.qml</file>
+        <file>AuthPage.qml</file>
         <file>main.qml</file>
+        <file>ChatPage.qml</file>
+        <file>NextChatPage.qml</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>res/tbglacti.png</file>
     </qresource>
 </RCC>

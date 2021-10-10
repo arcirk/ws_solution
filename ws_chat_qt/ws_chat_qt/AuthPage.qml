@@ -5,9 +5,9 @@ import QtQuick.Layouts
 Page{
 
     id: authorizationForm
-            //id: user_name
-           width: parent.width
-           height: parent.height
+    objectName: "authPage"
+    width: parent.width
+    height: parent.height
 
     Item {
         anchors.centerIn: parent
@@ -79,9 +79,10 @@ Page{
             TextField {
                 id: userName
                 width: 300
-                height: 22
+                height: 26
                 Layout.fillWidth: true
                 font.pointSize: 12
+                text: wsClient.user
             }
 
             Text {
@@ -90,13 +91,34 @@ Page{
                 font.pointSize: 12
             }
 
-            TextField {
-                id: password
-                width: 300
-                height: 26
-                Layout.fillWidth: true
-                font.pointSize: 12
+            RowLayout{
+                TextField {
+                    id: password
+                    width: 300
+                    height: 26
+                    Layout.fillWidth: true
+                    font.pointSize: 12
+                    enabled: false
+                    text: wsClient.hash
+                    echoMode: TextInput.Password
+
+                }
+
+                ToolButton {
+                    id: editPass
+                    checkable: true
+                    icon.source: "qrc:/img/res/tbglacti.png"
+                    onCheckedChanged: {
+                        password.enabled = editPass.checked
+                        if(editPass.checked){
+                           password.text = "";
+                        }else
+                           password.text = wsClient.hash
+                    }
+                }
             }
+
+
 
             Item {
                 Layout.fillHeight: true
@@ -104,6 +126,7 @@ Page{
 
             RowLayout {
                 id: rowLayout
+                objectName: "rowLayoutObj"
                 width: 100
                 height: 100
 
@@ -115,10 +138,7 @@ Page{
                     id: cancelButton
                     width: 90
                     height: 30
-                    //btnText: qsTr("Cancel")
                     text: qsTr("Отмена")
-                    //btnBlue: false
-                    //onClicked: Qt.quit()
                     enabled: false
                 }
 
@@ -126,17 +146,38 @@ Page{
                     id: loginButton
                     width: 90
                     height: 30
-                    //btnText: qsTr("Login")
                     text: qsTr("Войти")
-                    //btnBlue: false
                     onClicked:{
-                        wsClient.open(userName.text, password.text)//authorizationForm.StackView.view.push("qrc:/GroupItems.qml", {})
+                        if(editPass.checked){
+                            wsClient.open(userName.text, password.text)
+                        }else
+                            wsClient.open(userName.text, "")
                         password.enabled = false
                         userName.enabled = false
                         loginButton.enabled = false
 
                     }
                 }
+
+                Connections{
+                    target: wsClient
+                    onQmlError:{
+                        rowLayout.doError(what, err)
+                    }
+                    onConnectionSuccess: {
+                        wsClient.activePage = "ChatPage"
+                        authorizationForm.StackView.view.push("qrc:/qml/ChatPage.qml", {})
+                    }
+                }
+
+                function doError(what, err){
+                    if(what ==="connect"){
+                        password.enabled = true
+                        userName.enabled = true
+                        loginButton.enabled = true
+                    }
+                }
+
             }
         }
     }
