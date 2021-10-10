@@ -312,11 +312,6 @@ std::string ws_client::get_client_info() {
 void ws_client::error(const std::string &what, const std::string &err) {
     if (_callback_msg)
     {
-        //std::string desc;// "error ";
-        //desc.append(what);
-        //desc.append(": ");
-        //desc.append(err);
-
         std::string msg = arc_json::get_message(get_uuid(), err, get_name(), boost::uuids::uuid{}, true, get_app_name(), "", "", what, "error");
         _callback_msg(msg);
     }
@@ -360,18 +355,6 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
 //            return;
         if (_uuid_form.empty())
             _uuid_form = "00000000-0000-0000-0000-000000000000";
-
-//        std::string result = cmd;
-//        result.append(" ");
-//        result.append(_uuid_form);
-//
-//        if (!param.empty()){
-//            std::string cmd_param = arc_json::parse_param(param);
-//            if (!cmd_param.empty()){
-//                result.append(" ");
-//                result.append(cmd_param);
-//            }
-//        }
 
         boost::uuids::uuid ch = boost::uuids::nil_uuid();
 

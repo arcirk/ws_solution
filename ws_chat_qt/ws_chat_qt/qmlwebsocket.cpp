@@ -80,8 +80,11 @@ void QmlWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "get_users_catalog"){
             //qDebug() << resp->message;
             emit user_catalog(resp->message);
-        }
-
+        }else if (resp->command == "get_messages"){
+            //qDebug() << resp->message;
+            emit get_messages(resp->message);
+        }else
+           qDebug() << "Не известная команда: " << resp->command;
     }
 }
 
@@ -122,6 +125,11 @@ bool QmlWebSocket::isStarted()
         return false;
 }
 
+const QString QmlWebSocket::getUserUUID()
+{
+    //return client->get_u;
+}
+
 const QString QmlWebSocket::getActivePage()
 {
     return activePage;
@@ -130,4 +138,10 @@ const QString QmlWebSocket::getActivePage()
 void QmlWebSocket::setActivePage(const QString& page)
 {
     activePage = page;
+}
+
+void QmlWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_date, int limit, const QString &uuid_form)
+{
+    if(client->started())
+        client->get_messages(uuid_sub.toStdString(), start_date, end_date, limit, uuid_form.toStdString());
 }

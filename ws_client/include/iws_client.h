@@ -23,7 +23,7 @@ class  IClient{
 public:
     std::string app_uuid;
     std::string user_uuid;
-    std::string client_uuid;
+    //std::string client_uuid;
     std::string host;
     int port;
     std::string admin_name;
@@ -44,7 +44,7 @@ public:
     std::string get_current_name();
     static std::string get_hash(const std::string &usr, const std::string &pwd);
 
-    void get_messages(const std::string &uuid_sub, long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
+    void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
     void get_group_list(const std::string &uuid_form);
     void add_group(const std::string &name, const std::string &presentation, const std::string &uuid_parent, const std::string &uuid_form);
@@ -61,6 +61,7 @@ public:
     void get_users_catalog(const std::string &uuid_form);
 
     std::string get_app_uuid() const;
+    std::string get_user_uuid() const;
 
     static tm currentDate();
     static long int current_date_in_seconds();

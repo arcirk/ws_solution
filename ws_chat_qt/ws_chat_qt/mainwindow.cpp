@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qClient, SIGNAL(display_error(QString, QString)), this, SLOT(on_display_error(QString, QString)));
     connect(qClient, SIGNAL(display_notify(QString)), this, SLOT(on_display_notify(QString)));
     connect(qClient, SIGNAL(user_catalog(QString)), this, SLOT(load_user_catalog(QString)));
+    connect(qClient, SIGNAL(get_messages(QString)), this, SLOT(on_get_messages(QString)));
 
     treeUserCatalog = ui->treeServerObj;
 
@@ -160,29 +161,37 @@ void MainWindow::load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* 
 
 void MainWindow::initTableActivePage()
 {
-    auto table = ui->tableActivePage;
-    table->setColumnCount(2);
-    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Свойство"));
-    table->setHorizontalHeaderItem(1, new QTableWidgetItem("Значение"));
+//    auto table = ui->tableActivePage;
+//    table->setColumnCount(2);
+//    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Свойство"));
+//    table->setHorizontalHeaderItem(1, new QTableWidgetItem("Значение"));
 
-    int rowCount = 3;
+//    int rowCount = 3;
 
-   table->setRowCount(rowCount);
+//   table->setRowCount(rowCount);
 
-   for (int row = 0; row < rowCount ; ++row ) {
-       auto itemKey = new QTableWidgetItem("root" + QString::number(row));
-       itemKey->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-       table->setItem(row, 0, itemKey);
-   }
+//   for (int row = 0; row < rowCount ; ++row ) {
+//       auto itemKey = new QTableWidgetItem("root" + QString::number(row));
+//       itemKey->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//       table->setItem(row, 0, itemKey);
+//   }
 
 }
 
 
 void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int column)
 {
-    pageCount++;
-    QString pageName = "Page_" + QString::number(pageCount);
-    emit qClient->nextChatPage(pageName, item->text(0));
+//    pageCount++;
+//    QString pageName = "Page_" + QString::number(pageCount);
+//    emit qClient->nextChatPage(pageName, item->text(0));
+
+    qDebug() << item->text(group_header["Ref"] );
+
+    QString uuid_recipient = item->text(group_header["Ref"] );
+
+    qClient->getMessages(uuid_recipient, qClient->get)
+
+    //std::string token = arc_json::get_hash()
 }
 
 
@@ -191,5 +200,10 @@ void MainWindow::on_tableActivePage_itemClicked(QTableWidgetItem *item)
 {
 
     emit qClient->setPage(item->row());
+}
+
+void MainWindow::on_get_messages(const QString &resp)
+{
+    qDebug() << resp;
 }
 

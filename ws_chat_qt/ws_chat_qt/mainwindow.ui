@@ -107,7 +107,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="0" column="0">
-      <widget class="QTableWidget" name="tableActivePage"/>
+      <widget class="QTableView" name="tableActivePage"/>
      </item>
     </layout>
    </widget>

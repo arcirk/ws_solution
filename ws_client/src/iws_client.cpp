@@ -14,7 +14,7 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     callback_msg = callback;
     client = nullptr;
     app_name = "admin_console";
-    client_uuid = arc_json::random_uuid();
+    //client_uuid = arc_json::random_uuid();
     user_uuid = arc_json::nil_uuid();
 }
 
@@ -115,7 +115,7 @@ long int IClient::get_tz_offset() {
     return arc_json::tz_offset();
 }
 
-void IClient::get_messages(const std::string &uuid_sub, long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form) {
+void IClient::get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
 
@@ -304,7 +304,7 @@ void IClient::open(bool new_thread){
 
     app_uuid = arc_json::random_uuid();
     user_uuid = arc_json::random_uuid();
-    client_uuid = arc_json::random_uuid();\
+    //client_uuid = arc_json::random_uuid();
 
     boost::property_tree::ptree pt;
 
@@ -396,5 +396,10 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
     }
+}
+
+std::string IClient::get_user_uuid() const {
+
+    return arc_json::uuid_to_string(client->get_user_uuid());
 }
 

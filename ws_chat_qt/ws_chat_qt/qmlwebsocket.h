@@ -31,9 +31,12 @@ public:
     void setUserName(const QString& name);
     const QString getHash();
     bool isStarted();
+    const QString getUserUUID();
 
     const QString getActivePage();
     void setActivePage(const QString& page);
+
+    void getMessages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
 
 private:
     IClient * client;
@@ -50,6 +53,7 @@ signals:
     void qmlMessage(const QmlMessage& msg);
     void connectionSuccess();
     void user_catalog(const QString& msg);
+    void get_messages(const QString& msg);
     void nextChatPage(const QString& pageName, const QString& presentation);
     //void chatPage(const QString& msg);
     void setPage(int index);

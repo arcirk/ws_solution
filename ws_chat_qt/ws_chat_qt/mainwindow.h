@@ -29,8 +29,8 @@ private slots:
     void on_mnuQuit_triggered();
     void load_user_catalog(const QString& resp);
     void on_treeServerObj_itemActivated(QTreeWidgetItem *item, int column);
-
     void on_tableActivePage_itemClicked(QTableWidgetItem *item);
+    void on_get_messages(const QString& resp);
 
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};

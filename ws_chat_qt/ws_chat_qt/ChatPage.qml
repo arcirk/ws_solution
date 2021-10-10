@@ -11,13 +11,6 @@ Page {
     id: root
     objectName: pageName
 
-//    Connections{
-//        target: wsClient
-//        onNextChatPage: {
-//            root.StackView.view.push("qrc:/qml/NextChatPage.qml", {})
-//        }
-//    }
-
     header: ToolBar {
         ToolButton {
             text: qsTr("Back")
