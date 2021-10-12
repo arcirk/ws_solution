@@ -7,6 +7,7 @@
 #include "appsettings.h"
 #include <QTreeWidget>
 #include <QTableWidgetItem>
+#include "activeroomsmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -40,6 +41,7 @@ private:
     QTreeWidget *treeUserCatalog;
     QMap<QString, int> group_header;
     int pageCount;
+    ActiveRoomsModel * rooms;
 
     void tree_group_create_columns(QMap<QString, int> header, QTreeWidget* tree);
     static void tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);

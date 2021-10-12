@@ -47,7 +47,9 @@ RESOURCES += \
     res.qrc
 
 unix:LIBS += -L"/usr/local/lib"
-LIBS += -L"../../ws_client/cmake-build-debug"
+#LIBS += -L"../../ws_client/cmake-build-debug"
+#/home/arcady/src/git/ws_solution/ws_client/cmake-build-debug
+LIBS += -L"../../../ws_solution/ws_client/cmake-build-debug"
 unix:LIBS += -lboost_thread
 LIBS += -lws_client
 INCLUDEPATH += ../../ws_client/include

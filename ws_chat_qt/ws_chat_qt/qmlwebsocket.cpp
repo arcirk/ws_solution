@@ -127,7 +127,7 @@ bool QmlWebSocket::isStarted()
 
 const QString QmlWebSocket::getUserUUID()
 {
-    //return client->get_u;
+    return QString::fromStdString(client->get_user_uuid());
 }
 
 const QString QmlWebSocket::getActivePage()
@@ -144,4 +144,14 @@ void QmlWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_
 {
     if(client->started())
         client->get_messages(uuid_sub.toStdString(), start_date, end_date, limit, uuid_form.toStdString());
+}
+
+long QmlWebSocket::currentDate()
+{
+    return arc_json::current_date_seconds();
+}
+
+long QmlWebSocket::addDay(const long source, const int dayCount)
+{
+    return arc_json::add_day(source, dayCount);
 }

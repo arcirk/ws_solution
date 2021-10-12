@@ -49,8 +49,8 @@ public:
     std::string& get_app_name();
     void set_uuid(const std::string& uuid);
     void set_user_uuid(const std::string& uuid);
-    void set_uuid();
     void set_user_uuid();
+    void set_uuid();
     std::string get_client_info();
 
     void error(const std::string &what, const std::string &err);

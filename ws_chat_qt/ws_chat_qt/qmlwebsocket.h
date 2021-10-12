@@ -38,6 +38,9 @@ public:
 
     void getMessages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
 
+    static long int currentDate();
+    static long int addDay(const long int source, const int dayCount);
+
 private:
     IClient * client;
     appSettings * settings;
@@ -53,7 +56,7 @@ signals:
     void qmlMessage(const QmlMessage& msg);
     void connectionSuccess();
     void user_catalog(const QString& msg);
-    void get_messages(const QString& msg);
+    void get_messages(const QString& resp);
     void nextChatPage(const QString& pageName, const QString& presentation);
     //void chatPage(const QString& msg);
     void setPage(int index);

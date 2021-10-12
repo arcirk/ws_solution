@@ -404,5 +404,9 @@ namespace arc_json{
         return "00000000-0000-0000-0000-000000000000";
     }
 
+    [[maybe_unused]]
+    static long int add_day(const long int selDate, const int dayCount){
+        return selDate + (dayCount * (60*60*24));
+    }
 }
 #endif //ARC_JSON_SOLUTION_GLOBAL_H

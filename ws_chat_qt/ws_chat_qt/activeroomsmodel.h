@@ -43,6 +43,8 @@ public:
 
     virtual QHash<int, QByteArray> roleNames() const override;
 
+    void init();
+
 private:
     //QList<QmlMessage*> m_messages;
     int _rowCount;

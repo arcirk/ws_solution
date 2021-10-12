@@ -95,3 +95,8 @@ QHash<int, QByteArray> ActiveRoomsModel::roleNames() const
 
     return names;
 }
+
+void ActiveRoomsModel::init()
+{
+
+}

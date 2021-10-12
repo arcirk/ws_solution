@@ -32,6 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     initTableActivePage();
 
+    auto rooms = new ActiveRoomsModel(this);
+    rooms->init();
+
+
 }
 
 MainWindow::~MainWindow()
@@ -109,7 +113,7 @@ void MainWindow::tree_group_create_columns(QMap<QString, int> header, QTreeWidge
     tree->setHeaderItem(item);
 
     for (int i = 0; i < header.size() ; ++i) {
-        if (header["SecondField"] != i) {
+        if (header["SecondField"] != i && header["Ref"] != i) {
             tree->setColumnHidden(i, true);
         }
     }
@@ -185,13 +189,18 @@ void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int colum
 //    QString pageName = "Page_" + QString::number(pageCount);
 //    emit qClient->nextChatPage(pageName, item->text(0));
 
-    qDebug() << item->text(group_header["Ref"] );
+    auto curr = treeUserCatalog->currentItem();
+
+    qDebug() << curr->text(group_header["Ref"] );
+    qDebug() << qClient->getUserUUID();
 
     QString uuid_recipient = item->text(group_header["Ref"] );
 
-    qClient->getMessages(uuid_recipient, qClient->get)
+    long int current_date = qClient->currentDate();
+    long int start_date = qClient->addDay(current_date, -10);
 
-    //std::string token = arc_json::get_hash()
+    qClient->getMessages(uuid_recipient, start_date, current_date);
+
 }
 
 
