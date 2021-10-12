@@ -594,11 +594,14 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
                 //int result = sqlite3Db->exec("select _id from Users where hash = '" + hash + "';");
                 std::vector<std::map<std::string, std::string>> table;
                 err = "";
-                int result = sqlite3Db->execute("select _id, role from Users where hash = '" + hash + "';",
+                int result = sqlite3Db->execute("select _id, Ref, role from Users where hash = '" + hash + "';",
                                                 "Users", table, err);
                 session->authorized = result > 0;
                 if (result > 0){
                     role = table[0].at("role");
+                    std::string ref = table[0].at("Ref");
+                    if (!ref.empty())
+                        user_uuid = arc_json::string_to_uuid(ref, true);
                 }
             }
 
