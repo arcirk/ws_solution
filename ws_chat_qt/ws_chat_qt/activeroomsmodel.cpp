@@ -1,9 +1,10 @@
 #include "activeroomsmodel.h"
+#include <iws_client.h>
 
 ActiveRoomsModel::ActiveRoomsModel( QObject *parent)
     : QAbstractListModel(parent)
 {
-    _rowCount = 0;
+
 }
 
 QVariant ActiveRoomsModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -28,7 +29,7 @@ int ActiveRoomsModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return this->rowCount(parent);
+    return rooms.size();
 }
 
 QVariant ActiveRoomsModel::data(const QModelIndex &index, int role) const
@@ -98,5 +99,7 @@ QHash<int, QByteArray> ActiveRoomsModel::roleNames() const
 
 void ActiveRoomsModel::init()
 {
-
+    rooms.clear();
+    QString rootToken = QString::fromStdString(arc_json::nil_uuid());
+    rooms.insert(rootToken, new RoomItemData("Общий чат", rootToken));
 }

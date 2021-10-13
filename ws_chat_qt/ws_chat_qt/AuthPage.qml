@@ -172,7 +172,8 @@ Page{
 
                 function doError(what, err){
                     if(what ==="connect"){
-                        password.enabled = true
+                        password.enabled = false
+                        editPass.checked = false
                         userName.enabled = true
                         loginButton.enabled = true
                     }

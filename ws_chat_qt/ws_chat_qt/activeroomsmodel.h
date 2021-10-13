@@ -19,6 +19,35 @@ public:
         MessagesRole
     };
 
+    struct RoomItemData{
+    public:
+        QString sender;
+        QString recipient;
+
+        QMap<int, QString> messages;
+
+        RoomItemData(const QString& name, const QString& token)
+            : _token(token)
+            , _name(name)
+        {
+            sender = "";
+            recipient = "";
+
+            messages = QMap<int, QString>();
+        }
+        ~RoomItemData(){};
+
+        QString getName(){
+            return _name;
+        }
+        QString getToken(){
+            return _token;
+        }
+    private:
+        QString _token;
+        QString _name;
+    };
+
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
@@ -46,8 +75,7 @@ public:
     void init();
 
 private:
-    //QList<QmlMessage*> m_messages;
-    int _rowCount;
+    QMap<QString, RoomItemData*> rooms{};
 };
 
 #endif // ACTIVEROOMSMODEL_H
