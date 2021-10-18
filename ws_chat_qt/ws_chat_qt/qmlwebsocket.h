@@ -20,6 +20,7 @@ public:
     ~QmlWebSocket();
 
     Q_INVOKABLE void open(const QString& user_name, const QString& user_password);
+    Q_INVOKABLE void close();
 
     void ext_message(const std::string& msg);
 
@@ -55,6 +56,7 @@ signals:
     void display_notify(const QString& msg);
     void qmlMessage(const QmlMessage& msg);
     void connectionSuccess();
+    void closeConnection();
     void user_catalog(const QString& msg);
     void get_messages(const QString& resp);
     void nextChatPage(const QString& pageName, const QString& presentation);

@@ -12,7 +12,7 @@ Page{
     Item {
         anchors.centerIn: parent
         id: item1
-        property alias cancelButton: cancelButton
+        //property alias cancelButton: cancelButton
         property alias loginButton: loginButton
         property alias userName: userName
         property alias password: password
@@ -134,13 +134,13 @@ Page{
                     Layout.fillWidth: true
                 }
 
-                Button {
-                    id: cancelButton
-                    width: 90
-                    height: 30
-                    text: qsTr("Отмена")
-                    enabled: false
-                }
+//                Button {
+//                    id: cancelButton
+//                    width: 90
+//                    height: 30
+//                    text: qsTr("Отмена")
+//                    enabled: false
+//                }
 
                 Button {
                     id: loginButton
@@ -167,6 +167,12 @@ Page{
                     onConnectionSuccess: {
                         wsClient.activePage = "ChatPage"
                         authorizationForm.StackView.view.push("qrc:/qml/ChatPage.qml", {})
+                    }
+                    onCloseConnection: {
+                        password.enabled = false
+                        editPass.checked = false
+                        userName.enabled = true
+                        loginButton.enabled = true
                     }
                 }
 

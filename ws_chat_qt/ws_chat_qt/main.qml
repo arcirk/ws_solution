@@ -34,8 +34,6 @@ StackView {
             //stackView.replace(createPage(), stackView.currentItem)
         }
 
-
-
         onSetPage:function(index){
 //            stackView.pop(stackView.find(function(item) {
 //                return item.name === pageName;
@@ -49,6 +47,18 @@ StackView {
                 stackView.push(createPage());
 
 
+        }
+
+        onQmlError:{
+            //rowLayout.doError(what, err)
+        }
+        onConnectionSuccess: {
+            //wsClient.activePage = "ChatPage"
+            //authorizationForm.StackView.view.push("qrc:/qml/ChatPage.qml", {})
+        }
+        onCloseConnection: {
+            let m = stackView.get(0);
+            stackView.pop(m);
         }
     }
 }

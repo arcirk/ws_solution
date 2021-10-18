@@ -9,7 +9,17 @@ ActiveRoomsModel::ActiveRoomsModel( QObject *parent)
 
 QVariant ActiveRoomsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // FIXME: Implement me!
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        switch (section) {
+        case 0:
+            return QString("Пользователь");
+        case 1:
+            return QString("second");
+        case 2:
+            return QString("third");
+        }
+    }
+    return QVariant();
 }
 
 bool ActiveRoomsModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
@@ -37,7 +47,7 @@ QVariant ActiveRoomsModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    switch (role) {
+    switch (role) {  
     case DoneRole:
         return QVariant(false);
     case TokenRole:
@@ -102,4 +112,5 @@ void ActiveRoomsModel::init()
     rooms.clear();
     QString rootToken = QString::fromStdString(arc_json::nil_uuid());
     rooms.insert(rootToken, new RoomItemData("Общий чат", rootToken));
+
 }

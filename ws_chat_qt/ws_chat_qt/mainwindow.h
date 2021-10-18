@@ -24,6 +24,7 @@ public:
 public slots:
     void on_display_error(const QString& what, const QString& err);
     void on_display_notify(const QString& msg);
+    void on_close_connection();
 
 private slots:
     void on_mnuSettings_triggered();
@@ -32,6 +33,8 @@ private slots:
     void on_treeServerObj_itemActivated(QTreeWidgetItem *item, int column);
     void on_tableActivePage_itemClicked(QTableWidgetItem *item);
     void on_get_messages(const QString& resp);
+
+    void on_mnuDisconnect_triggered();
 
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};

@@ -43,6 +43,13 @@ void QmlWebSocket::open(const QString& user_name, const QString& user_password)
     settings->save_settings();
 }
 
+void QmlWebSocket::close()
+{
+    if(client->started()){
+        client->close();
+    }
+}
+
 void QmlWebSocket::ext_message(const std::string &msg)
 {
     QString resp = ServeResponse::base64_decode(msg);
@@ -83,7 +90,10 @@ void QmlWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "get_messages"){
             //qDebug() << resp->message;
             emit get_messages(resp->message);
-        }else
+        }else if (resp->command == "close_connections"){
+            emit closeConnection();
+        }
+        else
            qDebug() << "Не известная команда: " << resp->command;
     }
 }

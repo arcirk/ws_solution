@@ -6,8 +6,10 @@
 #include <QSortFilterProxyModel>
 #include <QQmlContext>
 #include "settingsdialog.h"
+#include "cmake-build-debug/ws_chat_qt_autogen/include/ui_mainwindow.h"
 #include <QTableWidget>
-
+#include <QFileInfo>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qClient, SIGNAL(display_notify(QString)), this, SLOT(on_display_notify(QString)));
     connect(qClient, SIGNAL(user_catalog(QString)), this, SLOT(load_user_catalog(QString)));
     connect(qClient, SIGNAL(get_messages(QString)), this, SLOT(on_get_messages(QString)));
+    connect(qClient, SIGNAL(closeConnection()), this, SLOT(on_close_connection()));
 
     treeUserCatalog = ui->treeServerObj;
 
@@ -34,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto rooms = new ActiveRoomsModel(this);
     rooms->init();
-
+    ui->tableActivePage->setModel(rooms);
 
 }
 
@@ -54,6 +57,11 @@ void MainWindow::on_display_notify(const QString &msg)
 {
     popUp->setPopupText(msg);
     popUp->show();
+}
+
+void MainWindow::on_close_connection()
+{
+    treeUserCatalog->clear();
 }
 
 
@@ -113,7 +121,7 @@ void MainWindow::tree_group_create_columns(QMap<QString, int> header, QTreeWidge
     tree->setHeaderItem(item);
 
     for (int i = 0; i < header.size() ; ++i) {
-        if (header["SecondField"] != i && header["Ref"] != i) {
+        if (header["SecondField"] != i ) {//&& header["Ref"] != i
             tree->setColumnHidden(i, true);
         }
     }
@@ -196,8 +204,8 @@ void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int colum
 
     QString uuid_recipient = item->text(group_header["Ref"] );
 
-    long int current_date = qClient->currentDate();
-    long int start_date = qClient->addDay(current_date, -10);
+    long int current_date = QmlWebSocket::currentDate();
+    long int start_date = QmlWebSocket::addDay(current_date, -10);
 
     qClient->getMessages(uuid_recipient, start_date, current_date);
 
@@ -213,6 +221,33 @@ void MainWindow::on_tableActivePage_itemClicked(QTableWidgetItem *item)
 
 void MainWindow::on_get_messages(const QString &resp)
 {
-    qDebug() << resp;
+    //qDebug() << resp;
+
+//    auto _resp = ServeResponse::parseResp(resp);
+
+//    if (_resp.isArray()) {
+//        QString saveFileName = "messages.json";
+//        QFileInfo fileInfo(saveFileName);
+//        QDir::setCurrent(fileInfo.path());
+
+//        QFile jsonFile(saveFileName);
+//        if (!jsonFile.open(QIODevice::WriteOnly))
+//        {
+//            return;
+//        }
+
+//        // Записываем текущий объект Json в файл
+//        jsonFile.write(QJsonDocument(_resp.array()).toJson(QJsonDocument::Indented));
+//        jsonFile.close();   // Закрываем файл
+//    }
+
+}
+
+
+void MainWindow::on_mnuDisconnect_triggered()
+{
+    if(qClient->isStarted()){
+        qClient->close();
+    }
 }
 

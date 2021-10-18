@@ -59,6 +59,7 @@
      <string>Сервис</string>
     </property>
     <addaction name="mnuSettings"/>
+    <addaction name="mnuDisconnect"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -120,6 +121,11 @@
   <action name="mnuSettings">
    <property name="text">
     <string>Параметры</string>
+   </property>
+  </action>
+  <action name="mnuDisconnect">
+   <property name="text">
+    <string>Отключится</string>
    </property>
   </action>
  </widget>
