@@ -42,13 +42,13 @@ private slots:
     void on_mnuStartSession_triggered();
     void on_action_4_triggered();
     void on_mnuDisconnect_triggered();
-    void on_display_error(const QString& what, const QString& err);
-    void on_display_notify(const QString& msg);
+    void do_display_error(const QString& what, const QString& err);
+    void do_display_notify(const QString& msg);
     void fillTree();
-    void on_fill_users(const QString& resp);
-    void on_fill_node(const QString& command, const QString& resp);
+    void do_fill_users(const QString& resp);
+    void do_fill_node(const QString& command, const QString& resp);
     void on_treeSrvObjects_itemSelectionChanged();
-    void on_fill_group_tree(const QString& resp);
+    void do_fill_group_tree(const QString& resp);
     void on_treeChannels_itemActivated(QTreeWidgetItem *item, int column);
     void on_treeChannels_itemChanged(QTreeWidgetItem *item, int column);
     void on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);

@@ -22,8 +22,8 @@ public:
     ~MainWindow();
 
 public slots:
-    void on_display_error(const QString& what, const QString& err);
-    void on_display_notify(const QString& msg);
+    void do_display_error(const QString& what, const QString& err);
+    void do_display_notify(const QString& msg);
     void on_close_connection();
 
 private slots:

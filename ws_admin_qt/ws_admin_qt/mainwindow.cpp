@@ -40,12 +40,12 @@ MainWindow::MainWindow(QWidget *parent)
     treeChannelsObjects = ui->treeChannels;
     treeChannelsObjects->setColumnHidden(1, true);
 
-    connect(this, SIGNAL(display_error(QString,QString)), this, SLOT(on_display_error(QString,QString)));
-    connect(this, SIGNAL(display_notify(QString)), this, SLOT(on_display_notify(QString)));
+    connect(this, SIGNAL(display_error(QString,QString)), this, SLOT(do_display_error(QString, QString)));
+    connect(this, SIGNAL(display_notify(QString)), this, SLOT(do_display_notify(QString)));
     connect(this, SIGNAL(fill_tree_()), this, SLOT(fillTree()));
-    connect(this, SIGNAL(fill_node(QString,QString)), this, SLOT(on_fill_node(QString,QString)));
-    connect(this, SIGNAL(fill_group_tree(QString)), this, SLOT(on_fill_group_tree(QString)));
-    connect(this, SIGNAL(fill_users(QString)), this, SLOT(on_fill_users(QString)));
+    connect(this, SIGNAL(fill_node(QString,QString)), this, SLOT(do_fill_node(QString, QString)));
+    connect(this, SIGNAL(fill_group_tree(QString)), this, SLOT(do_fill_group_tree(QString)));
+    connect(this, SIGNAL(fill_users(QString)), this, SLOT(do_fill_users(QString)));
 
     popUp = new PopUp();
 
@@ -270,7 +270,7 @@ void MainWindow::on_mnuDisconnect_triggered()
     }
 }
 
-void MainWindow::on_display_error(const QString& what, const QString& err) {
+void MainWindow::do_display_error(const QString& what, const QString& err) {
     //qDebug() << err;
     //QMessageBox::critical(nullptr, "Ошибка", err);
 
@@ -278,12 +278,12 @@ void MainWindow::on_display_error(const QString& what, const QString& err) {
     popUp->show();
 }
 
-void MainWindow::on_display_notify(const QString &msg) {
+void MainWindow::do_display_notify(const QString &msg) {
     popUp->setPopupText(msg);
     popUp->show();
 }
 
-void MainWindow::on_fill_node(const QString& command, const QString& resp){
+void MainWindow::do_fill_node(const QString& command, const QString& resp){
 
     if (command == "get_active_users") {
 
@@ -371,7 +371,7 @@ void MainWindow::group_panel_setVisible(bool visible, bool isSessions) {
     ui->btnSendMessage->setVisible(isSessions);
 }
 
-void MainWindow::on_fill_group_tree(const QString &resp) {
+void MainWindow::do_fill_group_tree(const QString &resp) {
 
     treeChannelsObjects->clear();
     treeChannelsObjects->setColumnCount(0);
@@ -498,7 +498,7 @@ void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QT
         }
     }
 }
-void MainWindow::on_fill_users(const QString& resp){
+void MainWindow::do_fill_users(const QString& resp){
 
     listChildServerObjects->clear();
     listChildServerObjects->setColumnCount(0);

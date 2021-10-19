@@ -23,8 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     popUp = new PopUp();
 
-    connect(qClient, SIGNAL(display_error(QString, QString)), this, SLOT(on_display_error(QString, QString)));
-    connect(qClient, SIGNAL(display_notify(QString)), this, SLOT(on_display_notify(QString)));
+    connect(qClient, SIGNAL(display_error(QString, QString)), this, SLOT(do_display_error(QString, QString)));
+    connect(qClient, SIGNAL(display_notify(QString)), this, SLOT(do_display_notify(QString)));
     connect(qClient, SIGNAL(user_catalog(QString)), this, SLOT(load_user_catalog(QString)));
     connect(qClient, SIGNAL(get_messages(QString)), this, SLOT(on_get_messages(QString)));
     connect(qClient, SIGNAL(closeConnection()), this, SLOT(on_close_connection()));
@@ -47,13 +47,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_display_error(const QString& what, const QString& err)
+void MainWindow::do_display_error(const QString& what, const QString& err)
 {
     popUp->setPopupText(what + ": " + err);
     popUp->show();
 }
 
-void MainWindow::on_display_notify(const QString &msg)
+void MainWindow::do_display_notify(const QString &msg)
 {
     popUp->setPopupText(msg);
     popUp->show();
