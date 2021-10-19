@@ -24,7 +24,7 @@ public:
 public slots:
     void do_display_error(const QString& what, const QString& err);
     void do_display_notify(const QString& msg);
-    void on_close_connection();
+    void do_close_connection();
 
 private slots:
     void on_mnuSettings_triggered();
@@ -32,7 +32,7 @@ private slots:
     void load_user_catalog(const QString& resp);
     void on_treeServerObj_itemActivated(QTreeWidgetItem *item, int column);
     void on_tableActivePage_itemClicked(QTableWidgetItem *item);
-    void on_get_messages(const QString& resp);
+    void do_get_messages(const QString& resp);
 
     void on_mnuDisconnect_triggered();
 

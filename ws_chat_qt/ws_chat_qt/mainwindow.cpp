@@ -26,8 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qClient, SIGNAL(display_error(QString, QString)), this, SLOT(do_display_error(QString, QString)));
     connect(qClient, SIGNAL(display_notify(QString)), this, SLOT(do_display_notify(QString)));
     connect(qClient, SIGNAL(user_catalog(QString)), this, SLOT(load_user_catalog(QString)));
-    connect(qClient, SIGNAL(get_messages(QString)), this, SLOT(on_get_messages(QString)));
-    connect(qClient, SIGNAL(closeConnection()), this, SLOT(on_close_connection()));
+    connect(qClient, SIGNAL(get_messages(QString)), this, SLOT(do_get_messages(QString)));
+    connect(qClient, SIGNAL(closeConnection()), this, SLOT(do_close_connection()));
 
     treeUserCatalog = ui->treeServerObj;
 
@@ -59,7 +59,7 @@ void MainWindow::do_display_notify(const QString &msg)
     popUp->show();
 }
 
-void MainWindow::on_close_connection()
+void MainWindow::do_close_connection()
 {
     treeUserCatalog->clear();
 }
@@ -219,7 +219,7 @@ void MainWindow::on_tableActivePage_itemClicked(QTableWidgetItem *item)
     emit qClient->setPage(item->row());
 }
 
-void MainWindow::on_get_messages(const QString &resp)
+void MainWindow::do_get_messages(const QString &resp)
 {
     //qDebug() << resp;
 
