@@ -7,8 +7,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 add_executable(ws_chat_qt
-        activeroomsmodel.cpp
-        activeroomsmodel.h
         appsettings.cpp
         appsettings.h
         AuthPage.qml

@@ -9,7 +9,6 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    activeroomsmodel.cpp \
     appsettings.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -20,7 +19,6 @@ SOURCES += \
     settingsdialog.cpp
 
 HEADERS += \
-    activeroomsmodel.h \
     appsettings.h \
     mainwindow.h \
     popup.h \
@@ -46,8 +44,8 @@ DISTFILES += \
 RESOURCES += \
     res.qrc
 
-unix:LIBS += -L"/usr/local/lib"
-#LIBS += -L"../../ws_client/cmake-build-debug"
+unix:LIBS += -L"/usr/lib"
+#LIBS += -L"/home/arcady/lib/boost_1_77_0/stage/lib"
 #/home/arcady/src/git/ws_solution/ws_client/cmake-build-debug
 LIBS += -L"../../../ws_solution/ws_client/cmake-build-debug"
 unix:LIBS += -lboost_thread

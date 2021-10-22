@@ -6,7 +6,6 @@
 #include <QSortFilterProxyModel>
 #include <QQmlContext>
 #include "settingsdialog.h"
-#include "cmake-build-debug/ws_chat_qt_autogen/include/ui_mainwindow.h"
 #include <QTableWidget>
 #include <QFileInfo>
 #include <QDir>
@@ -33,11 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     pageCount = 0;
 
-    initTableActivePage();
-
-    auto rooms = new ActiveRoomsModel(this);
-    rooms->init();
-    ui->tableActivePage->setModel(rooms);
+    initActiveRoomsModel();
+    ui->tableActivePage->setModel(m_ConnModel);
 
 }
 
@@ -63,18 +59,6 @@ void MainWindow::do_close_connection()
 {
     treeUserCatalog->clear();
 }
-
-
-void MainWindow::on_mnuSettings_triggered()
-{
-    SettingsDialog * dlg = new SettingsDialog(this, qClient->get_settings());
-    dlg->setModal(true);
-    dlg->exec();
-    if (dlg->isAccepted()) {
-        qClient->get_settings()->save_settings();
-    }
-}
-
 
 void MainWindow::on_mnuQuit_triggered()
 {
@@ -171,23 +155,11 @@ void MainWindow::load_group_tree(QSortFilterProxyModel* model, QTreeWidgetItem* 
     }
 }
 
-void MainWindow::initTableActivePage()
+void MainWindow::initActiveRoomsModel()
 {
-//    auto table = ui->tableActivePage;
-//    table->setColumnCount(2);
-//    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Свойство"));
-//    table->setHorizontalHeaderItem(1, new QTableWidgetItem("Значение"));
-
-//    int rowCount = 3;
-
-//   table->setRowCount(rowCount);
-
-//   for (int row = 0; row < rowCount ; ++row ) {
-//       auto itemKey = new QTableWidgetItem("root" + QString::number(row));
-//       itemKey->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-//       table->setItem(row, 0, itemKey);
-//   }
-
+    m_ConnModel = new QStandardItemModel();
+    m_ConnModel->setHorizontalHeaderItem(0, new QStandardItem("User"));
+    m_ConnModel->setHorizontalHeaderItem(1, new QStandardItem("Token"));
 }
 
 
@@ -199,6 +171,10 @@ void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int colum
 
     auto curr = treeUserCatalog->currentItem();
 
+    if (qClient->getUserUUID() == curr->text(group_header["Ref"])){
+        return;
+    }
+
     qDebug() << curr->text(group_header["Ref"] );
     qDebug() << qClient->getUserUUID();
 
@@ -209,23 +185,21 @@ void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int colum
 
     qClient->getMessages(uuid_recipient, start_date, current_date);
 
-}
+    insert_room(curr->text(group_header["Ref"] ), curr->text(group_header["SecondField"] ));
 
-
-
-void MainWindow::on_tableActivePage_itemClicked(QTableWidgetItem *item)
-{
-
-    emit qClient->setPage(item->row());
 }
 
 void MainWindow::do_get_messages(const QString &resp)
 {
     //qDebug() << resp;
 
-//    auto _resp = ServeResponse::parseResp(resp);
+    auto _resp = ServeResponse::parseResp(resp);
 
-//    if (_resp.isArray()) {
+    if (_resp.isArray()) {
+
+        QStandardItemModel * tableModel = new QStandardItemModel;
+
+
 //        QString saveFileName = "messages.json";
 //        QFileInfo fileInfo(saveFileName);
 //        QDir::setCurrent(fileInfo.path());
@@ -239,8 +213,43 @@ void MainWindow::do_get_messages(const QString &resp)
 //        // Записываем текущий объект Json в файл
 //        jsonFile.write(QJsonDocument(_resp.array()).toJson(QJsonDocument::Indented));
 //        jsonFile.close();   // Закрываем файл
-//    }
+    }
 
+}
+
+void MainWindow::insert_room(const QString &uuid, const QString& name)
+{
+    auto proxyModel = new QSortFilterProxyModel();
+    proxyModel->setSourceModel(m_ConnModel);
+
+    proxyModel->setFilterFixedString(uuid);
+    proxyModel->setFilterKeyColumn(1);
+
+    if (proxyModel->rowCount() == 0) {
+
+        int rowCount = m_ConnModel->rowCount();
+        m_ConnModel->setItem(rowCount, 1, new QStandardItem(uuid));
+        m_ConnModel->setItem(rowCount, 0, new QStandardItem(name));
+        QModelIndex newIndex = m_ConnModel->index(m_ConnModel->rowCount() - 1, 0);
+        ui->tableActivePage->setCurrentIndex(newIndex);
+        emit qClient->setPage(m_ConnModel->rowCount());
+    }else{
+        auto itemsList = m_ConnModel->findItems(name);
+        if(!itemsList.isEmpty())
+            emit qClient->setPage(itemsList[0]->row());
+    }
+
+}
+
+
+void MainWindow::on_mnuSettings_triggered()
+{
+    SettingsDialog * dlg = new SettingsDialog(this, qClient->get_settings());
+    dlg->setModal(true);
+    dlg->exec();
+    if (dlg->isAccepted()) {
+        qClient->get_settings()->save_settings();
+    }
 }
 
 
@@ -249,5 +258,12 @@ void MainWindow::on_mnuDisconnect_triggered()
     if(qClient->isStarted()){
         qClient->close();
     }
+}
+
+
+void MainWindow::on_tableActivePage_clicked(const QModelIndex &index)
+{
+
+    emit qClient->setPage(index.row() + 1);
 }
 

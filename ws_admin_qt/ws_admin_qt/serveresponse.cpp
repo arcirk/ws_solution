@@ -221,7 +221,7 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<Q
     {
         QJsonObject currentObject = it->toObject();
         for (auto col = currentObject.constBegin(); col != currentObject.constEnd(); ++col){
-            const auto& indexCol = header[col.key()];;
+            const auto& indexCol = header[col.key()];
             QStandardItem *itemVal = nullptr;
             if (col.value().isString())
                 itemVal = new QStandardItem(col.value().toString());

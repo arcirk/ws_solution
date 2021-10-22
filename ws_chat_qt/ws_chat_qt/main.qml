@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QmlWebSocket 1.0
 
 StackView {
     id: stackView
