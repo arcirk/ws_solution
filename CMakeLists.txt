@@ -10,3 +10,4 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client" "${PROJECT_SOURCE_DIR}/ws_cli
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_admin_qt/ws_admin_qt" "${PROJECT_SOURCE_DIR}/ws_admin_qt/ws_admin_qt/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_messenger/ws_messenger" "${PROJECT_SOURCE_DIR}/ws_messenger/ws_messenger/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_chat_qt/ws_chat_qt" "${PROJECT_SOURCE_DIR}/ws_chat_qt/ws_chat_qt/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/tests/material/untitled" "${PROJECT_SOURCE_DIR}/tests/material/untitled/cmake-build-debug")

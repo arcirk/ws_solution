@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>chatPage.qml</file>
+        <file>authPage.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>tbglacti.png</file>
+        <file>tree.png</file>
+    </qresource>
+</RCC>
