@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>chat_page.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>images/closePane.png</file>
+    </qresource>
+</RCC>
