@@ -2,134 +2,218 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.12
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
+//import QtQuick.Controls.Styles 1.4
+//import "qrc:/scripts/scripts.js" as Scripts
 
 ColumnLayout{
 
     Material.theme: Material.Light
 
-    SplitView {
-        id: splitView
-        Layout.alignment: Qt.AlignCenter
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+//    ColumnLayout{
 
-        //anchors.fill: parent
-        //anchors.left: parent.left
-        //anchors.right: parent.right
-        //anchors.bottom: smailPane.top
+        anchors.fill: parent
 
-        orientation: Qt.Horizontal
+        SplitView {
+            id: splitView
+            Layout.alignment: Qt.AlignCenter
+            Layout.fillWidth: true
+            anchors.bottom: smailPane.top
+            anchors.top: parent.top
 
-        Rectangle {
-            id: centerItem
-            SplitView.minimumWidth: 300
-            SplitView.fillWidth: true
-            color: "lightgray"
-            Text {
-                text: "View 2"
-                anchors.centerIn: parent
-            }
-            SplitView {
-                anchors.fill: parent
-                orientation: Qt.Vertical
+            orientation: Qt.Horizontal
 
-                Rectangle{
-                    SplitView.minimumWidth: 300
-                    SplitView.minimumHeight: 300
-                    SplitView.fillHeight: true
-                    SplitView.fillWidth: true
-                    color: "lightgray"
-                    Pane {
-                        anchors.centerIn: parent
-                        width: 300
-                        height: 200
-
-                        Material.elevation: 8
-                        Material.background: Material.Blue
-                    }
+            Rectangle {
+                id: centerItem
+                SplitView.minimumWidth: 300
+                SplitView.fillWidth: true
+                color: "lightgray"
+                Text {
+                    text: "View 2"
+                    anchors.centerIn: parent
                 }
-                Pane {
-                    id: pane
-                    SplitView.minimumWidth: 300
-                    SplitView.maximumHeight: 400
-                    SplitView.minimumHeight: 100
-                    Layout.fillWidth: true
+                SplitView {
+                    anchors.fill: parent
+                    orientation: Qt.Vertical
 
-                    RowLayout {
-                        width: parent.width
-                        height: parent.height
+                    Rectangle{
+                        SplitView.minimumWidth: 300
+                        SplitView.minimumHeight: 300
+                        SplitView.fillHeight: true
+                        SplitView.fillWidth: true
+                        color: "lightgray"
+                        Pane {
+                            anchors.centerIn: parent
+                            width: 300
+                            height: 200
 
-                        TextArea {
-                            id: messageField
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            placeholderText: qsTr("Compose message")
-                            wrapMode: TextArea.Wrap
-                        }
-
-                        Button {
-                            id: sendButton
-                            text: qsTr("Send")
-                            enabled: messageField.length > 0
                             Material.elevation: 8
+                            Material.background: Material.Blue
                         }
                     }
+                    Pane {
+                        id: pane
+                        SplitView.minimumWidth: 300
+                        SplitView.maximumHeight: 400
+                        SplitView.minimumHeight: 30
+                        Layout.fillWidth: true
+
+                        RowLayout {
+                            width: parent.width
+                            height: parent.height
+
+                            ToolButton{
+                                id: btnSmail
+                                icon.source: "qrc:/images/images/smile-svgrepo-com.svg"
+                                checkable: true
+                                anchors.margins: 0
+                                onCheckedChanged: {
+                                    if(btnSmail.checked){
+                                        smailPane.state = "shown"
+                                    }else
+                                        smailPane.state = "hidden"
+                                }
+
+                            }
+
+                            TextArea {
+                                id: messageField
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                placeholderText: qsTr("Введите сообщение")
+                                wrapMode: TextArea.Wrap
+                                background: Rectangle {color: "#FFFAD9"}
+//                                style: TextAreaStyle {
+////                                        textColor: "#333"
+////                                        selectionColor: "steelblue"
+////                                        selectedTextColor: "#eee"
+//                                        backgroundColor: "#FFFAD9"
+//                                    }
+
+                            }
+
+                            Button {
+                                id: sendButton
+                                text: qsTr("Send")
+                                enabled: messageField.length > 0
+                                Material.elevation: 8
+                            }
+                        }
+                    }
+
+
                 }
 
-
             }
 
         }
 
-    }
-    Rectangle{
-        id:smailPane
-        Layout.fillWidth: true
-        height: 70
-        anchors.bottom: parent.bottom
-        Pane {
+        function createButtons(parent){
+            var currObj = null
+            let arr = ["1F60A", "1F60B", "1F60C", "1F60D", "1F60E", "1F60F"
+                , "1F610", "1F611", "1F612"]
+            for (let i=0; i< 8; ++i){
+                var componentPane = Qt.createComponent("qrc:/RoundPane.qml")
+                var pane = componentPane.createObject(parent)
+                var component = Qt.createComponent("qrc:/IconPane.qml")
+                var btn = component.createObject(pane)
+                btn.height = 48
+                btn.width = 48
+                btn.icon = "qrc:/images/images/smail/" + arr[i] + ".svg"
+                if(currObj){
+                    pane.anchors.left = currObj.right
+                    //pane.left = currObj.right
+                }
+                pane.objectName = arr[i];
+                pane.anchors.top = parent.top
 
-            anchors.fill: parent
+                pane.anchors.leftMargin = 34
+                currObj = pane;
+
+            }
+        }
+
+        Rectangle{
+            id:smailPane
+            Layout.fillWidth: true
+            height: 70
+            Layout.maximumHeight: 70
+            anchors.bottom: parent.bottom
+            //visible: true
             Material.background: Material.Grey
+            state: "hidden"
 
-//            Rectangle {
-//                id: closePane
-//                width: 24
-//                height: 24
-//                //icon.source: "qrc:/images/images/closePane.png"
-//                anchors.right: parent.right
-//                //text: "x"
-//                //highlighted: true
-//                Material.background: Material.Grey
+            Pane {
+                anchors.fill: parent
 
-//            }
-            Text
-            {
-                id: itemTextID
-                width: parent.width - 20
-                text: "Это пример 🙂😉 I forgot!"
-                renderType: Text.NativeRendering
-                textFormat: TextEdit.RichText
-                wrapMode: Text.WordWrap
-                font.family: "Segoe UI Emoji"
-                font.pixelSize: 12
-                anchors.margins: 10
-                anchors.left: parent.left
-                anchors.top: parent.top
-                color: "#101010"
-                font.hintingPreference: Font.PreferNoHinting
-            }
-            ToolButton {
-                anchors.top: parent.top
-                anchors.right: parent.right
-//                width: 24
-//                height: 36
 
-                //Material.elevation: 8
-                //Material.background: Material.Grey
-                text: "x"
+                ColumnLayout{
+                    id: mainPane
 
-            }
+                    Row{
+
+                        Component.onCompleted: createButtons(mainPane)
+                    }
+
+                }
+                ToolButton {
+                    id: btnCloseSmilePane
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    text: "x"
+
+                    onClicked: {
+                        //smailPane.visible = false
+                        btnSmail.checked = false
+                        smailPane.state = "hidden"
+                    }
+
+                }
+
+           }
+
+            states: [
+                State {
+                    name: "shown"
+                    //when: btnSmail.checked
+                    PropertyChanges { target: smailPane; height: 70 }
+                },
+                State {
+                    name: "hidden"
+                    //when: !btnSmail.checked
+                    PropertyChanges { target: smailPane; height: 0 }
+                }
+            ]
+
+            transitions: [
+                Transition {
+                    from: "hidden"
+                    to: "shown"
+                    NumberAnimation {
+                        target: smailPane
+                        property: "height"
+                        duration: 200
+                        easing.type: Easing.InOutQuad
+                        from: 0
+                        to: 70
+                    }
+                },
+                Transition {
+                    from: "shown"
+                    to: "hidden"
+                    NumberAnimation {
+                        target: smailPane
+                        property: "height"
+                        duration: 200
+                        easing.type: Easing.InOutQuad
+                        from: 70
+                        to: 0
+                    }
+                }
+            ]
+
+
         }
-    }
+    //}
+
+
 }
