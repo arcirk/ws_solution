@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
 //import QtQuick.Controls.Styles 1.4
-//import "qrc:/scripts/scripts.js" as Scripts
+import "qrc:/scripts/scripts.js" as Scripts
 
 ColumnLayout{
 
@@ -12,6 +12,15 @@ ColumnLayout{
 //    ColumnLayout{
 
         anchors.fill: parent
+
+//        Connections{
+//            onWindowResize: {
+//                if(smailPane.height > 0){
+//                    //smailPane.height = 0;
+//                    smailPane.state = "hidden"
+//                }
+//            }
+//        }
 
         SplitView {
             id: splitView
@@ -54,7 +63,7 @@ ColumnLayout{
                         id: pane
                         SplitView.minimumWidth: 300
                         SplitView.maximumHeight: 400
-                        SplitView.minimumHeight: 30
+                        SplitView.minimumHeight: 70
                         Layout.fillWidth: true
 
                         RowLayout {
@@ -82,6 +91,9 @@ ColumnLayout{
                                 placeholderText: qsTr("Введите сообщение")
                                 wrapMode: TextArea.Wrap
                                 background: Rectangle {color: "#FFFAD9"}
+                                //anchors.margins: 0
+                                //Layout.margins: 0
+
 //                                style: TextAreaStyle {
 ////                                        textColor: "#333"
 ////                                        selectionColor: "steelblue"
@@ -107,51 +119,22 @@ ColumnLayout{
 
         }
 
-        function createButtons(parent){
-            var currObj = null
-            let arr = ["1F60A", "1F60B", "1F60C", "1F60D", "1F60E", "1F60F"
-                , "1F610", "1F611", "1F612"]
-            for (let i=0; i< 8; ++i){
-                var componentPane = Qt.createComponent("qrc:/RoundPane.qml")
-                var pane = componentPane.createObject(parent)
-                var component = Qt.createComponent("qrc:/IconPane.qml")
-                var btn = component.createObject(pane)
-                btn.height = 48
-                btn.width = 48
-                btn.icon = "qrc:/images/images/smail/" + arr[i] + ".svg"
-                if(currObj){
-                    pane.anchors.left = currObj.right
-                    //pane.left = currObj.right
-                }
-                pane.objectName = arr[i];
-                pane.anchors.top = parent.top
-
-                pane.anchors.leftMargin = 34
-                currObj = pane;
-
-            }
-        }
-
         Rectangle{
             id:smailPane
             Layout.fillWidth: true
             height: 70
             Layout.maximumHeight: 70
             anchors.bottom: parent.bottom
-            //visible: true
             Material.background: Material.Grey
             state: "hidden"
 
             Pane {
                 anchors.fill: parent
-
-
                 ColumnLayout{
                     id: mainPane
 
                     Row{
-
-                        Component.onCompleted: createButtons(mainPane)
+                        Component.onCompleted: Scripts.createButtons(mainPane)
                     }
 
                 }
@@ -162,7 +145,6 @@ ColumnLayout{
                     text: "x"
 
                     onClicked: {
-                        //smailPane.visible = false
                         btnSmail.checked = false
                         smailPane.state = "hidden"
                     }
@@ -208,6 +190,7 @@ ColumnLayout{
                         from: 70
                         to: 0
                     }
+
                 }
             ]
 

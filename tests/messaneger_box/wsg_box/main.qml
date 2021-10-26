@@ -19,5 +19,14 @@ ApplicationWindow {
         anchors.fill: parent
         initialItem: "qrc:/chat_page.qml"
 
+        //signal windowResize
+    }
+
+    MouseArea{
+        anchors.fill: parent
+        onWidthChanged: {
+            //console.debug("onWidthChanged")
+            //stackView.windowResize()
+       }
     }
 }
