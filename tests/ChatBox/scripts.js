@@ -8,15 +8,15 @@ function createButtons(parent){
         var component = Qt.createComponent("qrc:/IconPane.qml")
         var btn = component.createObject(pane)
         btn.icon = "qrc:/image/smail/" + arr[i] + ".svg"
-        btn.height = 48
-        btn.width = 48
+        btn.height = 48 //btn.icon.height
+        btn.width = 48 //btn.icon.width
         if(currObj){
             pane.anchors.left = currObj.right
-            //pane.left = currObj.right
         }
         pane.objectName = arr[i];
         pane.anchors.top = parent.top
-
+        //pane.height = 48
+        //pane.width = 48
         pane.anchors.leftMargin = 34
         currObj = pane;
 

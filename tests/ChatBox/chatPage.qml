@@ -85,9 +85,6 @@ Page{
                    RowLayout{
                        Layout.fillWidth: true
                        Component.onCompleted: Scripts.createButtons(mainPane)
-                       onClick: function(objName){
-
-                       }
                    }
 
                 }

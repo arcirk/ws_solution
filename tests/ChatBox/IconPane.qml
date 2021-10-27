@@ -15,7 +15,7 @@ RoundPane {
 
         Image {
             id: image
-            sourceSize.height: parent.height
+            //sourceSize.height: parent.height
             anchors.centerIn: parent
             Layout.preferredWidth: 48
             Layout.preferredHeight: 48

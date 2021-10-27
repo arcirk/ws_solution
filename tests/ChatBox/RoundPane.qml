@@ -7,7 +7,7 @@ Pane {
     id: control
     property int radius: 2
 
-    signal click(string objName)
+    //signal click(string objName)
 
     background: Rectangle {
         color: control.Material.backgroundColor
@@ -26,8 +26,8 @@ Pane {
         onExited: {
             control.Material.elevation = 6
         }
-        onClicked: {
-            parent.click(control.objectName);
-        }
+//        onClicked: {
+//            parent.click(control.objectName);
+//        }
     }
 }
