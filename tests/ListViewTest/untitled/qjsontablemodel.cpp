@@ -91,7 +91,15 @@ QJsonObject QJsonTableModel::getJsonObject( const QModelIndex &index ) const
 
 QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
 {
-    if (role == Qt::UserRole + 5){
+    if (role == Qt::UserRole){
+        QJsonObject obj = getJsonObject( index );
+        if( obj.contains( "FirstField" ))
+        {
+            return obj["FirstField"].toString();
+        }
+
+    }
+    else if (role == Qt::UserRole + 5){
         QJsonObject obj = getJsonObject( index );
         if( obj.contains( "message" ))
         {
@@ -101,6 +109,16 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
             QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());
             QJsonObject obj = doc.object();
             return obj["message"].toString();
+        }
+
+    }
+    else if (role == Qt::UserRole + 4){
+        QJsonObject obj = getJsonObject( index );
+        if( obj.contains( "date" ))
+        {
+            int unixTime = obj["date"].toInt();
+            QDateTime timestamp = QDateTime::fromSecsSinceEpoch(unixTime);
+            return timestamp;
         }
 
     }

@@ -11,16 +11,33 @@ ApplicationWindow {
     visible: true
     title: qsTr("Hello World")
 
-  //property QJsonTableModel msgModel
+    //property QJsonTableModel msgModel
+
+    property string uuid: "f3ccb2f2-d431-11e9-ab42-08606e7d17fa"
+
+    //Material.theme: Material.Dark
+    Material.theme: btnTheme.checked ? Material.Light : Material.Dark
 
 
     ColumnLayout {
+
         anchors.fill: parent
 
+        ToolBar{
+            id: toolBar
+            Layout.fillWidth: true
+
+            ToolButton{
+                id: btnTheme
+                text: "..."
+                checkable: true
+            }
+        }
         ListView {
             id: listView
             Layout.fillWidth: true
             Layout.fillHeight: true
+            //Layout.topMargin: 110
             Layout.margins: pane.leftPadding + messageField.leftPadding
             displayMarginBeginning: 40
             displayMarginEnd: 40
@@ -32,7 +49,7 @@ ApplicationWindow {
                 anchors.right: sentByMe ? listView.contentItem.right : undefined
                 spacing: 6
 
-                readonly property bool sentByMe: model.recipient !== "Me"
+                readonly property bool sentByMe: model.FirstField !== uuid
 
                 Row {
                     id: messageRow
@@ -43,30 +60,28 @@ ApplicationWindow {
                         id: avatar
                         //source: !sentByMe ? "qrc:/" + model.author.replace(" ", "_") + ".png" : ""
                     }
+                    IconPane{
+                        id: messageText
+                        name: model.message
 
-                    Rectangle {
                         width: Math.min(messageText.implicitWidth + 24,
                             listView.width - (!sentByMe ? avatar.width + messageRow.spacing : 0))
-                        height: messageText.implicitHeight + 24
-                        color: sentByMe ? "lightgrey" : "steelblue"
+                        height: messageText.implicitHeight// + 24
 
-                        Label {
-                            id: messageText
-                            text: model.message
-                            color: sentByMe ? "black" : "white"
-                            anchors.fill: parent
-                            anchors.margins: 12
-                            wrapMode: Label.Wrap
-                        }
+//icon: "https://cdn.sstatic.net/Sites/stackoverflow/company/img/logos/so/so-icon.svg"
+
+                        textColor: sentByMe ? "black" : "white"
+                        Material.background: sentByMe ? "lightgrey" : "steelblue" //sentByMe ? Material.Grey : Material.Blue
                     }
                 }
-
                 Label {
                     id: timestampText
-                    //text: Qt.formatDateTime(model.date, "d MMM hh:mm")
+                    text: Qt.formatDateTime(model.date, "d MMM hh:mm")
                     color: "lightgrey"
                     anchors.right: sentByMe ? parent.right : undefined
                 }
+
+
             }
 
             ScrollBar.vertical: ScrollBar {}
@@ -84,6 +99,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     placeholderText: qsTr("Compose message")
                     wrapMode: TextArea.Wrap
+                    Material.accent: Material.Blue
                 }
 
                 Button {
