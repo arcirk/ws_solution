@@ -26,3 +26,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     listmessagesmodel.h \
     qjsontablemodel.h
+
+windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
+windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
