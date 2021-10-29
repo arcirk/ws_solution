@@ -191,9 +191,10 @@ void MainWindow::on_treeServerObj_itemActivated(QTreeWidgetItem *item, int colum
 
 void MainWindow::do_get_messages(const QString &resp)
 {
-    //qDebug() << resp;
+    qDebug() << resp;
 
     auto _resp = ServeResponse::parseResp(resp);
+//    //ToDo: test
 
     if (_resp.isArray()) {
 
@@ -203,13 +204,13 @@ void MainWindow::do_get_messages(const QString &resp)
 //        QString saveFileName = "messages.json";
 //        QFileInfo fileInfo(saveFileName);
 //        QDir::setCurrent(fileInfo.path());
-
+//
 //        QFile jsonFile(saveFileName);
 //        if (!jsonFile.open(QIODevice::WriteOnly))
 //        {
 //            return;
 //        }
-
+//
 //        // Записываем текущий объект Json в файл
 //        jsonFile.write(QJsonDocument(_resp.array()).toJson(QJsonDocument::Indented));
 //        jsonFile.close();   // Закрываем файл

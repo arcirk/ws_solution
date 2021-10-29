@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.12
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
+//import QtQuick.Controls.Styles 1.1
 import "qrc:/scripts.js" as Scripts
 
 Page{
@@ -36,6 +37,7 @@ Page{
                         Material.elevation: 8
                         Material.background: Material.Blue
                     }
+
                 }
 
                 Rectangle{
@@ -59,6 +61,32 @@ Page{
                                     smailPane.state = "hidden"
                             }
 
+                        }
+                        TextArea{
+                            id: txtSendMessage
+                            anchors.left: btnSmail.right
+                            anchors.right: btnSend.left
+                            //font.family: "Helvetica"
+                            //text: "Hi" + "<img width=\"32\" height=\"32\" align=\"middle\" src=\"qrc:/image/smail/1F60A.svg\">"//"<span>&#x1F60A</span>"
+                            //text: "\uD83D\uDE1C"
+                            //font.family: "Helvetica"
+                            //font.pointSize: 16
+
+                            textFormat: Text.RichText
+                            //Material.background: Material.Grey
+                            //Material.elevation: 2
+//                            style: TextAreaStyle{
+
+//                         }
+
+                        }
+                        ToolButton{
+                            id: btnSend
+                            icon.source: "qrc:/image/wondicon-ui-free-send_111204.svg"
+                            anchors.right: parent.right
+                            onClicked: {
+                                txtSendMessage.text = "";
+                            }
                         }
                     }
 
@@ -148,14 +176,12 @@ Page{
     //При изменении размера происходит сброс height smailPane на 0, не знаю как исправить
     //пока этот костыль
     onWidthChanged: {
-        //console.debug("onWidthChanged")
         if(btnSmail.checked){
             btnSmail.checked = false
             smailPane.state = "hidden"
         }
     }
-    onHeaderChanged: {
-        //console.debug("onWidthChanged")
+    onHeightChanged: {
         if(btnSmail.checked){
             btnSmail.checked = false
             smailPane.state = "hidden"

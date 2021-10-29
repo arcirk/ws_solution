@@ -1,13 +1,13 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.Material 2.12
-import QtQuick.Controls.Material.impl 2.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Material 2.15
+import QtQuick.Controls.Material.impl 2.15
 
 Pane {
     id: control
     property int radius: 2
 
-    //signal click(string objName)
+    signal clicked(string buttonId)
 
     background: Rectangle {
         color: control.Material.backgroundColor
@@ -26,8 +26,7 @@ Pane {
         onExited: {
             control.Material.elevation = 6
         }
-//        onClicked: {
-//            parent.click(control.objectName);
-//        }
+
+        onClicked: control.clicked(buttonId)
     }
 }

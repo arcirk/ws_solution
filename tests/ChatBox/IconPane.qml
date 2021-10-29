@@ -1,5 +1,5 @@
-import QtQuick 2.12
-import QtQuick.Controls.Material 2.12
+import QtQuick 2.15
+import QtQuick.Controls.Material 2.15
 import QtQuick.Layouts 1.12
 
 RoundPane {
@@ -8,6 +8,8 @@ RoundPane {
     property alias icon: image.source
     Material.elevation: 6
     radius: 7
+
+    property string buttonId;
 
     RowLayout{
         anchors.fill: parent
