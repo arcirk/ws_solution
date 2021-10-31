@@ -49,7 +49,9 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<QJsonTableModel>("QJsonTableModel", 1, 0, "QJsonTableModel");
 
+
     QJsonTableModel* messagesModel = initModel();
+    messagesModel->setUserUuid("40655f80-6870-4780-98b3-70d0f1d054dd");
 
     qDebug() << messagesModel->rowCount();
 
@@ -64,6 +66,11 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("msgModel", messagesModel);
 
+    //QObject * sendBtn = engine.rootContext()->findChild<QObject*>("SendButton");
+    QObject* sendBtn = engine.rootObjects()[0]->findChild<QObject*>("SendButton");
+    if(sendBtn){
+        QObject::connect(sendBtn, SIGNAL(newMessage(QString)), messagesModel, SLOT(onNewMessage(QString)));
+    }
 //    example model
 //    void TVTime::on_episodesTableView_doubleClicked(const QModelIndex &index)
 //    {

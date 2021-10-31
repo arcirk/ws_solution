@@ -19,8 +19,12 @@ ApplicationWindow {
     Material.theme: btnTheme.checked ? Material.Light : Material.Dark
 
 
-    ColumnLayout {
+    ItemMessageDialog {
+        id: dialogMsg
+    }
 
+
+    ColumnLayout {
         anchors.fill: parent
 
         ToolBar{
@@ -58,20 +62,31 @@ ApplicationWindow {
 
                     Image {
                         id: avatar
+
                         //source: !sentByMe ? "qrc:/" + model.author.replace(" ", "_") + ".png" : ""
                     }
                     IconPane{
                         id: messageText
                         name: model.message
-
+                        //menuDisable: sentByMe
+                        menuDeleteDisable: sentByMe
                         width: Math.min(messageText.implicitWidth + 24,
                             listView.width - (!sentByMe ? avatar.width + messageRow.spacing : 0))
                         height: messageText.implicitHeight// + 24
 
-//icon: "https://cdn.sstatic.net/Sites/stackoverflow/company/img/logos/so/so-icon.svg"
+                        icon: "qrc:/user.png"
 
                         textColor: sentByMe ? "black" : "white"
                         Material.background: sentByMe ? "lightgrey" : "steelblue" //sentByMe ? Material.Grey : Material.Blue
+
+                        onMenuTriggered: {
+                            dialogMsg.textMsg = model.message
+                            dialogMsg.open()
+                        }
+
+                        onImageClick: {
+                            console.debug("Image click")
+                        }
                     }
                 }
                 Label {
@@ -103,12 +118,17 @@ ApplicationWindow {
                 }
 
                 Button {
+                    //ToDo: эмитация вызова добавления сообщения
+                    signal newMessage(string msg)
                     id: sendButton
+                    objectName: "SendButton"
                     text: qsTr("Send")
                     enabled: messageField.length > 0
                     onClicked: {
-                        listView.model.sendMessage(inConversationWith, messageField.text);
-                        messageField.text = "";
+                        listView.model.sendMessage(messageField.text)
+                        sendButton.newMessage(messageField.text)
+                        messageField.text = ""
+
                     }
                 }
             }

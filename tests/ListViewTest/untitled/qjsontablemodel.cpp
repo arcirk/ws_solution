@@ -9,6 +9,8 @@
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 
+const std::string base64_padding[] = {"", "==", "="};
+
 static std::string base64_decode(const std::string &s) {
 
     namespace bai = boost::archive::iterators;
@@ -29,6 +31,23 @@ static std::string base64_decode(const std::string &s) {
     std::copy(base64_dec(s.data()), base64_dec(s.data() + size),
               std::ostream_iterator<char>(os));
 
+    return os.str();
+}
+
+static std::string base64_encode(const std::string &s) {
+    namespace bai = boost::archive::iterators;
+
+    std::stringstream os;
+
+    // convert binary values to base64 characters
+    typedef bai::base64_from_binary
+    // retrieve 6 bit integers from a sequence of 8 bit bytes
+            <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
+
+    std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
+              std::ostream_iterator<char>(os));
+
+    os << base64_padding[s.size() % 3];
     return os.str();
 }
 
@@ -171,3 +190,76 @@ QHash<int, QByteArray> QJsonTableModel::roleNames() const
 
     return names;
 }
+
+void QJsonTableModel::sendMessage(const QString &message)
+{
+
+    qDebug() << "Send message: " << message;
+
+
+}
+
+void QJsonTableModel::setUserUuid(QString uuid)
+{
+    m_userUuid = uuid;
+}
+
+void QJsonTableModel::setCompanionUuid(QString uuid)
+{
+    m_companionUuid = uuid;
+}
+
+QString QJsonTableModel::userUuid()
+{
+    return m_userUuid;
+}
+
+QString QJsonTableModel::companionUuid()
+{
+    return m_companionUuid;
+}
+
+void QJsonTableModel::onNewMessage(QString message)
+{
+
+std::string jsonMsg = "{"
+                   "\"uuid\": \"" + m_userUuid.toStdString() + "\","
+                   "\"name\": \"Борисоглебский Аркадий\","
+                   "\"uuid_channel\": \"7091f153-2d73-406a-a735-a3a31b67422b\","
+                   "\"message\": \"" + message.toStdString() + "\","
+                   "\"uuid_form\": \"e7b5a692-6277-4299-912d-52ef42bb5dbb\","
+                   "\"app_name\": \"unknown\","
+                   "\"hash\": \"\","
+                   "\"command\": \"message\","
+                   "\"result\": \"ok\","
+                   "\"role\": \"user\","
+                   "\"user_uuid\": \"00000000-0000-0000-0000-000000000000\""
+                   "}";
+
+    QString sz_msg = QString::fromStdString(base64_encode(jsonMsg));
+
+    QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
+
+    QJsonObject msg = doc.object();
+
+//    if( msg.contains( "result" ))
+//    {
+//        QJsonValue v = msg[ "result" ];
+//        if (v.toString() == "error")
+//            return;
+//    }
+
+    msg.insert("FirstField", "f3ccb2f2-d431-11e9-ab42-08606e7d17fa");
+    msg.insert("Ref", "d3db7a39-c2b1-4ccb-ab67-a4f82f85a25d");
+    msg.insert("SecondField", "d81ade18-fb07-11e2-b8bf-08606e7d17fa");
+    msg.insert("_id", 0);
+    msg.insert("date", 1630075939);
+    msg.insert("message", sz_msg);
+    msg.insert("token", "036a82ff52b0e5725e202ff17a5f82b1a1226141");
+
+    beginResetModel();
+    m_json.push_front(msg);
+    endResetModel();
+}
+
+

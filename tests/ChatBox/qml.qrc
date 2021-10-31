@@ -5,6 +5,7 @@
         <file>IconPane.qml</file>
         <file>RoundPane.qml</file>
         <file>scripts.js</file>
+        <file>SnaileBox.qml</file>
     </qresource>
     <qresource prefix="/image">
         <file>smile-svgrepo-com.svg</file>

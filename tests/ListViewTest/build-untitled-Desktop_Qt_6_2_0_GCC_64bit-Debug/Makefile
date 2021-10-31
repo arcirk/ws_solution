@@ -788,7 +788,8 @@ qrc_qml.cpp: ../untitled/qml.qrc \
 		../untitled/user.png \
 		../untitled/RoundPane.qml \
 		../untitled/main.qml \
-		../untitled/IconPane.qml
+		../untitled/IconPane.qml \
+		../untitled/ItemMessageDialog.qml
 	/home/arcady/Qt/6.2.0/gcc_64/libexec/rcc -name qml ../untitled/qml.qrc -o qrc_qml.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h

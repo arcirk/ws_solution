@@ -620,7 +620,7 @@ namespace arc_sqlite {
         }
 
         if (top > 0){
-            query.append(" order by token DESC");
+            query.append(" order by date DESC");
             query.append(" limit '" + std::to_string(top) + "'");
         }
 

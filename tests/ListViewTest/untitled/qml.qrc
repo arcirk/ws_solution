@@ -4,5 +4,6 @@
         <file>user.png</file>
         <file>RoundPane.qml</file>
         <file>IconPane.qml</file>
+        <file>ItemMessageDialog.qml</file>
     </qresource>
 </RCC>
