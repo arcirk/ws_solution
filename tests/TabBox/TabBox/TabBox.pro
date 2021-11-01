@@ -32,3 +32,5 @@ HEADERS += \
 
 windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
 windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
+
+QT += quickcontrols2

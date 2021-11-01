@@ -7,9 +7,7 @@ import QtQuick.Layouts 1.12
 Pane{
 
     id: ctrlMessageList
-//    background: Rectangle{
-//        color: "green"
-//    }
+
     property string uuid: "f3ccb2f2-d431-11e9-ab42-08606e7d17fa"
     property alias listModel: listView.model
 

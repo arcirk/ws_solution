@@ -138,5 +138,9 @@
         <file>MessageDialog.qml</file>
         <file>smail/select.svg</file>
         <file>images/deleteUser.png</file>
+        <file>MainForm.qml</file>
+        <file>UsersGroup.qml</file>
+        <file>ItemGroupPage.qml</file>
+        <file>images/info16.png</file>
     </qresource>
 </RCC>

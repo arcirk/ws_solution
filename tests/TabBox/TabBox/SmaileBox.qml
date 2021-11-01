@@ -50,7 +50,7 @@ Rectangle{
         },
         State {
             name: "hidden"
-            PropertyChanges { target: smailPane; height: 0 }
+            PropertyChanges { target: smailPane; height: 1 }
         }
     ]
     transitions: [
@@ -62,7 +62,7 @@ Rectangle{
                 property: "height"
                 duration: 200
                 easing.type: Easing.InOutQuad
-                from: 0
+                from: 1
                 to: 70
             }
         },
@@ -75,7 +75,7 @@ Rectangle{
                 duration: 200
                 easing.type: Easing.InOutQuad
                 from: 70
-                to: 0
+                to: 1
             }
 
         }

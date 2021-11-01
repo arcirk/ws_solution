@@ -9,6 +9,7 @@ Pane {
     id: usersBox
 
     signal setMessageModel(int index);
+    signal removeItem(int index);
 
     ListView{
         id: listUsers
@@ -68,24 +69,38 @@ Pane {
 //                    }
 
                     onClicked: {
+                        //console.debug(usersModel.currentIndex)
                         mainForm.title = "Чат - " + model.name
                         usersBox.setMessageModel(model.indexDoc)
                         usersModel.currentIndex = model.indexDoc
-
                     }
 
                 }
                 IconPane{
-                    id: clouseDelegat
+                    id: btnInfo
+                    //name: "x"
+                    icon: "qrc:/images/info16.png"
+                    ctrlPaddig: 2
+                    menuDisable: true
+                    width: 20
+
+                    onImageClick:{
+
+                    }
+                }
+                IconPane{
+                    id: btnCloseChat
                     //name: "x"
                     icon: "qrc:/images/deleteUser.png"
-                    ctrlPaddig: 1
+                    ctrlPaddig: 2
                     menuDisable: true
-                    width: 16// messageText.height
+                    width: 20// messageText.height
                     //height: messageText.height
 
                     onImageClick:{
-                        usersModel.remove(model.indexDoc)
+                        let index = model.indexDoc
+                        usersBox.removeItem(index)
+                        usersModel.remove(index)
                     }
                 }
             }

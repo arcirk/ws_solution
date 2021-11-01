@@ -42,6 +42,7 @@ public:
     void addDocument(QJsonDocument doc, int itemIndex);
     //QJsonDocument* getDocument(int index);
     Q_INVOKABLE void setDocument(int index);
+    Q_INVOKABLE void remove(int index);
 
 private:
 

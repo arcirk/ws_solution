@@ -12,90 +12,70 @@ ApplicationWindow {
     title: qsTr("Чат")
     minimumHeight: 600
     minimumWidth: 800
-    Material.theme: Material.Dark
 
+    property string myTheme
+    Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
     property int theme: Material.theme
+
 
     MessageDialog {
         id: dialogMsg
+
     }
 
-    SplitView{
-
-        anchors.fill: parent
-        orientation: Qt.Horizontal
-
-        ColumnLayout{
-            SplitView.fillWidth: true
-            SplitView.fillHeight: true
-            SplitView.minimumWidth: 600
-
-            SplitView{
-                anchors.bottom: smailBox.top
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                //Layout.minimumWidth: 200
-                orientation: Qt.Vertical
-                ChatBox{
-                    id: chatBox
-                    SplitView.fillWidth: true
-                    SplitView.fillHeight: true
-
-                    onWidthChanged: {
-                        if(msgBox.checked()){
-                            msgBox.unchecked()
-                        }
-                    }
-
-                    onMessageClick: function(msg) {
-                        dialogMsg.textMsg = msg
-                        dialogMsg.open()
-                    }
-                }
-                MessageBox{
-                    id: msgBox
-                    objectName: "msgBox"
-                    SplitView.minimumHeight: 70
-                    SplitView.maximumHeight: 200
-
-                    onStateChanged: function(newState){
-                        smailBox.state = newState
-                    }
-
-                    onSendMessage: function(msg){
-                        chatBox.listModel.sendMessage(msg)
-                        if(msgBox.checked()){
-                            msgBox.unchecked()
-                            smailBox.stateChanged("hidden")
-                        }
-                    }
-                }
-
+    header: ToolBar{
+        Row{
+        ToolButton{
+            text: "test"
+            onClicked: {
+                drawer.open()
             }
+        }
+        ToolButton{
+            id: btnTheme
+            text: "Тема"
 
-            SmaileBox{
-                id: smailBox
-                Layout.alignment: Qt.AlignBottom
-                Layout.fillWidth: true
-                height: 70
-                Layout.maximumHeight: 70
-                anchors.bottom: parent.bottom
-
-                onClosePane: {
-                    msgBox.unchecked()
-                }
-
+            onClicked: {
+                mnuTheme.open()
             }
         }
 
-        UsersBox{
-            SplitView.minimumWidth: 200
-
-            onSetMessageModel: function(index){
-                //chatBox.listModel = newModel;
-                chatBox.listModel.setDocument(index)
+        Menu {
+            id: mnuTheme
+            x: btnTheme.x;
+            y: btnTheme.y + btnTheme.height;
+            Action {
+                text: "Темная"
+                onTriggered: {
+                    mainForm.myTheme = "Dark"
+                }
+            }
+            Action {
+                text: "Светлая"
+                onTriggered: mainForm.myTheme = "Light"
             }
         }
+        }
+    }
+
+    Drawer {
+
+        id: drawer
+        width: Math.min(mainForm.width, mainForm.height) / 3 * 2
+        height: mainForm.height
+        //interactive: stackView.depth === 1
+
+        UsersGroup{
+            anchors.fill: parent
+
+
+        }
+
+    }
+
+
+    MainForm{
+
 
     }
 

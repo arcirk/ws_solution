@@ -253,11 +253,23 @@ void MessageListModel::addDocument(QJsonDocument doc, int itemIndex)
 
 void MessageListModel::setDocument(int index)
 {
-    if (index < m_arrMsg.size() && index != currentIndex) {
+    if (index != currentIndex) {
         beginResetModel();
         currentIndex = index;
         endResetModel();
     }
+}
+
+void MessageListModel::remove(int index)
+{
+    if (index == currentIndex)
+        currentIndex = 0;
+
+    auto itr = m_arrMsg.find(index);
+    beginResetModel();
+    if (itr != m_arrMsg.end())
+        m_arrMsg.erase(itr);
+    endResetModel();
 }
 
 

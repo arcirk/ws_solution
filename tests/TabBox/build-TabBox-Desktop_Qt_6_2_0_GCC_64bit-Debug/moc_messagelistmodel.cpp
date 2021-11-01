@@ -22,8 +22,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MessageListModel_t {
-    const uint offsetsAndSize[26];
-    char stringdata0[144];
+    const uint offsetsAndSize[28];
+    char stringdata0[151];
 };
 #define QT_MOC_LITERAL(ofs, len) \
     uint(offsetof(qt_meta_stringdata_MessageListModel_t, stringdata0) + ofs), len 
@@ -40,14 +40,15 @@ QT_MOC_LITERAL(81, 11), // "sendMessage"
 QT_MOC_LITERAL(93, 9), // "clearRows"
 QT_MOC_LITERAL(103, 11), // "setDocument"
 QT_MOC_LITERAL(115, 5), // "index"
-QT_MOC_LITERAL(121, 8), // "userUuid"
-QT_MOC_LITERAL(130, 13) // "companionUuid"
+QT_MOC_LITERAL(121, 6), // "remove"
+QT_MOC_LITERAL(128, 8), // "userUuid"
+QT_MOC_LITERAL(137, 13) // "companionUuid"
 
     },
     "MessageListModel\0UserUuidChanged\0\0"
     "uuid\0companionUuidChanged\0onNewMessage\0"
     "message\0sendMessage\0clearRows\0setDocument\0"
-    "index\0userUuid\0companionUuid"
+    "index\0remove\0userUuid\0companionUuid"
 };
 #undef QT_MOC_LITERAL
 
@@ -57,24 +58,25 @@ static const uint qt_meta_data_MessageListModel[] = {
       10,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
-       2,   66, // properties
+       7,   14, // methods
+       2,   75, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
        2,       // signalCount
 
  // signals: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    1,   50,    2, 0x06,    3 /* Public */,
-       4,    1,   53,    2, 0x06,    5 /* Public */,
+       1,    1,   56,    2, 0x06,    3 /* Public */,
+       4,    1,   59,    2, 0x06,    5 /* Public */,
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       5,    1,   56,    2, 0x0a,    7 /* Public */,
+       5,    1,   62,    2, 0x0a,    7 /* Public */,
 
  // methods: name, argc, parameters, tag, flags, initial metatype offsets
-       7,    1,   59,    2, 0x02,    9 /* Public */,
-       8,    0,   62,    2, 0x02,   11 /* Public */,
-       9,    1,   63,    2, 0x02,   12 /* Public */,
+       7,    1,   65,    2, 0x02,    9 /* Public */,
+       8,    0,   68,    2, 0x02,   11 /* Public */,
+       9,    1,   69,    2, 0x02,   12 /* Public */,
+      11,    1,   72,    2, 0x02,   14 /* Public */,
 
  // signals: parameters
     QMetaType::Void, QMetaType::QString,    3,
@@ -87,10 +89,11 @@ static const uint qt_meta_data_MessageListModel[] = {
     QMetaType::Void, QMetaType::QString,    6,
     QMetaType::Void,
     QMetaType::Void, QMetaType::Int,   10,
+    QMetaType::Void, QMetaType::Int,   10,
 
  // properties: name, type, flags
-      11, QMetaType::QString, 0x00015103, uint(0), 0,
-      12, QMetaType::QString, 0x00015103, uint(1), 0,
+      12, QMetaType::QString, 0x00015103, uint(0), 0,
+      13, QMetaType::QString, 0x00015103, uint(1), 0,
 
        0        // eod
 };
@@ -107,6 +110,7 @@ void MessageListModel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int
         case 3: _t->sendMessage((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         case 4: _t->clearRows(); break;
         case 5: _t->setDocument((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 6: _t->remove((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -160,7 +164,7 @@ const QMetaObject MessageListModel::staticMetaObject = { {
 qt_incomplete_metaTypeArray<qt_meta_stringdata_MessageListModel_t
 , QtPrivate::TypeAndForceComplete<QString, std::true_type>, QtPrivate::TypeAndForceComplete<QString, std::true_type>, QtPrivate::TypeAndForceComplete<MessageListModel, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>
 , QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>
-, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<int, std::false_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<int, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<int, std::false_type>
 
 >,
     nullptr
@@ -186,13 +190,13 @@ int MessageListModel::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 7)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 7;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 6)
+        if (_id < 7)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 6;
+        _id -= 7;
     }
 #ifndef QT_NO_PROPERTIES
     else if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty

@@ -6,7 +6,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QQmlContext>
-
+#include <QQuickStyle>
 
 static MessageListModel* initModel(int itemIndex){
 
@@ -109,6 +109,8 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    QQuickStyle::setStyle("Material");
+
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
     qmlRegisterType<MessageListModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
 
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
     MessageListModel* messagesModel = initModel(index);
     index = m_usersModel->addRow("41655f80-6870-4780-98b3-70d0f1d054dd", "empty user");
     setEmptyModel(messagesModel, index);
-    index = m_usersModel->addRow("41655f80-6870-4780-98b3-70d0f1d054dd", "empty user long long long long long long long long");
+    index = m_usersModel->addRow("41655f80-6870-4780-98b3-70d0f1d054dd", "Борисоглебский");
     setEmptyModel(messagesModel, index);
     messagesModel->setUserUuid("40655f80-6870-4780-98b3-70d0f1d054dd");
 
