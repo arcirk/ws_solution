@@ -32,19 +32,26 @@ Pane{
             Material.accent: Material.Blue
 
             onCheckedChanged: {
-                if(btnSmail.checked){control.stateChanged("shown")
+                if(btnSmail.checked){
+                    control.stateChanged("shown")
                 }else{control.stateChanged("hidden")}
             }
         }
-
-        TextArea{
-            id: txtSendMessage
-            textFormat: Text.RichText
+        Flickable {
+            id: flickable
             Layout.fillWidth: true
             Layout.fillHeight: true
-            placeholderText: qsTr("Введите сообщение")
-            wrapMode: TextArea.Wrap
-            Material.accent: Material.Blue
+            TextArea.flickable: TextArea{
+                id: txtSendMessage
+                textFormat: Text.RichText
+                //anchors.fill: parent
+                //Layout.fillWidth: true
+                //Layout.fillHeight: true
+                placeholderText: qsTr("Введите сообщение")
+                wrapMode: TextArea.Wrap
+                Material.accent: Material.Blue
+            }
+            ScrollBar.vertical: ScrollBar { }
         }
 
         ToolButton{

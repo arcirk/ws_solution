@@ -5,9 +5,21 @@ import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
 
 SplitView{
-
+    id: mainSplit
     anchors.fill: parent
     orientation: Qt.Horizontal
+
+    property string theme: "Dark"
+
+    function parentSizeChange(){
+        if(msgBox.checked()){
+            msgBox.unchecked()
+        }
+    }
+
+    function smaileBoxVisible(value){
+        smailBox.visible = value
+    }
 
     ColumnLayout{
         SplitView.fillWidth: true
@@ -24,7 +36,7 @@ SplitView{
                 id: chatBox
                 SplitView.fillWidth: true
                 SplitView.fillHeight: true
-
+                Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
                 onWidthChanged: {
                     if(msgBox.checked()){
                         msgBox.unchecked()
@@ -41,8 +53,10 @@ SplitView{
                 objectName: "msgBox"
                 SplitView.minimumHeight: 70
                 SplitView.maximumHeight: 200
+                Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
 
                 onStateChanged: function(newState){
+                    smailBox.visible = true;
                     smailBox.state = newState
                 }
 
@@ -64,7 +78,7 @@ SplitView{
             height: 70
             Layout.maximumHeight: 70
             anchors.bottom: parent.bottom
-
+            Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
             onClosePane: {
                 msgBox.unchecked()
             }
@@ -73,6 +87,8 @@ SplitView{
     }
 
     UsersBox{
+        theme: mainSplit.theme
+        Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
         SplitView.minimumWidth: 200
 
         onSetMessageModel: function(index){

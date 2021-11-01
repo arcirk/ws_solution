@@ -16,6 +16,7 @@ RoundPane {
     property alias ctrlPaddig: control.padding
     property bool checkable: false
     property bool checked: false
+    property string theme: "Dark"
 
     Material.elevation: {
         if(control.checkable)
@@ -29,16 +30,20 @@ RoundPane {
 
     radius: 3
 
+    Material.background:{
+
+        if(control.checked){
+            if(control.theme == "Dark")
+                "#424242"
+            else
+                "#efebe9"
+        }else
+            null
+    }
     signal menuTriggered(string name)
     signal imageClick()
     signal clicked(string buttonId)
 
-//    function setChecket(){
-//        if(control.Material.elevation > 1)
-//            control.Material.elevation = 1
-//        else if (control.Material.elevation === 1)
-//            control.Material.elevation = 6
-//    }
 
     RowLayout{
         anchors.fill: parent
@@ -70,57 +75,61 @@ RoundPane {
                 }
             }
         }
-        Text {
-            id: txt;
-            textFormat: Text.RichText
-            //wrapMode: TextArea.Wrap
 
-            MouseArea{
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor;
+            Text {
+                id: txt;
+                textFormat: Text.RichText
+                //wrapMode: TextArea.Wrap
 
-                onClicked: {
-//                    if (control.checked)
-//                        control.setChecket();
-                    //console.log("Click")
-                    control.clicked(buttonId)
-                }
-                onEntered: {
-                    if(!control.checkable)
-                        control.Material.elevation = 1
-                }
-                onExited: {
-                    if(!control.checkable)
-                        control.Material.elevation = 6
-                }
-                onPressAndHold: {
-                        if (!menuDisable)
-                            contextMenu.popup()
+                MouseArea{
+                    id:mouseArea
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor;
+
+                    onClicked: {
+    //                    if (control.checked)
+    //                        control.setChecket();
+                        //console.log("Click")
+                        control.clicked(buttonId)
                     }
-
-                Menu {
-                    id: contextMenu
-                    Action {
-                        text: "Открыть"
-                        onTriggered: {
-                            control.menuTriggered("mnuOpen")
+                    onEntered: {
+                        if(!control.checkable){
+                            control.Material.elevation = 1
                         }
                     }
-                    Action { text: "Копировать" }
-                    Action { text: "Переслать" }
-                    Action { text: "Удалить"; enabled: !menuDeleteDisable; onTriggered: console.debug("delete")}
+                    onExited: {
+                        if(!control.checkable)
+                            control.Material.elevation = 6
+                    }
+                    onPressAndHold: {
+                            if (!menuDisable)
+                                contextMenu.popup()
+                        }
 
-//                    MenuSeparator { }
+                    Menu {
+                        id: contextMenu
+                        Action {
+                            text: "Открыть"
+                            onTriggered: {
+                                control.menuTriggered("mnuOpen")
+                            }
+                        }
+                        Action { text: "Копировать" }
+                        Action { text: "Переслать" }
+                        Action { text: "Удалить"; enabled: !menuDeleteDisable; onTriggered: console.debug("delete")}
 
-//                    Menu {
-//                        title: "Find/Replace"
-//                        Action { text: "Find Next" }
-//                        Action { text: "Find Previous" }
-//                        Action { text: "Replace" }
-//                    }
+    //                    MenuSeparator { }
+
+    //                    Menu {
+    //                        title: "Find/Replace"
+    //                        Action { text: "Find Next" }
+    //                        Action { text: "Find Previous" }
+    //                        Action { text: "Replace" }
+    //                    }
+                    }
+
                 }
             }
-        }
 
     }
 }

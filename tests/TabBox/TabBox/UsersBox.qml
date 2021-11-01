@@ -8,6 +8,8 @@ Pane {
 
     id: usersBox
 
+    property string theme: "Dark"
+
     signal setMessageModel(int index);
     signal removeItem(int index);
 
@@ -20,6 +22,8 @@ Pane {
         spacing: 12
         model: usersModel
 
+        //flickableDirection: Flickable.VerticalFlick
+        //boundsBehavior: Flickable.StopAtBounds
 
         delegate: Column {
             //Layout.fillHeight: true
@@ -41,18 +45,21 @@ Pane {
                     ctrlPaddig: 10
                     //icon: "qrc:/user.png"
                     checkable: true
+                    theme: usersBox.theme
+
                     checked: usersModel.currentIndex === model.indexDoc ? true : false
+
                     textColor:{
-                        if(mainForm.theme === Material.Dark){
+                        if(usersBox.theme === "Dark"){
                             if(messageText.checked){
-                                "blue"
+                                "#bbdefb"
                             }else
                             {
                                 "white"
                             }
                         }else{
                             if(messageText.checked){
-                                "blue"
+                                "#2196f3"
                             }else
                             {
                                 "black"
@@ -105,9 +112,15 @@ Pane {
                 }
             }
         }
-        ScrollBar.vertical: ScrollBar {}
+        //ScrollBar.vertical: ScrollBar {}
         ScrollBar.horizontal: ScrollBar {}
+//        ScrollBar.horizontal: ScrollBar {
+//                    policy: ScrollBar.AlwaysOn
+//                    minimumSize: 0.05
+//                    interactive: true
+//                    stepSize: 0
+//                    active: hovered || pressed
+//                }
     }
-
 
 }

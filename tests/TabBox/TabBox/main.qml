@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumHeight: 600
     minimumWidth: 800
 
-    property string myTheme
+    property string myTheme: "Dark"
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
     property int theme: Material.theme
 
@@ -24,9 +24,11 @@ ApplicationWindow {
     }
 
     header: ToolBar{
+        //Material.primary: Material.Light
+        Material.background: myTheme === "Light" ? "#efebe9" : "#424242"
         Row{
         ToolButton{
-            text: "test"
+            text: "группы"
             onClicked: {
                 drawer.open()
             }
@@ -52,7 +54,10 @@ ApplicationWindow {
             }
             Action {
                 text: "Светлая"
-                onTriggered: mainForm.myTheme = "Light"
+                onTriggered: {
+                    mainForm.myTheme = "Light"
+                }
+
             }
         }
         }
@@ -75,19 +80,24 @@ ApplicationWindow {
 
 
     MainForm{
-
+        id: mainChatBox
+        theme: myTheme
 
     }
 
     onWidthChanged: {
-        if(msgBox.checked()){
-            msgBox.unchecked()
-        }
+//        if(msgBox.checked()){
+//            msgBox.unchecked()
+//        }
+        mainChatBox.parentSizeChange();
+        mainChatBox.smaileBoxVisible(false)
     }
     onHeightChanged: {
-        if(msgBox.checked()){
-            msgBox.unchecked()
-        }
+//        if(msgBox.checked()){
+//            msgBox.unchecked()
+//        }
+        mainChatBox.parentSizeChange();
+        mainChatBox.smaileBoxVisible(false)
     }
 
 }
