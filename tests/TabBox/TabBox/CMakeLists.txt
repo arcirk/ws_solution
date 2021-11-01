@@ -46,7 +46,7 @@ target_link_libraries(chat_qml_test
         Qt6::QuickControls2
         )
 
-#[[
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 add_custom_command(
         TARGET chat_qml_test POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -57,4 +57,5 @@ add_custom_command(
         $<TARGET_FILE:Qt6::Quick>
         $<TARGET_FILE:Qt6::QmlModels>
         $<TARGET_FILE:Qt6::QuickWidgets>
-        $<TARGET_FILE:Qt6::QuickControls2>)]]
+        $<TARGET_FILE:Qt6::QuickControls2>)
+endif()
