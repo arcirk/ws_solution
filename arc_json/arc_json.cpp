@@ -283,4 +283,28 @@ namespace arc_json{
     void ws_json::addObject(std::vector<content_value> &values){
         addObject(this, values);
     }
+
+    void ws_json::push_back(_Value &arr, bVariant& val) {
+        if (val.type() == typeid(std::string)) {
+            _Value value(boost::get<std::string>(val).c_str(), this->GetAllocator());
+            arr.PushBack(value, this->GetAllocator());
+        } else if (val.type() == typeid(bool)) {
+            arr.PushBack( boost::get<bool>(val), this->GetAllocator());
+        } else if (val.type() == typeid(long int)) {
+            arr.PushBack( boost::get<long int>(val), this->GetAllocator());
+        }
+    }
+
+    void ws_json::push_back(_Value &arr, _Value &val) {
+        arr.PushBack(val, this->GetAllocator());
+    }
+
+    void ws_json::copy_from(_Value& val) {
+        this->CopyFrom(val, this->GetAllocator());
+    }
+
+    void ws_json::addMember(const std::string &key, _Value& value) {
+        _Value _key(key.c_str(), this->GetAllocator());
+        this->AddMember(_key, value, this->GetAllocator());
+    }
 }

@@ -58,6 +58,16 @@ QJsonDocument ServeResponse::parseResp(const QString &resp){
     return _doc;
 
 }
+QMap<QString, int> ServeResponse::get_header(QJsonArray *columns){
+
+    QMap<QString, int> header;
+
+    for (int i = 0; i < columns->count(); ++i) {
+        header.insert(columns->at(i).toString(), i);
+    }
+
+    return header;
+}
 
 QMap<QString, int> ServeResponse::get_header(QJsonObject *obj, QString defaultColumn) {
 
@@ -87,13 +97,13 @@ QMap<QString, int> ServeResponse::get_header(QJsonObject *obj, QString defaultCo
     return header;
 }
 
-QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<QString, int> header) {
+QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonArray &rows, QMap<QString, int> header) {
 
-    if (doc.isNull())
+    if (rows.isEmpty())
         return nullptr;
 
-    QJsonArray array = doc.array();
-    int rowCount = (int)array.count();
+    //QJsonArray array = doc.array();
+    int rowCount = (int)rows.count();
     int colCount = (int)header.size();
     auto * model = new QStandardItemModel(rowCount, colCount);
     int index = 0;
@@ -108,7 +118,7 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonDocument &doc, QMap<Q
 
     auto proxyModel = new QSortFilterProxyModel();
 
-    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    for (auto it = rows.constBegin(); it != rows.constEnd(); ++it)
     {
         QJsonObject currentObject = it->toObject();
         for (auto col = currentObject.constBegin(); col != currentObject.constEnd(); ++col){

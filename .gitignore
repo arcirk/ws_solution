@@ -122,3 +122,4 @@ bin/
 *.autosave
 /ws_chat_qt/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/
 /tests/ListViewTest/build-untitled-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/

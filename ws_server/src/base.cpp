@@ -238,13 +238,55 @@ namespace arc_sqlite {
         return i;
     }
 
-    int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error) {
+    int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error, bool header) {
 
+//if(!header)
+//{
+//    [
+//        rows
+//    ]
+//}
+//else
+//{
+//    columns:[]
+//    rows[]
+//}
         sqlite3_stmt* pStmt;
         char* err = 0;
         int i = 0;
         int rc;
+        unsigned int j;
 
+        auto * obj_json = new arc_json::ws_json();
+
+        _Value _header(rapidjson::Type::kArrayType);
+        _header.SetArray();
+        _Value _rows(rapidjson::Type::kArrayType);
+        _rows.SetArray();
+
+        if (!header)
+            obj_json->set_array();
+        else{
+            obj_json->set_object();
+            if (!table_name.empty()){
+                std::string table_info = "PRAGMA table_info(" + table_name + ")";
+
+                if (sqlite3_prepare_v2(db, table_info.c_str(), -1, &pStmt, NULL))
+                {
+                    sqlite3_finalize(pStmt);
+                }
+
+                while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW)
+                {
+//                    0 == cid
+//                    1 == name
+//                    2 == type
+                    std::string p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, 1));
+                    bVariant column_name = p;
+                    obj_json->push_back(_header, column_name);
+                }
+            }
+        }
 
         if (sqlite3_exec(db, query.c_str(), 0, 0, &err))
         {
@@ -252,16 +294,9 @@ namespace arc_sqlite {
             sqlite3_free(err);
         }
 
-        if (sqlite3_prepare_v2(db, query.c_str(), -1, &pStmt, NULL))
-        {
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &pStmt, NULL)) {
             sqlite3_finalize(pStmt);
         }
-
-        unsigned int j;
-
-        auto * obj_json = new arc_json::ws_json();
-
-        obj_json->set_array();
 
         while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW)
         {
@@ -269,6 +304,8 @@ namespace arc_sqlite {
 
             _Value row(rapidjson::Type::kObjectType);
             row.SetObject();
+
+            std::vector<std::string> m_cols{};
 
             for (j = 0; j < col_count; j++)
             {
@@ -279,7 +316,17 @@ namespace arc_sqlite {
 
                 arc_json::content_value val;
 
-                val.key = reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
+                //td::string __col = reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
+                //bVariant column_name = __col; //reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
+
+                val.key = reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));// boost::get<std::string>(column_name);
+
+//                if (std::find(m_cols.begin(), m_cols.end(), __col) == m_cols.end())
+//                {
+//                    m_cols.push_back(__col);
+//                    obj_json->push_back(_header, column_name);
+//                }
+
 
                 if (table_name == "Users" && val.key == "hash")
                     continue;
@@ -318,11 +365,19 @@ namespace arc_sqlite {
 
             }
 
-            obj_json->push_back(row);
+            obj_json->push_back(_rows, row);
+
             i++;
         }
 
         sqlite3_finalize(pStmt);
+
+        if (!header)
+            obj_json->copy_from(_rows);
+        else{
+            obj_json->addMember("columns", _header);
+            obj_json->addMember("rows", _rows);
+        }
 
         json = obj_json->to_string();
 

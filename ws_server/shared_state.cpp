@@ -1453,7 +1453,7 @@ bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arc_json::ws_json
     std::string query = "select * from UsersCatalog;";
     err = "";
     std::string szResult;
-    int result = sqlite3Db->execute(query, "", szResult, err);
+    int result = sqlite3Db->execute(query, "UsersCatalog", szResult, err, true);
     if (err.empty())
         custom_result = szResult;
     else

@@ -67,17 +67,43 @@ void MainWindow::on_mnuQuit_triggered()
 
 void MainWindow::load_user_catalog(const QString &resp)
 {
+
+    QJsonDocument doc = ServeResponse::parseResp(resp);
+
+//    //ToDo: удалить
+//    QString saveFileName = "usersCatalog.json";
+//    QFileInfo fileInfo(saveFileName);
+//    QDir::setCurrent(fileInfo.path());
+//
+//    QFile jsonFile(saveFileName);
+//    if (!jsonFile.open(QIODevice::WriteOnly))
+//    {
+//        return;
+//    }
+//
+//    // Записываем текущий объект Json в файл
+//    jsonFile.write(QJsonDocument(doc.object()).toJson(QJsonDocument::Indented));
+//    jsonFile.close();   // Закрываем файл
+//    ////
+
     treeUserCatalog->clear();
     treeUserCatalog->setColumnCount(0);
 
-    QJsonDocument doc = ServeResponse::parseResp(resp);
-    if(doc.array().isEmpty())
+    QJsonObject table = doc.object();
+
+    if (table.isEmpty())
         return;
 
-    QJsonObject reference = doc.array()[0].toObject();
-    QMap<QString, int> header = ServeResponse::get_header(&reference, "SecondField");
+    QJsonArray objHeader = table["columns"].toArray();
+    QJsonArray objRows = table["rows"].toArray();
 
-    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(doc, header);
+    if(objHeader.isEmpty())
+        return;
+
+    //QJsonObject reference = doc["rows"].array()[0].toObject();
+    QMap<QString, int> header = ServeResponse::get_header(&objHeader); //ServeResponse::get_header(&reference, "SecondField");
+
+    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(objRows, header);
 
     if (!model)
         return;

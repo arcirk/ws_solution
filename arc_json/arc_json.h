@@ -24,6 +24,7 @@ namespace arc_json{
 
         static void addMember(_Document * doc, content_value& value);
         void addMember(content_value value) { addMember(this, value); };
+        void addMember(const std::string& key, _Value& value);
         void addObjectMember(_Value * object, content_value val);
         void addObject(_Document * doc, std::vector<content_value> &values);
         void addObject(std::vector<content_value> &values);
@@ -33,6 +34,9 @@ namespace arc_json{
         static void set_array(_Document *doc);
         void set_array(){set_array(this);};
         void push_back(_Value &value);
+        void push_back(_Value &arr, bVariant& val);
+        void push_back(_Value &arr, _Value& val);
+        void copy_from(_Value& val);
 
         bool is_parse() const { return is_parse_; };
         static std::string to_string(_Document * doc);
@@ -46,6 +50,7 @@ namespace arc_json{
         bool is_array(){return this->IsArray();};
 
         unsigned int get_member_count();
+
 
     private:
         bool is_parse_;

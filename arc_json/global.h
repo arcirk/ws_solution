@@ -41,11 +41,11 @@ typedef rapidjson::GenericDocument<rapidjson::UTF8<> > _Document;
 typedef rapidjson::GenericValue<rapidjson::UTF8<> > _Value;
 typedef rapidjson::GenericStringBuffer<rapidjson::UTF8<> > _StringBuffer;
 
+typedef boost::variant<std::string, long int, bool, double> bVariant;
+
 using namespace rapidjson;
 
 namespace arc_json{
-
-    static constexpr time_t const NULL_TIME = -1;
 
     typedef struct content_value {
         std::string key;
@@ -60,12 +60,13 @@ namespace arc_json{
         content_value(std::string key_, std::string val)
                 : key(std::move(key_)),
                   value(val)
-                {
-                }
+        {
+        }
 
         content_value() = default;
 
     } content_value;
+    static constexpr time_t const NULL_TIME = -1;
 
     const std::string base64_padding[] = {"", "==", "="};
     typedef std::string             T_str;

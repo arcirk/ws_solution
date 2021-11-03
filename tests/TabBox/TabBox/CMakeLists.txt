@@ -24,7 +24,7 @@ add_executable(chat_qml_test
         selectedusersmodel.h
         SmaileBox.qml
         UsersBox.qml
-        UsersGroup.qml)
+        UsersGroup.qml grouptreemodel.cpp grouptreemodel.h)
 
 find_package(Qt6 COMPONENTS
         Core

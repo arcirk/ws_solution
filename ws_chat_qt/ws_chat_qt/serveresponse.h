@@ -21,7 +21,8 @@ public:
 
     static QString base64_decode(const std::string& resp);
     static QMap<QString, int> get_header(QJsonObject *obj, QString defaultColumn);
-    static QSortFilterProxyModel * get_proxyModel(QJsonDocument &doc, QMap<QString, int> header);
+    static QMap<QString, int> get_header(QJsonArray *columns);
+    static QSortFilterProxyModel * get_proxyModel(QJsonArray &rows, QMap<QString, int> header);
 
 private:
     void parse(const QString& resp);

@@ -137,7 +137,7 @@ namespace arc_sqlite {
 
         int exec(const std::string& query, std::string& error = (std::string &) "");
 
-        int execute(const std::string& query, const std::string &table_name, std::string& json = (std::string &) "", std::string& error = (std::string &) "");
+        int execute(const std::string& query, const std::string &table_name, std::string& json = (std::string &) "", std::string& error = (std::string &) "", bool header = false);
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, std::string>> &table, std::string &error);
 
