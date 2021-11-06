@@ -7,7 +7,7 @@
 *****************************************************************************/
 
 #include <memory>
-#include "../TabBox/messagelistmodel.h"
+#include "../TabBox/include/messagelistmodel.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)

@@ -6,24 +6,11 @@
 #define WS_SOLUTION_BASE_H
 
 #include "../sqlite/sqlite3.h"
-#include "../arc_json/global.h"
+#include <arcirk.h>
+//#include "../arc_json/global.h"
 
 
 namespace arc_sqlite {
-
-//    struct DefTable
-//    {
-//
-//        char** chData;
-//
-//        void serialize(char* data) {
-//            memcpy(data, this, sizeof(DefTable));
-//        }
-//
-//        void deserialize(char* data) {
-//            memcpy(this, data, sizeof(DefTable));
-//        }
-//    };
 
     enum tables
     {
@@ -31,11 +18,6 @@ namespace arc_sqlite {
         eMessages,
         eChannels,
         eSubscribers,
-        //eSeries,
-        //eStorage,
-        //eStorageCells,
-        //eCharacteristics,
-        //eDevices,
         eUnknown
     };
 
@@ -143,9 +125,9 @@ namespace arc_sqlite {
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, boost::variant<std::string, double, int>>> &table, std::string &error);
 
-        bool insert(tables tableType, std::vector<arc_json::content_value> values, std::string& err = (std::string &) "");
+        bool insert(tables tableType, std::vector<arcirk::content_value> values, std::string& err = (std::string &) "");
 
-        bool update(tables tableType, std::vector<arc_json::content_value> &sets, std::vector<arc_json::content_value> &where, std::string& err = (std::string &) "");
+        bool update(tables tableType, std::vector<arcirk::content_value> &sets, std::vector<arcirk::content_value> &where, std::string& err = (std::string &) "");
 
         std::string get_channel_token(const boost::uuids::uuid& first, const boost::uuids::uuid& second);
 

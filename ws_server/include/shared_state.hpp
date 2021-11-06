@@ -19,14 +19,16 @@
 #include "subscriber.h"
 #include "../include/base.h"
 
-#include <arc_json.h>
+#include <arcirk.h>
+
+using namespace arcirk;
 
 //#include <ws_client_console.h>
 
 // Forward declaration
 class websocket_session;
 
-typedef std::function<bool(boost::uuids::uuid &uuid, arc_json::ws_json*, arc_json::ws_message*, std::string&, std::string&)> cmd_func;
+typedef std::function<bool(boost::uuids::uuid &uuid, bJson*, ws_message*, std::string&, std::string&)> cmd_func;
 
 // Represents the shared server state
 class shared_state
@@ -67,6 +69,9 @@ public:
 
 
 private:
+
+    _ws_message createMessage(websocket_session *session);
+
     arc_sqlite::sqlite3_db* sqlite3Db;
 
     static bool is_cmd(const std::string& msg);
@@ -77,41 +82,36 @@ private:
     static bool is_valid_message(const std::string &message, boost::uuids::uuid &uuid_recipient, std::string &base64,
                           std::string &err);
 
-    bool get_active_users(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool get_db_users(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool send_all_message(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool subscribe_to_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool subscribe_exit_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool add_new_user(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool update_user(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool get_messages(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool get_user_info(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool add_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool edit_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool remove_group(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool set_parent(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool remove_user(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool kill_session(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool exec_query(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
-    bool get_users_catalog(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_active_users(boost::uuids::uuid &uuid, bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_db_users(boost::uuids::uuid &uuid, bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool send_all_message(boost::uuids::uuid &uuid, bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_client_param(boost::uuids::uuid &uuid, bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+//    bool subscribe_to_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+//    bool subscribe_exit_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result);
+    bool add_new_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool update_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_group_list(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool add_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool edit_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool remove_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_parent(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool remove_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool kill_session(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_uuid(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_app_name(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool exec_query(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
 
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
 
-    void send_private_message(const std::string &message, boost::uuids::uuid &recipient,
-                              boost::uuids::uuid &sender);
+//    void send_private_message(const std::string &message, boost::uuids::uuid &recipient,
+//                              boost::uuids::uuid &sender);
 
     void _add_new_user(const std::string &usr, const std::string &pwd, const std::string &role,
                        const std::string &uuid, const std::string &perf, const std::string &parent = (std::string &) "", std::string& error = (std::string &) "", bool pwd_is_hash = false);
-
-
-
-
-
 
     bool is_valid_param_count(const std::string &command, unsigned int params);
     static bool is_valid_command_name(const std::string &command);

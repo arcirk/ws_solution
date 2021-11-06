@@ -13,7 +13,7 @@ IClient * client;
 void ext_message(const std::string& msg) {
 
     try {
-            std::cout << arc_json::base64_decode(msg) << std::endl;
+            std::cout << base64_decode(msg) << std::endl;
 
     }catch (std::exception &e){
         std::cout << msg << std::endl;

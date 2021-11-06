@@ -68,7 +68,7 @@ ws_drv::ws_drv() {
     AddProperty(L"user_uuid", L"ИдентификаторПользователя", [&](){
         if (client){
             if (client->started())
-                return std::make_shared<variant_t>(arc_json::uuid_to_string(client->get_user_uuid()));
+                return std::make_shared<variant_t>(uuid_to_string(client->get_user_uuid()));
             else
                 return user_uuid;
         } else
@@ -78,7 +78,7 @@ ws_drv::ws_drv() {
     AddProperty(L"client_uuid", L"ИдентификаторКлиента", [&](){
         if (client){
             if (client->started())
-                return std::make_shared<variant_t>(arc_json::uuid_to_string(client->get_uuid()));
+                return std::make_shared<variant_t>(uuid_to_string(client->get_uuid()));
             else
                 return client_uuid;
         } else
@@ -404,7 +404,7 @@ std::string ws_drv::get_hash(const variant_t &usr, const variant_t &pwd) {
     std::string _usr(std::get<std::string>(usr));
     std::string _pwd(std::get<std::string>(pwd));
 
-    return arc_json::get_hash(_usr, _pwd);
+    return get_hash(_usr, _pwd);
 }
 
 variant_t ws_drv::currentDate() {
@@ -420,11 +420,11 @@ variant_t ws_drv::currentDate() {
 }
 
 variant_t ws_drv::current_date_in_seconds() {
-    return (int)arc_json::current_date_seconds();
+    return (int)current_date_seconds();
 }
 
 variant_t ws_drv::get_tz_offset() {
-    return (int) arc_json::tz_offset();
+    return (int) tz_offset();
 }
 
 void ws_drv::get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form) {

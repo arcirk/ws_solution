@@ -1,6 +1,6 @@
 //#include "net.h"
 
-#include "global.h"
+#include "../../arcirk/include/arcirk.h"
 #include <iostream>
 #include <boost/smart_ptr.hpp>
 #include <memory>
@@ -9,8 +9,10 @@
 #include <unordered_set>
 #include <boost/asio/io_context.hpp>
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+//#include <boost/property_tree/ptree.hpp>
+//#include <boost/property_tree/json_parser.hpp>
+
+using boost::property_tree::ptree;
 
 //#include <thread>
 
@@ -20,6 +22,8 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 typedef std::function<void(std::string)> _callback_message;
+
+using namespace arcirk;
 
 class ws_client{
 
@@ -55,9 +59,9 @@ public:
 
     void error(const std::string &what, const std::string &err);
 
-    static boost::uuids::uuid string_to_uuid(const std::string& uuid){return arc_json::string_to_uuid(uuid);};
+    static boost::uuids::uuid string_to_uuid(const std::string& uuid){return string_to_uuid(uuid);};
     static std::string get_hash(const std::string& name,
-                                const std::string& pwd){return arc_json::get_sha1(name + pwd);};
+                                const std::string& pwd){return get_sha1(name + pwd);};
     void subscribe_to_channel(const std::string &uuid_channel, const std::string &uuid_form);
     void subscribe_exit_channel(const std::string &uuid_channel, const std::string &uuid_form);
     void set_session_param(const std::string &uuid, const std::string &name, const std::string &pwd, const std::string &app_name, const std::string &user_uuid);

@@ -7,6 +7,8 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
+//using namespace arcirk;
+
 IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
     host = _host;
@@ -15,7 +17,7 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     client = nullptr;
     app_name = "admin_console";
     //client_uuid = arc_json::random_uuid();
-    user_uuid = arc_json::nil_uuid();
+    user_uuid = nil_string_uuid();
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -108,11 +110,11 @@ tm IClient::currentDate() {
 }
 
 long int IClient::current_date_in_seconds() {
-    return arc_json::current_date_seconds();
+    return current_date_seconds();
 }
 
 long int IClient::get_tz_offset() {
-    return arc_json::tz_offset();
+    return tz_offset();
 }
 
 void IClient::get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form) {
@@ -302,8 +304,8 @@ void IClient::kill_session(const std::string &_user_uuid, const std::string &uui
 
 void IClient::open(bool new_thread){
 
-    app_uuid = arc_json::random_uuid();
-    user_uuid = arc_json::random_uuid();
+    app_uuid = random_uuid();
+    user_uuid = random_uuid();
     //client_uuid = arc_json::random_uuid();
 
     boost::property_tree::ptree pt;
@@ -331,7 +333,7 @@ void IClient::open(bool new_thread){
 }
 
 std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
-    return arc_json::get_hash(usr, pwd);
+    return arcirk::get_hash(usr, pwd);
 }
 
 std::string IClient::get_app_uuid() const {
@@ -350,7 +352,7 @@ void IClient::set_app_name(const std::string &session_uuid, const std::string &n
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
 
-        send_command("set_app_name", arc_json::nil_uuid(), _ss.str());
+        send_command("set_app_name", nil_string_uuid(), _ss.str());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
@@ -368,7 +370,7 @@ void IClient::set_uuid(const std::string &session_uuid, const std::string &new_u
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
 
-        send_command("set_uuid", arc_json::nil_uuid(), _ss.str());
+        send_command("set_uuid", nil_string_uuid(), _ss.str());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
@@ -384,14 +386,14 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
         std::string _uuid_form = uuid_form;
 
         if (uuid_form.empty()){
-            _uuid_form = arc_json::nil_uuid();
+            _uuid_form = nil_string_uuid();
         }
         pt.add("uuid_form", _uuid_form);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);
 
-        send_command("get_users_catalog", arc_json::nil_uuid(), _ss.str());
+        send_command("get_users_catalog", nil_string_uuid(), _ss.str());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
@@ -400,6 +402,6 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
 
 std::string IClient::get_user_uuid() const {
 
-    return arc_json::uuid_to_string(client->get_user_uuid());
+    return uuid_to_string(client->get_user_uuid());
 }
 

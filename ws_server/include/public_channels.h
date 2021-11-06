@@ -5,7 +5,7 @@
 #ifndef WS_SOLUTION_PUBLIC_CHANNELS_H
 #define WS_SOLUTION_PUBLIC_CHANNELS_H
 
-#include <arc_json.h>
+//#include <arc_json.h>
 
 #include <vector>
 

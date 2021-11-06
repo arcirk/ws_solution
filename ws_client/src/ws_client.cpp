@@ -13,7 +13,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/locale/generator.hpp>
 
-//ws_client::ws_client(net::io_context &io_context, const std::string& uuid, const std::string& name, const std::string& pwd, const std::string& app_name, const std::string& uuid_form, const std::string& user_uuid)
+using namespace arcirk;
+
 ws_client::ws_client(net::io_context &io_context, const std::string& client_param)
 : ioc(io_context)
 {
@@ -41,14 +42,14 @@ send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, 
 {
 
 
-    std::string _uuid_form = uuid_form;
-    if (_uuid_form.empty())
-        _uuid_form = "00000000-0000-0000-0000-000000000000";
+//    std::string _uuid_form = uuid_form;
+//    if (_uuid_form.empty())
+//        _uuid_form = "00000000-0000-0000-0000-000000000000";
     std::string _sub_user_uuid = sub_user_uuid;
     if (_sub_user_uuid.empty())
         _sub_user_uuid = "00000000-0000-0000-0000-000000000000";
 
-    boost::uuids::uuid  uuid_channel = arc_json::string_to_uuid(_sub_user_uuid);
+    boost::uuids::uuid  uuid_channel = arcirk::string_to_uuid(_sub_user_uuid);
 
     std::string msg;
 
@@ -58,7 +59,16 @@ send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, 
         msg.append("msg " + _sub_user_uuid + " ");
     }
 
-    msg.append(arc_json::get_message(get_uuid(), message, get_name(), uuid_channel, true, get_app_name(), _uuid_form, "", command));
+    auto _msg = ws_message();
+    _msg.message().uuid = get_uuid();
+    _msg.message().message = message;
+    _msg.message().name = get_name();
+    _msg.message().uuid_channel = uuid_channel;
+    _msg.message().app_name = get_app_name();
+    _msg.message().command = command;
+    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+
+    msg.append(_msg.get_json(true));
 
     auto const ss = boost::make_shared<std::string const>(std::move(msg));
 
@@ -117,11 +127,16 @@ on_connect(session * sess){
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(sess);
     _started = true;
-    boost::uuids::uuid  uuid_channel{};
 
     if (_callback_msg)
     {
-        std::string msg = arc_json::get_message(get_uuid(), "client connection success", get_name(), uuid_channel, true, _app_name);
+        auto _msg = ws_message();
+        _msg.message().uuid = get_uuid();
+        _msg.message().message = "client connection success";
+        _msg.message().name = get_name();
+        _msg.message().app_name = _app_name;
+
+        std::string msg = _msg.get_json(true);
         _callback_msg(msg);
     }
 
@@ -156,9 +171,14 @@ ws_client::on_stop() {
     if (_callback_msg)
     {
         _started = false;
-        boost::uuids::uuid  uuid_channel{};
-        std::string msg = arc_json::get_message(get_uuid(), "client leave", get_name(), uuid_channel, true, get_app_name(), "", "", "close_connections");
-        _callback_msg(msg);
+        auto _msg = ws_message();
+        _msg.message().uuid = get_uuid();
+        _msg.message().message = "client leave";
+        _msg.message().name = get_name();
+        _msg.message().app_name = get_app_name();
+        _msg.message().command = "close_connections";
+
+        _callback_msg(_msg.get_json(true));
 
     }
 
@@ -208,13 +228,13 @@ ws_client::
 set_uuid(const std::string& uuid) {
     //boost::uuids::string_generator gen;
     //uuid_ = gen(uuid);
-    arc_json::is_valid_uuid(uuid, uuid_);
+    is_valid_uuid(uuid, uuid_);
 }
 
 void
 ws_client::
 set_user_uuid(const std::string& uuid) {
-    arc_json::is_valid_uuid(uuid, _user_uuid);
+    is_valid_uuid(uuid, _user_uuid);
 }
 
 std::string &ws_client::get_name() {
@@ -227,13 +247,13 @@ void ws_client::set_name(std::string name) {
 
 void ws_client::set_param(ptree &pt) {
     try {
-        std::string uuid = arc_json::get_member(pt, "uuid");
+        std::string uuid = bJson::get_pt_member(pt, "uuid");
         if (!uuid.empty())
             set_uuid(uuid);
-        std::string user_uuid = arc_json::get_member(pt, "user_uuid");
+        std::string user_uuid = bJson::get_pt_member(pt, "user_uuid");
         if (!user_uuid.empty())
             set_user_uuid(user_uuid);
-        std::string name = arc_json::get_member(pt, "name");
+        std::string name = bJson::get_pt_member(pt, "name");
         if (!name.empty())
             set_name(name);
 
@@ -250,7 +270,7 @@ ws_client::on_read(const std::string& message) {
     if (message == "\n" || message.empty() || message == "pong")
         return;
 
-    arc_json::T_vec v = arc_json::split(message, "\n");
+    T_vec v = split(message, "\n");
 
     std::string msg;
 
@@ -264,10 +284,10 @@ ws_client::on_read(const std::string& message) {
         msg = base64;
 
         try {
-            std::string result = arc_json::base64_decode(base64);
+            std::string result = base64_decode(base64);
             ptree pt;
-            if (arc_json::parse(result, pt)){
-                if (arc_json::get_member(pt, "command") == "set_client_param"){
+            if (bJson::parse_pt(result, pt)){
+                if (bJson::get_pt_member(pt, "command") == "set_client_param"){
                     set_param(pt);
 
                 }
@@ -286,7 +306,7 @@ ws_client::on_read(const std::string& message) {
             if (!decode_message){
                 _callback_msg(msg);
             } else{
-                std::string result = arc_json::base64_decode(msg);
+                std::string result = base64_decode(msg);
                 _callback_msg(result);
             }
 
@@ -302,18 +322,27 @@ ws_client::on_read(const std::string& message) {
 
 std::string ws_client::get_client_info() {
 
-    boost::uuids::uuid  uuid_channel{};
+    auto _msg = ws_message();
+    _msg.message().uuid = get_uuid();
+    _msg.message().message = "get_client_info";
+    _msg.message().name = get_name();
+    _msg.message().app_name = get_app_name();
 
-    std::string msg = arc_json::get_message(get_uuid(), "get_client_info", get_name(), uuid_channel, true);
-
-    return msg;
+    return _msg.get_json(true);
 }
 
 void ws_client::error(const std::string &what, const std::string &err) {
     if (_callback_msg)
     {
-        std::string msg = arc_json::get_message(get_uuid(), err, get_name(), boost::uuids::uuid{}, true, get_app_name(), "", "", what, "error");
-        _callback_msg(msg);
+        auto _msg = ws_message();
+        _msg.message().uuid = get_uuid();
+        _msg.message().message = err;
+        _msg.message().name = get_name();
+        _msg.message().app_name = get_app_name();
+        _msg.message().command = what;
+        _msg.message().result = "error";
+
+        _callback_msg(_msg.get_json(true));
     }
 }
 
@@ -330,17 +359,31 @@ void ws_client::set_user_uuid() {
 void ws_client::subscribe_to_channel(const std::string &uuid_channel, const std::string &uuid_form) {
 
     boost::uuids::uuid uuid{};
-    arc_json::is_valid_uuid(uuid_channel, uuid);
-    std::string msg = arc_json::get_message(get_uuid(), "subscribe_to_channel", get_name(), uuid, true, get_app_name(), uuid_form, "", "subscribe_to_channel");
-    send("cmd " + msg, false);
+    is_valid_uuid(uuid_channel, uuid);
+    auto _msg = ws_message();
+    _msg.message().uuid = get_uuid();
+    _msg.message().message = "subscribe_to_channel";
+    _msg.message().name = get_name();
+    _msg.message().app_name = get_app_name();
+    _msg.message().command = "subscribe_to_channel";
+    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+
+    send("cmd " + _msg.get_json(true), false);
 }
 
 void ws_client::subscribe_exit_channel(const std::string &uuid_channel, const std::string &uuid_form) {
 
     boost::uuids::uuid uuid{};
-    arc_json::is_valid_uuid(uuid_channel, uuid);
-    std::string msg = arc_json::get_message(get_uuid(), "subscribe_close_channel", get_name(), uuid, true, get_app_name(), uuid_form, "", "subscribe_close_channel");
-    send("cmd " + msg, false);
+    is_valid_uuid(uuid_channel, uuid);
+    auto _msg = ws_message();
+    _msg.message().uuid = get_uuid();
+    _msg.message().message = "subscribe_close_channel";
+    _msg.message().name = get_name();
+    _msg.message().app_name = get_app_name();
+    _msg.message().command = "subscribe_close_channel";
+    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+
+    send("cmd " + _msg.get_json(true), false);
 }
 
 std::string &ws_client::get_app_name() {
@@ -349,16 +392,22 @@ std::string &ws_client::get_app_name() {
 
 void ws_client::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param, session * sess) {
 
-        std::string _uuid_form = uuid_form;
+//        std::string _uuid_form = uuid_form;
 //
 //        if (cmd.empty())
 //            return;
-        if (_uuid_form.empty())
-            _uuid_form = "00000000-0000-0000-0000-000000000000";
+//        if (_uuid_form.empty())
+//            _uuid_form = "00000000-0000-0000-0000-000000000000";
 
-        boost::uuids::uuid ch = boost::uuids::nil_uuid();
+        auto _msg = ws_message();
+        _msg.message().uuid = get_uuid();
+        _msg.message().message = param;
+        _msg.message().name = get_name();
+        _msg.message().app_name = get_app_name();
+        _msg.message().command = cmd;
+        _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
 
-        std::string msg = "cmd " + arc_json::get_message(get_uuid(), param, get_name(), ch, true, get_app_name(), _uuid_form, "", cmd);
+        std::string msg = "cmd " + _msg.get_json(true);
 
         auto const ss = boost::make_shared<std::string const>(std::move(msg));
 
@@ -371,11 +420,15 @@ void ws_client::set_session_param(const std::string &uuid, const std::string &na
     result.append("00000000-0000-0000-0000-000000000000 "); //форма
     result.append(uuid + " ");
     result.append(name + " ");
-    result.append(arc_json::get_hash(name, pwd) + " ");
+    result.append(get_hash(name, pwd) + " ");
     result.append(app_name + " ");
     result.append(user_uuid + " ");
 
-    std::string msg = "cmd " + arc_json::get_message(get_uuid(), result);
+    auto _msg = ws_message();
+    _msg.message().uuid = get_uuid();
+    _msg.message().message = result;
+
+    std::string msg = "cmd " + _msg.get_json(true);
 
     send(msg, false);
 }

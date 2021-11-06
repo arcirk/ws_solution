@@ -11,11 +11,15 @@ add_library(ws_client SHARED
         include/net.h
         include/ws_session.h
         include/ws_client.h
-        include/global.h
         src/ws_session.cpp
         src/ws_client.cpp
         src/iws_client.cpp
-        include/iws_client.h)
+        include/iws_client.h
+        ../arcirk/src/arcirk.cpp
+        ../arcirk/src/arcirk_static.cpp
+        ../arcirk/src/arcirk_json.cpp
+        ../arcirk/src/arcirk_ip.cpp
+        ../arcirk/src/arcirk_message.cpp)
 
 set_target_properties(ws_client PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -35,7 +39,9 @@ endif()
 find_package(Boost REQUIRED COMPONENTS thread)
 find_package(Boost REQUIRED COMPONENTS regex)
 #find_package(Boost REQUIRED COMPONENTS locale)
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(
+        "../arcirk/include"
+        ${Boost_INCLUDE_DIRS})
 
 #if (UNIX)
 target_link_libraries(ws_client
@@ -47,6 +53,7 @@ target_link_libraries(ws_client
 #    target_link_libraries(ws_client
 #        ${Boost_LIBRARIES}
 #        ${NMOS_CPP_SYSTEM_LIBS}
+#        arcirk
 #        )
 #endif()
 

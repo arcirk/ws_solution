@@ -15,7 +15,7 @@ QString ServeResponse::base64_decode(const std::string &resp)
 {
     std::string json;
     try {
-        json = arc_json::base64_decode(resp);
+        json = base64_decode(resp);
     }  catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return "";

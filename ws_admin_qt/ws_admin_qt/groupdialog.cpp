@@ -10,12 +10,12 @@ GroupDialog::GroupDialog(QWidget *parent, Ui::group_info* info) :
 
     if (info->new_group){
         if (info->parent_uuid.isEmpty()){
-            info->parent_uuid = QString::fromStdString(arc_json::nil_uuid());
+            info->parent_uuid = QString::fromStdString(nil_string_uuid());
             info->parent_name = "root";
         }
         info->group_name = "Новая группа";
         info->group_presentation = "Новая группа";
-        info->group_uuid = QString::fromStdString(arc_json::random_uuid());
+        info->group_uuid = QString::fromStdString(random_uuid());
 
     }
 

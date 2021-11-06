@@ -70,21 +70,21 @@ void MainWindow::load_user_catalog(const QString &resp)
 
     QJsonDocument doc = ServeResponse::parseResp(resp);
 
-//    //ToDo: удалить
-//    QString saveFileName = "usersCatalog.json";
-//    QFileInfo fileInfo(saveFileName);
-//    QDir::setCurrent(fileInfo.path());
-//
-//    QFile jsonFile(saveFileName);
-//    if (!jsonFile.open(QIODevice::WriteOnly))
-//    {
-//        return;
-//    }
-//
-//    // Записываем текущий объект Json в файл
-//    jsonFile.write(QJsonDocument(doc.object()).toJson(QJsonDocument::Indented));
-//    jsonFile.close();   // Закрываем файл
-//    ////
+    //ToDo: удалить
+    QString saveFileName = "usersCatalog.json";
+    QFileInfo fileInfo(saveFileName);
+    QDir::setCurrent(fileInfo.path());
+
+    QFile jsonFile(saveFileName);
+    if (!jsonFile.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
+
+    // Записываем текущий объект Json в файл
+    jsonFile.write(QJsonDocument(doc.object()).toJson(QJsonDocument::Indented));
+    jsonFile.close();   // Закрываем файл
+    ////
 
     treeUserCatalog->clear();
     treeUserCatalog->setColumnCount(0);
@@ -142,11 +142,11 @@ void MainWindow::tree_group_create_columns(QMap<QString, int> header, QTreeWidge
 void MainWindow::tree_create_root_items(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header){
 
     auto * root = new QTreeWidgetItem(MainWindow::itTopItem);
-    root-> setText (0, "root");
+    root-> setText (header["SecondField"], "root");
     root->setText(header["Ref"], "00000000-0000-0000-0000-000000000000");
     tree->addTopLevelItem(root);
     load_group_tree(model, root, header);
-    tree->expandAll();
+    //tree->expandAll();
 
 }
 

@@ -1,13 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>main.qml</file>
-        <file>ChatBox.qml</file>
-        <file>UsersBox.qml</file>
-        <file>MessageBox.qml</file>
         <file>images/smile-svgrepo-com.svg</file>
         <file>images/wondicon-ui-free-send_111204.svg</file>
-        <file>SmaileBox.qml</file>
-        <file>scripts.js</file>
         <file>images/1F9D0.svg</file>
         <file>images/1F44C.svg</file>
         <file>smail/1F9D0.svg</file>
@@ -133,14 +127,32 @@
         <file>smail/E281.svg</file>
         <file>smail/E282.svg</file>
         <file>smail/E283.svg</file>
-        <file>RoundPane.qml</file>
-        <file>IconPane.qml</file>
-        <file>MessageDialog.qml</file>
         <file>smail/select.svg</file>
         <file>images/deleteUser.png</file>
-        <file>MainForm.qml</file>
-        <file>UsersGroup.qml</file>
-        <file>ItemGroupPage.qml</file>
         <file>images/info16.png</file>
+        <file>qml/ChatBox.qml</file>
+        <file>qml/IconPane.qml</file>
+        <file>qml/ItemGroupPage.qml</file>
+        <file>qml/main.qml</file>
+        <file>qml/MainForm.qml</file>
+        <file>qml/MessageBox.qml</file>
+        <file>qml/MessageDialog.qml</file>
+        <file>qml/RoundPane.qml</file>
+        <file>qml/SmaileBox.qml</file>
+        <file>qml/UsersBox.qml</file>
+        <file>qml/UsersGroup.qml</file>
+        <file>scripts/scripts.js</file>
+        <file>qml/UsersList.qml</file>
+        <file>qml/UserItemCatalogDelegate.qml</file>
+        <file>images/26_122663.svg</file>
+        <file>images/002group_101557.svg</file>
+        <file>images/group-team.svg</file>
+        <file>images/team_group.svg</file>
+        <file>team.svg</file>
+        <file>images/ic-back_97586.svg</file>
+        <file>images/left_collapse.svg</file>
+        <file>images/left_collapse_lite.svg</file>
+        <file>images/mbriwebsitetheme_99562.svg</file>
+        <file>images/website_design.svg</file>
     </qresource>
 </RCC>

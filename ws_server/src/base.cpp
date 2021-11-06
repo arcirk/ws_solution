@@ -2,7 +2,7 @@
 // Created by arcady on 14.08.2021.
 //
 
-#include <arc_json.h>
+#include <arcirk.h>
 #include "../include/base.h"
 
 //ToDo: исправить код получения типа данных колонки col_count
@@ -257,7 +257,7 @@ namespace arc_sqlite {
         int rc;
         unsigned int j;
 
-        auto * obj_json = new arc_json::ws_json();
+        auto * obj_json = new arcirk::bJson();
 
         _Value _header(rapidjson::Type::kArrayType);
         _header.SetArray();
@@ -282,7 +282,7 @@ namespace arc_sqlite {
 //                    1 == name
 //                    2 == type
                     std::string p = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, 1));
-                    bVariant column_name = p;
+                    arcirk::bVariant column_name = p;
                     obj_json->push_back(_header, column_name);
                 }
             }
@@ -314,7 +314,7 @@ namespace arc_sqlite {
 
                 const char* p;
 
-                arc_json::content_value val;
+                arcirk::content_value val;
 
                 //td::string __col = reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
                 //bVariant column_name = __col; //reinterpret_cast<const char*>(sqlite3_column_name(pStmt, j));
@@ -361,7 +361,7 @@ namespace arc_sqlite {
                         val.value = "";
                 }
 
-                obj_json->addObjectMember(&row, val);
+                obj_json->addMember(&row, val);
 
             }
 
@@ -483,7 +483,7 @@ namespace arc_sqlite {
         return i;
     }
 
-    bool sqlite3_db::insert(tables tableType, std::vector<arc_json::content_value> values, std::string& err) {
+    bool sqlite3_db::insert(tables tableType, std::vector<arcirk::content_value> values, std::string& err) {
 
         std::string table = get_table_name(tableType);
 
@@ -498,13 +498,13 @@ namespace arc_sqlite {
                 if (iter != --values.end())
                     into.append(",\n");
 
-                if (iter->value.type() == typeid(std::string)){
-                    std::string value = boost::get<std::string>(iter->value);
+                if (iter->value.is_string()){
+                    std::string value = iter->value.get_string();
                     values_.append("'" + value + "'");
                     if (iter != --values.end())
                         values_.append(",\n");
-                }else if (iter->value.type() == typeid(long int)){
-                    long int res = boost::get<long int>(iter->value);
+                }else if (iter->value.is_int()){
+                    long int res = iter->value.get_int();
                     std::string value = std::to_string(res);
                     values_.append("'" + value + "'");
                     if (iter != --values.end())
@@ -535,7 +535,7 @@ namespace arc_sqlite {
 
     }
 
-    bool sqlite3_db::update(tables tableType, std::vector<arc_json::content_value> &sets, std::vector<arc_json::content_value> &where, std::string &err) {
+    bool sqlite3_db::update(tables tableType, std::vector<arcirk::content_value> &sets, std::vector<arcirk::content_value> &where, std::string &err) {
 
         std::string table = get_table_name(tableType);
 
@@ -550,13 +550,13 @@ namespace arc_sqlite {
 //                if (iter != --sets.end())
 //                    _set.append(",\n");
 
-                if (iter->value.type() == typeid(std::string)){
-                    std::string value = boost::get<std::string>(iter->value);
+                if (iter->value.is_string()){
+                    std::string value = iter->value.get_string();
                     _set.append(" = '" + value + "'");
                     if (iter != --sets.end())
                         _set.append(",\n");
-                }else if (iter->value.type() == typeid(long int)){
-                    long int res = boost::get<long int>(iter->value);
+                }else if (iter->value.is_int()){
+                    long int res = iter->value.get_int();
                     std::string value = std::to_string(res);
                     _set.append(" = '" + value + "'");
                     if (iter != --sets.end())
@@ -570,13 +570,13 @@ namespace arc_sqlite {
 //                if (iter != --where.end())
 //                    _where.append(",\n");
 
-                if (iter->value.type() == typeid(std::string)){
-                    std::string value = boost::get<std::string>(iter->value);
+                if (iter->value.is_string()){
+                    std::string value =  iter->value.get_string();
                     _where.append(" = '" + value + "'");
                     if (iter != --where.end())
                         _where.append(" AND \n");
-                }else if (iter->value.type() == typeid(long int)){
-                    long int res = boost::get<long int>(iter->value);
+                }else if (iter->value.is_int()){
+                    long int res = iter->value.get_int();
                     std::string value = std::to_string(res);
                     _where.append(" = '" + value + "'");
                     if (iter != --where.end())
@@ -606,8 +606,8 @@ namespace arc_sqlite {
 
     std::string sqlite3_db::get_channel_token(const boost::uuids::uuid &first, const boost::uuids::uuid &second) {
 
-        std::string query = "select _id, Ref from Users where Ref = '" + arc_json::uuid_to_string(
-                const_cast<boost::uuids::uuid &>(first)) + "' OR Ref = '" + arc_json::uuid_to_string(const_cast<boost::uuids::uuid &>(second)) + "' order by _id;";
+        std::string query = "select _id, Ref from Users where Ref = '" + arcirk::uuid_to_string(
+                const_cast<boost::uuids::uuid &>(first)) + "' OR Ref = '" + arcirk::uuid_to_string(const_cast<boost::uuids::uuid &>(second)) + "' order by _id;";
 
         std::vector<std::map<std::string, std::string>> table;
 
@@ -623,7 +623,7 @@ namespace arc_sqlite {
             return "error";
         }
 
-        std::string hash = arc_json::get_hash(table[0].at("Ref"), table[1].at("Ref"));
+        std::string hash = arcirk::get_hash(table[0].at("Ref"), table[1].at("Ref"));
 
         return hash;
     }
@@ -633,18 +633,18 @@ namespace arc_sqlite {
 
         std::string hash = get_channel_token(first, second);
         if (hash != "error"){
-            std::vector<arc_json::content_value> values;
-            values.push_back(arc_json::content_value("FirstField", arc_json::uuid_to_string(
+            std::vector<arcirk::content_value> values;
+            values.push_back(arcirk::content_value("FirstField", arcirk::uuid_to_string(
                     const_cast<boost::uuids::uuid &>(first))));
-            values.push_back(arc_json::content_value("SecondField", arc_json::uuid_to_string(
+            values.push_back(arcirk::content_value("SecondField", arcirk::uuid_to_string(
                     const_cast<boost::uuids::uuid &>(second))));
             boost::uuids::uuid ref = boost::uuids::random_generator()();
-            values.push_back(arc_json::content_value("Ref", arc_json::uuid_to_string(ref)));
-            values.push_back(arc_json::content_value("message", message));
-            values.push_back(arc_json::content_value("token", hash));
+            values.push_back(arcirk::content_value("Ref", arcirk::uuid_to_string(ref)));
+            values.push_back(arcirk::content_value("message", message));
+            values.push_back(arcirk::content_value("token", hash));
 
-            long int dt = arc_json::current_date_seconds();
-            values.push_back(arc_json::content_value("date", dt));
+            long int dt = arcirk::current_date_seconds();
+            values.push_back(arcirk::content_value("date", dt));
 
             std::string err;
 

@@ -8,6 +8,25 @@
 //#include <boost/locale.hpp>
 //#include <locale>
 
+struct report
+{
+    report(boost::system::error_code ec) : ec(ec) {}
+
+    void operator()(std::ostream& os) const
+    {
+        os << ec.category().name() << " : " << ec.value() << " : " << ec.message();
+    }
+
+    boost::system::error_code ec;
+
+    friend std::ostream& operator<<(std::ostream& os, report rep)
+    {
+        rep(os);
+        return os;
+    }
+
+};
+
 session::
 session(net::io_context& ioc)
 : resolver_(net::make_strand(ioc))
@@ -314,11 +333,11 @@ session::fail(beast::error_code ec, char const* what)
     std::ostringstream ss;
     //std::ostream& str = arc_json::report(ec);
 
-    ss << arc_json::report(ec);
+    ss << report(ec);
 
     std::string _msg = ss.str();
 
-    std::cerr << what << ": " << arc_json::report(ec) << "\n";
+    std::cerr << what << ": " << report(ec) << "\n";
 
     client_->error(what, _msg);
 }

@@ -58,28 +58,28 @@ void shared_state::_add_new_user(const std::string &usr, const std::string &pwd,
 
     std::string  hash;
     if (!pwd_is_hash)
-        hash = arc_json::get_hash(usr, pwd);
+        hash = arcirk::get_hash(usr, pwd);
     else
         hash = pwd;
 
     boost::uuids::uuid _uuid{};
-    if (uuid.empty()){
-        _uuid = boost::uuids::random_generator()();
-    } else
-        _uuid = arc_json::string_to_uuid(uuid);
+//    if (uuid.empty()){
+//        _uuid = boost::uuids::random_generator()();
+//    } else
+        _uuid = arcirk::string_to_uuid(uuid, true);
 
-    std::vector<arc_json::content_value> fields;
+    std::vector<arcirk::content_value> fields;
 
     std::string _parent = parent;
     if (_parent.empty())
-        _parent = arc_json::nil_uuid();
+        _parent = arcirk::nil_string_uuid();
 
-    fields.emplace_back(arc_json::content_value("FirstField", usr));
-    fields.emplace_back(arc_json::content_value("SecondField", perf));
-    fields.emplace_back(arc_json::content_value("Ref", arc_json::uuid_to_string(_uuid)));
-    fields.emplace_back(arc_json::content_value("hash", hash));
-    fields.emplace_back(arc_json::content_value("role", role));
-    fields.emplace_back(arc_json::content_value("channel", _parent));
+    fields.emplace_back(arcirk::content_value("FirstField", usr));
+    fields.emplace_back(arcirk::content_value("SecondField", perf));
+    fields.emplace_back(arcirk::content_value("Ref", arcirk::uuid_to_string(_uuid)));
+    fields.emplace_back(arcirk::content_value("hash", hash));
+    fields.emplace_back(arcirk::content_value("role", role));
+    fields.emplace_back(arcirk::content_value("channel", _parent));
 
     sqlite3Db->insert(arc_sqlite::tables::eUsers, fields, error);
 
@@ -104,7 +104,7 @@ leave(websocket_session* session)
 
     if (session->authorized){
         // Оповещаем всех об отключении клиента
-        send(std::string ("Отключился клиент: ") + session->get_name() + ":" + arc_json::uuid_to_string(session->get_uuid()), "client_leave");
+        send(std::string ("Отключился клиент: ") + session->get_name() + ":" + arcirk::uuid_to_string(session->get_uuid()), "client_leave");
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -128,6 +128,15 @@ leave(websocket_session* session)
 
 }
 
+_ws_message shared_state::createMessage(websocket_session *session) {
+    _ws_message _message = _ws_message();
+    _message.uuid = session->get_uuid();
+    _message.name = session->get_name();
+    _message.app_name = session->get_name();
+    _message.uuid_user = session->get_user_uuid();
+    return _message;
+}
+
 void
 shared_state::deliver(const std::string& message, websocket_session *session)
 {
@@ -146,12 +155,13 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         if (command == "set_client_param")
             result.append("result ");
 
-        boost::uuids::uuid uuid_channel{};
-        auto * msg = new arc_json::ws_message(session->get_uuid(), session->get_name(), msg_,
-                                              command, session->get_app_name(),
-                                              uuid_channel,res,"", session->get_user_uuid(), uuid_form);
-        result.append(msg->get_json(true));
+        _ws_message _message = createMessage(session);
+        _message.message = msg_;
+        _message.command = command;
+        _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
 
+        auto * msg = new ws_message(_message);
+        result.append(msg->get_json(true));
         delete msg;
     }else
     {
@@ -170,16 +180,14 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         }catch (boost::exception const &e){
             std::cerr << boost::diagnostic_information( e ) << std::endl;
             if (command != "set_client_param"){
-                auto * msg = new arc_json::ws_message(session->get_uuid(),
-                                                      session->get_name(),
-                                                      "Отказано в доступе!",
-                                                      command,
-                                                      session->get_app_name(),
-                                                      boost::uuids::nil_uuid(),
-                                                      "error",
-                                                      "", session->get_user_uuid(),
-                                                      uuid_form);
+                _ws_message _message = createMessage(session);
+                _message.message = "Отказано в доступе!";
+                _message.result = "error";
+                _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
+
+                auto * msg = new ws_message(_message);
                 result = msg->get_json(true);
+
                 delete msg;
             }
             auto const ss = boost::make_shared<std::string const>(std::move(result));
@@ -201,16 +209,15 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         if (is_valid_message(message, uuid_recipient, base64, err)){
             send_message(base64, uuid_recipient, session);
         }else{
-            auto * msg = new arc_json::ws_message(session->get_uuid(),
-                                                  session->get_name(),
-                                                  err,
-                                                  command,
-                                                  session->get_app_name(),
-                                                  boost::uuids::nil_uuid(),
-                                                  "error",
-                                                  "", session->get_user_uuid(),
-                                                  uuid_form);
+            _ws_message _message = createMessage(session);
+            _message.message = err;
+            _message.result = "error";
+            _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
+            _message.command = command;
+
+            auto * msg = new ws_message(_message);
             result = msg->get_json(true);
+
             auto const ss = boost::make_shared<std::string const>(std::move(result));
             session->send(ss);
             delete msg;
@@ -247,7 +254,8 @@ send(const std::string& message, std::string command, bool to_base64)
     for(auto const& wp : v)
         if(auto sp = wp.lock()){
             if (to_base64){
-                auto * new_msg = new arc_json::ws_message(sp->get_uuid(), sp->get_name(), message, command, sp->get_app_name());
+                _ws_message _message = createMessage(sp.get());
+                auto * new_msg = new ws_message(_message);
                 std::string sz_new_msg = new_msg->get_json(true);
                 auto const ss = boost::make_shared<std::string const>(std::move(sz_new_msg));
                 sp->send(ss);
@@ -290,7 +298,7 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
         message = cmd.substr(0, cmd.length()  - 1) ;
     }
 
-    arc_json::T_vec v = arc_json::split(std::move(message), " ");
+    arcirk::T_vec v = arcirk::split(std::move(message), " ");
 
     std::string result = "unknown command!";
 
@@ -307,16 +315,16 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
 
     //декодируем 2 элемент массива
     try {
-        json = arc_json::base64_decode(base64);
+        json = arcirk::base64_decode(base64);
     }catch (std::exception& e){
         res = "error";
         return std::string ("error: ") + e.what() ;
     }
 
     // парсим
-    auto * msg = new arc_json::ws_message(json);
+    auto * msg = new ws_message(json);
 
-    if (msg->is_parse) {
+    if (msg->is_parse()) {
 
 //        //возможно команда имеет формат
 //        //command uuid "message"
@@ -329,19 +337,19 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
 //
 //        command = vec_command[0];
 
-        command = msg->get_command();
+        command = msg->message().command;
 
         std::cout << "run command: " << command << std::endl;
 
-        uuid_form = msg->get_uuid_form();
+        uuid_form = arcirk::uuid_to_string(msg->message().uuid_form);
 
         if (!is_valid_command_name(command)){
             res = "error";
             return "unknown command!";
         }
 
-        auto * params = new arc_json::ws_json();
-        std::string tmp_msg = msg->get_message();
+        auto * params = new arcirk::bJson();
+        std::string tmp_msg = msg->message().message;
         params->parse(tmp_msg);
 
         if (!params->is_parse()){
@@ -399,8 +407,8 @@ shared_state::get_sessions(boost::uuids::uuid &user_uuid) {
     return {};
 }
 
-void shared_state::send_private_message(const std::string &message, boost::uuids::uuid &recipient,
-                                        boost::uuids::uuid &sender) {
+//void shared_state::send_private_message(const std::string &message, boost::uuids::uuid &recipient,
+//                                        boost::uuids::uuid &sender) {
 
 //    auto session = get_session(recipient);
 //    auto session_sender = get_session(sender);
@@ -422,7 +430,7 @@ void shared_state::send_private_message(const std::string &message, boost::uuids
 //        delete msg;
 //    }
 
-}
+//}
 void shared_state::on_start() {
 
     //get shared channels
@@ -437,10 +445,10 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "send_all_message")
         return params == 2;
-    else if (command == "subscribe_to_channel")
-        return params == 3;
-    else if (command == "subscribe_exit_channel")
-        return params == 3;
+//    else if (command == "subscribe_to_channel")
+//        return params == 3;
+//    else if (command == "subscribe_exit_channel")
+//        return params == 3;
     else if (command == "add_user")
         return params == 6;
     else if (command == "get_users")
@@ -484,9 +492,9 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_active_users");
     commands.emplace_back("send_all_message");
     commands.emplace_back("add_user");
-    commands.emplace_back("subscribe_to_channel");
-    commands.emplace_back("subscribe_exit_channel");
-    commands.emplace_back("send_private_message");
+//    commands.emplace_back("subscribe_to_channel");
+//    commands.emplace_back("subscribe_exit_channel");
+    //commands.emplace_back("send_private_message");
     commands.emplace_back("message");
     commands.emplace_back("get_users");
     commands.emplace_back("update_user");
@@ -514,10 +522,10 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::get_active_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "send_all_message")
         return  std::bind(&shared_state::send_all_message, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-    else if (command == "subscribe_to_channel")
-        return  std::bind(&shared_state::subscribe_to_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-    else if (command == "subscribe_exit_channel")
-        return  std::bind(&shared_state::subscribe_exit_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+//    else if (command == "subscribe_to_channel")
+//        return  std::bind(&shared_state::subscribe_to_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+//    else if (command == "subscribe_exit_channel")
+//        return  std::bind(&shared_state::subscribe_exit_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "add_user")
         return  std::bind(&shared_state::add_new_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "get_users")
@@ -555,24 +563,24 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
 }
 
 bool
-shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result){
+shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result){
 
     //Установка основных параметров сессии + авторизация
     try {
 
-        boost::uuids::uuid new_uuid = arc_json::string_to_uuid(params->getStringMember("uuid"), true);
-        std::string name = params->getStringMember("name");
-        std::string pwd = params->getStringMember("pwd");
-        std::string hash = params->getStringMember("hash"); //если указан хеш пароль игронится
+        boost::uuids::uuid new_uuid = params->get_member("uuid").get_uuid();
+        std::string name = params->get_member("name").get_string();
+        std::string pwd = params->get_member("pwd").get_string();
+        std::string hash = params->get_member("hash").get_string(); //если указан хеш пароль игронится
         if (hash.empty())
-            hash = arc_json::get_hash(name, pwd);
+            hash = arcirk::get_hash(name, pwd);
 
-        std::string app_name = params->getStringMember("app_name");
-        boost::uuids::uuid user_uuid = arc_json::string_to_uuid(params->getStringMember("user_uuid"), true);
+        std::string app_name = params->get_member("app_name").get_string();
+        boost::uuids::uuid user_uuid = params->get_member("user_uuid").get_uuid();
 
 
         if (get_session(new_uuid)){
-            err = "Клиент с идентификатором '" + params->getStringMember("uuid") + "' уже зарегистрирован!";
+            err = "Клиент с идентификатором '" + params->get_member("uuid").get_string() + "' уже зарегистрирован!";
             return false;
         }
 
@@ -601,7 +609,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
                     role = table[0].at("role");
                     std::string ref = table[0].at("Ref");
                     if (!ref.empty())
-                        user_uuid = arc_json::string_to_uuid(ref, true);
+                        user_uuid = arcirk::string_to_uuid(ref, true);
                 }
             }
 
@@ -618,7 +626,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
-            send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arc_json::uuid_to_string(session->get_uuid()), "client_join");
+            send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arcirk::uuid_to_string(session->get_uuid()), "client_join");
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;
 
             //Добавляем в список собственных сессий пользователя
@@ -645,17 +653,17 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arc_json::ws_json* para
     }
 }
 
-bool shared_state::get_active_users(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
+bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result) {
 
-    arc_json::ws_json json_arr{};
+    arcirk::bJson json_arr{};
     json_arr.set_array();
 
     for (auto p : sessions_){
         _Value doc(rapidjson::Type::kObjectType);
-        json_arr.addObjectMember(&doc, arc_json::content_value("uuid", to_string(p.second->get_uuid())));
-        json_arr.addObjectMember(&doc, arc_json::content_value("name", p.second->get_name()));
-        json_arr.addObjectMember(&doc, arc_json::content_value("user_uuid", to_string(p.second->get_user_uuid())));
-        json_arr.addObjectMember(&doc, arc_json::content_value("app_name", p.second->get_app_name()));
+        json_arr.addMember(&doc, arcirk::content_value("uuid", to_string(p.second->get_uuid())));
+        json_arr.addMember(&doc, arcirk::content_value("name", p.second->get_name()));
+        json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
+        json_arr.addMember(&doc, arcirk::content_value("app_name", p.second->get_app_name()));
         json_arr.push_back(doc) ;
     }
 
@@ -665,16 +673,23 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arc_json::ws_json*
 
 }
 
-bool shared_state::send_all_message(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
+bool shared_state::send_all_message(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result) {
 
-    std::string message = params->getStringMember("message");
+    std::string message = params->get_member("message").get_string();
 
     if (message.empty()){
         err = "Передано пустое сообщение!";
         return false;
     }
 
-    auto * new_msg = new arc_json::ws_message(uuid, msg->get_name(), message, "send_all_message", msg->get_app_name());
+    _ws_message _message = _ws_message();
+    _message.uuid = uuid;
+    _message.name = msg->message().message;
+    _message.message = message;
+    _message.command = "send_all_message";
+    _message.app_name = msg->message().app_name;
+
+    auto * new_msg = new ws_message(_message);
     std::string sz_new_msg = new_msg->get_json(true);
     send(sz_new_msg, "message", false);
     delete new_msg;
@@ -739,7 +754,7 @@ bool shared_state::is_valid_message(const std::string &message, boost::uuids::uu
         _message = message.substr(0, message.length()  - 1) ;
     }
 
-    arc_json::T_vec v = arc_json::split(std::move(_message), " ");
+    arcirk::T_vec v = arcirk::split(std::move(_message), " ");
 
 
     if (v.size() != 3){
@@ -751,7 +766,7 @@ bool shared_state::is_valid_message(const std::string &message, boost::uuids::uu
     base64 = v[2];
 
     if (_uuid_recipient != "00000000-0000-0000-0000-000000000000"){
-        if (!arc_json::is_valid_uuid(_uuid_recipient, uuid_recipient)){
+        if (!arcirk::is_valid_uuid(_uuid_recipient, uuid_recipient)){
             err = "error uuid recipient!";
             return false;
         }
@@ -761,47 +776,47 @@ bool shared_state::is_valid_message(const std::string &message, boost::uuids::uu
     return true;
 }
 
-bool shared_state::subscribe_to_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
+//bool shared_state::subscribe_to_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
+//
+//    //params[1] - идентификатор формы
+//    boost::uuids::uuid sub = arc_json::string_to_uuid(params->getStringMember("uuid_channel"));
+//
+//    auto session_channel = get_session(sub);
+//    auto session = get_session(uuid);
+//
+//    if (session && session_channel){
+//        session_channel->join_channel(session);
+//        std::cout << "subscribe_to_channel:ok" << std::endl;
+//        send_private_message("subscribe_to_channel:true", sub, uuid);
+//        return true;
+//    }
+//    std::cout << "subscribe_to_channel:error" << std::endl;
+//    return false;
+//
+//}
 
-    //params[1] - идентификатор формы
-    boost::uuids::uuid sub = arc_json::string_to_uuid(params->getStringMember("uuid_channel"));
+//bool shared_state::subscribe_exit_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
+//
+//    auto session_channel = get_session(msg->get_uuid_channel());
+//
+//    if (session_channel)
+//        session_channel->close_channel(msg->get_uuid());
+//
+//    return true;
+//}
 
-    auto session_channel = get_session(sub);
-    auto session = get_session(uuid);
-
-    if (session && session_channel){
-        session_channel->join_channel(session);
-        std::cout << "subscribe_to_channel:ok" << std::endl;
-        send_private_message("subscribe_to_channel:true", sub, uuid);
-        return true;
-    }
-    std::cout << "subscribe_to_channel:error" << std::endl;
-    return false;
-
-}
-
-bool shared_state::subscribe_exit_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
-
-    auto session_channel = get_session(msg->get_uuid_channel());
-
-    if (session_channel)
-        session_channel->close_channel(msg->get_uuid());
-
-    return true;
-}
-
-bool shared_state::add_new_user(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message *msg,
+bool shared_state::add_new_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
     err = "";
 
     _add_new_user(
-            params->getStringMember("user"), //user
-            params->getStringMember("pwd"), //pwd
-            params->getStringMember("role"), //role
-            params->getStringMember("uuid"), //uuid
-            params->getStringMember("perf"), //perf
-            params->getStringMember("parent"), //perf
+            params->get_member("user").get_string(), //user
+            params->get_member("pwd").get_string(), //pwd
+            params->get_member("role").get_string(), //role
+            params->get_member("uuid").to_string(), //uuid
+            params->get_member("presentation").get_string(), //presentation
+            params->get_member("parent").get_string(), //
             err,
             false);
     if (!err.empty())
@@ -810,10 +825,10 @@ bool shared_state::add_new_user(boost::uuids::uuid &uuid, arc_json::ws_json* par
         return true;
 }
 
-bool shared_state::get_db_users(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message *msg,
+bool shared_state::get_db_users(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
-    std::string channel = params->getStringMember("channel");
+    std::string channel = params->get_member("channel").get_string();
 
     std::string query = "SELECT * FROM Users";
 
@@ -831,18 +846,18 @@ bool shared_state::get_db_users(boost::uuids::uuid &uuid, arc_json::ws_json* par
     return true;
 }
 
-bool shared_state::update_user(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message *msg,
+bool shared_state::update_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                std::string &err, std::string &custom_result) {
 
     std::string query = "UPDATE Users SET ";
 
     try {
-        std::vector<arc_json::content_value> m_sets;
+        std::vector<arcirk::content_value> m_sets;
         if (!params->getMembers("set", m_sets)) {
             err = "error parse parameters command";
             return false;
         }
-        std::vector<arc_json::content_value> m_where;
+        std::vector<arcirk::content_value> m_where;
         if (!params->getMembers("where", m_where)) {
             err = "error parse parameters command";
             return false;
@@ -851,7 +866,7 @@ bool shared_state::update_user(boost::uuids::uuid &uuid, arc_json::ws_json* para
         for (auto itr = m_sets.begin(); itr < m_sets.end(); itr++){
             std::string tmp = itr->key;
             tmp.append(" = '");
-            tmp.append(boost::get<std::string>(itr->value));
+            tmp.append(itr->value.get_string());
             tmp.append("'");
             query.append(" " + tmp);
             if (itr != --m_sets.end())
@@ -864,7 +879,7 @@ bool shared_state::update_user(boost::uuids::uuid &uuid, arc_json::ws_json* para
         for (auto itr = m_where.begin(); itr < m_where.end(); itr++){
             std::string tmp = itr->key;
             tmp.append(" = '");
-            tmp.append(boost::get<std::string>(itr->value));
+            tmp.append(itr->value.get_string());
             tmp.append("'");
             query.append(" " + tmp);
             if (itr != --m_where.end())
@@ -885,12 +900,12 @@ bool shared_state::update_user(boost::uuids::uuid &uuid, arc_json::ws_json* para
         return false;
 }
 
-bool shared_state::get_messages(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
     boost::uuids::uuid recipient{};
 
-    if (!arc_json::is_valid_uuid(params->getStringMember("recipient"), recipient)){
+    if (!arcirk::is_valid_uuid(params->get_member("recipient").to_string(), recipient)){
         err = "Не действительный идентификатор подписчика!";
         return false;
     }
@@ -902,12 +917,10 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arc_json::ws_json *par
         return false;
     }
 
-    int limit = 0;
-    params->getMember("limit", limit);
-    int start_date = 0;
-    params->getMember("start_date", start_date);
-    int end_date = 0;
-    params->getMember("end_date", end_date);
+    int limit = params->get_member("limit").get_int();
+    int start_date = params->get_member("start_date").get_int();
+    int end_date = params->get_member("end_date").get_int();
+
 
     std::string json;
 
@@ -927,39 +940,38 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arc_json::ws_json *par
 
 }
 
-bool shared_state::get_user_info(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                  std::string &err, std::string &custom_result) {
 
 
-    std::string user_uuid = params->getStringMember("user_uuid");
+    boost::uuids::uuid user_uuid = params->get_member("uuid_user").get_uuid();
 
-    if (!user_uuid.empty() && user_uuid != arc_json::nil_uuid()){
+    if (user_uuid != arcirk::nil_uuid()){
 
-        std::string query = "select * from Users where Ref = '" + user_uuid + "';";
+        std::string query = "select * from Users where Ref = '" + to_string(user_uuid) + "';";
         std::vector<std::map<std::string , std::string>> row;
         std::string err = "";
 
-        auto json = new arc_json::ws_json();
+        auto json = new arcirk::bJson();
         json->set_object();
 
         int result = sqlite3Db->execute(query, "Users", row, err);
 
         if (result > 0){
-            json->addMember(arc_json::content_value("name", row[0].at("FirstField")));
-            json->addMember(arc_json::content_value("performance", row[0].at("SecondField")));
-            json->addMember(arc_json::content_value("user_uuid", row[0].at("Ref")));
+            json->addMember(arcirk::content_value("name", row[0].at("FirstField")));
+            json->addMember(arcirk::content_value("performance", row[0].at("SecondField")));
+            json->addMember(arcirk::content_value("user_uuid", row[0].at("Ref")));
         } else
-            json->addMember(arc_json::content_value("name", "не зарегистрирован"));
+            json->addMember(arcirk::content_value("name", "не зарегистрирован"));
 
         websocket_session* session = nullptr;
-        boost::uuids::uuid user_uuid_ = arc_json::string_to_uuid(user_uuid);
 
-        auto sessions = get_sessions(user_uuid_);
+        auto sessions = get_sessions(user_uuid);
 
         if (sessions.size() > 0){
-            json->addMember(arc_json::content_value("active", true));
+            json->addMember(arcirk::content_value("active", true));
         } else
-            json->addMember(arc_json::content_value("active", false));
+            json->addMember(arcirk::content_value("active", false));
 
         custom_result = json->to_string();
         delete json;
@@ -971,8 +983,8 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arc_json::ws_json *pa
     return true;
 }
 
-bool shared_state::get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
-                                  std::string &err, std::string &custom_result) {
+bool shared_state::get_group_list(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
+                                  std::string &err, std::string &custom_result){
 
     std::string query = "SELECT SecondField, FirstField, Ref, Parent FROM Channels;";
     err = "";
@@ -985,7 +997,7 @@ bool shared_state::get_group_list(boost::uuids::uuid &uuid, arc_json::ws_json *p
     return true;
 }
 
-bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::add_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                              std::string &err, std::string &custom_result) {
 
     auto  current_sess = get_session(uuid);
@@ -1004,23 +1016,23 @@ bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params
         return false;
     }
 
-    std::string group_name = params->getStringMember("name");
-    std::string group_presentation = params->getStringMember("presentation");
-    std::string group_parent = params->getStringMember("parent");
+    std::string group_name = params->get_member("name").get_string();
+    std::string group_presentation = params->get_member("presentation").get_string();
+    std::string group_parent = params->get_member("parent").get_string();
     boost::uuids::uuid _uuid = boost::uuids::random_generator()();
 
     std::string _group_parent;
     if (group_parent.empty()){
-        _group_parent = arc_json::nil_uuid();
+        _group_parent = arcirk::nil_string_uuid();
     } else
         _group_parent = group_parent;
 
-    std::vector<arc_json::content_value> fields;
+    std::vector<arcirk::content_value> fields;
 
-    fields.emplace_back(arc_json::content_value("FirstField", group_name));
-    fields.emplace_back(arc_json::content_value("SecondField", group_presentation));
-    fields.emplace_back(arc_json::content_value("Ref", arc_json::uuid_to_string(_uuid)));
-    fields.emplace_back(arc_json::content_value("Parent", _group_parent));
+    fields.emplace_back(arcirk::content_value("FirstField", group_name));
+    fields.emplace_back(arcirk::content_value("SecondField", group_presentation));
+    fields.emplace_back(arcirk::content_value("Ref", arcirk::uuid_to_string(_uuid)));
+    fields.emplace_back(arcirk::content_value("Parent", _group_parent));
 
     err = "";
     sqlite3Db->insert(arc_sqlite::tables::eChannels, fields, err);
@@ -1028,7 +1040,7 @@ bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params
     if (!err.empty())
         return false;
     else{
-        auto * obj = new arc_json::ws_json();
+        auto * obj = new arcirk::bJson();
         obj->set_object();
         obj->addObject(fields);
         custom_result = obj->to_string();
@@ -1037,7 +1049,7 @@ bool shared_state::add_group(boost::uuids::uuid &uuid, arc_json::ws_json *params
     }
 
 }
-bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::edit_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                               std::string &err, std::string &custom_result) {
     auto  current_sess = get_session(uuid);
 
@@ -1055,24 +1067,24 @@ bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *param
         return false;
     }
 
-    std::string group_name = params->getStringMember("name");
-    std::string group_presentation = params->getStringMember("presentation");
-    std::string group_parent = params->getStringMember("parent");
-    std::string _uuid = params->getStringMember("ref");
+    std::string group_name = params->get_member("name").get_string();
+    std::string group_presentation = params->get_member("presentation").get_string();
+    std::string group_parent = params->get_member("parent").get_string();
+    std::string _uuid = params->get_member("ref").get_string();
 
     if (_uuid.empty()){
         err = "не указан идентификатор группы!";
         return false;
     }
 
-    std::vector<arc_json::content_value> _sets;
+    std::vector<arcirk::content_value> _sets;
 
-    _sets.emplace_back(arc_json::content_value("FirstField", group_name));
-    _sets.emplace_back(arc_json::content_value("SecondField", group_presentation));
-    _sets.emplace_back(arc_json::content_value("Parent", group_parent));
+    _sets.emplace_back(arcirk::content_value("FirstField", group_name));
+    _sets.emplace_back(arcirk::content_value("SecondField", group_presentation));
+    _sets.emplace_back(arcirk::content_value("Parent", group_parent));
 
-    std::vector<arc_json::content_value> _where;
-    _where.emplace_back(arc_json::content_value("Ref", _uuid));
+    std::vector<arcirk::content_value> _where;
+    _where.emplace_back(arcirk::content_value("Ref", _uuid));
 
     err = "";
     sqlite3Db->update(arc_sqlite::tables::eChannels, _sets, _where, err);
@@ -1080,8 +1092,8 @@ bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *param
     if (!err.empty())
         return false;
     else{
-        _sets.emplace_back(arc_json::content_value("Ref", _uuid));
-        auto * obj = new arc_json::ws_json();
+        _sets.emplace_back(arcirk::content_value("Ref", _uuid));
+        auto * obj = new arcirk::bJson();
         obj->set_object();
         obj->addObject(_sets);
         custom_result = obj->to_string();
@@ -1090,8 +1102,8 @@ bool shared_state::edit_group(boost::uuids::uuid &uuid, arc_json::ws_json *param
     }
 }
 
-bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
-                                std::string &err, std::string &custom_result) {
+bool shared_state::remove_group(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
+                                std::string &err, std::string &custom_result)  {
     auto  current_sess = get_session(uuid);
 
     try {
@@ -1108,7 +1120,7 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arc_json::ws_json *par
         return false;
     }
 
-    std::string _uuid = params->getStringMember("ref");
+    std::string _uuid = params->get_member("ref").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор группы!";
         return false;
@@ -1168,7 +1180,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     }
 
     //Перемещаем
-    query = "UPDATE Users SET channel = '" + arc_json::nil_uuid() + "' WHERE _id in (";
+    query = "UPDATE Users SET channel = '" + arcirk::nil_string_uuid() + "' WHERE _id in (";
     for (auto itr = tableUsers.begin(); itr != tableUsers.end() ; ++itr) {
         std::map<std::string, boost::variant<std::string, double, int>> row = *itr;
         if(row["_id"].type() == typeid(int))
@@ -1218,7 +1230,7 @@ void shared_state::get_group_hierarchy_keys(const std::string &current_uuid, std
 
 }
 
-bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::set_parent(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                               std::string &err, std::string &custom_result) {
 
     auto  current_sess = get_session(uuid);
@@ -1236,15 +1248,15 @@ bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *param
         err = "не достаточно прав доступа для команды!";
         return false;
     }
-    std::string _uuid = params->getStringMember("user");
+    std::string _uuid = params->get_member("user").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор пользователя!";
         return false;
     }
 
-    std::string _parent = params->getStringMember("parent");
+    std::string _parent = params->get_member("parent").get_string();
     if (_uuid.empty()){
-        _parent = arc_json::nil_uuid();
+        _parent = arcirk::nil_string_uuid();
     }
 
     std::string query = "UPDATE Users\n"
@@ -1261,7 +1273,7 @@ bool shared_state::set_parent(boost::uuids::uuid &uuid, arc_json::ws_json *param
     return true;
 }
 
-bool shared_state::remove_user(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::remove_user(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                std::string &err, std::string &custom_result) {
 
     auto  current_sess = get_session(uuid);
@@ -1280,7 +1292,7 @@ bool shared_state::remove_user(boost::uuids::uuid &uuid, arc_json::ws_json *para
         return false;
     }
 
-    std::string _uuid = params->getStringMember("ref");
+    std::string _uuid = params->get_member("ref").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор пользователя!!";
         return false;
@@ -1299,8 +1311,8 @@ bool shared_state::remove_user(boost::uuids::uuid &uuid, arc_json::ws_json *para
     return true;
 }
 
-bool shared_state::kill_session(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
-                                std::string &err, std::string &custom_result) {
+bool shared_state::kill_session(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                std::string &err, std::string &custom_result){
 
     auto  current_sess = get_session(uuid);
 
@@ -1318,13 +1330,13 @@ bool shared_state::kill_session(boost::uuids::uuid &uuid, arc_json::ws_json *par
         return false;
     }
 
-    std::string _uuid = params->getStringMember("ref");
+    std::string _uuid = params->get_member("ref").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор пользователя!!";
         return false;
     }
 
-    boost::uuids::uuid kill_uuid = arc_json::string_to_uuid(_uuid);
+    boost::uuids::uuid kill_uuid = arcirk::string_to_uuid(_uuid, false);
     auto  kill_sess = get_session(kill_uuid);
     if (kill_sess)
         kill_sess->close();
@@ -1335,8 +1347,8 @@ bool shared_state::kill_session(boost::uuids::uuid &uuid, arc_json::ws_json *par
 
 }
 
-bool shared_state::set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
-                                std::string &err, std::string &custom_result) {
+bool shared_state::set_uuid(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                            std::string &err, std::string &custom_result) {
 
     auto  current_sess = get_session(uuid);
 
@@ -1354,22 +1366,22 @@ bool shared_state::set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json *params,
         return false;
     }
 
-    std::string _uuid = params->getStringMember("uuid_set");
+    std::string _uuid = params->get_member("uuid_set").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор сессии!!";
         return false;
     }
 
-    boost::uuids::uuid uuid_set = arc_json::string_to_uuid(_uuid);
+    boost::uuids::uuid uuid_set = arcirk::string_to_uuid(_uuid, false);
     auto  session_set = get_session(uuid_set);
     if (!session_set) //такой сессии не существует
         return false;
 
-    std::string _new_uuid = params->getStringMember("new_uuid");
+    std::string _new_uuid = params->get_member("new_uuid").get_string();
     if (_new_uuid.empty())
         return false;
 
-    boost::uuids::uuid new_uuid = arc_json::string_to_uuid(_new_uuid);
+    boost::uuids::uuid new_uuid = arcirk::string_to_uuid(_new_uuid, false);
 
     auto  session_valid = get_session(uuid_set);
     if (session_valid) //сессия с таким идентификатором уже  существует
@@ -1383,8 +1395,8 @@ bool shared_state::set_uuid(boost::uuids::uuid &uuid, arc_json::ws_json *params,
     return true;
 }
 
-bool shared_state::set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
-                            std::string &err, std::string &custom_result) {
+bool shared_state::set_app_name(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                std::string &err, std::string &custom_result) {
     auto  current_sess = get_session(uuid);
 
     try {
@@ -1400,15 +1412,15 @@ bool shared_state::set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json *par
         return false;
     }
 
-    std::string _uuid = params->getStringMember("uuid_set");
+    std::string _uuid = params->get_member("uuid_set").get_string();
     if (_uuid.empty()){
         err = "не указан идентификатор сессии!!";
         return false;
     }
 
-    boost::uuids::uuid uuid_set = arc_json::string_to_uuid(_uuid);
+    boost::uuids::uuid uuid_set = arcirk::string_to_uuid(_uuid, false);
 
-    std::string new_app_name = params->getStringMember("new_app_name");
+    std::string new_app_name = params->get_member("new_app_name").get_string();
     if (new_app_name.empty())
         return false;
 
@@ -1425,10 +1437,10 @@ bool shared_state::set_app_name(boost::uuids::uuid &uuid, arc_json::ws_json *par
 
 }
 
-bool shared_state::exec_query(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                               std::string &err, std::string &custom_result) {
 
-    std::string query = params->getStringMember("query");
+    std::string query = params->get_member("query").get_string();
     if (query.empty())
         return false;
 
@@ -1444,7 +1456,7 @@ bool shared_state::exec_query(boost::uuids::uuid &uuid, arc_json::ws_json *param
 
 }
 
-bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arc_json::ws_json *params, arc_json::ws_message *msg,
+bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                      std::string &err, std::string &custom_result) {
 //    std::string query = "SELECT FirstField, SecondField, Ref, Parent, 1 AS IsGroup FROM Channels "
 //                        "UNION "

@@ -23,7 +23,7 @@ public:
 
     ~user_info()= default;
     explicit user_info(QString _name = "Новый пользователь",
-              QString _uuid = QString::fromStdString(arc_json::nil_uuid()),
+              QString _uuid = QString::fromStdString(nil_string_uuid()),
               QString _pres = "Новый пользователь",
               QString _role = "user",
               QString _parent = "")

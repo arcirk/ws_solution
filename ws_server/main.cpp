@@ -30,8 +30,7 @@
 #include <iostream>
 #include <vector>
 
-#include <arc_json.h>
-#include <ip.h>
+#include <arcirk.h>
 
 //#include "./include/base.h"
 #include <string>
@@ -50,14 +49,14 @@ typedef struct settings{
 
     bool get_settings(const std::string& filename){
 
-        arc_json::ws_json json{};
+        arcirk::bJson json{};
 
         if (json.from_file(filename)){
-            json.getMember("name", name);
-            json.getMember("host", host);
-            json.getMember("port", port);
-            json.getMember("root_dir", root_dir);
-            json.getMember("debug_dir", debug_dir);
+            name = json.get_member("name").get_string();
+            host = json.get_member("host").get_string();
+            port = json.get_member("port").get_int();
+            root_dir = json.get_member("root_dir").get_string();
+            debug_dir = json.get_member("debug_dir").get_string();
             return true;
         }
         return false;
@@ -65,25 +64,25 @@ typedef struct settings{
 
     std::string to_string() const{
 
-        arc_json::ws_json json{};
+        arcirk::bJson json{};
         json.set_object();
-        json.addMember(arc_json::content_value("name", name));
-        json.addMember(arc_json::content_value("host", host));
-        json.addMember(arc_json::content_value("port", (long int)port));
-        json.addMember(arc_json::content_value("root_dir", root_dir));
-        json.addMember(arc_json::content_value("debug_dir", debug_dir));
+        json.addMember(arcirk::content_value("name", name));
+        json.addMember(arcirk::content_value("host", host));
+        json.addMember(arcirk::content_value("port", (long int)port));
+        json.addMember(arcirk::content_value("root_dir", root_dir));
+        json.addMember(arcirk::content_value("debug_dir", debug_dir));
         return json.to_string();
     }
 
     bool parse(const std::string& text){
-        arc_json::ws_json json{};
+        arcirk::bJson json{};
         json.parse(text);
         if (json.is_parse()){
-            json.getMember("name", name);
-            json.getMember("host", host);
-            json.getMember("port", port);
-            json.getMember("root_dir", root_dir);
-            json.getMember("debug_dir", debug_dir);
+            name = json.get_member("name").get_string();
+            host = json.get_member("host").get_string();
+            port = json.get_member("port").get_int();
+            root_dir = json.get_member("root_dir").get_string();
+            debug_dir = json.get_member("debug_dir").get_string();
             return true;
         }
         return false;
@@ -103,7 +102,7 @@ main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::string host = arc_json::get_default_host(st.host);
+    std::string host = arcirk::bIp::get_default_host(st.host);
 
     std::cout << "Start server " << host << ":" << st.port << std::endl;
 

@@ -26,10 +26,10 @@ void QmlWebSocket::open(const QString& user_name, const QString& user_password)
     }
 
     if (!user_password.isEmpty()) {
-        settings->Hash = QString::fromStdString( arc_json::get_hash(user_name.toStdString(), user_password.toStdString()));
+        settings->Hash = QString::fromStdString( get_hash(user_name.toStdString(), user_password.toStdString()));
     }
     if (settings->Hash.isEmpty()) {
-        settings->Hash = QString::fromStdString( arc_json::get_hash(user_name.toStdString(), user_password.toStdString()));
+        settings->Hash = QString::fromStdString( get_hash(user_name.toStdString(), user_password.toStdString()));
     }
     settings->RootUser = user_name;
 
@@ -158,10 +158,10 @@ void QmlWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_
 
 long QmlWebSocket::currentDate()
 {
-    return arc_json::current_date_seconds();
+    return current_date_seconds();
 }
 
 long QmlWebSocket::addDay(const long source, const int dayCount)
 {
-    return arc_json::add_day(source, dayCount);
+    return add_day(source, dayCount);
 }

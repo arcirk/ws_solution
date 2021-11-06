@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 project(ws_server)
 
 set(CMAKE_CXX_STANDARD 17)
+
 if (UNIX)
     SET(CMAKE_CXX_FLAGS -pthread)
 endif()
@@ -38,7 +39,7 @@ find_package(Boost REQUIRED COMPONENTS regex)
 #find_package (SQLite3 REQUIRED CONFIG)
 
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories("../arc_json")
+include_directories("../arcirk/include")
 #include_directories(${SQLITE3_INCLUDE_DIRS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -49,10 +50,9 @@ endif()
 
 target_link_libraries(ws_server PRIVATE
         ${Boost_LIBRARIES}
-        arc_json
         ${CMAKE_DL_LIBS}
         ${NMOS_CPP_SYSTEM_LIBS}
-        )
+        arcirk)
         #${SQLITE3_LIBRARIES}
 
 add_custom_command(TARGET ws_server PRE_BUILD

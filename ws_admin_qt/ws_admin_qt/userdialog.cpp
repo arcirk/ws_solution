@@ -15,7 +15,7 @@ UserDialog::UserDialog(QWidget *parent, Ui::user_info * usr_info) :
     _usr_info = usr_info;
 
     if(new_user){
-        _usr_info->uuid = QString::fromStdString(arc_json::random_uuid());
+        _usr_info->uuid = QString::fromStdString(random_uuid());
     }
 
     ui->cmbRole->addItem("admin", "admin");

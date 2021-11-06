@@ -7,24 +7,24 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 add_executable(chat_qml_test
-        ChatBox.qml
-        IconPane.qml
-        ItemGroupPage.qml
+        qml/ChatBox.qml
+        qml/IconPane.qml
+        qml/ItemGroupPage.qml
         main.cpp
-        main.qml
-        MainForm.qml
-        MessageBox.qml
-        MessageDialog.qml
-        messagelistmodel.cpp
-        messagelistmodel.h
+        qml/main.qml
+        qml/MainForm.qml
+        qml/MessageBox.qml
+        qml/MessageDialog.qml
+        src/messagelistmodel.cpp
+        include/messagelistmodel.h
         qml.qrc
-        RoundPane.qml
-        scripts.js
-        selectedusersmodel.cpp
-        selectedusersmodel.h
-        SmaileBox.qml
-        UsersBox.qml
-        UsersGroup.qml grouptreemodel.cpp grouptreemodel.h)
+        qml/RoundPane.qml
+        scripts/scripts.js
+        src/selectedusersmodel.cpp
+        include/selectedusersmodel.h
+        qml/SmaileBox.qml
+        qml/UsersBox.qml
+        qml/UsersGroup.qml)
 
 find_package(Qt6 COMPONENTS
         Core
