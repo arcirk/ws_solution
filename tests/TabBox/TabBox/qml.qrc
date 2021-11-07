@@ -154,5 +154,11 @@
         <file>images/left_collapse_lite.svg</file>
         <file>images/mbriwebsitetheme_99562.svg</file>
         <file>images/website_design.svg</file>
+        <file>images/ic_back.svg</file>
+        <file>images/paperclip_material.svg</file>
+        <file>qml/SelectFileDialog.qml</file>
+        <file>qml/EmptyImage.qml</file>
+        <file>qml/AuthForm.qml</file>
+        <file>images/exit.svg</file>
     </qresource>
 </RCC>

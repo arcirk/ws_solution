@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
-
+import "qrc:/scripts/scripts.js" as Scripts
 
 Pane{
 
@@ -37,6 +37,15 @@ Pane{
                 }else{control.stateChanged("hidden")}
             }
         }
+        ToolButton{
+            id: selFile
+            icon.source: "qrc:/images/paperclip_material.svg"
+            Material.accent: Material.Blue
+            onClicked: {
+                selDlg.open()
+            }
+        }
+
         Flickable {
             id: flickable
             Layout.fillWidth: true
@@ -44,9 +53,6 @@ Pane{
             TextArea.flickable: TextArea{
                 id: txtSendMessage
                 textFormat: Text.RichText
-                //anchors.fill: parent
-                //Layout.fillWidth: true
-                //Layout.fillHeight: true
                 placeholderText: qsTr("Введите сообщение")
                 wrapMode: TextArea.Wrap
                 Material.accent: Material.Blue
@@ -64,8 +70,6 @@ Pane{
 
             onClicked: {
                 btnSend.newMessage(txtSendMessage.text)
-                //console.debug(txtSendMessage.text)
-                //listView.model.sendMessage(messageField.text)
                 control.sendMessage(txtSendMessage.text)
                 txtSendMessage.text = "";
             }
@@ -73,4 +77,28 @@ Pane{
 
    }
 
+    SelectFileDialog{
+        id: selDlg
+
+        onSelectFile: function(fpath, name){
+            let cashe = txtSendMessage.text;
+
+            if(Scripts.isImage(name.toLowerCase().substr(-3, 3) )){
+                txtSendMessage.text = Scripts.getImageHtmlString(fpath, emptyImg)//"<img width=\""+ img.width +"\" height=\""+ img.height +"\" align=\"middle\" src=\""+fpath+"\">"
+            }
+            else
+                  txtSendMessage.text = "<a href=\"" + fpath + "\">"+name+"</a>"
+
+            btnSend.newMessage(txtSendMessage.text)
+            control.sendMessage(txtSendMessage.text)
+            console.log(Qt.resolvedUrl("pics/logo.png"))
+            txtSendMessage.text = cashe;
+        }
+    }
+
+    Image {
+        id: emptyImg
+        visible: false
+
+    }
 }

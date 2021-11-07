@@ -27,7 +27,7 @@
    inkscape:pagecheckerboard="0"
    showgrid="false"
    inkscape:zoom="2.1397059"
-   inkscape:cx="204"
+   inkscape:cx="204.46735"
    inkscape:cy="204"
    inkscape:window-width="2560"
    inkscape:window-height="1308"
@@ -36,11 +36,12 @@
    inkscape:window-maximized="1"
    inkscape:current-layer="Capa_1" />
 <g
-   id="g5">
+   id="g5"
+   transform="matrix(0.7737404,0,0,0.7959862,45.594138,42.225147)">
 	<g
    id="arrow-back">
 		<path
-   d="M408,178.5H96.9L239.7,35.7L204,0L0,204l204,204l35.7-35.7L96.9,229.5H408V178.5z"
+   d="M 408,178.5 H 96.9 L 239.7,35.7 204,0 0,204 204,408 239.7,372.3 96.9,229.5 H 408 Z"
    id="path2" />
 	</g>
 </g>

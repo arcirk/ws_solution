@@ -4,22 +4,39 @@ import QtQuick.Controls 2.15
 Dialog {
     //id: control
     visible: false
-    title: "Blue sky dialog"
+    title: "Сообщение"
     anchors.centerIn: parent
 
     property string textMsg
 
-    contentItem: Rectangle {
-        color: "lightskyblue"
-        implicitWidth: 400
-        implicitHeight: 100
-        Text {
-            text: textMsg//"Hello blue sky!"
-            color: "navy"
-            anchors.centerIn: parent
-            //wrapMode: TextArea.Wrap
-            textFormat: Text.RichText
+    contentItem: Flickable {
+                    implicitWidth: 200
+                    implicitHeight: 200
+        //width: 200; height: 200
+       contentWidth: 400; contentHeight: 400
+
+//            Image { id: image; source: "bigImage.png" }
+//        Pane.flickable: Pane{
+//            //color: "lightskyblue"
+//            implicitWidth: 400
+//            implicitHeight: 400
+
+            Text{
+                id: textFld
+                text: textMsg
+                color: "navy"
+                anchors.centerIn: parent
+                //wrapMode: TextArea.Wrap
+                textFormat: Text.RichText
+
+//            }
 
         }
+
+
+
+    }
+    onTextMsgChanged: {
+        console.log(textMsg)
     }
 }

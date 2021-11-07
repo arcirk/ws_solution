@@ -788,9 +788,12 @@ compiler_rcc_clean:
 qrc_qml.cpp: ../TabBox/qml.qrc \
 		/home/arcady/Qt/6.2.0/gcc_64/libexec/rcc \
 		../TabBox/team.svg \
+		../TabBox/qml/AuthForm.qml \
 		../TabBox/qml/RoundPane.qml \
 		../TabBox/qml/ItemGroupPage.qml \
+		../TabBox/qml/EmptyImage.qml \
 		../TabBox/qml/MainForm.qml \
+		../TabBox/qml/SelectFileDialog.qml \
 		../TabBox/qml/SmaileBox.qml \
 		../TabBox/qml/UsersGroup.qml \
 		../TabBox/qml/MessageDialog.qml \
@@ -929,18 +932,21 @@ qrc_qml.cpp: ../TabBox/qml.qrc \
 		../TabBox/images/1F9D0.svg \
 		../TabBox/images/deleteUser.png \
 		../TabBox/images/mbriwebsitetheme_99562.svg \
-		../TabBox/images/smile-svgrepo-com.svg \
 		../TabBox/images/26_122663.svg \
+		../TabBox/images/1F44C.svg \
+		../TabBox/images/ic-back_97586.svg \
+		../TabBox/images/paperclip_material.svg \
+		../TabBox/images/smile-svgrepo-com.svg \
 		../TabBox/images/left_collapse_lite.svg \
 		../TabBox/images/website_design.svg \
 		../TabBox/images/002group_101557.svg \
 		../TabBox/images/team_group.svg \
 		../TabBox/images/wondicon-ui-free-send_111204.svg \
-		../TabBox/images/1F44C.svg \
 		../TabBox/images/group-team.svg \
-		../TabBox/images/ic-back_97586.svg \
+		../TabBox/images/exit.svg \
 		../TabBox/images/info16.png \
-		../TabBox/images/left_collapse.svg
+		../TabBox/images/left_collapse.svg \
+		../TabBox/images/ic_back.svg
 	/home/arcady/Qt/6.2.0/gcc_64/libexec/rcc -name qml ../TabBox/qml.qrc -o qrc_qml.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h

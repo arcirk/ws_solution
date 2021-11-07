@@ -15,51 +15,57 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
-    //property int theme: Material.theme
 
 
     MessageDialog {
         id: dialogMsg
+        width: 400
 
     }
-    //menuBar
+
+    property bool connectState: false
+
     menuBar: ToolBar{
         id: maniToolBar
-        //anchors.left: parent.left
-        //anchors.right: parent.right
         width: parent.width
         Material.background: myTheme === "Light" ? "#efebe9" : "#424242"
         RowLayout{
             width: parent.width
             ToolButton{
-                //text: "группы"
                 icon.source: "qrc:/team.svg"
+                enabled: mainForm.connectState ? true : false
                 onClicked: {
                     drawer.open()
                 }
             }
 
-            ToolButton{
-                id: btnTheme
-                //text: "Тема"
-                icon.source: "qrc:/images/mbriwebsitetheme_99562.svg"
-                //anchors.right: parent.right
+            Row{
+                id: rightButtons
                 Layout.alignment: Qt.AlignRight
-
-                onClicked: {
-                    mnuTheme.open()
+                ToolButton{
+                    id: btnTheme
+                    icon.source: "qrc:/images/mbriwebsitetheme_99562.svg"
+                    onClicked: {
+                        mnuTheme.open()
+                    }
+                }
+                ToolButton{
+                    id: btnExit
+                    //text: "Выход"
+                    enabled: mainForm.connectState ? true : false
+                    icon.source: "qrc:/images/exit.svg"
+                    onClicked: {
+                        //mnuTheme.open()
+                       mainForm.connectState = false
+                       mainStack.pop()
+                    }
                 }
             }
-//        ToolButton{
-//            text: "t"
-//            onClicked: {
-//                manFuter.height = maniToolBar.height
-//            }
-//        }
+
 
             Menu {
                 id: mnuTheme
-                x: btnTheme.x;
+                x: rightButtons.x;
                 y: btnTheme.y + btnTheme.height;
                 Action {
                     text: "Темная"
@@ -83,7 +89,7 @@ ApplicationWindow {
         id: drawer
         width: 400 //Math.min(mainForm.width, mainForm.height) / 3 * 2
         height: mainForm.height
-        //interactive: stackView.depth === 1
+        //interactive: stackView.depth === 1       
 
         UsersGroup{
             anchors.fill: parent
@@ -94,11 +100,25 @@ ApplicationWindow {
 
     }
 
+    StackView{
+        id: mainStack
+        anchors.fill: parent
 
-    MainForm{
-        id: mainChatBox
-        theme: myTheme
+        MainForm{
+            id: mainChatBox
+            theme: myTheme
+            //visible: false
 
+        }
+
+        initialItem: AuthForm{
+
+            onAccept: {
+                mainForm.connectState = true
+                mainStack.push(mainChatBox)
+            }
+
+        }
     }
 
     onWidthChanged: {
@@ -110,14 +130,8 @@ ApplicationWindow {
         //mainChatBox.smaileBoxVisible(false)
     }
 
-//    footer: ToolBar{
-//        id: manFuter
-//        ToolButton{
-//            id: test
-//            text: "x"
-//            onClicked: {
-//                manFuter.height = 0
-//            }
-//        }
-//    }
+
+    onConnectStateChanged: {
+
+    }
 }

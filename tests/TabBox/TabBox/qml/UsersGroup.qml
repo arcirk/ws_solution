@@ -10,16 +10,20 @@ StackView{
     anchors.fill: parent
 
     property string theme: "Dark"
-    Material.theme: stack.theme === "Light" ? Material.Light : Material.Dark
+
+   UsersList{
+        id: userList
+        visible: false
+   }
 
     initialItem: ItemGroupPage {
 
         theme: stack.theme
         onSelectPage: function(title){
-             //let page = Scripts.createGroupPage(index, parent)
-             stack.push("qrc:/qml/UsersList.qml", {
+             stack.push(userList, {
                             theme: stack.theme,
-                            pageTitle: title
+                            pageTitle: title,
+                            visible: true
                         })
          }
 

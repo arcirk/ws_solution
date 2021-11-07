@@ -11,7 +11,6 @@ IconPane{
 
     property QtObject usersList
     property bool hidden: true
-    //property alias stateExpandIcon: itemUserDelegate.state
     property int itemCount: 12 //количество элементов в дочернем списке
     property int ctrlHeight: 50 //высота контрола по умолчанию
     property int groupCount: 4 // количество элементов в главном скиске
@@ -25,7 +24,6 @@ IconPane{
             hidden = !hidden
             itemUserDelegate.checked = !hidden
             itemUserDelegate.selectedChanged(itemUserDelegate);
-        //console.debug(itemUserDelegate.getControlHeight())
     }
 
     chldrenList: true

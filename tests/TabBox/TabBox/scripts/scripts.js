@@ -53,3 +53,31 @@ function getActualHeight(item, actualHeight, itemCount, groupCount){
     else
        return item.height - (groupCount * actualHeight)
  }
+
+function getImageHtmlString(source, img){
+//    var comp = Qt.createComponent("qrc:/qml/EmptyImage.qml")
+//    var img = comp.createObject(parent)
+
+    img.source = source;
+
+    if(img.heght > 400){
+        img.sourceSize.height = 400
+    }
+    if(img.width > 400){
+        img.sourceSize.width = 400
+    }
+
+    var result = "<img id=\"ImageMsg\" width=\""+ img.width +"\" height=\""+ img.height +"\" align=\"middle\" src=\""+source+"\">";
+
+    return result
+}
+
+function isImage(source){
+    let result = {}
+    result["png"] = "png"
+    result["jpg"] = "jpg"
+    result["svg"] = "svg"
+    result["jpeg"] = "jpeg"
+
+    return result[source] !== undefined
+}

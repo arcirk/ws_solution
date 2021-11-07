@@ -4,31 +4,24 @@ import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
 
+//Page{
+//    id: pageMainForm
+//    anchors.fill: parent
+//    property string theme: "Dark"
+
     SplitView{
         id: mainSplit
         anchors.fill: parent
         orientation: Qt.Horizontal
 
-        property string theme: "Dark"
-
-        function parentSizeChange(){
-//            if(msgBox.checked()){
-//                msgBox.unchecked()
-//            }
-        }
-
-        function smaileBoxVisible(value){
-//            smailBox.visible = value
-        }
+        property string theme: "Dark" //pageMainForm.theme
 
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true
             SplitView.minimumWidth: 500
             ColumnLayout{
-//                SplitView.fillWidth: true
-//                SplitView.fillHeight: true
-//                SplitView.minimumWidth: 600
+
                 anchors.fill: parent
 
                 SplitView{
@@ -42,11 +35,6 @@ import QtQuick.Layouts 1.12
                         SplitView.fillWidth: true
                         SplitView.fillHeight: true
                         Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
-                        onWidthChanged: {
-//                            if(msgBox.checked()){
-//                                msgBox.unchecked()
-//                            }
-                        }
 
                         onMessageClick: function(msg) {
                             dialogMsg.textMsg = msg
@@ -109,5 +97,7 @@ import QtQuick.Layouts 1.12
 
     }
 
+
+//}
 
 

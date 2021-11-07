@@ -8,7 +8,7 @@ Page{
 
     id: departmentUsers
 
-    property string theme: "Dark"
+    property string theme: parent.theme
 
     property string pageTitle: "Пользователи подразделения"
 
@@ -20,7 +20,7 @@ Page{
 
         ToolButton{
             id: btnPageBack
-            icon.source: "qrc:/images/ic-back_97586.svg"
+            icon.source: "qrc:/images/ic_back.svg"
             onClicked: departmentUsers.StackView.view.pop()
         }
 
@@ -168,5 +168,11 @@ Page{
         }
 
     }
+
+    onThemeChanged: {
+        //btnPageBack.icon.source = departmentUsers.theme === "Dark" ? "qrc:/images/ic-back_97586_White.svg" : "qrc:/images/ic-back_97586.svg"
+        console.debug(btnPageBack.icon.source)
+    }
+
 
 }

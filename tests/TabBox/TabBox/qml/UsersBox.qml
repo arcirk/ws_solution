@@ -18,12 +18,9 @@ Pane {
         anchors.fill: parent
         displayMarginBeginning: 40
         displayMarginEnd: 40
-        //verticalLayoutDirection: ListView.BottomToTop
+
         spacing: 12
         model: usersModel
-
-        //flickableDirection: Flickable.VerticalFlick
-        //boundsBehavior: Flickable.StopAtBounds
 
         delegate: Column {
             //Layout.fillHeight: true
@@ -98,7 +95,7 @@ Pane {
                 }
                 IconPane{
                     id: btnCloseChat
-                    //name: "x"
+
                     icon: "qrc:/images/deleteUser.png"
                     ctrlPaddig: 2
                     menuDisable: true
@@ -113,15 +110,9 @@ Pane {
                 }
             }
         }
-        //ScrollBar.vertical: ScrollBar {}
+
         ScrollBar.horizontal: ScrollBar {}
-//        ScrollBar.horizontal: ScrollBar {
-//                    policy: ScrollBar.AlwaysOn
-//                    minimumSize: 0.05
-//                    interactive: true
-//                    stepSize: 0
-//                    active: hovered || pressed
-//                }
+
     }
 
 }
