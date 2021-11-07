@@ -123,3 +123,13 @@ bin/
 /ws_chat_qt/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/
 /tests/ListViewTest/build-untitled-Desktop_Qt_6_2_0_GCC_64bit-Debug/
 /tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/build-ws_systray-Desktop_Qt_6_2_1_GCC_64bit-Debug/
+/build-ws_systray-Desktop_Qt_6_2_1_GCC_64bit-Profile/
+/tests/ws_chat_qt/build-ws_chat_qt-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Profile/
+/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Release/
+/tests/build-ChatBox-Desktop_Qt_6_2_0_GCC_64bit-Profile/
+/tests/build-ChatBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/tests/messaneger_box/build-wsg_box-Desktop_Qt_6_2_0_GCC_64bit-Debug/
+/tests/material/build-untitled-Desktop_Qt_6_2_0_MinGW_64_bit-Debug/
+/tests/material/build-untitled-Desktop_Qt_6_2_0_GCC_64bit-Debug/
