@@ -26,10 +26,9 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
         return;
     }
 
-    if (!user_password.isEmpty()) {
-        settings->Hash = QString::fromStdString( get_hash(user_name.toStdString(), user_password.toStdString()));
-    }
-    if (settings->Hash.isEmpty()) {
+    QString _hash;
+
+    if(_pwdEdit){
         settings->Hash = QString::fromStdString( get_hash(user_name.toStdString(), user_password.toStdString()));
     }
     settings->RootUser = user_name;
@@ -91,6 +90,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             client->get_users_catalog("");
         }else if (resp->command == "get_users_catalog"){
             //qDebug() << resp->message;
+            ServeResponse::debugSaveResponse("usersCatalog", resp->message);
             emit user_catalog(resp->message);
         }else if (resp->command == "get_messages"){
             //qDebug() << resp->message;
@@ -145,15 +145,6 @@ const QString bWebSocket::getUserUUID()
     return QString::fromStdString(client->get_user_uuid());
 }
 
-//const QString bWebSocket::getActivePage()
-//{
-//    return activePage;
-//}
-//
-//void bWebSocket::setActivePage(const QString& page)
-//{
-//    activePage = page;
-//}
 
 void bWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_date, int limit, const QString &uuid_form)
 {
@@ -191,10 +182,34 @@ int bWebSocket::getPort()
     return settings->ServerPort;
 }
 
-bool bWebSocket::getStarted()
+bool bWebSocket::autoConnect()
 {
-    if(client)
-        return client->started();
-    else
-        return false;
+    return settings->AutoConnect;
 }
+
+void bWebSocket::setAutoConnect(bool value)
+{
+    settings->AutoConnect = value;
+}
+
+bool bWebSocket::saveHash()
+{
+    return settings->SaveHash;
+}
+
+void bWebSocket::setSaveHash(bool value)
+{
+    settings->SaveHash = value;
+}
+
+bool bWebSocket::pwdEdit()
+{
+    return _pwdEdit;
+}
+
+void bWebSocket::setPwdEdit(bool value)
+{
+    _pwdEdit = value;
+}
+
+

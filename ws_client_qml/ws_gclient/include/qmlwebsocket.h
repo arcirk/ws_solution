@@ -10,13 +10,15 @@
 class bWebSocket : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool started READ isStarted);
-    Q_PROPERTY(QString user READ getUserName WRITE setUserName NOTIFY UserChanged)
+    //Q_PROPERTY(bool started READ isStarted);
+    Q_PROPERTY(QString user READ getUserName WRITE setUserName NOTIFY userChanged)
     Q_PROPERTY(QString hash READ getHash);
     Q_PROPERTY(QString host READ getHost WRITE setHost NOTIFY hostChanged)
     Q_PROPERTY(int port READ getPort WRITE setPort NOTIFY portChanged)
-    Q_PROPERTY(bool started READ getStarted NOTIFY startedChanged)
-
+    Q_PROPERTY(bool started READ isStarted NOTIFY startedChanged)
+    Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY autoConnectChanged)
+    Q_PROPERTY(bool saveHash READ saveHash WRITE setSaveHash NOTIFY saveHashChanged)
+    Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
     //Q_PROPERTY(QString activePage READ getActivePage WRITE setActivePage);
 
 public:
@@ -51,16 +53,23 @@ public:
     void setPort(int newPort);
     int getPort();
 
-    bool getStarted();
+    //bool getStarted();
+
+    bool autoConnect();
+    void setAutoConnect(bool value);
+
+    bool saveHash();
+    void setSaveHash(bool value);
+    bool pwdEdit();
+    void setPwdEdit(bool value);
+
 
 private:
     IClient * client;
     ClientSettings * settings;
-    //QString activePage;
+    bool _pwdEdit;
     QString user;
     QString hash;
-    //QString _host;
-    //int _port;
 
 
 signals:
@@ -75,10 +84,13 @@ signals:
     void nextChatPage(const QString& pageName, const QString& presentation);
     void setPage(int index);
 
-    void UserChanged();
+    void userChanged();
     void hostChanged();
     void portChanged();
     void startedChanged();
+    void autoConnectChanged();
+    void saveHashChanged();
+    void pwdEditChanged();
 };
 
 #endif // QMLWEBSOCKET_H

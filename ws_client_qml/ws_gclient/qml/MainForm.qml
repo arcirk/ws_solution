@@ -16,6 +16,10 @@ import QtQuick.Layouts 1.12
 
         property string theme: "Dark" //pageMainForm.theme
 
+        function webSocketError(what, err){
+
+        }
+
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true

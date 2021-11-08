@@ -8,9 +8,23 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
+
 #include "include/qmlwebsocket.h"
+#include "include/usersmodel.h"
 
 bWebSocket* client;
+//UsersModel* usersModel;
+
+//void initUsersModel(){
+
+//    UsersModel::Header header;
+
+//    header.push_back( UsersModel::Heading( { {"title","uuid"},    {"index","uuid"} }) );
+//    header.push_back( UsersModel::Heading( { {"title","name"},   {"index","name"} }) );
+//    header.push_back( UsersModel::Heading( { {"title","indexDoc"},   {"index","indexDoc"} }) );
+
+
+//}
 
 static MessageListModel* initModel(int itemIndex){
 

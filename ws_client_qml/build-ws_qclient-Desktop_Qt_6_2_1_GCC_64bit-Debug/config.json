@@ -1,8 +1,10 @@
 {
-    "Hash": "14ab22297890f84a78726b15c1ac2f36132c1ee5",
-    "RootUser": "admin",
+    "AutoConnect": false,
+    "Hash": "3caba88b943a129d14cd143503fbd54d6266286a",
+    "RootUser": "Борисоглебский Аркадий",
+    "SaveHash": true,
     "ServerBinDir": "host",
-    "ServerHost": "192.168.43.18",
+    "ServerHost": "192.168.43.4",
     "ServerName": "NoName",
     "ServerPort": 8080
 }

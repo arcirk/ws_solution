@@ -13,6 +13,7 @@ ClientSettings::ClientSettings()
     , ServerBinDir("host")
     , ServerName("NoName")
     , ServerStatus("Не подключен")
+
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
 
@@ -62,11 +63,21 @@ bool ClientSettings::init(){
     if (iter != m_currentJsonObject.end()){
         ServerName = iter.value().toString();
     }
-
+    iter = m_currentJsonObject.find("AutoConnect");
+    if (iter != m_currentJsonObject.end()){
+        AutoConnect = iter.value().toBool();
+    }
+    iter = m_currentJsonObject.find("SaveHash");
+    if (iter != m_currentJsonObject.end()){
+        SaveHash = iter.value().toBool();
+    }
     return true;
 }
 
 void ClientSettings::save_settings(){
+
+    if(!SaveHash)
+        Hash = "";
 
     QJsonObject m_currentJsonObject = QJsonObject();
     m_currentJsonObject.insert("ServerHost", ServerHost);
@@ -75,6 +86,8 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("Hash", Hash);
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
+    m_currentJsonObject.insert("AutoConnect", AutoConnect);
+    m_currentJsonObject.insert("SaveHash", SaveHash);
 
     QString saveFileName = "config.json";
     QFileInfo fileInfo(saveFileName);
@@ -99,6 +112,8 @@ QString ClientSettings::getJson() {
     m_currentJsonObject.insert("Hash", Hash);
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
+    m_currentJsonObject.insert("AutoConnect", AutoConnect);
+    m_currentJsonObject.insert("SaveHash", SaveHash);
     return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
 }
 
@@ -112,6 +127,8 @@ QJsonObject ClientSettings::getJsonObject() {
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
     m_currentJsonObject.insert("ServerStatus", ServerStatus);
+    m_currentJsonObject.insert("AutoConnect", AutoConnect);
+    m_currentJsonObject.insert("SaveHash", SaveHash);
     return m_currentJsonObject;
 
 }

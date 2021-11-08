@@ -11,13 +11,17 @@ Page{
 
     property string theme: "Dark"
 
-    property bool saveHash
+    property alias saveHash: chSave.checked
     property string user
-
-//    width: parent.width
-//    height: parent.height
+    property alias autoConnect: chAutoConnect.checked
+    property alias pwdEdit: editPass.checked
+    property alias enabledForm: columnLayout.enabled
 
     signal accept(string user, string pwd);
+    function webSocketError(what, err){
+        columnLayout.enabled = true
+        txtError.text = err
+    }
 
     Item {
         anchors.centerIn: parent
@@ -98,6 +102,7 @@ Page{
                 font.pointSize: 12
                 Material.accent: Material.Blue
                 text: user
+                placeholderText: qsTr("Имя пользователя")
             }
 
             Label {
@@ -107,6 +112,7 @@ Page{
             }
 
             RowLayout{
+
                 TextField {
                     id: password
                     width: 300
@@ -114,22 +120,37 @@ Page{
                     Layout.fillWidth: true
                     font.pointSize: 12
                     enabled: false
-                    text: saveHash ? "**" : ""
+                    text: chSave.checked ? "**" : ""
                     echoMode: TextInput.Password
                     Material.accent: Material.Blue
+                    placeholderText: qsTr("Пароль")
 
                 }
-
+                ToolButton {
+                    id: viewPass
+                    checkable: true
+                    checked: true
+                    icon.source: !viewPass.checked ? "qrc:/images/view_hide_icon_124813.svg" : "qrc:/images/view_show_icon_124811.svg"
+                    enabled: editPass.checked
+                    Material.accent: Material.Blue
+                    onCheckedChanged: {
+                        password.echoMode = !viewPass.checked ? TextInput.Normal : TextInput.Password
+                    }
+                }
                 ToolButton {
                     id: editPass
                     checkable: true
                     icon.source: "qrc:/images/edit.svg"
+                    Material.accent: Material.Blue
                     onCheckedChanged: {
                         password.enabled = editPass.checked
                         if(editPass.checked){
                            password.text = "";
-                        }else
-                           password.text = "***"
+                        }else{
+                            password.text = "***"
+                            viewPass.checked = false
+                        }
+
                     }
                 }
             }
@@ -139,10 +160,11 @@ Page{
                 id: chSave
                 text: "Запомнить"
                 Material.accent: Material.Blue
-                checked: saveHash
-                onCheckedChanged: {
-                    saveHash = checked
-                }
+            }
+            CheckBox{
+                id: chAutoConnect
+                text: "Подключатся автоматически"
+                Material.accent: Material.Blue
             }
 
             Item {
@@ -165,46 +187,28 @@ Page{
                     height: 30
                     text: qsTr("Войти")
                     onClicked:{
-//                        if(editPass.checked){
-//                            wsClient.open(userName.text, password.text)
-//                        }else
-//                            wsClient.open(userName.text, "")
-                        password.enabled = false
-                        userName.enabled = false
-                        loginButton.enabled = false
                         authPage.accept(userName.text, password.text);
-                        //authPage.StackView.view.push("qrc:/qml/MainForm.qml", {})
+                        txtError.text = ""
+                        columnLayout.enabled = false;
 
                     }
                 }
 
-//                Connections{
-//                    target: wsClient
-//                    onQmlError:{
-//                        rowLayout.doError(what, err)
-//                    }
-//                    onConnectionSuccess: {
-//                        wsClient.activePage = "ChatPage"
-//                        authorizationForm.StackView.view.push("qrc:/qml/ChatPage.qml", {})
-//                    }
-//                    onCloseConnection: {
-//                        password.enabled = false
-//                        editPass.checked = false
-//                        userName.enabled = true
-//                        loginButton.enabled = true
-//                    }
-//                }
-
-//                function doError(what, err){
-//                    if(what ==="connect"){
-//                        password.enabled = false
-//                        editPass.checked = false
-//                        userName.enabled = true
-//                        loginButton.enabled = true
-//                    }
-//                }
-
             }
+
+            Label {
+                id: txtError
+                font.pointSize: 12
+                color: "red"
+                visible: true
+            }
+        }
+
+        Component.onCompleted: {
+
+            if(autoConnect)
+                authPage.accept(userName.text, password.text);
+
         }
     }
 

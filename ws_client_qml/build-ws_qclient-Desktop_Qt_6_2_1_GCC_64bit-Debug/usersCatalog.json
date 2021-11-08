@@ -1,0 +1,207 @@
+{
+    "columns": [
+        "FirstField",
+        "SecondField",
+        "Ref",
+        "Parent",
+        "IsGroup"
+    ],
+    "rows": [
+        {
+            "FirstField": "admin",
+            "IsGroup": 0,
+            "Parent": "00000000-0000-0000-0000-000000000000",
+            "Ref": "d38f7096-ea32-4e5a-9bc1-7cce1eb3a5d5",
+            "SecondField": "admin"
+        },
+        {
+            "FirstField": "Администрация",
+            "IsGroup": 1,
+            "Parent": "644471bf-a982-47c3-b2ad-32f985bcde39",
+            "Ref": "aa750c9c-c233-4e48-ab7a-6f5c99d1a898",
+            "SecondField": "Администрация"
+        },
+        {
+            "FirstField": "Азарова Елена",
+            "IsGroup": 0,
+            "Parent": "b733362c-ec19-4166-b550-b8e3f6f925a4",
+            "Ref": "e69a32ac-eb68-11eb-ab7f-3497f6da17ce",
+            "SecondField": "Азарова Елена"
+        },
+        {
+            "FirstField": "Ангарск",
+            "IsGroup": 1,
+            "Parent": "00000000-0000-0000-0000-000000000000",
+            "Ref": "644471bf-a982-47c3-b2ad-32f985bcde39",
+            "SecondField": "Ангарск"
+        },
+        {
+            "FirstField": "Березина Светлана",
+            "IsGroup": 0,
+            "Parent": "d1c6e27e-576c-4250-8e61-9a0422f2d416",
+            "Ref": "1a50acfe-d51b-11e9-a55f-60a44ce90922",
+            "SecondField": "Березина Светлана"
+        },
+        {
+            "FirstField": "Борисова",
+            "IsGroup": 0,
+            "Parent": "b8f64cc0-01f2-43dc-915f-3688a64e1bad",
+            "Ref": "25196532-ae6a-11da-9d44-000ae61636c6",
+            "SecondField": "Борисова Ольга"
+        },
+        {
+            "FirstField": "Борисоглебский Аркадий",
+            "IsGroup": 0,
+            "Parent": "aa750c9c-c233-4e48-ab7a-6f5c99d1a898",
+            "Ref": "f3ccb2f2-d431-11e9-ab42-08606e7d17fa",
+            "SecondField": "Борисоглебский Аркадий"
+        },
+        {
+            "FirstField": "Владив - Лен,Первом",
+            "IsGroup": 0,
+            "Parent": "0ea36beb-96d6-4370-b414-75c2cabbe3d8",
+            "Ref": "37e0b98a-40c1-11ea-ab46-08606e7d17fa",
+            "SecondField": "Владивосток город - Пляскина Любовь"
+        },
+        {
+            "FirstField": "Владивосток",
+            "IsGroup": 1,
+            "Parent": "ac321a73-4a53-4c37-a34d-c6922df57d54",
+            "Ref": "177cb6f7-ceac-4fe7-8f59-60f7eb6ad987",
+            "SecondField": "Владивосток"
+        },
+        {
+            "FirstField": "ДальнийВосток",
+            "IsGroup": 1,
+            "Parent": "00000000-0000-0000-0000-000000000000",
+            "Ref": "ac321a73-4a53-4c37-a34d-c6922df57d54",
+            "SecondField": "Дальний восток"
+        },
+        {
+            "FirstField": "ИРКУТСК Лениниский - Туманова Светлана",
+            "IsGroup": 0,
+            "Parent": "9e6db678-fd8b-4697-9d1e-4dc44def43eb",
+            "Ref": "ae69d099-ef7e-11e3-a0e0-f46d046333e3",
+            "SecondField": "ИРКУТСК Ленинский - Туманова Светлана"
+        },
+        {
+            "FirstField": "Иркутск",
+            "IsGroup": 1,
+            "Parent": "00000000-0000-0000-0000-000000000000",
+            "Ref": "cb4fd397-39ce-4d68-9ece-f0d1cae5d680",
+            "SecondField": "Иркутск"
+        },
+        {
+            "FirstField": "Карелина Надежда",
+            "IsGroup": 0,
+            "Parent": "2e51aca4-c5d1-487f-b6ee-4755edd07dfb",
+            "Ref": "e71ff45d-9411-11e1-9963-e61f13c3affd",
+            "SecondField": "Карелина Надежда"
+        },
+        {
+            "FirstField": "Лохова Надежда",
+            "IsGroup": 0,
+            "Parent": "aa750c9c-c233-4e48-ab7a-6f5c99d1a898",
+            "Ref": "d81ade18-fb07-11e2-b8bf-08606e7d17fa",
+            "SecondField": "Лохова Надежда"
+        },
+        {
+            "FirstField": "Нагорных Ирина",
+            "IsGroup": 0,
+            "Parent": "6013eceb-89f3-444a-9681-fb707ea676a6",
+            "Ref": "e41a6daa-3c72-11e4-bc0b-08606e7d17fa",
+            "SecondField": "Нагорных Ирина"
+        },
+        {
+            "FirstField": "ОтделПоставок",
+            "IsGroup": 1,
+            "Parent": "644471bf-a982-47c3-b2ad-32f985bcde39",
+            "Ref": "6013eceb-89f3-444a-9681-fb707ea676a6",
+            "SecondField": "Отдел поставок"
+        },
+        {
+            "FirstField": "ОтделПродаж",
+            "IsGroup": 1,
+            "Parent": "177cb6f7-ceac-4fe7-8f59-60f7eb6ad987",
+            "Ref": "0ea36beb-96d6-4370-b414-75c2cabbe3d8",
+            "SecondField": "Отдел продаж"
+        },
+        {
+            "FirstField": "ОтделПродаж",
+            "IsGroup": 1,
+            "Parent": "cb4fd397-39ce-4d68-9ece-f0d1cae5d680",
+            "Ref": "9e6db678-fd8b-4697-9d1e-4dc44def43eb",
+            "SecondField": "Отдел продаж"
+        },
+        {
+            "FirstField": "ОтделПродаж",
+            "IsGroup": 1,
+            "Parent": "644471bf-a982-47c3-b2ad-32f985bcde39",
+            "Ref": "b8f64cc0-01f2-43dc-915f-3688a64e1bad",
+            "SecondField": "Отдел продаж"
+        },
+        {
+            "FirstField": "ОтделПродаж",
+            "IsGroup": 1,
+            "Parent": "4836fcf9-b3f1-4f07-85ab-4dbff3767a75",
+            "Ref": "d1c6e27e-576c-4250-8e61-9a0422f2d416",
+            "SecondField": "Отдел продаж"
+        },
+        {
+            "FirstField": "Пожидаева Александра",
+            "IsGroup": 0,
+            "Parent": "b733362c-ec19-4166-b550-b8e3f6f925a4",
+            "Ref": "0cc89800-d5fa-11ea-ab70-3497f6da17ce",
+            "SecondField": "Пожидаева Александра"
+        },
+        {
+            "FirstField": "Склад",
+            "IsGroup": 1,
+            "Parent": "4836fcf9-b3f1-4f07-85ab-4dbff3767a75",
+            "Ref": "16fac73f-97f8-41b3-85ad-08ebd92764d7",
+            "SecondField": "Склад"
+        },
+        {
+            "FirstField": "Склад",
+            "IsGroup": 1,
+            "Parent": "cb4fd397-39ce-4d68-9ece-f0d1cae5d680",
+            "Ref": "2e51aca4-c5d1-487f-b6ee-4755edd07dfb",
+            "SecondField": "Склад"
+        },
+        {
+            "FirstField": "Склад",
+            "IsGroup": 1,
+            "Parent": "644471bf-a982-47c3-b2ad-32f985bcde39",
+            "Ref": "54f1f32a-acb0-4226-af1f-3df515fa5435",
+            "SecondField": "Склад"
+        },
+        {
+            "FirstField": "Склад",
+            "IsGroup": 1,
+            "Parent": "177cb6f7-ceac-4fe7-8f59-60f7eb6ad987",
+            "Ref": "b733362c-ec19-4166-b550-b8e3f6f925a4",
+            "SecondField": "Склад"
+        },
+        {
+            "FirstField": "Хабаровск",
+            "IsGroup": 1,
+            "Parent": "ac321a73-4a53-4c37-a34d-c6922df57d54",
+            "Ref": "4836fcf9-b3f1-4f07-85ab-4dbff3767a75",
+            "SecondField": "Хабаровск"
+        },
+        {
+            "FirstField": "Швец Анастасия",
+            "IsGroup": 0,
+            "Parent": "16fac73f-97f8-41b3-85ad-08ebd92764d7",
+            "Ref": "aa10c032-d991-11e8-9bb3-60a44ce90922",
+            "SecondField": "Швец Анастасия"
+        },
+        {
+            "FirstField": "Щербакова Марина",
+            "IsGroup": 0,
+            "Parent": "54f1f32a-acb0-4226-af1f-3df515fa5435",
+            "Ref": "8d12855f-deed-11e3-b797-08606e7d17fa",
+            "SecondField": "Щербакова Марина"
+        }
+    ]
+}

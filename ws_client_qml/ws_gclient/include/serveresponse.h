@@ -24,8 +24,10 @@ public:
     static QMap<QString, int> get_header(QJsonArray *columns);
     static QSortFilterProxyModel * get_proxyModel(QJsonArray &rows, QMap<QString, int> header);
 
+    static void debugSaveResponse(const QString& filename, const QString& json = "");
 private:
     void parse(const QString& resp);
+
 
 };
 

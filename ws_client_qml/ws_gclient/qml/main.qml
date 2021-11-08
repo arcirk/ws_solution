@@ -25,22 +25,21 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
-        host: "192.168.43.18"
+        host: "192.168.43.4"
         port: 8080
         //user: "admin"
 
         onCloseConnection: {
-            console.log("onCloseConnection")
+            authForm.enabledForm = true
         }
 
         onConnectionSuccess: {
-            console.log("onConnectionSuccess")
             mainForm.connectState = true
             mainStack.push(mainChatBox)
 
         }
         onQmlError: function(what, err){
-            console.log(err)
+            mainStack.currentItem.webSocketError(what, err)
         }
 
     }
@@ -80,6 +79,7 @@ ApplicationWindow {
                         //mnuTheme.open()
                        mainForm.connectState = false
                        mainStack.pop()
+                       wsClient.close()
                     }
                 }
             }
@@ -134,10 +134,25 @@ ApplicationWindow {
         }
 
         initialItem: AuthForm{
-            saveHash: wsClient.hash.length > 0
+            id:authForm
+            saveHash: wsClient.saveHash
+            autoConnect: wsClient.autoConnect
+            pwdEdit: wsClient.pwdEdit
             user: wsClient.user
+            enabledForm: true
+
             onAccept: function(user, pwd){
                 wsClient.open(user, pwd)
+            }
+
+            onPwdEditChanged: {
+                wsClient.pwdEdit = authForm.pwdEdit
+            }
+            onSaveHashChanged: {
+                wsClient.saveHash = authForm.saveHash
+            }
+            onAutoConnectChanged: {
+                wsClient.autoConnect = authForm.autoConnect
             }
 
         }

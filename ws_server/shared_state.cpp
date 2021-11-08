@@ -158,6 +158,7 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         _ws_message _message = createMessage(session);
         _message.message = msg_;
         _message.command = command;
+        _message.result = res;
         _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
 
         auto * msg = new ws_message(_message);
@@ -368,12 +369,12 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
         bool _res = get_cmd_func(command)(uuid, params, msg, err, custom_result);
         if (_res){
             if (custom_result.empty())
-                result = command + ": success";
+                result = "success";
             else
                 result = custom_result;
             res = "success";
         } else{
-            result = command + ": " + err;
+            result = err;
             res = "error";
         }
 

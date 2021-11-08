@@ -21,6 +21,8 @@ public:
     QString ServerBinDir;
     QString ServerName;
     QString ServerStatus;
+    bool AutoConnect;
+    bool SaveHash;
 };
 
 #endif // APPSETTINGS_H

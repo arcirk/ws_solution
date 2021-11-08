@@ -162,5 +162,7 @@
         <file>images/exit.svg</file>
         <file>qml/BWebSockets.qml</file>
         <file>images/edit.svg</file>
+        <file>images/view_show_icon_124811.svg</file>
+        <file>images/view_hide_icon_124813.svg</file>
     </qresource>
 </RCC>

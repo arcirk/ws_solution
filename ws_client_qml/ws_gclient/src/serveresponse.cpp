@@ -3,7 +3,8 @@
 #include <iws_client.h>
 
 #include <QStandardItemModel>
-
+#include <QFileInfo>
+#include <QDir>
 
 ServeResponse::ServeResponse(const QString& resp)
 {
@@ -52,6 +53,26 @@ void ServeResponse::parse(const QString& resp){
     }
 
 }
+
+void ServeResponse::debugSaveResponse(const QString &filename, const QString &json)
+{
+    //ToDo: временная процедура
+    QString saveFileName = filename + ".json";
+    QFileInfo fileInfo(saveFileName);
+    QDir::setCurrent(fileInfo.path());
+
+    QFile jsonFile(saveFileName);
+    if (!jsonFile.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
+
+    QJsonDocument _doc(QJsonDocument::fromJson(json.toUtf8()));
+    jsonFile.write(_doc.toJson(QJsonDocument::Indented));
+    jsonFile.close();
+
+}
+
 QJsonDocument ServeResponse::parseResp(const QString &resp){
 
     QJsonDocument _doc(QJsonDocument::fromJson(resp.toUtf8()));
