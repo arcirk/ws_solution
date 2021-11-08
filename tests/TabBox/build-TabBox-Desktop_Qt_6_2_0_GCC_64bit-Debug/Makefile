@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = TabBox1.0.0
-DISTDIR = /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/TabBox1.0.0
+DISTDIR =
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/home/arcady/Qt/6.2.0/gcc_64/lib
 LIBS          = $(SUBLIBS) /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QuickControls2.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Network.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
@@ -52,9 +52,9 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ../TabBox/main.cpp \
-		../TabBox/src/messagelistmodel.cpp \
-		../TabBox/src/selectedusersmodel.cpp qrc_qml.cpp \
+SOURCES       = ../ws_gclient/main.cpp \
+		../ws_gclient/src/messagelistmodel.cpp \
+		../ws_gclient/src/selectedusersmodel.cpp qrc_qml.cpp \
 		moc_messagelistmodel.cpp \
 		moc_selectedusersmodel.cpp
 OBJECTS       = main.o \
