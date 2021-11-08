@@ -109,6 +109,15 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    qDebug() << "args:" << argc;
+
+    if (argc == 3){
+        auto const address = argv[1];
+        auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+        //auto const user = std::max<int>(1, std::atoi(argv[3]));
+        qDebug() << "address:" << address << "port: " << port;
+    }
+
     QQuickStyle::setStyle("Material");
 
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
