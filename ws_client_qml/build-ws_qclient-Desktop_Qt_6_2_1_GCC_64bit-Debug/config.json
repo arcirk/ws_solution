@@ -4,7 +4,7 @@
     "RootUser": "Борисоглебский Аркадий",
     "SaveHash": true,
     "ServerBinDir": "host",
-    "ServerHost": "192.168.10.80",
+    "ServerHost": "192.168.43.4",
     "ServerName": "NoName",
     "ServerPort": 8080
 }

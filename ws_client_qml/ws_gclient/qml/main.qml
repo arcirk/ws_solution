@@ -28,7 +28,7 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
-        host: "192.168.10.80"
+        host: "192.168.43.4"
         port: 8080
         //user: "admin"
 

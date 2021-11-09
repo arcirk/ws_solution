@@ -1,13 +1,8 @@
 #include "../include/usersmodel.h"
 #include <QJsonObject>
 #include <QString>
-
-//UsersModel::UsersModel(const UsersModel::Header& header, QObject * parent )
-//    : QAbstractTableModel( parent )
-//    , m_header( header )
-//{
-//
-//}
+#include <QFileInfo>
+#include <QDir>
 
 bool UsersModel::setJson(const QJsonDocument &json)
 {
@@ -173,8 +168,23 @@ QHash<int, QByteArray> UsersModel::roleNames() const
 
 QSortFilterProxyModel *UsersModel::subdivisions()
 {
+    auto names = roleNames();
+    int indexParent = 0;
+    int indexIsGroup = 0;
+    for (int index : names.keys() ) {
+        if(names[index].toStdString() == "Parent"){
+            indexParent = index - Qt::UserRole;
+            break;
+        }
+    }
+    for (int index : names.keys() ) {
+        if(names[index].toStdString() == "IsGroup"){
+            indexIsGroup = index - Qt::UserRole;
+            break;
+        }
+    }
     _subdivisions->setFilterFixedString("00000000-0000-0000-0000-000000000000");
-    _subdivisions->setFilterKeyColumn(filterIndex);
+    _subdivisions->setFilterKeyColumn(indexParent);
     return _subdivisions;
 }
 
@@ -186,32 +196,49 @@ void UsersModel::setSubdivisions(QSortFilterProxyModel *proxy)
 UsersModel::UsersModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    QString defModel = "{ "
-                       "    \"columns\": ["
-                       "        \"FirstField\","
-                       "        \"SecondField\","
-                       "        \"Ref\","
-                       "        \"Parent\","
-                       "        \"IsGroup\""
-                       "    ],"
-                       "    \"rows\": ["
-                       "{"
-                       "            \"FirstField\": \"ДальнийВосток\","
-                       "            \"IsGroup\": 1,"
-                       "            \"Parent\": \"00000000-0000-0000-0000-000000000000\","
-                       "            \"Ref\": \"ac321a73-4a53-4c37-a34d-c6922df57d54\","
-                       "            \"SecondField\": \"Дальний восток\"}"
-                       "            ,"
-                       "            {"
-                                    "\"FirstField\": \"ИРКУТСК Лениниский - Туманова Светлана\","
-                                    "\"IsGroup\": 0,"
-                                    "\"Parent\": \"9e6db678-fd8b-4697-9d1e-4dc44def43eb\","
-                                    "\"Ref\": \"ae69d099-ef7e-11e3-a0e0-f46d046333e3\","
-                                    "\"SecondField\": \"ИРКУТСК Ленинский - Туманова Светлана\""
-                                    "}"
-                       "            ]"
-                       "}";
-    setJson(QJsonDocument::fromJson(defModel.toUtf8()));
+//    QString defModel = "{ "
+//                       "    \"columns\": ["
+//                       "        \"FirstField\","
+//                       "        \"SecondField\","
+//                       "        \"Ref\","
+//                       "        \"Parent\","
+//                       "        \"IsGroup\""
+//                       "    ],"
+//                       "    \"rows\": ["
+//                       "{"
+//                       "            \"FirstField\": \"ДальнийВосток\","
+//                       "            \"IsGroup\": 1,"
+//                       "            \"Parent\": \"00000000-0000-0000-0000-000000000000\","
+//                       "            \"Ref\": \"ac321a73-4a53-4c37-a34d-c6922df57d54\","
+//                       "            \"SecondField\": \"Дальний восток\"}"
+//                       "            ,"
+//                       "            {"
+//                                    "\"FirstField\": \"ИРКУТСК Лениниский - Туманова Светлана\","
+//                                    "\"IsGroup\": 0,"
+//                                    "\"Parent\": \"9e6db678-fd8b-4697-9d1e-4dc44def43eb\","
+//                                    "\"Ref\": \"ae69d099-ef7e-11e3-a0e0-f46d046333e3\","
+//                                    "\"SecondField\": \"ИРКУТСК Ленинский - Туманова Светлана\""
+//                                    "}"
+//                       "            ]"
+//                       "}";
+
+    QJsonObject m_currentJsonObject = QJsonObject();
+
+    QString openFileName = "usersCatalog.json";
+
+    QFileInfo fileInfo(openFileName);
+    QDir::setCurrent(fileInfo.path());
+
+    QFile jsonFile(openFileName);
+    if (!jsonFile.open(QIODevice::ReadOnly))
+    {
+      return;
+    }
+
+    QByteArray saveData = jsonFile.readAll();
+    QJsonDocument jsonDocument(QJsonDocument::fromJson(saveData));
+
+    setJson(QJsonDocument::fromJson(saveData));
     _subdivisions = new QSortFilterProxyModel();
     _subdivisions->setSourceModel(this);
 }
