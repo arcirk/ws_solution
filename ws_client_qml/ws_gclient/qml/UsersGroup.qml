@@ -9,16 +9,20 @@ StackView{
     id: stack
     anchors.fill: parent
 
+    //property QtObject catalogModel//: mainGroupList.ListModel
+
     property string theme: "Dark"
 
    UsersList{
+
         id: userList
         visible: false
    }
 
     initialItem: ItemGroupPage {
-
+        id: mainGroupList
         theme: stack.theme
+        //listModel: catalogModel
         onSelectPage: function(title){
              stack.push(userList, {
                             theme: stack.theme,

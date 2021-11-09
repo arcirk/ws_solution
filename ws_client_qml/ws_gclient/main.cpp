@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include "include/messagelistmodel.h"
 #include "include/selectedusersmodel.h"
+#include "include/usersmodel.h"
 #include <QDir>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -10,12 +11,12 @@
 
 
 #include "include/qmlwebsocket.h"
-#include "include/usersmodel.h"
 
-bWebSocket* client;
-//UsersModel* usersModel;
 
-//void initUsersModel(){
+//bWebSocket* client;
+//UsersModel* catalogModel;
+
+static UsersModel* initUsersModel(){
 
 //    UsersModel::Header header;
 
@@ -23,8 +24,8 @@ bWebSocket* client;
 //    header.push_back( UsersModel::Heading( { {"title","name"},   {"index","name"} }) );
 //    header.push_back( UsersModel::Heading( { {"title","indexDoc"},   {"index","indexDoc"} }) );
 
-
-//}
+    return new UsersModel();
+}
 
 static MessageListModel* initModel(int itemIndex){
 
@@ -84,7 +85,7 @@ static void setEmptyModel(MessageListModel* msgModel, int itemIndex){
 
 }
 
-static SelectedUsersModel* initUsersModel(QObject* parent = nullptr){
+static SelectedUsersModel* initActiveUsersModel(QObject* parent = nullptr){
 
     QJsonObject m_currentJsonObject = QJsonObject();
 
@@ -129,26 +130,24 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<bWebSocket>("arcirk.bWebSocket", 1, 0, "WebSocket");
 
-    //client = new bWebSocket();
-
-    //qDebug() << "args:" << argc;
-
-    if (argc == 3){
-        auto const address = argv[1];
-        auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-        //auto const user = std::max<int>(1, std::atoi(argv[3]));
-        //qDebug() << "address:" << address << "port: " << port;
-        client->get_settings()->ServerHost = QString(address);
-        client->get_settings()->ServerPort = port;
-    }
+//    if (argc == 3){
+//        auto const address = argv[1];
+//        auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+//        //auto const user = std::max<int>(1, std::atoi(argv[3]));
+//        //qDebug() << "address:" << address << "port: " << port;
+//        client->get_settings()->ServerHost = QString(address);
+//        client->get_settings()->ServerPort = port;
+//    }
 
     QQuickStyle::setStyle("Material");
 
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
     qmlRegisterType<MessageListModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
+    qmlRegisterType<MessageListModel>("UsersModel", 1, 0, "UsersModel");
+
 
   //Эмуляция загрузки последнего списка диалогов
-    SelectedUsersModel* m_usersModel = initUsersModel();
+    SelectedUsersModel* m_usersModel = initActiveUsersModel();
     int index = m_usersModel->addRow("40655f80-6870-4780-98b3-70d0f1d054dd", "user 0");
     MessageListModel* messagesModel = initModel(index);
     index = m_usersModel->addRow("41655f80-6870-4780-98b3-70d0f1d054dd", "empty user");
@@ -167,8 +166,14 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
-    engine.rootContext()->setContextProperty("usersModel", m_usersModel);
+//    qDebug() << catalogModel->rowCount();
+//    qDebug() << catalogModel->subdivisions()->rowCount();
 
+    UsersModel* catalogModel = initUsersModel();
+    //catalogModel = new UsersModel();
+
+    engine.rootContext()->setContextProperty("catalogModel", catalogModel);
+    engine.rootContext()->setContextProperty("usersModel", m_usersModel);
     engine.rootContext()->setContextProperty("msgModel", messagesModel);
 
 

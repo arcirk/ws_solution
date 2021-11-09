@@ -31,7 +31,9 @@ add_executable(ws_gclient
         src/clientsettings.cpp
         src/serveresponse.cpp
         src/qmlwebsocket.cpp
-        include/stdfx.h)
+        include/stdfx.h
+        include/usersmodel.h
+        src/usersmodel.cpp)
 
 find_package(Qt6 COMPONENTS
         Core

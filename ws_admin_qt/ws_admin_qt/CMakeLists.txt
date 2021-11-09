@@ -78,6 +78,7 @@ target_precompile_headers(ws_admin_qt
         PUBLIC
         stdfx.h)
 
+if (WIN32)
 add_custom_command(
         TARGET ws_admin_qt POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -90,5 +91,7 @@ add_custom_command(
         $<TARGET_FILE:Qt6::OpenGL>
         $<TARGET_FILE:Qt6::QmlModels>
         $<TARGET_FILE:Qt6::QuickWidgets>
-        $<TARGET_FILE_DIR:ws_admin_qt>
-        $<TARGET_FILE_DIR:ws_client>)
+        $<TARGET_FILE_DIR:ws_admin_qt>)
+endif()
+
+#$<TARGET_FILE_DIR:ws_client>

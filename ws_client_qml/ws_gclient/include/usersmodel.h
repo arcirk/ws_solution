@@ -9,7 +9,7 @@
 #include <QJsonArray>
 #include <QSortFilterProxyModel>
 
-class UsersModel : QAbstractTableModel{
+class UsersModel : public QAbstractTableModel{
 
     Q_OBJECT
     Q_PROPERTY(QSortFilterProxyModel* subdivisions READ subdivisions WRITE setSubdivisions NOTIFY subdivisionsChanged)
@@ -17,7 +17,8 @@ class UsersModel : QAbstractTableModel{
 public:
     typedef QMap<QString,QString> Heading;
     typedef QVector<Heading> Header;
-    explicit UsersModel(const Header& header, QObject * parent = 0);
+    //explicit UsersModel(const Header& header, QObject * parent = nullptr);
+    explicit UsersModel(QObject * parent = nullptr);
 
     bool setJson( const QJsonDocument& json );
     bool setJson( const QJsonArray& array );
@@ -38,6 +39,8 @@ private:
     Header m_header;
     QJsonArray m_json;
     QSortFilterProxyModel* _subdivisions;
+    int filterIndex;
+    QMap<QString,int> headerIndexes;
 
 signals:
     void subdivisionsChanged();

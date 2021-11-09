@@ -15,6 +15,9 @@ ApplicationWindow {
     minimumWidth: 900
 
     property string myTheme: "Dark"
+
+    //property QtObject catalogModel
+
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
 
     MessageDialog {
@@ -25,7 +28,7 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
-        host: "192.168.43.4"
+        host: "192.168.10.80"
         port: 8080
         //user: "admin"
 
@@ -114,8 +117,10 @@ ApplicationWindow {
         //interactive: stackView.depth === 1       
 
         UsersGroup{
+            id: drowerContent
             anchors.fill: parent
             theme: mainForm.myTheme
+            //catalogModel: mainForm.catalogModel
 
 
         }
@@ -170,5 +175,9 @@ ApplicationWindow {
 
     onConnectStateChanged: {
 
+    }
+
+    Component.onCompleted: {
+        console.debug(mainForm.catalogModel)
     }
 }

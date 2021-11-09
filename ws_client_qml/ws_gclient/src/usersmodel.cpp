@@ -2,16 +2,35 @@
 #include <QJsonObject>
 #include <QString>
 
-UsersModel::UsersModel(const UsersModel::Header& header, QObject * parent )
-    : QAbstractTableModel( parent )
-    , m_header( header )
-{
-
-}
+//UsersModel::UsersModel(const UsersModel::Header& header, QObject * parent )
+//    : QAbstractTableModel( parent )
+//    , m_header( header )
+//{
+//
+//}
 
 bool UsersModel::setJson(const QJsonDocument &json)
 {
-    return setJson( json.array() );
+
+    if (json.isNull()) {
+        return false;
+    }
+
+    auto _header = json.object().value("columns").toArray();
+
+    int i = 0;
+    for (auto itr : _header) {
+        QString column = itr.toString();
+        if (column == "Parent")
+            filterIndex = i;
+        m_header.push_back( UsersModel::Heading( { {"title",column},    {"index",column} }) );
+        i++;
+    }
+
+    auto _rows = json.object().value("rows").toArray();
+    setJson( _rows );
+
+    return true;
 }
 
 bool UsersModel::setJson( const QJsonArray& array )
@@ -61,29 +80,46 @@ QJsonObject UsersModel::getJsonObject( const QModelIndex &index ) const
 QVariant UsersModel::data( const QModelIndex &index, int role ) const
 {
 
-    if (role == Qt::UserRole){
-        QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "uuid" ))
-        {
-            return obj["uuid"].toString();
-        }
+//    if (role == Qt::UserRole){
+//        QJsonObject obj = getJsonObject( index );
+//        if( obj.contains( "uuid" ))
+//        {
+//            return obj["uuid"].toString();
+//        }
+//
+//    }else if (role == Qt::UserRole + 1){
+//        QJsonObject obj = getJsonObject( index );
+//        if( obj.contains( "name" ))
+//        {
+//            return obj["name"].toString();
+//        }
+//
+//    }else if (role == Qt::UserRole + 2){
+//        QJsonObject obj = getJsonObject( index );
+//        if( obj.contains( "indexDoc" ))
+//        {
+//            return obj["indexDoc"].toInt();
+//        }
+//
+//    }
 
-    }else if (role == Qt::UserRole + 1){
+    if (role >= Qt::UserRole){
         QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "name" ))
-        {
-            return obj["name"].toString();
-        }
+        QString key = QString::fromStdString(roleNames()[role].toStdString());
+            if( obj.contains( key ))
+            {
+                QJsonValue v = obj[ key ];
 
-    }else if (role == Qt::UserRole + 2){
-        QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "indexDoc" ))
-        {
-            return obj["indexDoc"].toInt();
-        }
-
+                if( v.isString() )
+                {
+                    return v.toString();
+                }
+                else if( v.isDouble() )
+                {
+                    return QString::number( v.toDouble() );
+                }
+            }
     }
-
 
     switch( role )
     {
@@ -128,7 +164,8 @@ QHash<int, QByteArray> UsersModel::roleNames() const
 
     for (int i = 0; i < m_header.size(); ++i) {
         const QString& key = m_header[i]["index"];
-        names[Qt::UserRole + i] = key.toUtf8();
+        int index = Qt::UserRole + i;
+        names[index] = key.toUtf8();
     }
 
     return names;
@@ -136,10 +173,45 @@ QHash<int, QByteArray> UsersModel::roleNames() const
 
 QSortFilterProxyModel *UsersModel::subdivisions()
 {
+    _subdivisions->setFilterFixedString("00000000-0000-0000-0000-000000000000");
+    _subdivisions->setFilterKeyColumn(filterIndex);
     return _subdivisions;
 }
 
 void UsersModel::setSubdivisions(QSortFilterProxyModel *proxy)
 {
     _subdivisions = proxy;
+}
+
+UsersModel::UsersModel(QObject *parent)
+    : QAbstractTableModel(parent)
+{
+    QString defModel = "{ "
+                       "    \"columns\": ["
+                       "        \"FirstField\","
+                       "        \"SecondField\","
+                       "        \"Ref\","
+                       "        \"Parent\","
+                       "        \"IsGroup\""
+                       "    ],"
+                       "    \"rows\": ["
+                       "{"
+                       "            \"FirstField\": \"ДальнийВосток\","
+                       "            \"IsGroup\": 1,"
+                       "            \"Parent\": \"00000000-0000-0000-0000-000000000000\","
+                       "            \"Ref\": \"ac321a73-4a53-4c37-a34d-c6922df57d54\","
+                       "            \"SecondField\": \"Дальний восток\"}"
+                       "            ,"
+                       "            {"
+                                    "\"FirstField\": \"ИРКУТСК Лениниский - Туманова Светлана\","
+                                    "\"IsGroup\": 0,"
+                                    "\"Parent\": \"9e6db678-fd8b-4697-9d1e-4dc44def43eb\","
+                                    "\"Ref\": \"ae69d099-ef7e-11e3-a0e0-f46d046333e3\","
+                                    "\"SecondField\": \"ИРКУТСК Ленинский - Туманова Светлана\""
+                                    "}"
+                       "            ]"
+                       "}";
+    setJson(QJsonDocument::fromJson(defModel.toUtf8()));
+    _subdivisions = new QSortFilterProxyModel();
+    _subdivisions->setSourceModel(this);
 }

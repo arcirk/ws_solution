@@ -9,7 +9,8 @@ Page{
     id: mainGroupPage
     //anchors.fill: parent
 
-    property QtObject pageModel
+   //property QtObject listModel//: listViewGroup.model
+
     property string theme: "Dark"
 
     signal selectPage(string title)
@@ -40,25 +41,26 @@ Page{
 
         delegate: ItemDelegate {
             width: parent.width
-            text: model.title
+            text: model.SecondField
             highlighted: ListView.isCurrentItem
 
             onClicked: {
 //                listViewGroup.currentIndex = index
 //                stackView.push(model.source)
 //                drawer.close()
-                mainGroupPage.selectPage(model.title)
+                //mainGroupPage.selectPage(model.title)
+                mainGroupPage.selectPage(model.SecondField)
 
             }
         }
-        ListModel {
-            id: mainModel
-                    ListElement { title: "Ангарск"}
-                    ListElement { title: "Иркустк"}
-                    ListElement { title: "Чита"}
-                    ListElement { title: "Улан-уде"}
-        }
-        model: pageModel != null ? pageModel : mainModel
+//        ListModel {
+//            id: mainModel
+//                    ListElement { title: "Ангарск"}
+//                    ListElement { title: "Иркустк"}
+//                    ListElement { title: "Чита"}
+//                    ListElement { title: "Улан-уде"}
+//        }
+        model: catalogModel.subdivisions;//mainModel //pageModel  != null ? pageModel : mainModel
 
         ScrollIndicator.vertical: ScrollIndicator { }
     }
