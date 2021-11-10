@@ -34,3 +34,7 @@ windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
 windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
 QT += quickcontrols2
+
+LIBS += -L"/home/arcady/GitHub/ws_solution/qt_models/project/cmake-build-debug"
+
+INCLUDEPATH += "/home/arcady/GitHub/ws_solution/qt_models/project/include"

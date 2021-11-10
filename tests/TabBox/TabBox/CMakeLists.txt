@@ -35,6 +35,8 @@ find_package(Qt6 COMPONENTS
         QuickControls2
         REQUIRED)
 
+include_directories("../../../qt_models/project/include")
+
 target_link_libraries(chat_qml_test
         Qt6::Core
         Qt6::Gui
@@ -44,6 +46,7 @@ target_link_libraries(chat_qml_test
         Qt6::QuickWidgets
         Qt6::QmlModels
         Qt6::QuickControls2
+        qjsonmodel
         )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
