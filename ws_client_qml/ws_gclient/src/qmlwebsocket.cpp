@@ -90,8 +90,10 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             client->get_users_catalog("");
         }else if (resp->command == "get_users_catalog"){
             //qDebug() << resp->message;
-            ServeResponse::debugSaveResponse("usersCatalog", resp->message);
-            emit user_catalog(resp->message);
+            //ServeResponse::debugSaveResponse("usersCatalog", resp->message);
+            //emit user_catalog(resp->message);
+            if(m_usersCatalogModel)
+                m_usersCatalogModel->setJson(QJsonDocument::fromJson(resp->message.toUtf8()));
         }else if (resp->command == "get_messages"){
             //qDebug() << resp->message;
             emit get_messages(resp->message);
@@ -210,6 +212,15 @@ bool bWebSocket::pwdEdit()
 void bWebSocket::setPwdEdit(bool value)
 {
     _pwdEdit = value;
+}
+
+void bWebSocket::setCatalog(UsersModel* model) {
+    m_usersCatalogModel = model;
+}
+
+UsersModel* bWebSocket::catalog()
+{
+    return m_usersCatalogModel;
 }
 
 

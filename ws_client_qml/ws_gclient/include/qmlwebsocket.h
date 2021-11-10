@@ -5,6 +5,7 @@
 #include <iws_client.h>
 #include "clientsettings.h"
 #include "serveresponse.h"
+#include "usersmodel.h"
 //#include "qmlmessage.h"
 
 class bWebSocket : public QObject
@@ -19,6 +20,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY autoConnectChanged)
     Q_PROPERTY(bool saveHash READ saveHash WRITE setSaveHash NOTIFY saveHashChanged)
     Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
+    Q_PROPERTY(UsersModel* catalog READ catalog WRITE setCatalog NOTIFY catalogChanged)
     //Q_PROPERTY(QString activePage READ getActivePage WRITE setActivePage);
 
 public:
@@ -63,6 +65,8 @@ public:
     bool pwdEdit();
     void setPwdEdit(bool value);
 
+    void setCatalog(UsersModel* model);
+    UsersModel* catalog();
 
 private:
     IClient * client;
@@ -70,7 +74,7 @@ private:
     bool _pwdEdit;
     QString user;
     QString hash;
-
+    UsersModel* m_usersCatalogModel;
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -91,6 +95,7 @@ signals:
     void autoConnectChanged();
     void saveHashChanged();
     void pwdEditChanged();
+    void catalogChanged();
 };
 
 #endif // QMLWEBSOCKET_H

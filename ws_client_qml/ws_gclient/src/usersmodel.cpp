@@ -4,6 +4,49 @@
 #include <QFileInfo>
 #include <QDir>
 
+UsersModel::UsersModel(QObject *parent)
+        : QAbstractTableModel(parent)
+{
+
+//    //ToDo: удалить
+//    QJsonObject m_currentJsonObject = QJsonObject();
+//
+//    QString openFileName = "usersCatalog.json";
+//
+//    QFileInfo fileInfo(openFileName);
+//    QDir::setCurrent(fileInfo.path());
+//
+//    QFile jsonFile(openFileName);
+//    if (!jsonFile.open(QIODevice::ReadOnly))
+//    {
+//        return;
+//    }
+
+//    QByteArray saveData = jsonFile.readAll();
+//    QJsonDocument jsonDocument(QJsonDocument::fromJson(saveData));
+
+
+    _subdivisions = new UsersProxyModel();
+    _subdivisions->setSourceModel(this);
+    _subdivisions->setRef("00000000-0000-0000-0000-000000000000");
+    _subdivisions->setIsGroup(1);
+
+    QString defJson = "{\n"
+                      "    \"columns\": ["
+                      "        \"FirstField\","
+                      "        \"SecondField\","
+                      "        \"Ref\","
+                      "        \"Parent\","
+                      "        \"IsGroup\""
+                      "    ],"
+                      "    \"rows\": []"
+                      "}";
+
+    setJson(QJsonDocument::fromJson(defJson.toUtf8()));
+
+}
+
+
 bool UsersModel::setJson(const QJsonDocument &json)
 {
 
@@ -11,7 +54,11 @@ bool UsersModel::setJson(const QJsonDocument &json)
         return false;
     }
 
+   // beginResetModel();
+
     auto _header = json.object().value("columns").toArray();
+
+    m_header.clear();
 
     int i = 0;
     for (auto itr : _header) {
@@ -24,6 +71,11 @@ bool UsersModel::setJson(const QJsonDocument &json)
 
     auto _rows = json.object().value("rows").toArray();
     setJson( _rows );
+
+    //endResetModel();
+
+//    if(_subdivisions)
+//        delete _subdivisions;
 
     return true;
 }
@@ -166,79 +218,65 @@ QHash<int, QByteArray> UsersModel::roleNames() const
     return names;
 }
 
-QSortFilterProxyModel *UsersModel::subdivisions()
+UsersProxyModel *UsersModel::subdivisions()
 {
-    auto names = roleNames();
-    int indexParent = 0;
-    int indexIsGroup = 0;
-    for (int index : names.keys() ) {
-        if(names[index].toStdString() == "Parent"){
-            indexParent = index - Qt::UserRole;
-            break;
-        }
-    }
-    for (int index : names.keys() ) {
-        if(names[index].toStdString() == "IsGroup"){
-            indexIsGroup = index - Qt::UserRole;
-            break;
-        }
-    }
-    _subdivisions->setFilterFixedString("00000000-0000-0000-0000-000000000000");
-    _subdivisions->setFilterKeyColumn(indexParent);
+//    auto names = roleNames();
+//    int indexParent = 0;
+//    int indexIsGroup = 0;
+//    for (int index : names.keys() ) {
+//        if(names[index].toStdString() == "Parent"){
+//            indexParent = index - Qt::UserRole;
+//            break;
+//        }
+//    }
+//    for (int index : names.keys() ) {
+//        if(names[index].toStdString() == "IsGroup"){
+//            indexIsGroup = index - Qt::UserRole;
+//            break;
+//        }
+//    }
+
+//    _subdivisions->setFilterFixedString("00000000-0000-0000-0000-000000000000");
+//    _subdivisions->setFilterKeyColumn(indexParent);
+
+//    _subdivisions->setRef("00000000-0000-0000-0000-000000000000");
+//    _subdivisions->setIsGroup(1);
+
+    //beginResetModel();
+    //m_json = array;
+    //endResetModel();
+
     return _subdivisions;
 }
 
-void UsersModel::setSubdivisions(QSortFilterProxyModel *proxy)
-{
-    _subdivisions = proxy;
-}
+//void UsersModel::setSubdivisions(UsersProxyModel *proxy)
+//{
+//    _subdivisions = proxy;
+//    _subdivisions->setSourceModel(this);
+//}
 
-UsersModel::UsersModel(QObject *parent)
-    : QAbstractTableModel(parent)
-{
-//    QString defModel = "{ "
-//                       "    \"columns\": ["
-//                       "        \"FirstField\","
-//                       "        \"SecondField\","
-//                       "        \"Ref\","
-//                       "        \"Parent\","
-//                       "        \"IsGroup\""
-//                       "    ],"
-//                       "    \"rows\": ["
-//                       "{"
-//                       "            \"FirstField\": \"ДальнийВосток\","
-//                       "            \"IsGroup\": 1,"
-//                       "            \"Parent\": \"00000000-0000-0000-0000-000000000000\","
-//                       "            \"Ref\": \"ac321a73-4a53-4c37-a34d-c6922df57d54\","
-//                       "            \"SecondField\": \"Дальний восток\"}"
-//                       "            ,"
-//                       "            {"
-//                                    "\"FirstField\": \"ИРКУТСК Лениниский - Туманова Светлана\","
-//                                    "\"IsGroup\": 0,"
-//                                    "\"Parent\": \"9e6db678-fd8b-4697-9d1e-4dc44def43eb\","
-//                                    "\"Ref\": \"ae69d099-ef7e-11e3-a0e0-f46d046333e3\","
-//                                    "\"SecondField\": \"ИРКУТСК Ленинский - Туманова Светлана\""
-//                                    "}"
-//                       "            ]"
-//                       "}";
+int UsersModel::getColumnIndex(const QString &name) {
 
-    QJsonObject m_currentJsonObject = QJsonObject();
+    int result = 0;
+    //int i = 0;
 
-    QString openFileName = "usersCatalog.json";
+    auto names = roleNames();
 
-    QFileInfo fileInfo(openFileName);
-    QDir::setCurrent(fileInfo.path());
-
-    QFile jsonFile(openFileName);
-    if (!jsonFile.open(QIODevice::ReadOnly))
-    {
-      return;
+    for (int iKey : names.keys() ) {
+        if (names[iKey].toStdString() == name.toStdString()){
+            result = iKey - Qt::UserRole;
+            break;
+        }
     }
 
-    QByteArray saveData = jsonFile.readAll();
-    QJsonDocument jsonDocument(QJsonDocument::fromJson(saveData));
+//    for (auto itr : names) {
+//        if (itr.toStdString() == name.toStdString()){
+//            result = i;
+//            break;
+//        }
+//        i++;
+//    }
 
-    setJson(QJsonDocument::fromJson(saveData));
-    _subdivisions = new QSortFilterProxyModel();
-    _subdivisions->setSourceModel(this);
+    return result;
 }
+

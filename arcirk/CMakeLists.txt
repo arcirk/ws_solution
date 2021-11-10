@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(arcirk)
 
 set(CMAKE_CXX_STANDARD 17)
+
 #set(CMAKE_CXX_FLAGS                " ${CMAKE_CXX_FLAGS_INIT} -std=c++11 -fPIC")
 #set(CMAKE_CXX_FLAGS_DEBUG          "-g -DDEBUG")
 #set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")

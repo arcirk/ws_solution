@@ -8,12 +8,13 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QSortFilterProxyModel>
+#include "usersproxymodel.h"
 
 class UsersModel : public QAbstractTableModel{
 
     Q_OBJECT
-    Q_PROPERTY(QSortFilterProxyModel* subdivisions READ subdivisions WRITE setSubdivisions NOTIFY subdivisionsChanged)
-
+    Q_PROPERTY(UsersProxyModel* subdivisions READ subdivisions NOTIFY subdivisionsChanged)
+// WRITE setSubdivisions
 public:
     typedef QMap<QString,QString> Heading;
     typedef QVector<Heading> Header;
@@ -32,13 +33,15 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
 
-    QSortFilterProxyModel* subdivisions();
-    void setSubdivisions(QSortFilterProxyModel* proxy);
+    UsersProxyModel* subdivisions();
+//    void setSubdivisions(UsersProxyModel* proxy);
+
+    int getColumnIndex(const QString& name);
 
 private:
     Header m_header;
     QJsonArray m_json;
-    QSortFilterProxyModel* _subdivisions;
+    UsersProxyModel* _subdivisions;
     int filterIndex;
     QMap<QString,int> headerIndexes;
 

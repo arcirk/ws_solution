@@ -33,7 +33,7 @@ add_executable(ws_gclient
         src/qmlwebsocket.cpp
         include/stdfx.h
         include/usersmodel.h
-        src/usersmodel.cpp)
+        src/usersmodel.cpp include/usersproxymodel.h src/usersproxymodel.cpp)
 
 find_package(Qt6 COMPONENTS
         Core

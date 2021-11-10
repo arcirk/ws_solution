@@ -13,7 +13,8 @@ SOURCES += \
         src/qmlwebsocket.cpp \
         src/selectedusersmodel.cpp \
         src/serveresponse.cpp \
-        src/usersmodel.cpp
+        src/usersmodel.cpp \
+        src/usersproxymodel.cpp
 
 RESOURCES += qml.qrc
 
@@ -37,7 +38,8 @@ HEADERS += \
     include/selectedusersmodel.h \
     include/serveresponse.h \
     include/stdfx.h \
-    include/usersmodel.h
+    include/usersmodel.h \
+    include/usersproxymodel.h
 
 windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
 windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include

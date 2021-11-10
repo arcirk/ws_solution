@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.20)
 project(ws_solution)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_server" "${PROJECT_SOURCE_DIR}/ws_server/cmake-build-debug")

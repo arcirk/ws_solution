@@ -3,6 +3,7 @@
 #include "include/messagelistmodel.h"
 #include "include/selectedusersmodel.h"
 #include "include/usersmodel.h"
+#include "include/usersproxymodel.h"
 #include <QDir>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
     qmlRegisterType<MessageListModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
     qmlRegisterType<MessageListModel>("UsersModel", 1, 0, "UsersModel");
+    qmlRegisterType<MessageListModel>("UsersProxyModel", 1, 0, "UsersProxyModel");
 
 
   //Эмуляция загрузки последнего списка диалогов
@@ -170,6 +172,8 @@ int main(int argc, char *argv[])
 //    qDebug() << catalogModel->subdivisions()->rowCount();
 
     UsersModel* catalogModel = initUsersModel();
+    //catalogModel->setSubdivisions(new UsersProxyModel());
+
     //catalogModel = new UsersModel();
 
     engine.rootContext()->setContextProperty("catalogModel", catalogModel);

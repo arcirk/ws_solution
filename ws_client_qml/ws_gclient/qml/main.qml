@@ -16,7 +16,8 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    //property QtObject catalogModel
+    property string myHost: "192.168.43.18"
+    property int myPort: 8080
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
 
@@ -28,9 +29,9 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
-        host: "192.168.43.4"
-        port: 8080
-        //user: "admin"
+        host: mainForm.myHost
+        port: mainForm.myPort
+        catalog: catalogModel
 
         onCloseConnection: {
             authForm.enabledForm = true
