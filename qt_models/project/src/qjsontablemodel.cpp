@@ -201,7 +201,12 @@ QString QJsonTableModel::jsonText() const {
 
 void QJsonTableModel::setJsonText(const QString &source) {
 
-    setJson(QJsonDocument::fromJson(source.toUtf8()));
+    if(source.isEmpty())
+        return;
+    QJsonDocument doc = QJsonDocument::fromJson(source.toUtf8());
+    if(doc.isNull())
+        return;
+    setJson(doc);
 
 }
 

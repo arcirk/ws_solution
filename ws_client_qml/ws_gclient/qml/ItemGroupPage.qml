@@ -9,11 +9,13 @@ Page{
     id: mainGroupPage
     //anchors.fill: parent
 
-   //property QtObject listModel//: listViewGroup.model
+   property alias rootModel: listViewGroup.model
 
     property string theme: "Dark"
 
-    signal selectPage(string title)
+    signal selectPage(string title, string uuid)
+
+    property string jsonRespCatalog
 
     header: ToolBar{
         anchors.left: mainGroupPage.left
@@ -49,7 +51,7 @@ Page{
 //                stackView.push(model.source)
 //                drawer.close()
                 //mainGroupPage.selectPage(model.title)
-                mainGroupPage.selectPage(model.SecondField)
+                mainGroupPage.selectPage(model.SecondField, model.Ref)
 
             }
         }
@@ -60,9 +62,15 @@ Page{
 //                    ListElement { title: "Чита"}
 //                    ListElement { title: "Улан-уде"}
 //        }
-        model: catalogModel.subdivisions;//mainModel //pageModel  != null ? pageModel : mainModel
+        //model: catalogModel.subdivisions;//mainModel //pageModel  != null ? pageModel : mainModel
 
         ScrollIndicator.vertical: ScrollIndicator { }
+    }
+
+
+
+    onJsonRespCatalogChanged: {
+
     }
 }
 

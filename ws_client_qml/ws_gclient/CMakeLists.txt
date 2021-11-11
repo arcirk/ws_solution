@@ -31,9 +31,11 @@ add_executable(ws_gclient
         src/clientsettings.cpp
         src/serveresponse.cpp
         src/qmlwebsocket.cpp
-        include/stdfx.h
-        include/usersmodel.h
-        src/usersmodel.cpp include/usersproxymodel.h src/usersproxymodel.cpp)
+        include/stdfx.h)
+#        include/usersmodel.h
+#        src/usersmodel.cpp
+#        include/usersproxymodel.h
+#        src/usersproxymodel.cpp)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -45,6 +47,7 @@ find_package(Qt6 COMPONENTS
         REQUIRED)
 
 include_directories("../../ws_client/include")
+include_directories("../../qt_models/project/include")
 
 target_link_libraries(ws_gclient
         Qt6::Core
@@ -56,6 +59,7 @@ target_link_libraries(ws_gclient
         Qt6::QmlModels
         Qt6::QuickControls2
         ws_client
+        qjsonmodel
         )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

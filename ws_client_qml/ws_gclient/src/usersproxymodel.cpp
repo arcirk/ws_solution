@@ -75,20 +75,20 @@ QVariant UsersProxyModel::headerData(int section, Qt::Orientation orientation,
                                      role);
 }
 
-void UsersProxyModel::setFilter(const QString &fiterText)
-{
-
-    m_filter.clear();
-
-    QJsonDocument json = QJsonDocument::fromJson(fiterText.toUtf8());
-
-    if(json.isNull())
-        return;
-
-    QJsonObject obj = json.object();
-
-    for (auto itr = obj.begin(); itr < obj.end() ; ++itr) {
-        m_filter.insert(QString::fromStdString(itr.key().toStdString()), itr.value().toVariant());
-    }
-
-}
+//void UsersProxyModel::setFilter(const QString &fiterText)
+//{
+//
+//    m_filter.clear();
+//
+//    QJsonDocument json = QJsonDocument::fromJson(fiterText.toUtf8());
+//
+//    if(json.isNull())
+//        return;
+//
+//    QJsonObject obj = json.object();
+//
+//    for (auto itr = obj.begin(); itr < obj.end() ; ++itr) {
+//        m_filter.insert(QString::fromStdString(itr.key().toStdString()), itr.value().toVariant());
+//    }
+//
+//}

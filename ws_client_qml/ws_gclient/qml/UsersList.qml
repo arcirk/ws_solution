@@ -3,6 +3,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
+import QJsonTableModel 1.0
+import QProxyModel 1.0
 
 Page{
 
@@ -13,6 +15,17 @@ Page{
     property string pageTitle: "Пользователи подразделения"
 
     property QtObject mainPage
+
+    //property alias filter: currentList.filter
+    //property alias sourceModel: currentList.sourceModel
+
+    function setPropertyModel(mainModel, uuid){
+        currentList.sourceModel = mainModel
+        currentList.filter = "{\"IsGroup\": 1,
+                               \"Parent\": \"" + uuid + "\"}"
+    }
+
+    signal selectedUser(string uuid, string name);
 
     header: ToolBar{
         id: barButtoms
@@ -32,119 +45,23 @@ Page{
 
     }
 
-    ListModel {
-            id: dataModel
-            ListElement {
-                text: "Администрация"
-                property bool isGroup: true
-                property bool selected: true
-            }
-            ListElement {
-                text: "Отдел продаж"
-                property bool isGroup: false
-                property bool selected: false
-            }
-            ListElement {
-                text: "Склад"
-                property bool isGroup: false
-                property bool selected: false
-            }
-            ListElement {
-                text: "Отдел поставок"
-                property bool isGroup: false
-                property bool selected: false
-            }
-//            ListElement {
-//                text: "     Борисова"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Борисова"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Борисова"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Борисова"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "Отдел поставок"
-//                property bool isGroup: true
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Шестакова"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-//            ListElement {
-//                text: "     Судаков"
-//                property bool isGroup: false
-//                property bool visible: true
-//            }
-        }
-//        ListModel{
-//            id: dataItemModel
-//                        ListElement {
-//                            text: "     Борисоглебский"
-//                            property bool isGroup: false
-//                            property bool visible: true
-//                        }
-//                        ListElement {
-//                            text: "     Судаков"
-//                            property bool isGroup: false
-//                            property bool visible: true
-//                        }
-//        }
+    QProxyModel{
+        id: currentList
+
+    }
 
     ListView {
         id: view
 
         focus: true
-        //currentIndex: -1
         anchors.margins: 10
         anchors.fill: parent
         spacing: 5
-        model: dataModel
+        model: currentList
 
         property QtObject selDelegate;
+
+
 
         delegate: UserItemCatalogDelegate{
                 id: delegate
@@ -152,6 +69,8 @@ Page{
                 theme: departmentUsers.theme
                 textColor: departmentUsers.theme === "Light" ? "#424242" : "#efebe9"
                 expandIcon:true
+
+
                 onSelectedChanged: function(item){
                     if(view.selDelegate){
                         view.selDelegate.checked = false;
@@ -164,6 +83,11 @@ Page{
                         view.selDelegate = null
                     }
                 }
+                onItemClick: function(uuid, isGroup, name){
+                    //console.debug(uuid + " --- " + isGroup);
+                    if(isGroup === 0)
+                        departmentUsers.selectedUser(uuid, name);
+                }
 
         }
 
@@ -173,6 +97,5 @@ Page{
         //btnPageBack.icon.source = departmentUsers.theme === "Dark" ? "qrc:/images/ic-back_97586_White.svg" : "qrc:/images/ic-back_97586.svg"
         console.debug(btnPageBack.icon.source)
     }
-
 
 }

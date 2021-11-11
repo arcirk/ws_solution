@@ -12,7 +12,7 @@ class UsersProxyModel : public QSortFilterProxyModel
 {
 Q_OBJECT
     //Q_PROPERTY(UsersModel* sourceModel READ sourceModel WRITE setSourceModel NOTIFY sourceModelChanged)
-    Q_PROPERTY(QString filer READ filer WRITE setFiler NOTIFY filerChanged)
+    //Q_PROPERTY(QString filer READ filer WRITE setFiler NOTIFY filerChanged)
 public:
     explicit UsersProxyModel(QObject* parent = 0);
     bool filterAcceptsRow(int source_row,
@@ -23,8 +23,8 @@ public:
     //UsersModel* sourceModel();
     //void setSourceModel(UsersModel* source);
 
-    QString filter();
-    void setFilter(const QString& fiterText);
+//    QString filter();
+//    void setFilter(const QString& fiterText);
 
 public slots:
     void setRef(const QString& ref);

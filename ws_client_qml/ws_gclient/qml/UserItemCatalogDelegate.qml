@@ -3,6 +3,8 @@ import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Window 2.15
 import "qrc:/scripts/scripts.js" as Scripts
+import QProxyModel 1.0
+import QJsonTableModel 1.0
 
 IconPane{
 
@@ -18,12 +20,22 @@ IconPane{
     signal selectedChanged(QtObject item)
 
     width: parent.width
-    name: model.text
+    name: model.SecondField
+    uuid:{
+        model.Ref
+        //console.debug(model.SecondField)
+    }
 
     onClicked: {
             hidden = !hidden
             itemUserDelegate.checked = !hidden
             itemUserDelegate.selectedChanged(itemUserDelegate);
+    }
+
+
+    signal itemClick(string uuid, int isGroup, string name)
+    onChildItemClick: function(uuid, isGroup, name) {
+        itemUserDelegate.itemClick(uuid, isGroup, name)
     }
 
     chldrenList: true

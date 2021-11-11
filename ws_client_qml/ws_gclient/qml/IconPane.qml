@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls.Material 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Window 2.15
+import QProxyModel 1.0
 
 RoundPane {
     id: control
@@ -20,6 +21,21 @@ RoundPane {
     property string theme: "Dark"
     property bool chldrenList: false
     property alias expandState: expandIconImage.state
+    property string uuid
+
+    QProxyModel{
+        id: proxyModel
+
+    }
+
+    signal childItemClick(string uuid, int isGroup, string name);
+
+    onUuidChanged: {
+        console.debug(uuid)
+        proxyModel.sourceModel = catalogModel
+        proxyModel.filter = "{\"IsGroup\": 0,
+                  \"Parent\": \"" + uuid + "\"}"
+    }
 
     Material.elevation: {
         if(control.checkable)
@@ -51,45 +67,6 @@ RoundPane {
         return colControl.height - (nameItem.height - (nameItem.padding*2))
     }
 
-    ListModel {
-            id: dataModel
-            ListElement {
-                text: "Пользователь1"
-            }
-            ListElement {
-                text: "Пользователь2"
-            }
-            ListElement {
-                text: "Пользователь3"
-            }
-            ListElement {
-                text: "Пользователь1"
-            }
-            ListElement {
-                text: "Пользователь2"
-            }
-            ListElement {
-                text: "Пользователь3"
-            }
-            ListElement {
-                text: "Пользователь1"
-            }
-            ListElement {
-                text: "Пользователь2"
-            }
-            ListElement {
-                text: "Пользователь3"
-            }
-            ListElement {
-                text: "Пользователь1"
-            }
-            ListElement {
-                text: "Пользователь2"
-            }
-            ListElement {
-                text: "Пользователь3"
-            }
-    }
 
     ColumnLayout{
         id: colControl
@@ -133,6 +110,10 @@ RoundPane {
                 id: txt;
                 textFormat: Text.RichText
                 Layout.fillWidth: true
+                clip: true
+                //elide: Text.ElideRight
+//                displayMarginBeginning: 40
+//                displayMarginEnd: 40
                 //wrapMode: TextArea.Wrap
 
                 MouseArea{
@@ -263,14 +244,17 @@ RoundPane {
                 displayMarginEnd: -30
                 currentIndex: -1
                 anchors.fill: parent
-
-                model: dataModel
+                model: proxyModel
                 delegate: ItemDelegate {
                     id: itemChildTExt
-                    text: qsTr(model.text)
+                    text: qsTr(model.SecondField)
                     //height: itemChildTExt.implicitHeight
                     highlighted: ListView.isCurrentItem
                     width: nameItem.width - nameItem.leftPadding - itemChildTExt.rightPadding
+                    onClicked: {
+                        control.childItemClick(model.Ref, model.IsGroup, model.SecondField)
+                    }
+
                 }
                 ScrollBar.vertical: ScrollBar {}
 
@@ -279,16 +263,6 @@ RoundPane {
 
     }
 
-
-
-    onCheckedChanged: {
-//        if(control.chldrenList){
-//            if(control.checked)
-//                nameItem.visible = true
-//            else
-//                nameItem.visible = false
-//        }
-    }
 
 
     onChldrenListChanged: {

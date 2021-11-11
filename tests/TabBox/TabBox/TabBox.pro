@@ -7,6 +7,8 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        ../../../qt_models/project/src/qjsontablemodel.cpp \
+        ../../../qt_models/project/src/qproxymodel.cpp \
         main.cpp \
         src/messagelistmodel.cpp \
         src/selectedusersmodel.cpp
@@ -27,6 +29,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES +=
 
 HEADERS += \
+    ../../../qt_models/project/include/qjsontablemodel.h \
+    ../../../qt_models/project/include/qproxymodel.h \
     include/messagelistmodel.h \
     include/selectedusersmodel.h
 
@@ -35,6 +39,6 @@ windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
 QT += quickcontrols2
 
-LIBS += -L"/home/arcady/GitHub/ws_solution/qt_models/project/cmake-build-debug"
+#LIBS += -L"/home/arcady/src/ws_solution/qt_models/project/cmake-build-debug"
 
-INCLUDEPATH += "/home/arcady/GitHub/ws_solution/qt_models/project/include"
+INCLUDEPATH += "/home/arcady/src/ws_solution/qt_models/project/include"

@@ -40,6 +40,11 @@ bool QProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
                 if (i.value().toDouble() != model->data(index).toDouble())
                     return false;
             }
+            else if (i.value().typeId() == QMetaType::LongLong){
+                if (i.value().toLongLong() != model->data(index).toLongLong())
+                    return false;
+            }
+            //qDebug() << i.value().typeId() << ":" << i.value().typeName();
         }
 
     }
@@ -54,10 +59,14 @@ QString QProxyModel::filter() {
 void QProxyModel::setFilter(const QString &filterText) {
 
     m_FilterText = filterText;
+    set_filter();
 }
 
 void QProxyModel::set_filter() {
 
+    if(sourceModel()){
+        beginResetModel();
+    }
     m_filter.clear();
     auto doc = QJsonDocument::fromJson(m_FilterText.toUtf8());
     if (doc.isNull())
@@ -71,8 +80,11 @@ void QProxyModel::set_filter() {
     for (auto itr = obj.begin(); itr < obj.end(); ++itr) {
         QString key = itr.key();
         QVariant value = itr->toVariant();
-
+        //qDebug() << key << ":" << value.typeId() << ":" << value.typeName();
         m_filter.insert(key, value);
 
+    }
+    if(sourceModel()){
+        endResetModel();
     }
 }

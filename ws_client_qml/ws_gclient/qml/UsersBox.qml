@@ -112,6 +112,7 @@ Pane {
         }
 
         ScrollBar.horizontal: ScrollBar {}
+        ScrollBar.vertical: ScrollBar {}
 
     }
 

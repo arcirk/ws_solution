@@ -2,8 +2,8 @@
 #include <QQmlApplicationEngine>
 #include "include/messagelistmodel.h"
 #include "include/selectedusersmodel.h"
-#include "include/usersmodel.h"
-#include "include/usersproxymodel.h"
+//#include "include/usersmodel.h"
+//#include "include/usersproxymodel.h"
 #include <QDir>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -12,21 +12,22 @@
 
 
 #include "include/qmlwebsocket.h"
-
+#include <qproxymodel.h>
+#include <qjsontablemodel.h>
 
 //bWebSocket* client;
 //UsersModel* catalogModel;
 
-static UsersModel* initUsersModel(){
-
-//    UsersModel::Header header;
-
-//    header.push_back( UsersModel::Heading( { {"title","uuid"},    {"index","uuid"} }) );
-//    header.push_back( UsersModel::Heading( { {"title","name"},   {"index","name"} }) );
-//    header.push_back( UsersModel::Heading( { {"title","indexDoc"},   {"index","indexDoc"} }) );
-
-    return new UsersModel();
-}
+//static UsersModel* initUsersModel(){
+//
+////    UsersModel::Header header;
+//
+////    header.push_back( UsersModel::Heading( { {"title","uuid"},    {"index","uuid"} }) );
+////    header.push_back( UsersModel::Heading( { {"title","name"},   {"index","name"} }) );
+////    header.push_back( UsersModel::Heading( { {"title","indexDoc"},   {"index","indexDoc"} }) );
+//
+//    return new UsersModel();
+//}
 
 static MessageListModel* initModel(int itemIndex){
 
@@ -143,9 +144,11 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Material");
 
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
-    qmlRegisterType<MessageListModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
-    qmlRegisterType<MessageListModel>("UsersModel", 1, 0, "UsersModel");
-    qmlRegisterType<MessageListModel>("UsersProxyModel", 1, 0, "UsersProxyModel");
+    qmlRegisterType<SelectedUsersModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
+//    qmlRegisterType<UsersModel>("UsersModel", 1, 0, "UsersModel");
+//    qmlRegisterType<UsersProxyModel>("UsersProxyModel", 1, 0, "UsersProxyModel");
+    qmlRegisterType<QJsonTableModel>("QJsonTableModel", 1, 0, "QJsonTableModel");
+    qmlRegisterType<QProxyModel>("QProxyModel", 1, 0, "QProxyModel");
 
 
   //Эмуляция загрузки последнего списка диалогов
@@ -171,12 +174,12 @@ int main(int argc, char *argv[])
 //    qDebug() << catalogModel->rowCount();
 //    qDebug() << catalogModel->subdivisions()->rowCount();
 
-    UsersModel* catalogModel = initUsersModel();
+    //UsersModel* catalogModel = initUsersModel();
     //catalogModel->setSubdivisions(new UsersProxyModel());
 
     //catalogModel = new UsersModel();
 
-    engine.rootContext()->setContextProperty("catalogModel", catalogModel);
+    //engine.rootContext()->setContextProperty("catalogModel", catalogModel);
     engine.rootContext()->setContextProperty("usersModel", m_usersModel);
     engine.rootContext()->setContextProperty("msgModel", messagesModel);
 

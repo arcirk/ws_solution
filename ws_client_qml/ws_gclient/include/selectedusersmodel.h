@@ -32,7 +32,7 @@ public:
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    int addRow(const QString& uuid, const QString &name);
+    Q_INVOKABLE int addRow(const QString& uuid, const QString &name);
 
     void setCurrentIndex(int index);
 

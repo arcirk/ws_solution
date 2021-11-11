@@ -7,6 +7,8 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        ../../qt_models/project/src/qjsontablemodel.cpp \
+        ../../qt_models/project/src/qproxymodel.cpp \
         main.cpp \
         src/clientsettings.cpp \
         src/messagelistmodel.cpp \
@@ -32,6 +34,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES +=
 
 HEADERS += \
+    ../../qt_models/project/include/qjsontablemodel.h \
+    ../../qt_models/project/include/qproxymodel.h \
     include/clientsettings.h \
     include/messagelistmodel.h \
     include/qmlwebsocket.h \
@@ -49,9 +53,11 @@ QT += quickcontrols2
 PRECOMPILED_HEADER = include/stdfx.h
 
 LIBS += -L"../../ws_client/cmake-build-debug"
+#LIBS += -L"../../qt_models/project/cmake-build-debug"
 windows:LIBS += -L"C:/src/GitHub/ws_solution/ws_client/cmake-build-debug"
 
 INCLUDEPATH += ../../ws_client/include
+INCLUDEPATH += ../../qt_models/project/include
 
 unix:LIBS += -lboost_thread
 LIBS += -lws_client

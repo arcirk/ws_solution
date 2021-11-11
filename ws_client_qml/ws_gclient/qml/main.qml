@@ -31,7 +31,7 @@ ApplicationWindow {
         id: wsClient
         host: mainForm.myHost
         port: mainForm.myPort
-        catalog: catalogModel
+        //catalog: catalogModel
 
         onCloseConnection: {
             authForm.enabledForm = true
@@ -44,6 +44,10 @@ ApplicationWindow {
         }
         onQmlError: function(what, err){
             mainStack.currentItem.webSocketError(what, err)
+        }
+
+        onResetUsersCatalog: function(resp){
+            drowerContent.jsonRespCatalog = resp;
         }
 
     }
@@ -121,8 +125,11 @@ ApplicationWindow {
             id: drowerContent
             anchors.fill: parent
             theme: mainForm.myTheme
-            //catalogModel: mainForm.catalogModel
 
+            onSelect: function(uuid, name){
+                usersModel.addRow(uuid, name);
+                drawer.close();
+            }
 
         }
 
@@ -135,7 +142,6 @@ ApplicationWindow {
         MainForm{
             id: mainChatBox
             theme: myTheme
-            //visible: false
 
         }
 
@@ -164,21 +170,4 @@ ApplicationWindow {
         }
     }
 
-    onWidthChanged: {
-        //mainChatBox.parentSizeChange();
-        //mainChatBox.smaileBoxVisible(false)
-    }
-    onHeightChanged: {
-        //mainChatBox.parentSizeChange();
-        //mainChatBox.smaileBoxVisible(false)
-    }
-
-
-    onConnectStateChanged: {
-
-    }
-
-    Component.onCompleted: {
-        console.debug(mainForm.catalogModel)
-    }
 }
