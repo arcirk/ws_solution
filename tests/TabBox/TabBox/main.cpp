@@ -7,6 +7,27 @@
 #include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <qproxymodel.h>
+#include <qjsontablemodel.h>
+
+static QString getUsersCatalog(){
+
+    QJsonObject m_currentJsonObject = QJsonObject();
+
+    QString openFileName = "usersCatalog.json";
+
+    QFileInfo fileInfo(openFileName);
+    QDir::setCurrent(fileInfo.path());
+
+    QFile jsonFile(openFileName);
+    jsonFile.open(QIODevice::ReadOnly);
+
+
+    QByteArray saveData = jsonFile.readAll();
+
+    return QString::fromStdString(saveData.toStdString());
+
+}
 
 static MessageListModel* initModel(int itemIndex){
 
@@ -121,7 +142,9 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Material");
 
     qmlRegisterType<MessageListModel>("MessageListModel", 1, 0, "MessageListModel");
-    qmlRegisterType<MessageListModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
+    qmlRegisterType<SelectedUsersModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
+    qmlRegisterType<QJsonTableModel>("QJsonTableModel", 1, 0, "QJsonTableModel");
+    qmlRegisterType<QProxyModel>("QProxyModel", 1, 0, "QProxyModel");
 
   //Эмуляция загрузки последнего списка диалогов
     SelectedUsersModel* m_usersModel = initUsersModel();
@@ -147,6 +170,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("msgModel", messagesModel);
 
+    engine.rootContext()->setContextProperty("tmpModelText", getUsersCatalog());
 
     QObject* sendBtn = engine.rootObjects()[0]->findChild<QObject*>("msgBox")->findChild<QObject*>("btnSend");
     if(sendBtn){

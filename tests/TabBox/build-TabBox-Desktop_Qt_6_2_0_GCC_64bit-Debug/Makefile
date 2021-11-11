@@ -17,7 +17,7 @@ CXX           = g++
 DEFINES       = -DQT_QML_DEBUG -DQT_QUICKCONTROLS2_LIB -DQT_QUICK_LIB -DQT_OPENGL_LIB -DQT_GUI_LIB -DQT_QMLMODELS_LIB -DQT_QML_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I../TabBox -I. -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++
+INCPATH       = -I../TabBox -I. -I../../../qt_models/project/include -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++
 QMAKE         = /home/arcady/Qt/6.2.0/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,10 +37,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = TabBox1.0.0
-DISTDIR =
+DISTDIR = /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/.tmp/TabBox1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/home/arcady/Qt/6.2.0/gcc_64/lib
-LIBS          = $(SUBLIBS) /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QuickControls2.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Network.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
+LIBS          = $(SUBLIBS) -L/home/arcady/GitHub/ws_solution/qt_models/project/cmake-build-debug /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QuickControls2.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Quick.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6OpenGL.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Gui.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6QmlModels.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Qml.so -pthread /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Network.so /home/arcady/Qt/6.2.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -52,9 +52,9 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ../ws_gclient/main.cpp \
-		../ws_gclient/src/messagelistmodel.cpp \
-		../ws_gclient/src/selectedusersmodel.cpp qrc_qml.cpp \
+SOURCES       = ../TabBox/main.cpp \
+		../TabBox/src/messagelistmodel.cpp \
+		../TabBox/src/selectedusersmodel.cpp qrc_qml.cpp \
 		moc_messagelistmodel.cpp \
 		moc_selectedusersmodel.cpp
 OBJECTS       = main.o \
@@ -1058,7 +1058,7 @@ moc_messagelistmodel.cpp: ../TabBox/include/messagelistmodel.h \
 		/home/arcady/Qt/6.2.0/gcc_64/include/QtCore/qjsonarray.h \
 		moc_predefs.h \
 		/home/arcady/Qt/6.2.0/gcc_64/libexec/moc
-	/home/arcady/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/tests/TabBox/TabBox -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/10 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-linux-gnu/10/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../TabBox/include/messagelistmodel.h -o moc_messagelistmodel.cpp
+	/home/arcady/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/tests/TabBox/TabBox -I/home/arcady/GitHub/ws_solution/qt_models/project/include -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/10 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-linux-gnu/10/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../TabBox/include/messagelistmodel.h -o moc_messagelistmodel.cpp
 
 moc_selectedusersmodel.cpp: ../TabBox/include/selectedusersmodel.h \
 		/home/arcady/Qt/6.2.0/gcc_64/include/QtCore/QObject \
@@ -1161,7 +1161,7 @@ moc_selectedusersmodel.cpp: ../TabBox/include/selectedusersmodel.h \
 		../TabBox/include/messagelistmodel.h \
 		moc_predefs.h \
 		/home/arcady/Qt/6.2.0/gcc_64/libexec/moc
-	/home/arcady/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/tests/TabBox/TabBox -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/10 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-linux-gnu/10/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../TabBox/include/selectedusersmodel.h -o moc_selectedusersmodel.cpp
+	/home/arcady/Qt/6.2.0/gcc_64/libexec/moc $(DEFINES) --include /home/arcady/GitHub/ws_solution/tests/TabBox/build-TabBox-Desktop_Qt_6_2_0_GCC_64bit-Debug/moc_predefs.h -I/home/arcady/Qt/6.2.0/gcc_64/mkspecs/linux-g++ -I/home/arcady/GitHub/ws_solution/tests/TabBox/TabBox -I/home/arcady/GitHub/ws_solution/qt_models/project/include -I/home/arcady/Qt/6.2.0/gcc_64/include -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2 -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQuick -I/home/arcady/Qt/6.2.0/gcc_64/include/QtOpenGL -I/home/arcady/Qt/6.2.0/gcc_64/include/QtGui -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQmlModels -I/home/arcady/Qt/6.2.0/gcc_64/include/QtQml -I/home/arcady/Qt/6.2.0/gcc_64/include/QtNetwork -I/home/arcady/Qt/6.2.0/gcc_64/include/QtCore -I. -I/usr/include/c++/10 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-linux-gnu/10/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../TabBox/include/selectedusersmodel.h -o moc_selectedusersmodel.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -1341,7 +1341,12 @@ main.o: ../TabBox/main.cpp /home/arcady/Qt/6.2.0/gcc_64/include/QtGui/QGuiApplic
 		/home/arcady/Qt/6.2.0/gcc_64/include/QtQml/qqmlcontext.h \
 		/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2/QQuickStyle \
 		/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2/qquickstyle.h \
-		/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2/qtquickcontrols2global.h
+		/home/arcady/Qt/6.2.0/gcc_64/include/QtQuickControls2/qtquickcontrols2global.h \
+		../../../qt_models/project/include/qproxymodel.h \
+		/home/arcady/Qt/6.2.0/gcc_64/include/QtCore/QSortFilterProxyModel \
+		/home/arcady/Qt/6.2.0/gcc_64/include/QtCore/qsortfilterproxymodel.h \
+		/home/arcady/Qt/6.2.0/gcc_64/include/QtCore/qabstractproxymodel.h \
+		../../../qt_models/project/include/qjsontablemodel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../TabBox/main.cpp
 
 messagelistmodel.o: ../TabBox/src/messagelistmodel.cpp ../TabBox/include/messagelistmodel.h \

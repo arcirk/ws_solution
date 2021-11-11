@@ -4,6 +4,8 @@ import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
 import "qrc:/scripts/scripts.js" as Scripts
+import QJsonTableModel 1.0
+import QProxyModel 1.0
 
 StackView{
     id: stack
@@ -17,6 +19,15 @@ StackView{
    }
 
     initialItem: ItemGroupPage {
+        QJsonTableModel{
+            id: catalogModel
+            jsonText: mainForm.tmpModelText
+
+        }
+        QProxyModel{
+            sourceModel: catalogModel
+            filter: "{\"Parent:\"\"00000000-0000-0000-0000-000000000000\", \"IsGroup:\"\"1\"}"
+        }
 
         theme: stack.theme
         onSelectPage: function(title){

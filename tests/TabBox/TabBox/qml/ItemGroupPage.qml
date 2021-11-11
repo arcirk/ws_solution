@@ -3,13 +3,14 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
+import QProxyModel 1.0
 
 Page{
 
     id: mainGroupPage
     //anchors.fill: parent
 
-    property QtObject pageModel
+    property QProxyModel pageModel
     property string theme: "Dark"
 
     signal selectPage(string title)
@@ -51,14 +52,14 @@ Page{
 
             }
         }
-        ListModel {
-            id: mainModel
-                    ListElement { title: "Ангарск"}
-                    ListElement { title: "Иркустк"}
-                    ListElement { title: "Чита"}
-                    ListElement { title: "Улан-уде"}
-        }
-        model: pageModel != null ? pageModel : mainModel
+//        ListModel {
+//            id: mainModel
+//                    ListElement { title: "Ангарск"}
+//                    ListElement { title: "Иркустк"}
+//                    ListElement { title: "Чита"}
+//                    ListElement { title: "Улан-уде"}
+//        }
+        model: mainGroupPage.pageModel // != null ? pageModel : mainModel
 
         ScrollIndicator.vertical: ScrollIndicator { }
     }
