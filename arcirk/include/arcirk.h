@@ -64,6 +64,9 @@ namespace arcirk{
     std::string random_uuid();
     long int add_day(const long int selDate, const int dayCount);
 
+    template<typename... Arguments>
+    std::string str_sample(const std::string& fmt, const Arguments&... args);
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     class bVariant{
         public:
