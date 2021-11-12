@@ -49,7 +49,15 @@ namespace arcirk{
         if (is_uuid())
             return boost::get<boost::uuids::uuid>(value);
         else
-            return boost::uuids::nil_uuid();
+        {
+            if(is_string()){
+                boost::uuids::uuid result = arcirk::string_to_uuid(get_string());
+                if (result != boost::uuids::nil_uuid())
+                    return result;
+            }
+        }
+
+        return boost::uuids::nil_uuid();
     }
 
     bool bVariant::is_double(){

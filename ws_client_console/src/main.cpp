@@ -28,8 +28,8 @@ void start(){
     if (client->started()) {
         return;
     }
-    client->admin_name = "admin";
-    client->hash = IClient::get_hash("admin", "admin");
+    client->admin_name = "Борисоглебский Аркадий";
+    client->hash = IClient::get_hash("Борисоглебский Аркадий", "филиппины");
     client->host = "192.168.10.80";
     client->port = 8080;
     client->app_name = "console";
@@ -83,6 +83,10 @@ int main(int argc, char** argv)
         {
             if (client->started())
                 client->get_users_catalog("0");
+            continue;
+        }else if(line == "get_user_info"){
+            if (client->started())
+                client->get_user_info(client->get_user_uuid(), "");
             continue;
         }
     }

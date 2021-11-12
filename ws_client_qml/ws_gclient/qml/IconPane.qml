@@ -22,6 +22,7 @@ RoundPane {
     property bool chldrenList: false
     property alias expandState: expandIconImage.state
     property string uuid
+    property bool iconButton: false
 
     QProxyModel{
         id: proxyModel
@@ -79,10 +80,11 @@ RoundPane {
             //anchors.fill: parent
             Layout.fillWidth: true
             //height: 30
-
+            Layout.alignment: Qt.AlignCenter
             Image {
                 id: image
                 sourceSize.height: 48 //rowControl.implicitHeight * 2 //parent.height
+                Layout.alignment: Qt.AlignCenter
 
                 MouseArea {
                     //id: area
@@ -104,6 +106,11 @@ RoundPane {
                             control.Material.elevation = 6
                     }
                 }
+//                Component.onCompleted: {
+//                    if(control.iconButton){
+//                        Layout.alignment = Qt.AlignCenter
+//                    }
+//                }
             }
 
             Text {
@@ -111,10 +118,7 @@ RoundPane {
                 textFormat: Text.RichText
                 Layout.fillWidth: true
                 clip: true
-                //elide: Text.ElideRight
-//                displayMarginBeginning: 40
-//                displayMarginEnd: 40
-                //wrapMode: TextArea.Wrap
+                visible: !control.iconButton
 
                 MouseArea{
                     id:mouseArea
@@ -153,6 +157,7 @@ RoundPane {
 
                 }
             }
+
             Image {
                 id: expandIconImage
                 sourceSize.height: txt.implicitHeight

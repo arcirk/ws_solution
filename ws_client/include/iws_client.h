@@ -40,8 +40,8 @@ public:
 
     void close();
     void open(bool new_thread = true);
-    std::string get_client_info();
-    std::string get_current_name();
+//    std::string get_client_info();
+//    std::string get_current_name();
     static std::string get_hash(const std::string &usr, const std::string &pwd);
 
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);

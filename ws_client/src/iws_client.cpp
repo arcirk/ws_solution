@@ -145,7 +145,7 @@ void IClient::get_user_info(const std::string &_user_uuid, const std::string &uu
 
     try {
 
-        pt.add("_user_uuid", _user_uuid);
+        pt.add("uuid_user", _user_uuid);
 
         std::stringstream _ss;
         boost::property_tree::json_parser::write_json(_ss, pt);

@@ -55,7 +55,7 @@ namespace arcirk{
 
     boost::uuids::uuid string_to_uuid(const std::string& sz_uuid, bool random_uuid) {
 
-        if (sz_uuid == nil_string_uuid()&& random_uuid)
+        if (sz_uuid == nil_string_uuid() && random_uuid)
             return boost::uuids::random_generator()();
 
         boost::uuids::uuid uuid{};
@@ -65,7 +65,7 @@ namespace arcirk{
         }
 
         if (!random_uuid)
-            return boost::uuids::uuid();
+            return boost::uuids::nil_uuid();
         else
             return boost::uuids::random_generator()();
     }

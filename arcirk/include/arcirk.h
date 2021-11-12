@@ -22,6 +22,7 @@
 #include <boost/regex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/format.hpp>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -72,12 +73,13 @@ namespace arcirk{
 //        std::cout << FormatArgs("%s; %s; %s;\n", 123, 4.3, "foo"); // 123; 4.3; foo;
 //        std::cout << FormatArgs("%2% %1% %2%\n", 1, 12); // 12 1 12
 
-        boost::format f(fmt);
-        std::initializer_list<char> {(static_cast<void>(
-                f % args
-        ), char{}) ...};
-
-        return boost::str(f);
+//        boost::format f(fmt);
+//        std::initializer_list<char> {(static_cast<void>(
+//                f % args
+//        ), char{}) ...};
+//
+//        return boost::str(f);
+        return boost::str((boost::format(fmt) % ... % args));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////

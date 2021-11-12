@@ -37,10 +37,10 @@ Pane {
                 IconPane{
                     id: messageText
                     name: model.name
-                    width: listUsers.width - (btnInfo.width * 2 + 10)
+                    width: listUsers.width - (btnInfo.width * 2 + 10 + 10)
                     //Layout.fillWidth: true
                     height: messageText.implicitHeight// + 24
-                    ctrlPaddig: 10
+                    ctrlPaddig: 5
                     //icon: "qrc:/user.png"
                     checkable: true
                     theme: usersBox.theme
@@ -88,6 +88,7 @@ Pane {
                     ctrlPaddig: 2
                     menuDisable: true
                     width: 20
+                    iconButton: true
 
                     onImageClick:{
 
@@ -99,8 +100,8 @@ Pane {
                     icon: "qrc:/images/deleteUser.png"
                     ctrlPaddig: 2
                     menuDisable: true
-                    width: 20// messageText.height
-                    //height: messageText.height
+                    width: 20
+                    iconButton: true
 
                     onImageClick:{
                         let index = model.indexDoc

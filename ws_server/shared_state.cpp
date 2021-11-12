@@ -1565,7 +1565,7 @@ bool shared_state::save_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *para
 
 std::string shared_state::get_user_subdivision(const std::string &user_ref) {
 
-    std::string sample = "SELECT UsersCatalog.Parent, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
+    std::string sample = "SELECT UsersCatalog.channel, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
     std::string query = arcirk::str_sample(sample, "UsersCatalog.Ref", user_ref, "");
     std::string err = "";
     std::vector<std::map<std::string, arcirk::bVariant>> table;
@@ -1577,13 +1577,13 @@ std::string shared_state::get_user_subdivision(const std::string &user_ref) {
         return "{}";
     }
     if (result > 0){
-        std::string parent = table[0]["parent"].get_string();
+        std::string parent = table[0]["channel"].get_string();
         while (result > 0){
             table.clear();
             if(!parent.empty()){
                 break;
             }
-            query = arcirk::str_sample(sample, "UsersCatalog.Parent", parent, "AND UsersCatalog.IsGroup = 1");
+            query = arcirk::str_sample(sample, "UsersCatalog.channel", parent, "AND UsersCatalog.IsGroup = 1");
             result = sqlite3Db->execute(query, "UsersCatalog", table, err);
         }
 
@@ -1599,7 +1599,7 @@ std::string shared_state::get_user_subdivision(const std::string &user_ref) {
 
 std::string shared_state::get_user_department(const std::string &user_ref) {
 
-    std::string sample = "SELECT UsersCatalog.Parent, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
+    std::string sample = "SELECT UsersCatalog.channel, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
     std::string query = arcirk::str_sample(sample, "UsersCatalog.Ref", user_ref, "");
     std::string err = "";
     std::vector<std::map<std::string, arcirk::bVariant>> table;
@@ -1611,8 +1611,8 @@ std::string shared_state::get_user_department(const std::string &user_ref) {
         return "{}";
     }
     if (result > 0){
-        std::string parent = table[0]["parent"].get_string();
-        query = arcirk::str_sample(sample, "UsersCatalog.Parent", parent, "AND UsersCatalog.IsGroup = 1");
+        std::string parent = table[0]["channel"].get_string();
+        query = arcirk::str_sample(sample, "UsersCatalog.channel", parent, "AND UsersCatalog.IsGroup = 1");
         result = sqlite3Db->execute(query, "UsersCatalog", table, err);
 
         if (result > 0){
