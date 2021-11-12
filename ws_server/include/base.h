@@ -123,7 +123,7 @@ namespace arc_sqlite {
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, std::string>> &table, std::string &error);
 
-        int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, boost::variant<std::string, double, int>>> &table, std::string &error);
+        int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, arcirk::bVariant>> &table, std::string &error);
 
         bool insert(tables tableType, std::vector<arcirk::content_value> values, std::string& err = (std::string &) "");
 

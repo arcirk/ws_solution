@@ -103,12 +103,14 @@ private:
     bool set_app_name(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool exec_query(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool save_user_cache(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_user_cache(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
 
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
 
-//    void send_private_message(const std::string &message, boost::uuids::uuid &recipient,
-//                              boost::uuids::uuid &sender);
+    std::string get_user_subdivision(const std::string& user_ref);
+    std::string get_user_department(const std::string& user_ref);
 
     void _add_new_user(const std::string &usr, const std::string &pwd, const std::string &role,
                        const std::string &uuid, const std::string &perf, const std::string &parent = (std::string &) "", std::string& error = (std::string &) "", bool pwd_is_hash = false);

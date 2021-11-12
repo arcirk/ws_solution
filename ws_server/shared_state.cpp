@@ -134,6 +134,8 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _message.name = session->get_name();
     _message.app_name = session->get_name();
     _message.uuid_user = session->get_user_uuid();
+    _message.role = session->get_role();
+    std::cout << _message.uuid << std::endl;
     return _message;
 }
 
@@ -256,6 +258,8 @@ send(const std::string& message, std::string command, bool to_base64)
         if(auto sp = wp.lock()){
             if (to_base64){
                 _ws_message _message = createMessage(sp.get());
+                _message.message = message;
+                _message.command = command;
                 auto * new_msg = new ws_message(_message);
                 std::string sz_new_msg = new_msg->get_json(true);
                 auto const ss = boost::make_shared<std::string const>(std::move(sz_new_msg));
@@ -474,8 +478,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "kill_session")
         return params == 1;
-    else if (command == "set_uuid")
-        return params == 2;
+//    else if (command == "set_uuid")
+//        return params == 2;
     else if (command == "set_app_name")
         return params == 2;
     else if (command == "exec_query")
@@ -508,7 +512,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_parent");
     commands.emplace_back("remove_user");
     commands.emplace_back("kill_session");
-    commands.emplace_back("set_uuid");
+//    commands.emplace_back("set_uuid");
     commands.emplace_back("set_app_name");
     commands.emplace_back("exec_query");
     commands.emplace_back("get_users_catalog");
@@ -551,8 +555,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::remove_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "kill_session")
         return  std::bind(&shared_state::kill_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-    else if (command == "set_uuid")
-        return  std::bind(&shared_state::set_uuid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+//    else if (command == "set_uuid")
+//        return  std::bind(&shared_state::set_uuid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "set_app_name")
         return  std::bind(&shared_state::set_app_name, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "exec_query")
@@ -594,7 +598,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
         session->set_name(name);
 
-        std::string role = "client";
+        std::string role = "user";
 
         if (!session->authorized){
 
@@ -620,7 +624,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
             sessions_.erase(uuid);
 
-            session->set_uuid(new_uuid);
+            //session->set_uuid(new_uuid);
             session->set_user_uuid(user_uuid);
             session->set_app_name(app_name);
             session->set_role(role);
@@ -961,7 +965,10 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
         if (result > 0){
             json->addMember(arcirk::content_value("name", row[0].at("FirstField")));
             json->addMember(arcirk::content_value("performance", row[0].at("SecondField")));
-            json->addMember(arcirk::content_value("user_uuid", row[0].at("Ref")));
+            json->addMember(arcirk::content_value("uuid", row[0].at("Ref")));
+            json->addMember(arcirk::content_value("cache", row[0].at("cache")));
+            json->addMember(arcirk::content_value("subdivision", get_user_subdivision(to_string(user_uuid))));
+            json->addMember(arcirk::content_value("department", get_user_department(to_string(user_uuid))));
         } else
             json->addMember(arcirk::content_value("name", "не зарегистрирован"));
 
@@ -1141,7 +1148,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
 
     std::set<int> m_idList;
     std::string query = "SELECT _id FROM Channels WHERE Ref = '" + current_uuid + "';";
-    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
 
     //Получаем _id верхнего узла иерархии по uuid и добавляем его в общий список set
     err = "";
@@ -1151,9 +1158,9 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
         return;
     }
     if (result > 0){
-        std::map<std::string, boost::variant<std::string, double, int>> row = table[0];
-        if(row["_id"].type() == typeid(int))
-            m_idList.insert(boost::get<int>(row["_id"]));
+        std::map<std::string, arcirk::bVariant> row = table[0];
+        if(row["_id"].is_int())
+            m_idList.insert(row["_id"].get_int());
     }
 
     if (m_idList.empty()){
@@ -1173,7 +1180,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
             query.append(",");
     }
     query.append(");");
-    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> tableUsers;
+    std::vector<std::map<std::string, arcirk::bVariant>> tableUsers;
     err = "";
     sqlite3Db->execute(query, "Users", tableUsers, err);
     if (!err.empty()){
@@ -1183,9 +1190,9 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     //Перемещаем
     query = "UPDATE Users SET channel = '" + arcirk::nil_string_uuid() + "' WHERE _id in (";
     for (auto itr = tableUsers.begin(); itr != tableUsers.end() ; ++itr) {
-        std::map<std::string, boost::variant<std::string, double, int>> row = *itr;
-        if(row["_id"].type() == typeid(int))
-            query.append(std::to_string(boost::get<int>(row["_id"])));
+        std::map<std::string, arcirk::bVariant> row = *itr;
+        if(row["_id"].is_int())
+            query.append(std::to_string(row["_id"].get_int()));
         if (itr !=  --tableUsers.end())
             query.append(",");
     }
@@ -1216,16 +1223,16 @@ void shared_state::get_group_hierarchy_keys(const std::string &current_uuid, std
 
     std::string query = "select _id, Ref from Channels where Parent = '" + current_uuid + "';";
 
-    std::vector<std::map<std::string, boost::variant<std::string, double, int>>> table;
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
     err = "";
     int result = sqlite3Db->execute(query, "Channels", table, err);
 
     if (result > 0){
-        std::map<std::string, boost::variant<std::string, double, int>> row = table[0];
-        if(row["_id"].type() == typeid(int))
-            vec_uuid.insert(boost::get<int>(row["_id"]));
+        std::map<std::string, arcirk::bVariant> row = table[0];
+        if(row["_id"].is_int())
+            vec_uuid.insert(row["_id"].get_int());
 
-        std::string parent = boost::get<std::string>(row["Ref"]);
+        std::string parent = row["Ref"].get_string();
         get_group_hierarchy_keys(parent, vec_uuid, err);
     }
 
@@ -1348,53 +1355,53 @@ bool shared_state::kill_session(boost::uuids::uuid &uuid, arcirk::bJson *params,
 
 }
 
-bool shared_state::set_uuid(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
-                            std::string &err, std::string &custom_result) {
-
-    auto  current_sess = get_session(uuid);
-
-    try {
-        current_sess->throw_authorized();
-    }catch (boost::exception const &e) {
-        err = boost::diagnostic_information(e);
-        std::cerr << err << std::endl;
-        return false;
-
-    }
-
-    if (current_sess->get_role() != "admin"){
-        err = "не достаточно прав доступа для команды!";
-        return false;
-    }
-
-    std::string _uuid = params->get_member("uuid_set").get_string();
-    if (_uuid.empty()){
-        err = "не указан идентификатор сессии!!";
-        return false;
-    }
-
-    boost::uuids::uuid uuid_set = arcirk::string_to_uuid(_uuid, false);
-    auto  session_set = get_session(uuid_set);
-    if (!session_set) //такой сессии не существует
-        return false;
-
-    std::string _new_uuid = params->get_member("new_uuid").get_string();
-    if (_new_uuid.empty())
-        return false;
-
-    boost::uuids::uuid new_uuid = arcirk::string_to_uuid(_new_uuid, false);
-
-    auto  session_valid = get_session(uuid_set);
-    if (session_valid) //сессия с таким идентификатором уже  существует
-        return false;
-
-    //обновляем uuid сессии
-    sessions_.erase(uuid_set);
-    session_set->set_uuid(new_uuid);
-    sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session_set->get_uuid(), session_set));
-
-    return true;
-}
+//bool shared_state::set_uuid(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+//                            std::string &err, std::string &custom_result) {
+//
+//    auto  current_sess = get_session(uuid);
+//
+//    try {
+//        current_sess->throw_authorized();
+//    }catch (boost::exception const &e) {
+//        err = boost::diagnostic_information(e);
+//        std::cerr << err << std::endl;
+//        return false;
+//
+//    }
+//
+//    if (current_sess->get_role() != "admin"){
+//        err = "не достаточно прав доступа для команды!";
+//        return false;
+//    }
+//
+//    std::string _uuid = params->get_member("uuid_set").get_string();
+//    if (_uuid.empty()){
+//        err = "не указан идентификатор сессии!!";
+//        return false;
+//    }
+//
+//    boost::uuids::uuid uuid_set = arcirk::string_to_uuid(_uuid, false);
+//    auto  session_set = get_session(uuid_set);
+//    if (!session_set) //такой сессии не существует
+//        return false;
+//
+//    std::string _new_uuid = params->get_member("new_uuid").get_string();
+//    if (_new_uuid.empty())
+//        return false;
+//
+//    boost::uuids::uuid new_uuid = arcirk::string_to_uuid(_new_uuid, false);
+//
+//    auto  session_valid = get_session(uuid_set);
+//    if (session_valid) //сессия с таким идентификатором уже  существует
+//        return false;
+//
+//    //обновляем uuid сессии
+//    sessions_.erase(uuid_set);
+//    session_set->set_uuid(new_uuid);
+//    sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session_set->get_uuid(), session_set));
+//
+//    return true;
+//}
 
 bool shared_state::set_app_name(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
@@ -1473,4 +1480,146 @@ bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson *pa
         return false;
 
     return true;
+}
+
+bool shared_state::get_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                   std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->get_member("ref").get_string();
+    if (_uuid.empty()){
+        err = "не указан идентификатор пользователя!!";
+        return false;
+    }
+
+    std::string query = arcirk::str_sample("SELECT Users.cache WHERE Users.Ref = '%1'", _uuid);
+
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
+    err = "";
+
+    int result = sqlite3Db->execute(query, "Users", table, err);
+
+    if (!err.empty()){
+        custom_result = "{}";
+    }
+    if (result > 0){
+        custom_result = table[0]["cache"].get_string();
+    }
+
+    custom_result = "{}";
+
+    return true;
+}
+
+bool shared_state::save_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                  std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _uuid = params->get_member("ref").get_string();
+    if (_uuid.empty()){
+        err = "не указан идентификатор пользователя!!";
+        return false;
+    }
+
+    std::string cache = params->get_member("cache").get_string();
+
+    std::string query = arcirk::str_sample("UPDATE Users SET cache = '%1' WHERE Ref = '%2'", cache, _uuid);
+
+    err = "";
+    sqlite3Db->exec(query, err);
+    if(!err.empty())
+        return false;
+
+    custom_result = params->to_string();
+
+    return true;
+}
+
+std::string shared_state::get_user_subdivision(const std::string &user_ref) {
+
+    std::string sample = "SELECT UsersCatalog.Parent, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
+    std::string query = arcirk::str_sample(sample, "UsersCatalog.Ref", user_ref, "");
+    std::string err = "";
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
+    err = "";
+
+    int result = sqlite3Db->execute(query, "UsersCatalog", table, err);
+
+    if (!err.empty()){
+        return "{}";
+    }
+    if (result > 0){
+        std::string parent = table[0]["parent"].get_string();
+        while (result > 0){
+            table.clear();
+            if(!parent.empty()){
+                break;
+            }
+            query = arcirk::str_sample(sample, "UsersCatalog.Parent", parent, "AND UsersCatalog.IsGroup = 1");
+            result = sqlite3Db->execute(query, "UsersCatalog", table, err);
+        }
+
+        if (table.size() > 0){
+            return  arcirk::str_sample("{\"uuid\": \"%1\", \"name\"; \"%2\"",
+                                       table[0]["Ref"].get_string(),
+                                       table[0]["SecondField"].get_string());
+        }
+    }
+
+    return "{}";
+}
+
+std::string shared_state::get_user_department(const std::string &user_ref) {
+
+    std::string sample = "SELECT UsersCatalog.Parent, UsersCatalog.SecondField, UsersCatalog.Ref FROM UsersCatalog WHERE %1 = '%2' %3;";
+    std::string query = arcirk::str_sample(sample, "UsersCatalog.Ref", user_ref, "");
+    std::string err = "";
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
+    err = "";
+
+    int result = sqlite3Db->execute(query, "UsersCatalog", table, err);
+
+    if (!err.empty()){
+        return "{}";
+    }
+    if (result > 0){
+        std::string parent = table[0]["parent"].get_string();
+        query = arcirk::str_sample(sample, "UsersCatalog.Parent", parent, "AND UsersCatalog.IsGroup = 1");
+        result = sqlite3Db->execute(query, "UsersCatalog", table, err);
+
+        if (result > 0){
+            return  arcirk::str_sample("{\"uuid\": \"%1\", \"name\"; \"%2\"",
+                                       table[0]["Ref"].get_string(),
+                                       table[0]["SecondField"].get_string());
+        }
+    }
+    return "{}";
 }

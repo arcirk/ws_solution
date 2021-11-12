@@ -135,6 +135,7 @@ on_connect(session * sess){
         _msg.message().message = "client connection success";
         _msg.message().name = get_name();
         _msg.message().app_name = _app_name;
+        _msg.message().command = "connect_antonym";
 
         std::string msg = _msg.get_json(true);
         _callback_msg(msg);
