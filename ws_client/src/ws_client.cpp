@@ -67,6 +67,7 @@ send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, 
     _msg.message().app_name = get_app_name();
     _msg.message().command = command;
     _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+    _msg.message().uuid_user = get_user_uuid();
 
     msg.append(_msg.get_json(true));
 
@@ -135,7 +136,7 @@ on_connect(session * sess){
         _msg.message().message = "client connection success";
         _msg.message().name = get_name();
         _msg.message().app_name = _app_name;
-        _msg.message().command = "connect_antonym";
+        _msg.message().command = "connect_unknown_user";
 
         std::string msg = _msg.get_json(true);
         _callback_msg(msg);
@@ -432,6 +433,19 @@ void ws_client::set_session_param(const std::string &uuid, const std::string &na
     std::string msg = "cmd " + _msg.get_json(true);
 
     send(msg, false);
+}
+
+void ws_client::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &json_param) {
+
+    std::vector<boost::weak_ptr<session>> v;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        v.reserve(sessions_.size());
+        for(auto p : sessions_)
+            send_command(cmd, uuid_form, json_param, p);
+    }
+
+
 }
 
 

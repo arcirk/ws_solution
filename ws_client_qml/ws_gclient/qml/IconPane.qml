@@ -32,7 +32,7 @@ RoundPane {
     signal childItemClick(string uuid, int isGroup, string name);
 
     onUuidChanged: {
-        console.debug(uuid)
+        //console.debug(uuid)
         proxyModel.sourceModel = catalogModel
         proxyModel.filter = "{\"IsGroup\": 0,
                   \"Parent\": \"" + uuid + "\"}"

@@ -78,7 +78,7 @@ private:
     static bool is_msg(const std::string& msg);
     std::string run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::string &command, std::string &uuid_form,
                         std::string &res);
-    void send_message(const std::string &message, boost::uuids::uuid &recipient, websocket_session *current_sess);
+    bool send_message(const std::string &message, boost::uuids::uuid &recipient, websocket_session *current_sess);
     static bool is_valid_message(const std::string &message, boost::uuids::uuid &uuid_recipient, std::string &base64,
                           std::string &err);
 
@@ -99,12 +99,14 @@ private:
     bool set_parent(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool remove_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool kill_session(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
-    bool set_uuid(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    //bool set_uuid(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool set_app_name(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool exec_query(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
-    bool save_user_cache(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_user_cache(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool get_user_cache(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_content_type(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_message_struct_type(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
 
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
@@ -122,6 +124,8 @@ private:
     void get_group_hierarchy_keys(const std::string &current_uuid, std::set<int> &vec_uuid, std::string &err);
 
     void remove_group_hierarchy(const std::string &current_uuid, std::string &err);
+
+    void send_error(const std::string& err, websocket_session *session, const std::string& command, const std::string& uuid_form);
 };
 
 

@@ -54,6 +54,28 @@ void bWebSocket::close()
     emit startedChanged();
 }
 
+void bWebSocket::saveCache(const QString &jsonText)
+{
+    client->set_user_cache(jsonText.toStdString(), "");
+}
+
+void bWebSocket::messages(const QString &uuid)
+{
+    long int current_date = currentDate();
+    long int start_date = addDay(current_date, -10);
+
+    get_messages(uuid, start_date, current_date);
+}
+
+void bWebSocket::sendMessage(const QString &recipient, const QString &msg)
+{
+    if(client->started()){
+        //сдесь в base64 и полностью сообщение из-за html конфликтов при чтении json
+        std::string _message = msg.toUtf8().toBase64().toStdString();
+        client->send(_message, recipient.toStdString(), "");
+    }
+}
+
 void bWebSocket::ext_message(const std::string &msg)
 {
     QString resp = ServeResponse::base64_decode(msg);
@@ -68,6 +90,7 @@ void bWebSocket::ext_message(const std::string &msg)
 void bWebSocket::processServeResponse(const QString &jsonResp)
 {
     //qDebug() << jsonResp;
+    //QString _tmp = jsonResp;
     auto resp = new ServeResponse(jsonResp);
 
     if(!resp->isParse){
@@ -86,24 +109,34 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
     {
         if(resp->command == "set_client_param"){
             emit displayNotify("Подключился к серверу.");
-            emit connectionSuccess();
+            emit connectionSuccess();            
+            client->send_command("set_content_type", "", "{\"content_type\":\"HTML\"}");
+        }else if (resp->command == "set_content_type"){
+            client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
+        }else if (resp->command == "set_message_struct_type"){
             client->get_users_catalog("");
         }else if (resp->command == "get_users_catalog"){
-            //qDebug() << resp->message;
-            //ServeResponse::debugSaveResponse("usersCatalog", resp->message);
-            //emit user_catalog(resp->message);
-//            if(m_usersCatalogModel)
-//                m_usersCatalogModel->setJson(QJsonDocument::fromJson(resp->message.toUtf8()));
             emit resetUsersCatalog(resp->message);
+            client->get_user_cache("");
+        }else if (resp->command == "get_user_cache"){
+            std::string base64 =  resp->message.toStdString();
+            QString msg = QString::fromStdString(arcirk::base64_decode(base64));
+            emit getUserCache(msg);
         }else if (resp->command == "get_messages"){
             //qDebug() << resp->message;
-            emit get_messages(resp->message);
+            emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
-            emit closeConnection();
+            emit closeConnection();            
+        }else if (resp->command == "message"){
+            emit messageReceived(resp->message, resp->uuid, resp->recipient);
+        }else if (resp->command == "set_user_cache"){
+            //
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
     }
+
+    delete resp;
 }
 
 ClientSettings *bWebSocket::get_settings()
@@ -148,8 +181,13 @@ const QString bWebSocket::getUserUUID()
     return QString::fromStdString(client->get_user_uuid());
 }
 
+const QString bWebSocket::getUuidSession()
+{
+    return QString::fromStdString(client->get_app_uuid());
+}
 
-void bWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_date, int limit, const QString &uuid_form)
+
+void bWebSocket::get_messages(const QString &uuid_sub, int start_date, int end_date, int limit, const QString &uuid_form)
 {
     if(client->started())
         client->get_messages(uuid_sub.toStdString(), start_date, end_date, limit, uuid_form.toStdString());
@@ -214,14 +252,4 @@ void bWebSocket::setPwdEdit(bool value)
 {
     _pwdEdit = value;
 }
-
-//void bWebSocket::setCatalog(UsersModel* model) {
-//    m_usersCatalogModel = model;
-//}
-//
-//UsersModel* bWebSocket::catalog()
-//{
-//    return m_usersCatalogModel;
-//}
-
 

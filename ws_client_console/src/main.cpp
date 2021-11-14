@@ -1,7 +1,10 @@
 
+//#include <format>
 #include <iostream>
 #include "../include/iws_client.h"
 #include <string>
+
+#include <boost/format.hpp>
 
 #ifdef _WINDOWS
 #pragma warning (disable : 4505)
@@ -30,7 +33,7 @@ void start(){
     }
     client->admin_name = "Борисоглебский Аркадий";
     client->hash = IClient::get_hash("Борисоглебский Аркадий", "филиппины");
-    client->host = "192.168.10.80";
+    client->host = "192.168.43.4";
     client->port = 8080;
     client->app_name = "console";
     client->open();
@@ -44,7 +47,7 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "Russian");
 
     _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-    client = new IClient("192.168.10.80", 8080, callback);
+    client = new IClient("192.168.43.4", 8080, callback);
 
     std::string line;
 
@@ -89,6 +92,7 @@ int main(int argc, char** argv)
                 client->get_user_info(client->get_user_uuid(), "");
             continue;
         }
+
     }
 
 

@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
+import SelectedUsersModel 1.0
 
 Pane {
 
@@ -10,17 +11,65 @@ Pane {
 
     property string theme: "Dark"
 
-    signal setMessageModel(int index);
-    signal removeItem(int index);
+    signal setMessageModel(var modelindex);
+    signal removeItem(string uuid);
+
+    function getDraft(){
+        let draft = usersModel.getDraft();
+        return  draft
+    }
+
+    function saveDraft(uuid, source){
+        usersModel.saveDraft(uuid, source)
+//        console.log(uuid)
+//        console.log(source)
+    }
+
+    function setCache(strCache){
+        usersModel.jsonText = strCache;
+    }
+
+
+    function updateCache(jsonText){
+        wsClient.saveCache(jsonText);
+    }
+
+    //вызывается по цепочке main->MainForm->UsersBox
+    function setChatItem(uuid, name){
+        usersModel.addRow(uuid, name);
+        updateCache(usersModel.jsonText)
+    }
+
+    signal selectedIem(string name, string uuid)
+
+    function getActiveUsersJsonText(){
+        return usersModel.jsonText
+    }
+
+    property string userUuid
+
+    SelectedUsersModel{
+        id: usersModel
+        userUuid: usersBox.userUuid
+
+        onCurrentRowChanged: {
+            var modelIndex = usersModel.item(usersModel.currentRow);
+            var name = usersModel.data(modelIndex, Qt.UserRole + 1);
+            var uuid = usersModel.currentRow;
+            usersBox.selectedIem(name, uuid)
+        }
+    }
 
     ListView{
         id: listUsers
         anchors.fill: parent
         displayMarginBeginning: 40
         displayMarginEnd: 40
-
         spacing: 12
         model: usersModel
+
+        signal selectedRow(var modelindex)
+        signal removeRow(var modelindex)
 
         delegate: Column {
             //Layout.fillHeight: true
@@ -38,14 +87,12 @@ Pane {
                     id: messageText
                     name: model.name
                     width: listUsers.width - (btnInfo.width * 2 + 10 + 10)
-                    //Layout.fillWidth: true
                     height: messageText.implicitHeight// + 24
                     ctrlPaddig: 5
-                    //icon: "qrc:/user.png"
                     checkable: true
                     theme: usersBox.theme
 
-                    checked: usersModel.currentIndex === model.indexDoc ? true : false
+                    checked: usersModel.currentRow === model.uuid ? true : false
 
                     textColor:{
                         if(usersBox.theme === "Dark"){
@@ -74,10 +121,8 @@ Pane {
 //                    }
 
                     onClicked: {
-                        //console.debug(usersModel.currentIndex)
-                        mainForm.title = "Чат - " + model.name
-                        usersBox.setMessageModel(model.indexDoc)
-                        usersModel.currentIndex = model.indexDoc
+                        //mainForm.title = "Чат - " + model.name
+                        listUsers.selectedRow(model)
                     }
 
                 }
@@ -104,12 +149,21 @@ Pane {
                     iconButton: true
 
                     onImageClick:{
-                        let index = model.indexDoc
-                        usersBox.removeItem(index)
-                        usersModel.remove(index)
+                        listUsers.removeRow(model)
                     }
                 }
             }
+        }
+
+        onSelectedRow: function(modelindex){
+            model.currentRow = modelindex.uuid
+            //usersBox.selectedIem(modelindex)
+        }
+
+        onRemoveRow: function(modelindex){
+            usersBox.removeItem(modelindex.uuid)
+            model.removeRow(modelindex.uuid)
+            usersBox.updateCache(model.jsonText)
         }
 
         ScrollBar.horizontal: ScrollBar {}

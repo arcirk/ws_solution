@@ -4,10 +4,6 @@ import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
 
-//Page{
-//    id: pageMainForm
-//    anchors.fill: parent
-//    property string theme: "Dark"
 
     SplitView{
         id: mainSplit
@@ -15,10 +11,41 @@ import QtQuick.Layouts 1.12
         orientation: Qt.Horizontal
 
         property string theme: "Dark" //pageMainForm.theme
+        property string userUuid
+
+        function setCache(strCache){
+            activeChats.setCache(strCache);
+        }
 
         function webSocketError(what, err){
-
+            //во всех сраницах функция
         }
+
+        function websocketSetMessages(resp){
+            chatBox.setMessages(resp)
+        }
+
+        function messageReceived(msg, uuid, recipient){
+            chatBox.messageReceived(msg, uuid, recipient);
+        }
+
+        function chatBoxRemove(uuid){
+            chatBox.removeChat(uuid)
+        }
+
+        property string draft: ""
+        property string currentChat: ""
+
+        function setChatItem(uuid, name){
+            activeChats.setChatItem(uuid, name);
+        }
+
+        signal activeChatsSelected(string name, string uuid)
+
+        function getActiveUsersJsonText(){
+            return activeChats.getActiveUsersJsonText()
+        }
+
 
         Page{
             SplitView.fillWidth: true
@@ -32,10 +59,10 @@ import QtQuick.Layouts 1.12
                     anchors.bottom: smailBox.top
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    //Layout.minimumWidth: 200
                     orientation: Qt.Vertical
                     ChatBox{
                         id: chatBox
+                        userUuid: mainSplit.userUuid
                         SplitView.fillWidth: true
                         SplitView.fillHeight: true
                         Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
@@ -64,12 +91,15 @@ import QtQuick.Layouts 1.12
                                 smailBox.stateChanged("hidden")
                             }
                         }
+
+                        onMessageChanged: function(source){
+                            //activeChats.setCurrentDraft(source)
+                            mainSplit.draft = source;
+                        }
                     }
 
                 }
             }
-
-
 
             footer: SmaileBox{
                 id: smailBox
@@ -87,15 +117,26 @@ import QtQuick.Layouts 1.12
         }
 
         UsersBox{
+            id: activeChats
             theme: mainSplit.theme
             Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
             SplitView.minimumWidth: 300
+            userUuid: mainSplit.userUuid
 
-            onSetMessageModel: function(index){
-                chatBox.listModel.setDocument(index)
+            onSelectedIem: function(name, uuid){
+                if(mainSplit.currentChat.length > 0)
+                    activeChats.saveDraft(mainSplit.currentChat, msgBox.text)
+                mainSplit.activeChatsSelected(name, uuid)
+                mainSplit.currentChat = uuid
+                msgBox.text = activeChats.getDraft();
+                chatBox.seChatMessages(uuid)
+                msgBox.uuidRecipient = mainSplit.currentChat;
             }
-            onRemoveItem: function(index){
-                chatBox.listModel.remove(index)
+
+            onRemoveItem: function(uuid){
+                mainSplit.chatBoxRemove(uuid)
+                if(mainSplit.currentChat === uuid)
+                    mainSplit.currentChat = ""
             }
         }
 

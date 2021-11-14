@@ -19,8 +19,10 @@ Pane{
 
     signal stateChanged(string newState)
     signal sendMessage(string msg)
+    signal messageChanged(string source)
 
     property alias text: txtSendMessage.text
+    property string uuidRecipient
 
     RowLayout {
         anchors.fill: parent
@@ -56,6 +58,10 @@ Pane{
                 placeholderText: qsTr("Введите сообщение")
                 wrapMode: TextArea.Wrap
                 Material.accent: Material.Blue
+
+                onTextChanged: {
+                    control.messageChanged(txtSendMessage.text)
+                }
             }
             ScrollBar.vertical: ScrollBar { }
         }
@@ -69,8 +75,9 @@ Pane{
             enabled: txtSendMessage.length > 0
 
             onClicked: {
-                btnSend.newMessage(txtSendMessage.text)
-                control.sendMessage(txtSendMessage.text)
+                //btnSend.newMessage(txtSendMessage.text)
+                //control.sendMessage(txtSendMessage.text)
+                wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
                 txtSendMessage.text = "";
             }
         }

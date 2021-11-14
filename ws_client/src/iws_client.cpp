@@ -337,7 +337,10 @@ std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
 }
 
 std::string IClient::get_app_uuid() const {
-    return app_uuid;
+    if (client->started())
+        return arcirk::uuid_to_string(client->get_uuid());
+    else
+        return app_uuid;
 }
 
 void IClient::set_app_name(const std::string &session_uuid, const std::string &new_app_name) {
@@ -359,23 +362,23 @@ void IClient::set_app_name(const std::string &session_uuid, const std::string &n
     }
 }
 
-void IClient::set_uuid(const std::string &session_uuid, const std::string &new_uuid) {
-    boost::property_tree::ptree pt;
-
-    try {
-
-        pt.add("uuid_set", session_uuid);
-        pt.add("new_uuid", new_uuid);
-
-        std::stringstream _ss;
-        boost::property_tree::json_parser::write_json(_ss, pt);
-
-        send_command("set_uuid", nil_string_uuid(), _ss.str());
-
-    }catch (std::exception& e){
-        //message("error: " + std::string (e.what()));
-    }
-}
+//void IClient::set_uuid(const std::string &session_uuid, const std::string &new_uuid) {
+//    boost::property_tree::ptree pt;
+//
+//    try {
+//
+//        pt.add("uuid_set", session_uuid);
+//        pt.add("new_uuid", new_uuid);
+//
+//        std::stringstream _ss;
+//        boost::property_tree::json_parser::write_json(_ss, pt);
+//
+//        send_command("set_uuid", nil_string_uuid(), _ss.str());
+//
+//    }catch (std::exception& e){
+//        //message("error: " + std::string (e.what()));
+//    }
+//}
 
 void IClient::get_users_catalog(const std::string &uuid_form) {
 
@@ -403,5 +406,74 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
 std::string IClient::get_user_uuid() const {
 
     return uuid_to_string(client->get_user_uuid());
+}
+
+void IClient::get_user_cache(const std::string &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = uuid_form;
+
+        if (uuid_form.empty()){
+            _uuid_form = nil_string_uuid();
+        }
+        pt.add("uuid_form", _uuid_form);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("get_user_cache", nil_string_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
+void IClient::set_user_cache(const std::string &cache, const std::string &uuid_form) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        std::string _uuid_form = uuid_form;
+
+        if (uuid_form.empty()){
+            _uuid_form = nil_string_uuid();
+        }
+        pt.add("uuid_form", _uuid_form);
+        pt.add("cache", arcirk::base64_encode(cache));
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("set_user_cache", nil_string_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
+void IClient::send(const std::string &msg, const std::string &sub_user_uuid, const std::string &uuid_form) {
+
+    std::string _msg = msg;
+    std::string _uuid_form = uuid_form;
+    std::string _sub_user_uuid = sub_user_uuid;
+
+    if (_msg.empty())
+        return;
+    if (_uuid_form.empty())
+        _uuid_form = "00000000-0000-0000-0000-000000000000";
+    if (_sub_user_uuid.empty())
+        _sub_user_uuid = "00000000-0000-0000-0000-000000000000";
+
+    if (client)
+    {
+        if (client->started())
+        {
+            client->send(_msg, false, _sub_user_uuid, _uuid_form);
+        }
+    }
 }
 

@@ -10,7 +10,19 @@
 QProxyModel::QProxyModel(QObject *parent)
 : QSortFilterProxyModel(parent)
 {
+    m_sortRole = Qt::UserRole;
+}
 
+int QProxyModel::sortRole()
+{
+    return m_sortRole;
+}
+
+void QProxyModel::setSortRole(int role)
+{
+    m_sortRole = role;
+    this->setSortRole(role);
+    this->setDynamicSortFilter(true);
 }
 
 bool QProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const {

@@ -1,80 +1,15 @@
 #include "../include/messagelistmodel.h"
 #include <QJsonObject>
 #include <QString>
+#include <iws_client.h>
 
-#include <sstream>
-#include <string>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-//#include <boost/property_tree/ptree.hpp>
-//#include <boost/property_tree/json_parser.hpp>
-
-const std::string base64_padding[] = {"", "==", "="};
-
-static std::string base64_decode(const std::string &s) {
-
-    namespace bai = boost::archive::iterators;
-
-    std::stringstream os;
-
-    typedef bai::transform_width<bai::binary_from_base64<const char *>, 8, 6> base64_dec;
-
-    unsigned int size = s.size();
-
-    // Remove the padding characters, cf. https://svn.boost.org/trac/boost/ticket/5629
-    if (size && s[size - 1] == '=') {
-        --size;
-        if (size && s[size - 1] == '=') --size;
-    }
-    if (size == 0) return std::string();
-
-    std::copy(base64_dec(s.data()), base64_dec(s.data() + size),
-              std::ostream_iterator<char>(os));
-
-    return os.str();
-}
-
-static std::string base64_encode(const std::string &s) {
-    namespace bai = boost::archive::iterators;
-
-    std::stringstream os;
-
-    // convert binary values to base64 characters
-    typedef bai::base64_from_binary
-    // retrieve 6 bit integers from a sequence of 8 bit bytes
-            <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
-
-    std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
-              std::ostream_iterator<char>(os));
-
-    os << base64_padding[s.size() % 3];
-    return os.str();
-}
-
-MessageListModel::MessageListModel( const MessageListModel::Header& header, QObject * parent )
+MessageListModel::MessageListModel(QObject * parent )
     : QAbstractTableModel( parent )
-    , m_header( header )
 {
 
+
 }
 
-//bool MessageListModel::setJson(QJsonDocument* json)
-//{
-//    //mDocs.insert(mDocs.size() + 1, json);
-//    beginResetModel();
-//    m_json = array;
-//    endResetModel();
-//    return setJson( json->array() );
-//}
-
-//bool MessageListModel::setJson(const QJsonArray& array )
-//{
-//    beginResetModel();
-//    m_json = array;
-//    endResetModel();
-//    return true;
-//}
 
 QVariant MessageListModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -93,13 +28,13 @@ QVariant MessageListModel::headerData(int section, Qt::Orientation orientation, 
     default:
         return QVariant();
     }
-
 }
 
 int MessageListModel::rowCount(const QModelIndex &parent ) const
 {
-    return m_arrMsg[currentIndex].size();
+    return m_arrMsg[m_currentRecipient].size();
 }
+
 
 int MessageListModel::columnCount(const QModelIndex &parent ) const
 {
@@ -109,14 +44,32 @@ int MessageListModel::columnCount(const QModelIndex &parent ) const
 
 QJsonObject MessageListModel::getJsonObject( const QModelIndex &index ) const
 {
-    //const QJsonValue& value = m_json[index.row() ];
-    const QJsonValue& value = m_arrMsg[currentIndex][index.row() ];
+    const QJsonValue& value = m_arrMsg[m_currentRecipient][index.row() ];
     return value.toObject();
+}
+
+QString MessageListModel::getRoleName(int role) const
+{
+    auto names = roleNames();
+    if (names.size() == 0)
+        return 0;
+
+    for (auto key : names.keys()) {
+
+        if (key == role){
+            return QString::fromStdString(names[key].toStdString());
+        }
+    }
+
+    return "";
 }
 
 QVariant MessageListModel::data( const QModelIndex &index, int role ) const
 {
-    if (role == Qt::UserRole){
+
+    QString roleName = getRoleName(role);
+
+    if (roleName == "FirstField"){
         QJsonObject obj = getJsonObject( index );
         if( obj.contains( "FirstField" ))
         {
@@ -124,7 +77,7 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
         }
 
     }
-    else if (role == Qt::UserRole + 5){
+    else if (roleName == "message"){
         QJsonObject obj = getJsonObject( index );
         if( obj.contains( "message" ))
         {
@@ -132,7 +85,7 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
             QString contentType = obj["contentType"].toString();
             QString base64 = v.toString();
 
-            QString msg = QString::fromStdString(base64_decode(base64.toStdString()));
+            QString msg = QString::fromStdString(arcirk::base64_decode(base64.toStdString()));
             QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());
             QJsonObject content = doc.object();
 
@@ -151,7 +104,7 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
         }
 
     }
-    else if (role == Qt::UserRole + 4){
+    else if (roleName == "date"){
         QJsonObject obj = getJsonObject( index );
         if( obj.contains( "date" ))
         {
@@ -214,7 +167,7 @@ QHash<int, QByteArray> MessageListModel::roleNames() const
 void MessageListModel::sendMessage(const QString &message)
 {
 
-    //qDebug() << "Send message: " << message;
+    qDebug() << "Send message: " << message;
 
 
 }
@@ -224,87 +177,218 @@ void MessageListModel::setUserUuid(QString uuid)
     m_userUuid = uuid;
 }
 
-void MessageListModel::setCompanionUuid(QString uuid)
-{
-    m_companionUuid = uuid;
-}
 
 QString MessageListModel::userUuid()
 {
     return m_userUuid;
 }
 
-QString MessageListModel::companionUuid()
-{
-    return m_companionUuid;
-}
 
 void MessageListModel::clearRows()
 {
     beginResetModel();
-    m_arrMsg[currentIndex] = QJsonArray();
+    m_arrMsg[m_currentRecipient] = QJsonArray();
     endResetModel();
 }
 
-void MessageListModel::addDocument(QJsonDocument doc, int itemIndex)
+void MessageListModel::addDocument(QJsonDocument doc, const QString& uuid)
 {
-    m_arrMsg.insert(itemIndex, doc.array());
+    m_arrMsg.insert(uuid, doc.array());
 }
 
-void MessageListModel::setDocument(int index)
+void MessageListModel::addDocument(const QString& json){
+
+    QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    if(doc.isNull())
+        return;
+
+
+    QJsonObject obj = doc.object();
+
+    if(m_header.count() == 0){
+        _header = obj.value("columns").toArray();
+        m_header.clear();
+
+        int i = 0;
+        for (auto itr : _header) {
+            QString column = itr.toString();
+            m_header.push_back( MessageListModel::Heading( { {"title",column},    {"index",column} }) );
+            i++;
+        }
+    }
+
+
+    if(!obj.contains( "uuid_recipient" ))
+        return;
+
+    QString uuid_recipient = obj.value("uuid_recipient").toString();
+    QJsonArray mesgArr = obj.value("rows").toArray();
+
+    auto itr = m_arrMsg.find(uuid_recipient);
+    if (itr != m_arrMsg.end()){
+        m_arrMsg.erase(itr);
+    }
+     m_arrMsg.insert(uuid_recipient, mesgArr);
+
+     beginResetModel();
+     m_currentRecipient = uuid_recipient;
+     endResetModel();
+}
+
+void MessageListModel::setDocument(const QString& uuid)
 {
-    if (index != currentIndex) {
-        beginResetModel();
-        currentIndex = index;
-        endResetModel();
+    if(uuid.isEmpty())
+        return;
+
+    if (uuid != m_currentRecipient) {
+        //
+        auto itr = m_arrMsg.find(uuid);
+
+        if(itr == m_arrMsg.end()){
+            emit getMessagesForRecipient(uuid);
+        }
+        else {
+            beginResetModel();
+            m_currentRecipient = uuid;
+            endResetModel();
+        }
+
+
     }
 }
 
-void MessageListModel::remove(int index)
-{
-    if (index == currentIndex)
-        currentIndex = 0;
 
-    auto itr = m_arrMsg.find(index);
+void MessageListModel::remove(const QString& uuid)
+{
     beginResetModel();
+
+    if (uuid == m_currentRecipient)
+        m_currentRecipient = "";
+
+    auto itr = m_arrMsg.find(uuid);
+
     if (itr != m_arrMsg.end())
         m_arrMsg.erase(itr);
+
     endResetModel();
+}
+
+void MessageListModel::addMessage(const QString& msg, const QString& uuid, const QString& recipient)
+{
+
+    QString message = QString::fromStdString(arcirk::base64_decode(msg.toStdString()));
+
+    QJsonObject _msg = QJsonDocument::fromJson(message.toUtf8()).object();
+
+    QJsonArray rows = _msg.value("rows").toArray();
+
+    qDebug() << recipient << " " << uuid << " " << m_userUuid << " " << currentRecipient();
+
+    if(rows.size() > 0){
+        auto itr = m_arrMsg.find(recipient);
+        if(itr != m_arrMsg.end()){
+            beginResetModel();
+            m_arrMsg[recipient].push_front(rows[0].toObject());
+            endResetModel();
+        }
+    }
+
+}
+
+QString MessageListModel::currentRecipient()
+{
+    return m_currentRecipient;
+}
+
+void MessageListModel::setCurrentRecipient(const QString &uuid)
+{
+    m_currentRecipient = uuid;
+    setDocument(uuid);
 }
 
 
 void MessageListModel::onNewMessage(QString message)
 {
 
-    std::string jsonMsg = "{"
-                   "\"uuid\": \"" + m_userUuid.toStdString() + "\","
-                   "\"name\": \"Борисоглебский Аркадий\","
-                   "\"uuid_channel\": \"7091f153-2d73-406a-a735-a3a31b67422b\","
-                   "\"message\": \"" + message.toUtf8().toBase64().toStdString() + "\","
-                   "\"uuid_form\": \"e7b5a692-6277-4299-912d-52ef42bb5dbb\","
-                   "\"app_name\": \"unknown\","
-                   "\"hash\": \"\","
-                   "\"command\": \"message\","
-                   "\"result\": \"ok\","
-                   "\"role\": \"user\","
-                   "\"user_uuid\": \"00000000-0000-0000-0000-000000000000\""
-                   "}";
+//    std::string jsonMsg = "{"
+//                   "\"uuid\": \"" + m_userUuid.toStdString() + "\","
+//                   "\"name\": \"Борисоглебский Аркадий\","
+//                   "\"uuid_channel\": \"7091f153-2d73-406a-a735-a3a31b67422b\","
+//                   "\"message\": \"" + message.toUtf8().toBase64().toStdString() + "\","
+//                   "\"uuid_form\": \"e7b5a692-6277-4299-912d-52ef42bb5dbb\","
+//                   "\"app_name\": \"unknown\","
+//                   "\"hash\": \"\","
+//                   "\"command\": \"message\","
+//                   "\"result\": \"ok\","
+//                   "\"role\": \"user\","
+//                   "\"user_uuid\": \"00000000-0000-0000-0000-000000000000\""
+//                   "}";
 
-    QString sz_msg = QString::fromStdString(base64_encode(jsonMsg));
+//    QString sz_msg = QString::fromStdString(base64_encode(jsonMsg));
 
-    QJsonObject msg = QJsonObject(); //doc.object();
+//    QJsonObject msg = QJsonObject(); //doc.object();
 
 
-    msg.insert("FirstField", "f3ccb2f2-d431-11e9-ab42-08606e7d17fa");
-    msg.insert("Ref", "d3db7a39-c2b1-4ccb-ab67-a4f82f85a25d");
-    msg.insert("SecondField", "d81ade18-fb07-11e2-b8bf-08606e7d17fa");
-    msg.insert("_id", 0);
-    msg.insert("date", 1630075939);
-    msg.insert("message", sz_msg);
-    msg.insert("token", "036a82ff52b0e5725e202ff17a5f82b1a1226141");
-    msg.insert("contentType", "HTML");
+//    msg.insert("FirstField", "f3ccb2f2-d431-11e9-ab42-08606e7d17fa");
+//    msg.insert("Ref", "d3db7a39-c2b1-4ccb-ab67-a4f82f85a25d");
+//    msg.insert("SecondField", "d81ade18-fb07-11e2-b8bf-08606e7d17fa");
+//    msg.insert("_id", 0);
+//    msg.insert("date", 1630075939);
+//    msg.insert("message", sz_msg);
+//    msg.insert("token", "036a82ff52b0e5725e202ff17a5f82b1a1226141");
+//    msg.insert("contentType", "HTML");
 
-    beginResetModel();
-    m_arrMsg[currentIndex].push_front(msg);
-    endResetModel();
+//    beginResetModel();
+//    m_arrMsg[currentIndex].push_front(msg);
+//    endResetModel();
+
+
+
 }
+
+//QString MessageListModel::jsonText() const {
+
+//    QJsonDocument doc;
+//    QJsonObject obj = QJsonObject();
+//    obj.insert("columns", _header);
+//    obj.insert("rows", m_json);
+
+//    doc.setObject(obj);
+
+//    return QString::fromStdString(doc.toJson().toStdString());
+
+//}
+
+//void MessageListModel::setJsonText(const QString &source) {
+
+//    if(source.isEmpty())
+//        return;
+//    QJsonDocument doc = QJsonDocument::fromJson(source.toUtf8());
+//    if(doc.isNull())
+//        return;
+//    setJson(doc);
+
+//}
+
+//bool MessageListModel::setJson(const QJsonDocument &json)
+//{
+
+//    if (json.isNull()) {
+//        return false;
+//    }
+
+//    _header = json.object().value("columns").toArray();
+//    m_header.clear();
+
+//    int i = 0;
+//    for (auto itr : _header) {
+//        QString column = itr.toString();
+//        m_header.push_back( MessageListModel::Heading( { {"title",column},    {"index",column} }) );
+//        i++;
+//    }
+
+//    auto _rows = json.object().value("rows").toArray();
+//    setJson( _rows );
+
+//    return true;
+//}

@@ -2,28 +2,68 @@
 #include <QJsonObject>
 #include <QString>
 
-SelectedUsersModel::SelectedUsersModel(const SelectedUsersModel::Header& header, QObject * parent )
+SelectedUsersModel::SelectedUsersModel(QObject * parent )
     : QAbstractTableModel( parent )
-    , m_header( header )
 {
-
+    m_currentRow = "";
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","uuid"},    {"index","uuid"} }) );
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","name"},   {"index","name"} }) );
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","draft"},   {"index","draft"} }) );
+    getHeaderJsonObject();
+    m_json = QJsonArray();
+    setJson(QJsonArray());
 }
 
 bool SelectedUsersModel::setJson(const QJsonDocument &json)
 {
-    return setJson( json.array() );
+    if (json.isNull()) {
+        return false;
+    }
+
+    QJsonObject jsonObj = json.object();
+
+    if(jsonObj.isEmpty()){        
+        return false;
+    }else{
+        QJsonObject obj = jsonObj.value("chats").toObject();
+        QJsonArray __header = obj.value("columns").toArray();
+        if(!__header.isEmpty() && __header.count() > 0){
+           m_header.clear();
+            int i = 0;
+            for (auto itr : __header) {
+                QString column = itr.toString();
+                m_header.push_back( MessageListModel::Heading( { {"title",column},    {"index",column} }) );
+                i++;
+            }
+            _header = __header;
+        }
+        auto _rows = obj.value("rows").toArray();
+        setJson( _rows );
+        m_currentRow = jsonObj.value("currentRow").toString();
+   }
+
+    return true;
 }
 
 bool SelectedUsersModel::setJson( const QJsonArray& array )
 {
     beginResetModel();
     m_json = array;
+    if(rowCount() > 0 && m_currentRow == ""){
+        m_currentRow = data((index(0,0)), Qt::UserRole).toString();
+    }
     endResetModel();
+
+    emit currentRowChanged();
+
     return true;
 }
 
 QVariant SelectedUsersModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (m_header.size() == 0)
+        return QVariant();
+
     if( role != Qt::DisplayRole )
     {
         return QVariant();
@@ -58,32 +98,44 @@ QJsonObject SelectedUsersModel::getJsonObject( const QModelIndex &index ) const
     return value.toObject();
 }
 
+void SelectedUsersModel::getHeaderJsonObject()
+{
+    _header = QJsonArray();
+    for(auto itr : m_header){
+        if(itr.size() > 0){
+            _header.push_back(itr["index"]);
+        }
+    }
+}
+
 QVariant SelectedUsersModel::data( const QModelIndex &index, int role ) const
 {
+    if (m_json.size() == 0)
+        QVariant();
 
-    if (role == Qt::UserRole){
+    if (role >= Qt::UserRole){
         QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "uuid" ))
+        QString key = QString::fromStdString(roleNames()[role].toStdString());
+        if( obj.contains( key ))
         {
-            return obj["uuid"].toString();
-        }
+            QJsonValue v = obj[ key ];
 
-    }else if (role == Qt::UserRole + 1){
-        QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "name" ))
-        {
-            return obj["name"].toString();
-        }
+            if( v.isString() )
+            {
+                return v.toString();
+            }
+            else if( v.isDouble() )
+            {
+                return QString::number( v.toDouble() );
+            }
+            else if( v.isBool() )
+            {
+                return QString::number( v.toBool());
+            }else
+                return QString();
 
-    }else if (role == Qt::UserRole + 2){
-        QJsonObject obj = getJsonObject( index );
-        if( obj.contains( "indexDoc" ))
-        {
-            return obj["indexDoc"].toInt();
         }
-
     }
-
 
     switch( role )
     {
@@ -134,77 +186,169 @@ QHash<int, QByteArray> SelectedUsersModel::roleNames() const
     return names;
 }
 
-int SelectedUsersModel::addRow(const QString &uuid, const QString &name)
+void SelectedUsersModel::addRow(const QString &uuid, const QString &name)
 {
 
     if(uuid.isEmpty())
-        return 0;
+        return;
 
+    if(uuid == _user_uuid) //основной пользователь
+        return;
+
+    //пользователь уже есть в списке
     for (auto itr = m_json.begin(); itr < m_json.end() ; ++itr) {
         auto item = itr->toObject();
-        if(item.find("uuid").value().toString() == uuid)
-            return iCount;
+        if(item.find("uuid").value().toString() == uuid){
+            m_currentRow = uuid;
+            emit currentRowChanged();
+            return;
+        }
+
     }
 
     QJsonObject msg = QJsonObject();
     msg.insert("uuid", uuid);
     msg.insert("name", name);
-    iCount++;
-    msg.insert("indexDoc", iCount);
 
     beginResetModel();
     m_json.push_front(msg);
+    m_currentRow = uuid;
     endResetModel();
 
-    return iCount;
+    emit currentRowChanged();
 
+    return;
 }
 
-void SelectedUsersModel::setCurrentIndex(int index)
+QModelIndex SelectedUsersModel::item(const QString &uuid, int col)
 {
-    beginResetModel();
-    m_currentIndex = index;
-    endResetModel();
-}
-
-int SelectedUsersModel::currentIndex()
-{
-    return m_currentIndex;
-}
-
-void SelectedUsersModel::remove(int index)
-{
-    if (m_currentIndex ==  index) {
-        m_currentIndex = 0;
+    for (int i = 0; i < rowCount(); ++i) {
+        auto currIndex = index(i, col);
+        if (data(currIndex, Qt::UserRole).toString() == uuid) {
+            return currIndex;
+        }
     }
+
+    return QModelIndex();
+}
+
+
+void SelectedUsersModel::removeRow(const QString& uuid)
+{   
     for(int i = 0; i < m_json.size(); ++i ){
         QJsonObject obj = m_json.at(i).toObject();
-        if (obj["indexDoc"].toInt() == index) {
+        if (obj["uuid"].toString() == uuid) {
             beginResetModel();
             m_json.removeAt(i);
+            if (m_currentRow ==  uuid) {
+                if(m_json.size() > 0)
+                    m_currentRow = data(index(0,0), Qt::UserRole).toString();
+                else
+                    m_currentRow = "";
+            }
             endResetModel();
+            emit currentRowChanged();
             return;
         }
     }
 }
 
 
-//int SelectedUsersModel::getCurrentIndex()
-//{
-//    return this->index();
-//}
+QString SelectedUsersModel::jsonText() const {
 
-//MessageListModel *SelectedUsersModel::getItemListModel(const QString &user_uuid)
-//{
-//    auto item = m_listModels.find(user_uuid);
-//    if (item != m_listModels.end()) {
-//        auto model = item.value();
-//        if (model) {
-//            qDebug() << model->rowCount();
-//            //return model;
+    QJsonDocument doc;
+    QJsonObject mainObj = QJsonObject();
+    mainObj.insert("currentRow", m_currentRow);
 
-//        }
-//    }
+    QJsonObject obj = QJsonObject();
+    obj.insert("columns", _header);
+    obj.insert("rows", m_json);
 
-//    return nullptr;
-//}
+    mainObj.insert("chats",obj);
+
+    doc.setObject(mainObj);
+
+    return QString::fromStdString(doc.toJson().toStdString());
+
+}
+
+void SelectedUsersModel::setJsonText(const QString &source) {
+
+    if(source.isEmpty())
+        return;
+    QJsonDocument doc = QJsonDocument::fromJson(source.toUtf8());
+    if(doc.isNull())
+        return;
+    setJson(doc);
+
+}
+
+QString SelectedUsersModel::userUuid()
+{
+    return _user_uuid;
+}
+
+void SelectedUsersModel::setUserUuid(const QString &uuid)
+{
+    _user_uuid = uuid;
+}
+
+QString SelectedUsersModel::currentRow()
+{
+    return m_currentRow;
+}
+
+void SelectedUsersModel::setCurrentRow(const QString &uuid)
+{
+    beginResetModel();
+    m_currentRow = uuid;
+    endResetModel();
+    emit currentRowChanged();
+}
+
+void SelectedUsersModel::setRowValue(QModelIndex &index, const QVariant &value)
+{
+    QJsonObject obj = getJsonObject( index );
+    const QString& key = m_header[index.column()]["index"];
+
+    if(value.typeId() == QMetaType::QString){
+        QJsonObject _obj = m_json[index.row()].toObject();
+        _obj[key] = value.toString();
+        m_json[index.row()] = _obj;
+    }
+
+}
+
+int SelectedUsersModel::getColumnIndex(const QString &name) {
+
+    auto names = roleNames();
+    if (names.size() == 0)
+        return 0;
+
+    for (auto key : names.keys()) {
+
+        if (names[key] == name.toUtf8()){
+            return key - Qt::UserRole;
+        }
+    }
+
+    return 0;
+
+}
+
+void SelectedUsersModel::saveDraft(const QString& uuid, const QString &source)
+{
+
+    QModelIndex ind = item(uuid, getColumnIndex("draft"));
+    setRowValue(ind, QVariant(source));
+
+}
+
+QString SelectedUsersModel::getDraft()
+{
+    QModelIndex ind = item(m_currentRow, getColumnIndex("draft"));
+    QJsonObject obj = getJsonObject( ind );
+    QJsonValue v = obj[ "draft" ];
+    return v.toString("");
+}
+

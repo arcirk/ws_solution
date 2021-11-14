@@ -66,21 +66,7 @@ namespace arcirk{
     long int add_day(const long int selDate, const int dayCount);
 
     template<typename... Arguments>
-    std::string str_sample(const std::string& fmt, const Arguments&... args)
-    {
-//        result:
-//        std::cout << FormatArgs("no args\n"); // "no args"
-//        std::cout << FormatArgs("%s; %s; %s;\n", 123, 4.3, "foo"); // 123; 4.3; foo;
-//        std::cout << FormatArgs("%2% %1% %2%\n", 1, 12); // 12 1 12
-
-//        boost::format f(fmt);
-//        std::initializer_list<char> {(static_cast<void>(
-//                f % args
-//        ), char{}) ...};
-//
-//        return boost::str(f);
-        return boost::str((boost::format(fmt) % ... % args));
-    }
+    std::string str_sample(const std::string& fmt, const Arguments&... args){return boost::str((boost::format(fmt) % ... % args));}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     class bVariant{
@@ -142,6 +128,7 @@ namespace arcirk{
         void addMember(content_value value) { addMember(this, value); };
         void addMember(_Value* object, content_value val);
         void addMember(const std::string& key, _Value& value);
+        void addMember(const std::string &member, bVariant &value);
 
         //        void addObjectMember(_Value * object, content_value val);
         void addObject(_Document * doc, std::vector<content_value> &values);
@@ -204,6 +191,7 @@ namespace arcirk{
             std::string         role;
             std::string         presentation;
             boost::uuids::uuid  uuid_user;
+            std::string         contentType;
 
             _ws_message();
 
@@ -223,6 +211,7 @@ namespace arcirk{
             void set_result(bVariant& val);
             void set_role(bVariant& val);
             void set_presentation(bVariant& val);
+            void set_contentType(bVariant& val);
 
             setFun get_set_function(const std::string& nameField);
 

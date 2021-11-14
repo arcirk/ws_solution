@@ -3,15 +3,43 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
+import MessageListModel 1.0
+import QProxyModel 1.0
 
 Pane{
 
     id: ctrlMessageList
 
-    property string uuid: "f3ccb2f2-d431-11e9-ab42-08606e7d17fa"
+    property string userUuid
     property alias listModel: listView.model
 
     signal messageClick(string msg);
+
+    MessageListModel{
+        id: msgModel
+        userUuid: ctrlMessageList.userUuid
+
+        onGetMessagesForRecipient: function(uuid){
+            wsClient.messages(uuid);
+        }
+    }
+
+
+    function setMessages(resp){
+        msgModel.addDocument(resp)
+    }
+
+    function seChatMessages(uuid){
+        msgModel.setDocument(uuid)
+    }
+
+    function messageReceived(msg, uuid, recipient){
+        msgModel.addMessage(msg, uuid, recipient)
+    }
+
+    function removeChat(uuid){
+        msgModel.remove(uuid)
+    }
 
     ListView {
         id: listView
@@ -31,7 +59,7 @@ Pane{
             anchors.right: sentByMe ? listView.contentItem.right : undefined
             spacing: 6
 
-            readonly property bool sentByMe: model.FirstField !== uuid
+            readonly property bool sentByMe: model.FirstField !== ctrlMessageList.userUuid
 
             Row {
                 id: messageRow
@@ -61,7 +89,7 @@ Pane{
                     }
 
                     onImageClick: {
-                        console.debug("Image click")
+                        //console.debug("Image click")
                     }
                 }
             }

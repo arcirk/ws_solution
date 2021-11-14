@@ -57,8 +57,11 @@ public:
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
     bool started();
     void set_app_name(const std::string &session_uuid, const std::string& new_app_name);
-    void set_uuid(const std::string &session_uuid, const std::string& new_uuid);
+    //void set_uuid(const std::string &session_uuid, const std::string& new_uuid);
     void get_users_catalog(const std::string &uuid_form);
+    void get_user_cache(const std::string &uuid_form);
+    void set_user_cache(const std::string &cache, const std::string &uuid_form);
+    void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
 
     std::string get_app_uuid() const;
     std::string get_user_uuid() const;
@@ -75,8 +78,8 @@ private:
     std::string _client_param;
     _callback_message callback_msg;
 
-    int open_as(const std::string &param);
-    void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
+    //int open_as(const std::string &param);
+    //void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
     void start();
 
 };

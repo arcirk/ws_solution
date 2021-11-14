@@ -22,7 +22,9 @@ Page{
         columnLayout.enabled = true
         txtError.text = err
     }
-
+    function websocketSetMessages(resp){
+        //для совместимости
+    }
     Item {
         anchors.centerIn: parent
         id: item1

@@ -24,6 +24,8 @@ public:
     boost::uuids::uuid	user_uuid_;
     std::string app_name_ = "Console";
     std::string role_ = "user";
+    std::string contentType = "TEXT"; //формат сообщения
+    std::string structType = "TEXT"; //структура сообщения "DB" = строка базы данных для моделей QT
     //explicit
     //subscriber(std::string  name, boost::uuids::uuid &&uuid);
 
@@ -41,7 +43,10 @@ public:
     [[nodiscard]] std::string get_app_name() const;
     void set_role(const std::string &role);
 
-
+    void set_content_type(const std::string& msg_format = "TEXT");
+    std::string get_content_type() const;
+    void set_message_struct_type(const std::string& struct_type = "TEXT");
+    std::string  get_message_struct_type() const;
 private:
 
 

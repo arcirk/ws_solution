@@ -45,3 +45,19 @@ const std::string &subscriber::get_role() {
 void subscriber::set_role(const std::string &role) {
     role_ = role;
 }
+
+void subscriber::set_content_type(const std::string &msg_format) {
+    contentType = msg_format;
+}
+
+std::string subscriber::get_content_type() const{
+    return contentType;
+}
+
+void subscriber::set_message_struct_type(const std::string &struct_type) {
+    structType = struct_type;
+}
+
+std::string subscriber::get_message_struct_type() const {
+    return structType;
+}

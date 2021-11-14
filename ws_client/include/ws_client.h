@@ -66,6 +66,8 @@ public:
     void subscribe_exit_channel(const std::string &uuid_channel, const std::string &uuid_form);
     void set_session_param(const std::string &uuid, const std::string &name, const std::string &pwd, const std::string &app_name, const std::string &user_uuid);
 
+    void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &json_param);
+
     bool decode_message;
 private:
 

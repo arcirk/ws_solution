@@ -16,7 +16,7 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    property string myHost: "192.168.43.18"
+    property string myHost: "192.168.43.4"
     property int myPort: 8080
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
@@ -24,6 +24,15 @@ ApplicationWindow {
     MessageDialog {
         id: dialogMsg
         width: 400
+
+    }
+
+    onClosing: {
+        if(wsClient.started){
+            var cache = mainChatBox.getActiveUsersJsonText()
+            if(cache)
+                wsClient.saveCache(cache)
+        }
 
     }
 
@@ -39,8 +48,11 @@ ApplicationWindow {
 
         onConnectionSuccess: {
             mainForm.connectState = true
+            mainChatBox.userUuid = wsClient.uuidUser
             mainStack.push(mainChatBox)
-
+            console.log("uuid: " + wsClient.uuidSession)
+            console.log("uuid_user: " + wsClient.uuidUser)
+            console.log("user: " + wsClient.user)
         }
         onQmlError: function(what, err){
             mainStack.currentItem.webSocketError(what, err)
@@ -48,6 +60,18 @@ ApplicationWindow {
 
         onResetUsersCatalog: function(resp){
             drowerContent.jsonRespCatalog = resp;
+        }
+
+        onGetUserCache: function(resp){
+            mainChatBox.setCache(resp)
+        }
+
+        onSetMessages: function(resp){
+            mainStack.currentItem.websocketSetMessages(resp)
+        }
+
+        onMessageReceived: function(msg, uuid, recipient){
+            mainChatBox.messageReceived(msg, uuid, recipient)
         }
 
     }
@@ -84,10 +108,16 @@ ApplicationWindow {
                     enabled: mainForm.connectState ? true : false
                     icon.source: "qrc:/images/exit.svg"
                     onClicked: {
-                        //mnuTheme.open()
+                        if(wsClient.started){
+                            var cache = mainChatBox.getActiveUsersJsonText()
+                            if(cache)
+                                wsClient.saveCache(cache)
+                            //wsClient.close();
+                        }                        //mnuTheme.open()
+
                        mainForm.connectState = false
                        mainStack.pop()
-                       wsClient.close()
+                       wsClient.close()                       
                     }
                 }
             }
@@ -127,8 +157,9 @@ ApplicationWindow {
             theme: mainForm.myTheme
 
             onSelect: function(uuid, name){
-                usersModel.addRow(uuid, name);
+                mainChatBox.setChatItem(uuid, name)
                 drawer.close();
+
             }
 
         }
@@ -143,6 +174,10 @@ ApplicationWindow {
             id: mainChatBox
             theme: myTheme
 
+            onActiveChatsSelected: function(name, uuid){
+                mainForm.title = "Чат - " + name
+                mainChatBox.enabled = uuid.length > 0
+            }
         }
 
         initialItem: AuthForm{

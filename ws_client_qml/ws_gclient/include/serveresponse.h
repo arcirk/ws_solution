@@ -16,6 +16,10 @@ public:
     QString command;
     QString result;
     bool isParse;
+    QString recipient;
+    QString token;
+    QString uuid;
+    QString contentType;
 
     static QJsonDocument parseResp(const QString& resp);
 
@@ -25,6 +29,9 @@ public:
     static QSortFilterProxyModel * get_proxyModel(QJsonArray &rows, QMap<QString, int> header);
 
     static void debugSaveResponse(const QString& filename, const QString& json = "");
+
+    QString to_string() const;
+
 private:
     void parse(const QString& resp);
 

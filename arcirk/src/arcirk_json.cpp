@@ -115,6 +115,21 @@ namespace arcirk{
         }
     }
 
+    void bJson::addMember(const std::string &member, bVariant &value) {
+        _Value key(member.c_str(), this->GetAllocator());
+        if (value.is_string()) {
+            _Value val(value.get_string().c_str(), this->GetAllocator());
+            this->AddMember(key, val, this->GetAllocator());
+        } else if (value.is_bool()) {
+            this->AddMember(key, value.get_bool(), this->GetAllocator());
+        } else if (value.is_int()) {
+            this->AddMember(key, value.get_int(), this->GetAllocator());
+        }else if (value.is_uuid()) {
+            _Value val(value.to_string().c_str(), this->GetAllocator());
+            this->AddMember(key, val, this->GetAllocator());
+        }
+    }
+
     bool bJson::getMembers(_Document *doc, const std::string &member, std::vector<content_value> &value) {
         //Объект
         _Value::ConstMemberIterator itr = doc->FindMember(member.c_str());

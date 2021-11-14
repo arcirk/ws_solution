@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(ws_client_console)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(ws_client_console src/main.cpp)
 

@@ -239,7 +239,8 @@ namespace arc_sqlite {
         return i;
     }
 
-    int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error, bool header) {
+    int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error
+                            , bool header, std::map<std::string, arcirk::bVariant> fields ) {
 
 //if(!header)
 //{
@@ -378,6 +379,9 @@ namespace arc_sqlite {
         else{
             obj_json->addMember("columns", _header);
             obj_json->addMember("rows", _rows);
+            for (auto k = fields.begin(); k != fields.end(); ++k) {
+                obj_json->addMember(k->first, k->second);
+            }
         }
 
         json = obj_json->to_string();
@@ -630,7 +634,7 @@ namespace arc_sqlite {
     }
 
     bool sqlite3_db::save_message(const std::string &message, const boost::uuids::uuid &first,
-                                  const boost::uuids::uuid &second) {
+                                  const boost::uuids::uuid &second, std::string& ref) {
 
         std::string hash = get_channel_token(first, second);
         if (hash != "error"){
@@ -639,8 +643,9 @@ namespace arc_sqlite {
                     const_cast<boost::uuids::uuid &>(first))));
             values.push_back(arcirk::content_value("SecondField", arcirk::uuid_to_string(
                     const_cast<boost::uuids::uuid &>(second))));
-            boost::uuids::uuid ref = boost::uuids::random_generator()();
-            values.push_back(arcirk::content_value("Ref", arcirk::uuid_to_string(ref)));
+            boost::uuids::uuid _ref = boost::uuids::random_generator()();
+            ref = arcirk::uuid_to_string(_ref);
+            values.push_back(arcirk::content_value("Ref", ref));
             values.push_back(arcirk::content_value("message", message));
             values.push_back(arcirk::content_value("token", hash));
 
@@ -662,7 +667,8 @@ namespace arc_sqlite {
         return false;
     }
 
-    int sqlite3_db::get_save_messages(std::string &json, const std::string &token, std::string& err, int top, int start_date, int end_date) {
+    int sqlite3_db::get_save_messages(std::string &json, const std::string &token, std::string& err, int top
+                                      , int start_date, int end_date, std::map<std::string, arcirk::bVariant> fields) {
 
         std::string query = "select * from Messages where token = '" + token + "'";
 
@@ -675,8 +681,9 @@ namespace arc_sqlite {
                 query.append(" and date >= '" + std::to_string(start_date) + "' and date <= '" + std::to_string(end_date) + "'");
         }
 
+        query.append(" order by date DESC");
+
         if (top > 0){
-            query.append(" order by date DESC");
             query.append(" limit '" + std::to_string(top) + "'");
         }
 
@@ -684,7 +691,7 @@ namespace arc_sqlite {
 
         err = "";
 
-        int result = execute(query, "Messages", json, err);
+        int result = execute(query, "Messages", json, err, true, fields);
 
         return result;
 
@@ -770,6 +777,28 @@ namespace arc_sqlite {
         sqlite3_finalize(pStmt);
 
         return i;
+    }
+
+    void sqlite3_db::get_columns_arr(const std::string &table_name, std::vector<std::string> &arr) {
+        sqlite3_stmt* pStmt;
+        int rc;
+
+        std::string table_info = "PRAGMA table_info(" + table_name + ")";
+
+        if (sqlite3_prepare_v2(db, table_info.c_str(), -1, &pStmt, NULL))
+        {
+            sqlite3_finalize(pStmt);
+        }
+
+        while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW)
+        {
+//                    0 == cid
+//                    1 == name
+//                    2 == type
+            std::string column_name = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, 1));
+            arr.push_back(column_name);
+        }
+
     }
 
 

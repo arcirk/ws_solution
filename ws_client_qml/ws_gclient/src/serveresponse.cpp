@@ -37,6 +37,9 @@ void ServeResponse::parse(const QString& resp){
             auto _message = obj.find("message");
             auto _result = obj.find("result");
             auto _command = obj.find("command");
+            auto _recipient = obj.find("uuid_channel");
+            auto _uuid = obj.find("user_uuid");
+            auto _contentType = obj.find("contentType");
 
              if(_message->isString()){
                  message = _message.value().toString();
@@ -46,6 +49,15 @@ void ServeResponse::parse(const QString& resp){
              }
              if(_result->isString()){
                  result = _result.value().toString();
+             }
+             if(_recipient->isString()){
+                 recipient = _recipient.value().toString();
+             }
+             if(_uuid->isString()){
+                 uuid = _uuid.value().toString();
+             }
+             if(_contentType->isString()){
+                 contentType = _contentType.value().toString();
              }
 
             isParse = true;
@@ -71,6 +83,20 @@ void ServeResponse::debugSaveResponse(const QString &filename, const QString &js
     jsonFile.write(_doc.toJson(QJsonDocument::Indented));
     jsonFile.close();
 
+}
+
+QString ServeResponse::to_string() const
+{
+//    QJsonDocument doc;
+//    QJsonObject msg = QJsonObject();
+//    msg.insert("FirstField", "f3ccb2f2-d431-11e9-ab42-08606e7d17fa");
+//    msg.insert("Ref", "d3db7a39-c2b1-4ccb-ab67-a4f82f85a25d");
+//    msg.insert("SecondField", "d81ade18-fb07-11e2-b8bf-08606e7d17fa");
+//    msg.insert("_id", 0);
+//    msg.insert("date", 1630075939);
+//    msg.insert("message", sz_msg);
+//    msg.insert("token", "036a82ff52b0e5725e202ff17a5f82b1a1226141");
+//    msg.insert("contentType", "HTML");
 }
 
 QJsonDocument ServeResponse::parseResp(const QString &resp){

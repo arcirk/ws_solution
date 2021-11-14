@@ -119,7 +119,8 @@ namespace arc_sqlite {
 
         int exec(const std::string& query, std::string& error = (std::string &) "");
 
-        int execute(const std::string& query, const std::string &table_name, std::string& json = (std::string &) "", std::string& error = (std::string &) "", bool header = false);
+        int execute(const std::string& query, const std::string &table_name, std::string& json = (std::string &) "", std::string& error = (std::string &) "",
+                    bool header = false, std::map<std::string, arcirk::bVariant> fields = std::map<std::string, arcirk::bVariant>());
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, std::string>> &table, std::string &error);
 
@@ -131,9 +132,14 @@ namespace arc_sqlite {
 
         std::string get_channel_token(const boost::uuids::uuid& first, const boost::uuids::uuid& second);
 
-        bool save_message(const std::string &message, const boost::uuids::uuid& first, const boost::uuids::uuid& second);
+        bool save_message(const std::string &message, const boost::uuids::uuid& first, const boost::uuids::uuid& second, std::string& ref);
 
-        int get_save_messages(std::string &json, const std::string& token, std::string& err, int top = 10, int start_date = 0, int end_date = 0);
+        int get_save_messages(std::string &json, const std::string& token,
+                              std::string& err, int top = 10, int start_date = 0,
+                              int end_date = 0,
+                              std::map<std::string, arcirk::bVariant> fields = std::map<std::string, arcirk::bVariant>());
+
+        void get_columns_arr(const std::string& table_name, std::vector<std::string> &arr);
 
     private:
 

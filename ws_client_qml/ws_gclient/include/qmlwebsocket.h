@@ -5,8 +5,6 @@
 #include <iws_client.h>
 #include "clientsettings.h"
 #include "serveresponse.h"
-//#include "usersmodel.h"
-//#include "qmlmessage.h"
 
 class bWebSocket : public QObject
 {
@@ -14,6 +12,8 @@ class bWebSocket : public QObject
     //Q_PROPERTY(bool started READ isStarted);
     Q_PROPERTY(QString user READ getUserName WRITE setUserName NOTIFY userChanged)
     Q_PROPERTY(QString hash READ getHash);
+    Q_PROPERTY(QString uuidUser READ getUserUUID);
+    Q_PROPERTY(QString uuidSession READ getUuidSession);
     Q_PROPERTY(QString host READ getHost WRITE setHost NOTIFY hostChanged)
     Q_PROPERTY(int port READ getPort WRITE setPort NOTIFY portChanged)
     Q_PROPERTY(bool started READ isStarted NOTIFY startedChanged)
@@ -29,6 +29,9 @@ public:
 
     Q_INVOKABLE void open(const QString& user_name, const QString& user_password);
     Q_INVOKABLE void close();
+    Q_INVOKABLE void saveCache(const QString& jsonText);
+    Q_INVOKABLE void messages(const QString& uuid);
+    Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
 
     void ext_message(const std::string& msg);
 
@@ -41,11 +44,9 @@ public:
     const QString getHash();
     bool isStarted();
     const QString getUserUUID();
+    const QString getUuidSession();
 
-//    const QString getActivePage();
-//    void setActivePage(const QString& page);
-
-    void getMessages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
+    void get_messages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
 
     static long int currentDate();
     static long int addDay(const long int source, const int dayCount);
@@ -65,16 +66,12 @@ public:
     bool pwdEdit();
     void setPwdEdit(bool value);
 
-//    void setCatalog(UsersModel* model);
-//    UsersModel* catalog();
-
 private:
     IClient * client;
     ClientSettings * settings;
     bool _pwdEdit;
     QString user;
     QString hash;
-    //UsersModel* m_usersCatalogModel;
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -84,7 +81,7 @@ signals:
     void connectionSuccess();
     void closeConnection();
     void user_catalog(const QString& msg);
-    void get_messages(const QString& resp);
+    void setMessages(const QString& resp);
     void nextChatPage(const QString& pageName, const QString& presentation);
     void setPage(int index);
 
@@ -95,8 +92,9 @@ signals:
     void autoConnectChanged();
     void saveHashChanged();
     void pwdEditChanged();
-    //void catalogChanged();
     void resetUsersCatalog(const QString& resp);
+    void getUserCache(const QString& resp);
+    void messageReceived(const QString& msg, const QString& uuid, const QString& recipient);
 };
 
 #endif // QMLWEBSOCKET_H
