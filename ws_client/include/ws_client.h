@@ -22,6 +22,7 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 typedef std::function<void(std::string)> _callback_message;
+typedef std::function<void(bool)> _callback_status;
 
 using namespace arcirk;
 
@@ -38,6 +39,7 @@ public:
     void open(const char *host, const char *port, const char *name);
     void open(const char *host, const char *port, const char *name, const char *uuid);
     void open(const char* host, const char* port, _callback_message& msg);
+    void open(const char* host, const char* port, _callback_message& msg, _callback_status& st);
     void send(const std::string &message, bool is_cmd = true, const std::string& sub_user_uuid = "", const std::string& uuid_form = "", const std::string& command = "message");
 //    void
 //    to_channel(const std::string &message, const std::string& uuid_sub, const std::string& uuid_form);
@@ -68,7 +70,12 @@ public:
 
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &json_param);
 
+    //void set_status_callback(_status_changed& callback);
+
     bool decode_message;
+
+    bool is_login(){return _is_login;}
+
 private:
 
     boost::asio::io_context &ioc;
@@ -76,13 +83,11 @@ private:
     boost::uuids::uuid uuid_{};
     std::string name_;
     _callback_message _callback_msg;
-
+    _callback_status status_changed;
     std::string _client_param;
-
-//    std::string _hash;
     std::string _app_name;
-//    std::string _uuid_form;
     boost::uuids::uuid  _user_uuid{};
+    bool _is_login;
 
     static void console_log(const std::string logText){
         std::cout << logText << std::endl;

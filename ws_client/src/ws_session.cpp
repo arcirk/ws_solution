@@ -156,7 +156,8 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 void
 session::start_read()
 {
-
+    if(!ws_.is_open())
+        return;
     //Установка крайнего срока для операции чтения.
     deadline_.expires_after(std::chrono::seconds(30));
 
@@ -173,6 +174,7 @@ session::on_read(
         std::size_t bytes_transferred){
 
     //std::cerr << ec.value() << std::endl;
+    std::cout << "stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
 
     if(ec.value() == 2){
         std::string err = ec.message();
@@ -191,7 +193,7 @@ session::on_read(
     if(ec == websocket::error::closed){
         //stop();
         client_->error("read", "Сервер не доступен!");
-        return;
+        //return;
     }
 
     if(ec.value() == 109){
@@ -225,9 +227,10 @@ session::on_read(
 void
 session::start_write()
 {
-    if (stopped_)
+//    if (stopped_)
+//        return;
+    if(!ws_.is_open())
         return;
-
     ws_.async_write(
             net::buffer(output_queue_.front()),
             beast::bind_front_handler(
@@ -240,7 +243,10 @@ session::on_write(
         beast::error_code ec,
         std::size_t bytes_transferred)
 {
-    if (stopped_)
+//    if (stopped_)
+//        return;
+
+    if(!ws_.is_open())
         return;
 
     boost::ignore_unused(bytes_transferred);
@@ -340,6 +346,7 @@ session::fail(beast::error_code ec, char const* what)
     std::cerr << what << ": " << report(ec) << "\n";
 
     client_->error(what, _msg);
+
 }
 
 void
@@ -355,7 +362,10 @@ session::deliver(const std::string& msg)
 void
 session::check_deadline()
 {
-    if (stopped_)
+//    if (stopped_)
+//        return;
+
+    if(!ws_.is_open())
         return;
 
     if (deadline_.expiry() <= steady_timer::clock_type::now())
@@ -369,6 +379,5 @@ session::check_deadline()
     }
 
     deadline_.async_wait(std::bind(&session::check_deadline, this));
-
 
 }

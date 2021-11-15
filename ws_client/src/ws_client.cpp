@@ -25,7 +25,7 @@ ws_client::ws_client(net::io_context &io_context, const std::string& client_para
     set_user_uuid();
     set_name("anonymous");
     _app_name = "unknown";
-
+    _is_login = false;
 }
 //void
 //ws_client::
@@ -90,12 +90,15 @@ void
 ws_client::
 open(const char *host, const char *port) {
     boost::make_shared<session>(ioc)->run(host, port, this);
+    _is_login = false;
     ioc.run();
 }
 
 void
 ws_client::
 open(const char* host, const char* port, _callback_message& msg) {
+
+    _is_login = false;
 
     _callback_msg = msg;
 
@@ -108,6 +111,7 @@ void
 ws_client::
 open(const char *host, const char *port, const char *name) {
     boost::make_shared<session>(ioc)->run(host, port, this);
+    _is_login = false;
     set_name(name);
     ioc.run();
 }
@@ -118,6 +122,7 @@ open(const char *host, const char *port, const char *name, const char *uuid) {
     boost::make_shared<session>(ioc)->run(host, port, this);
     set_name(name);
     set_uuid(uuid);
+    _is_login = false;
     ioc.run();
 }
 
@@ -145,26 +150,8 @@ on_connect(session * sess){
     if (!_client_param.empty())
         send_command("set_client_param", "", _client_param, sess);
 
-//    //синхронизируем id и имя на сервере
-//    std::string command = "cmd ";
-//    command.append(arc_json::get_message(
-//            get_uuid(),
-//            "set_client_param",
-//            get_name(),
-//            uuid_channel,
-//            true,
-//            _app_name,
-//            _uuid_form,
-//            _hash,
-//            "set_client_param",
-//            "",
-//            "",
-//            get_user_uuid()));
-//
-//    auto const ss = boost::make_shared<std::string const>(std::move(command));
-//    sess->send(ss);
-
-    console_log("log: client connection success");
+    if(status_changed)
+        status_changed(started());
 }
 
 void
@@ -183,6 +170,8 @@ ws_client::on_stop() {
         _callback_msg(_msg.get_json(true));
 
     }
+    if(status_changed)
+        status_changed(started());
 
     console_log("log: client on_stop");
 }
@@ -205,6 +194,8 @@ close() {
         if(auto sp = wp.lock())
             sp->stop();
 
+//    if(status_changed)
+//        status_changed(started());
 }
 
 bool&
@@ -290,8 +281,9 @@ ws_client::on_read(const std::string& message) {
             ptree pt;
             if (bJson::parse_pt(result, pt)){
                 if (bJson::get_pt_member(pt, "command") == "set_client_param"){
+                    //авторизация прошла успешно, устанавливаем параметры сессии на клиенте
+                    _is_login = true;
                     set_param(pt);
-
                 }
             }
         }catch (std::exception& e){
@@ -346,6 +338,8 @@ void ws_client::error(const std::string &what, const std::string &err) {
 
         _callback_msg(_msg.get_json(true));
     }
+    if(status_changed)
+        status_changed(started());
 }
 
 boost::uuids::uuid& ws_client::get_user_uuid() {
@@ -447,5 +441,25 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
 
 
 }
+
+void ws_client::open(const char *host, const char *port, _callback_message &msg, _callback_status &st) {
+
+    _is_login = false;
+
+    _callback_msg = msg;
+    status_changed = st;
+
+    boost::make_shared<session>(ioc)->run(host, port, this);
+    ioc.run();
+
+}
+
+//void ws_client::set_status_callback(_status_changed &callback) {
+//    if(callback){
+//        status_changed = callback;
+//        status_changed(started());
+//    }
+//
+//}
 
 

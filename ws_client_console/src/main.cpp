@@ -13,6 +13,10 @@
 
 IClient * client;
 
+void status_changed(bool connected){
+    std::cout << "connected: " << connected << std::endl;
+}
+
 void ext_message(const std::string& msg) {
 
     try {
@@ -31,11 +35,14 @@ void start(){
     if (client->started()) {
         return;
     }
+
+
     client->admin_name = "Борисоглебский Аркадий";
-    client->hash = IClient::get_hash("Борисоглебский Аркадий", "филиппины");
-    client->host = "192.168.43.4";
+    client->hash = IClient::get_hash("Борисоглебский Аркадий", "123");
+    client->host = "192.168.10.80";
     client->port = 8080;
     client->app_name = "console";
+
     client->open();
 
     std::cout << "exit thread" << std::endl;
@@ -47,7 +54,10 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "Russian");
 
     _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-    client = new IClient("192.168.43.4", 8080, callback);
+    //_status_changed _callback_status_changed = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
+
+    client = new IClient("192.168.10.80", 8080, callback);
+    //client->set_callback_status_changed(_callback_status_changed);
 
     std::string line;
 
@@ -64,6 +74,7 @@ int main(int argc, char** argv)
         else if (line == "start")
         {
             start();
+
             continue;
         }
         else if (line == "stop")

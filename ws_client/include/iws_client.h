@@ -15,7 +15,6 @@
 
 //typedef std::function<void(std::string)> _callback_message;
 
-
 //__IWS_CLIENT_
 
 class  IClient{
@@ -32,6 +31,7 @@ public:
 
     explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback);
+    IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_status& _status_changed_fun);
     ~IClient(){
         close();
     };
@@ -70,6 +70,10 @@ public:
     static long int current_date_in_seconds();
     long int get_tz_offset();
 
+    //void set_callback_status_changed(_status_changed& callback_status_changed);
+
+    void status_changed(bool status);
+
 private:
 
     //std::string log_path;
@@ -77,7 +81,7 @@ private:
     ws_client * client;
     std::string _client_param;
     _callback_message callback_msg;
-
+    _callback_status _status_changed;
     //int open_as(const std::string &param);
     //void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
     void start();

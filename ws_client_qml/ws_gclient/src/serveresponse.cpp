@@ -97,6 +97,7 @@ QString ServeResponse::to_string() const
 //    msg.insert("message", sz_msg);
 //    msg.insert("token", "036a82ff52b0e5725e202ff17a5f82b1a1226141");
 //    msg.insert("contentType", "HTML");
+    return QString();
 }
 
 QJsonDocument ServeResponse::parseResp(const QString &resp){

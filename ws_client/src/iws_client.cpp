@@ -19,6 +19,17 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     //client_uuid = arc_json::random_uuid();
     user_uuid = nil_string_uuid();
 }
+IClient::IClient(const std::string &_host, const int &_port, _callback_message &callback,
+                 _callback_status &_status_changed_fun) {
+    host = _host;
+    port = _port;
+    callback_msg = callback;
+    client = nullptr;
+    app_name = "admin_console";
+    //client_uuid = arc_json::random_uuid();
+    user_uuid = nil_string_uuid();
+    _status_changed = _status_changed_fun;
+}
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
 
@@ -64,6 +75,10 @@ void IClient::close() {
         client = nullptr;
     }
 
+    if(_status_changed){
+        _status_changed(false);
+    }
+
 }
 
 void IClient::start() {
@@ -75,13 +90,14 @@ void IClient::start() {
     close();
 
     client = new ws_client(ioc, _client_param);
-
+    //client->set_status_callback(callback_status_changed);
     //client->open(host.c_str(), std::to_string(port).c_str(), callback);
     client->open(host.c_str(), std::to_string(port).c_str(), callback_msg);
-
+    //client->set_status_callback(_callback_status_changed);
     delete client;
     client = nullptr;
 
+    std::cout << "exit client thread" << std::endl;
 }
 
 bool IClient::started() {
@@ -362,24 +378,6 @@ void IClient::set_app_name(const std::string &session_uuid, const std::string &n
     }
 }
 
-//void IClient::set_uuid(const std::string &session_uuid, const std::string &new_uuid) {
-//    boost::property_tree::ptree pt;
-//
-//    try {
-//
-//        pt.add("uuid_set", session_uuid);
-//        pt.add("new_uuid", new_uuid);
-//
-//        std::stringstream _ss;
-//        boost::property_tree::json_parser::write_json(_ss, pt);
-//
-//        send_command("set_uuid", nil_string_uuid(), _ss.str());
-//
-//    }catch (std::exception& e){
-//        //message("error: " + std::string (e.what()));
-//    }
-//}
-
 void IClient::get_users_catalog(const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
@@ -477,3 +475,6 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
     }
 }
 
+void IClient::status_changed(bool status) {
+
+}

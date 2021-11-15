@@ -160,9 +160,11 @@
         <file>qml/EmptyImage.qml</file>
         <file>qml/AuthForm.qml</file>
         <file>images/exit.svg</file>
-        <file>qml/BWebSockets.qml</file>
         <file>images/edit.svg</file>
         <file>images/view_show_icon_124811.svg</file>
         <file>images/view_hide_icon_124813.svg</file>
+        <file>images/server_network_icon_138203.svg</file>
+        <file>images/server_network_off_icon_136233.svg</file>
+        <file>images/wifi_network_server_icon_193541.svg</file>
     </qresource>
 </RCC>

@@ -16,7 +16,7 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    property string myHost: "192.168.43.4"
+    property string myHost: "192.168.43.18"
     property int myPort: 8080
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
@@ -95,6 +95,15 @@ ApplicationWindow {
             Row{
                 id: rightButtons
                 Layout.alignment: Qt.AlignRight
+
+                ToolButton{
+                    id: btnConected
+                    icon.source: wsClient.started ? "qrc:/images/server_network_off_icon_136233.svg" : ":/images/server_network_icon_138203.svg"
+
+                    onClicked: {
+                        mnuTheme.open()
+                    }
+                }
                 ToolButton{
                     id: btnTheme
                     icon.source: "qrc:/images/mbriwebsitetheme_99562.svg"
