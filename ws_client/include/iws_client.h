@@ -70,9 +70,6 @@ public:
     static long int current_date_in_seconds();
     long int get_tz_offset();
 
-    //void set_callback_status_changed(_status_changed& callback_status_changed);
-
-    void status_changed(bool status);
 
 private:
 

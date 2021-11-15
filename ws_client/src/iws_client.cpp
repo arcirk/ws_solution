@@ -74,10 +74,10 @@ void IClient::close() {
         delete client;
         client = nullptr;
     }
-
-    if(_status_changed){
-        _status_changed(false);
-    }
+//
+//    if(_status_changed){
+//        _status_changed(false);
+//    }
 
 }
 
@@ -92,7 +92,7 @@ void IClient::start() {
     client = new ws_client(ioc, _client_param);
     //client->set_status_callback(callback_status_changed);
     //client->open(host.c_str(), std::to_string(port).c_str(), callback);
-    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg);
+    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
     //client->set_status_callback(_callback_status_changed);
     delete client;
     client = nullptr;
@@ -475,6 +475,3 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
     }
 }
 
-void IClient::status_changed(bool status) {
-
-}

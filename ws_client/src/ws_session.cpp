@@ -78,7 +78,7 @@ session::on_resolve(
         return fail(ec, "resolve");
 
     // Set the timeout for the operation
-    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(15));
 
     // Make the connection on the IP address we get from a lookup
     beast::get_lowest_layer(ws_).async_connect(
@@ -174,7 +174,7 @@ session::on_read(
         std::size_t bytes_transferred){
 
     //std::cerr << ec.value() << std::endl;
-    std::cout << "stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
+    std::cout << "on_read stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
 
     if(ec.value() == 2){
         std::string err = ec.message();
@@ -229,6 +229,7 @@ session::start_write()
 {
 //    if (stopped_)
 //        return;
+
     if(!ws_.is_open())
         return;
     ws_.async_write(
@@ -245,6 +246,7 @@ session::on_write(
 {
 //    if (stopped_)
 //        return;
+    std::cout << "on_write stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
 
     if(!ws_.is_open())
         return;
