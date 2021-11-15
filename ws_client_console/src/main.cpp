@@ -54,9 +54,9 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "Russian");
 
     _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-    //_status_changed _callback_status_changed = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
+    _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
 
-    client = new IClient("192.168.10.80", 8080, callback);
+    client = new IClient("192.168.10.80", 8080, callback, callback_status);
     //client->set_callback_status_changed(_callback_status_changed);
 
     std::string line;
