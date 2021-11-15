@@ -7,7 +7,9 @@ bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
     settings->init();
 
     _callback_message callback = std::bind(&bWebSocket::ext_message, this, std::placeholders::_1);
-    client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort, callback);
+    _callback_status callback_status = std::bind(&bWebSocket::status_changed, this, std::placeholders::_1);
+
+    client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort, callback, callback_status);
 }
 
 bWebSocket::~bWebSocket()
@@ -85,6 +87,11 @@ void bWebSocket::ext_message(const std::string &msg)
         processServeResponse(resp);
     }
 
+}
+
+void bWebSocket::status_changed(bool status)
+{
+    emit connectedStatusChanged(status);
 }
 
 void bWebSocket::processServeResponse(const QString &jsonResp)
@@ -251,5 +258,13 @@ bool bWebSocket::pwdEdit()
 void bWebSocket::setPwdEdit(bool value)
 {
     _pwdEdit = value;
+}
+
+bool bWebSocket::connectedStatus()
+{
+    if(client){
+        return client->is_open();
+    }else
+        return false;
 }
 

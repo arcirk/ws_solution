@@ -16,14 +16,24 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    property string myHost: "192.168.43.18"
-    property int myPort: 8080
+    property alias myHost: srvSettingsDlg.serverAdrr
+    property alias myPort: srvSettingsDlg.serverPort
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
 
     MessageDialog {
         id: dialogMsg
         width: 400
+
+
+    }
+
+    ServerSettingsDialog{
+
+        id: srvSettingsDlg
+        serverAdrr: "192.168.43.18"
+        serverPort: 8080
+        //enabled: false
 
     }
 
@@ -74,6 +84,12 @@ ApplicationWindow {
             mainChatBox.messageReceived(msg, uuid, recipient)
         }
 
+        onConnectedStatusChanged: function(val){
+            //console.debug("connection status: " + val)
+            btnConected.icon.source = val ? "qrc:/images/server_network_icon_138203.svg" : "qrc:/images/server_network_off_icon_136233.svg"
+            srvSettingsDlg.enabled = !val
+        }
+
     }
 
     property bool connectState: false
@@ -98,10 +114,10 @@ ApplicationWindow {
 
                 ToolButton{
                     id: btnConected
-                    icon.source: wsClient.started ? "qrc:/images/server_network_off_icon_136233.svg" : ":/images/server_network_icon_138203.svg"
+                    icon.source: "qrc:/images/server_network_off_icon_136233.svg"
 
                     onClicked: {
-                        mnuTheme.open()
+                        srvSettingsDlg.open()
                     }
                 }
                 ToolButton{

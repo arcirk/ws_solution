@@ -383,3 +383,7 @@ session::check_deadline()
     deadline_.async_wait(std::bind(&session::check_deadline, this));
 
 }
+
+bool session::is_open() const noexcept{
+    return ws_.is_open();
+}

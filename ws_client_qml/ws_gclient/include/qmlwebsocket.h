@@ -20,7 +20,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY autoConnectChanged)
     Q_PROPERTY(bool saveHash READ saveHash WRITE setSaveHash NOTIFY saveHashChanged)
     Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
-    //Q_PROPERTY(UsersModel* catalog READ catalog WRITE setCatalog NOTIFY catalogChanged)
+    Q_PROPERTY(bool connectedStatus READ connectedStatus NOTIFY connectedStatusChanged)
     //Q_PROPERTY(QString activePage READ getActivePage WRITE setActivePage);
 
 public:
@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
 
     void ext_message(const std::string& msg);
+    void status_changed(bool status);
 
     void processServeResponse(const QString& jsonResp);
 
@@ -66,6 +67,8 @@ public:
     bool pwdEdit();
     void setPwdEdit(bool value);
 
+    bool connectedStatus();
+
 private:
     IClient * client;
     ClientSettings * settings;
@@ -95,6 +98,7 @@ signals:
     void resetUsersCatalog(const QString& resp);
     void getUserCache(const QString& resp);
     void messageReceived(const QString& msg, const QString& uuid, const QString& recipient);
+    void connectedStatusChanged(bool status);
 };
 
 #endif // QMLWEBSOCKET_H

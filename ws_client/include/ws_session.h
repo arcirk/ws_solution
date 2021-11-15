@@ -77,6 +77,7 @@ class session : public boost::enable_shared_from_this<session>
             on_close(beast::error_code ec);
 
 
+            bool is_open() const noexcept;
 
         private:
             std::deque<std::string> output_queue_;

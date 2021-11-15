@@ -76,6 +76,8 @@ public:
 
     bool is_login(){return _is_login;}
 
+    bool is_open();
+
 private:
 
     boost::asio::io_context &ioc;

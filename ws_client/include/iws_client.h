@@ -70,6 +70,7 @@ public:
     static long int current_date_in_seconds();
     long int get_tz_offset();
 
+    bool is_open();
 
 private:
 

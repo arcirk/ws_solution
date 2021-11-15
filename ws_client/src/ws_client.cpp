@@ -454,12 +454,14 @@ void ws_client::open(const char *host, const char *port, _callback_message &msg,
 
 }
 
-//void ws_client::set_status_callback(_status_changed &callback) {
-//    if(callback){
-//        status_changed = callback;
-//        status_changed(started());
-//    }
-//
-//}
+bool ws_client::is_open() {
+    if (sessions_.size() > 0){
+        auto itr = sessions_.begin();
+        session* sess = *itr;
+        return sess->is_open();
+    } else
+        return false;
+}
+
 
 

@@ -96,9 +96,10 @@ Pane{
             else
                   txtSendMessage.text = "<a href=\"" + fpath + "\">"+name+"</a>"
 
-            btnSend.newMessage(txtSendMessage.text)
-            control.sendMessage(txtSendMessage.text)
-            console.log(Qt.resolvedUrl("pics/logo.png"))
+            //btnSend.newMessage(txtSendMessage.text)
+            //control.sendMessage(txtSendMessage.text)
+            //console.log(Qt.resolvedUrl("pics/logo.png"))
+            wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
             txtSendMessage.text = cashe;
         }
     }

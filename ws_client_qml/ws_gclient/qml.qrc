@@ -166,5 +166,6 @@
         <file>images/server_network_icon_138203.svg</file>
         <file>images/server_network_off_icon_136233.svg</file>
         <file>images/wifi_network_server_icon_193541.svg</file>
+        <file>qml/ServerSettingsDialog.qml</file>
     </qresource>
 </RCC>
