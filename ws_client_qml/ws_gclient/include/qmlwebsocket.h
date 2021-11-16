@@ -13,6 +13,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(QString user READ getUserName WRITE setUserName NOTIFY userChanged)
     Q_PROPERTY(QString hash READ getHash);
     Q_PROPERTY(QString uuidUser READ getUserUUID);
+    Q_PROPERTY(QString appName READ getAppName);
     Q_PROPERTY(QString uuidSession READ getUuidSession);
     Q_PROPERTY(QString host READ getHost WRITE setHost NOTIFY hostChanged)
     Q_PROPERTY(int port READ getPort WRITE setPort NOTIFY portChanged)
@@ -32,6 +33,7 @@ public:
     Q_INVOKABLE void saveCache(const QString& jsonText);
     Q_INVOKABLE void messages(const QString& uuid);
     Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
+    //Q_INVOKABLE bool isOpen();
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -46,7 +48,7 @@ public:
     bool isStarted();
     const QString getUserUUID();
     const QString getUuidSession();
-
+    const QString getAppName();
     void get_messages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
 
     static long int currentDate();

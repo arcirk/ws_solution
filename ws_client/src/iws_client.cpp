@@ -102,6 +102,7 @@ void IClient::start() {
 
 bool IClient::started() {
     bool result = false;
+
 //    try {
         if (client){
             result = client->started();
@@ -475,10 +476,10 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
     }
 }
 
-bool IClient::is_open() {
-    if(client){
-        return client->is_open();
-    }
-    return false;
-}
+//bool IClient::is_open() {
+//    if(client){
+//        return client->is_open();
+//    }
+//    return false;
+//}
 

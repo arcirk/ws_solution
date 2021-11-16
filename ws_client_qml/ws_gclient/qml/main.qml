@@ -42,12 +42,26 @@ ApplicationWindow {
             mainForm.connectState = true
             mainChatBox.userUuid = wsClient.uuidUser
             mainStack.push(mainChatBox)
-            console.log("uuid: " + wsClient.uuidSession)
-            console.log("uuid_user: " + wsClient.uuidUser)
-            console.log("user: " + wsClient.user)
+            mainForm.title = wsClient.user
+//            console.log("uuid: " + wsClient.uuidSession)
+//            console.log("uuid_user: " + wsClient.uuidUser)
+//            console.log("user: " + wsClient.user)
+
         }
         onQmlError: function(what, err){
-            mainStack.currentItem.webSocketError(what, err)
+
+            let error = err;
+            mainStack.currentItem.webSocketError(what, error)
+            mainForm.connectState = wsClient.started
+//            if(!wsClient.isOpen() && mainStack.currentItem == mainChatBox){
+//                mainStack.pop()
+//                authForm.enabledForm = true
+//                if(err === "End of file"){
+//                    error = "Соединение разорвано!"
+//                }
+//            }
+
+
         }
 
         onResetUsersCatalog: function(resp){
@@ -67,7 +81,7 @@ ApplicationWindow {
         }
 
         onConnectedStatusChanged: function(val){
-            //console.debug("connection status: " + val)
+            console.debug("connection status: " + val)
             btnConected.icon.source = val ? "qrc:/images/server_network_icon_138203.svg" : "qrc:/images/server_network_off_icon_136233.svg"
             srvSettingsDlg.enabled = !val
         }
@@ -104,6 +118,7 @@ ApplicationWindow {
         id: maniToolBar
         width: parent.width
         Material.background: myTheme === "Light" ? "#efebe9" : "#424242"
+
         RowLayout{
             width: parent.width
             ToolButton{
@@ -112,6 +127,11 @@ ApplicationWindow {
                 onClicked: {
                     drawer.open()
                 }
+            }
+            Label{
+                id: chatName
+                Layout.fillWidth: true
+                text:  ""
             }
 
             Row{
@@ -201,13 +221,19 @@ ApplicationWindow {
         id: mainStack
         anchors.fill: parent
 
+        signal connectionBroken
+
         MainForm{
             id: mainChatBox
             theme: myTheme
 
             onActiveChatsSelected: function(name, uuid){
-                mainForm.title = "Чат - " + name
                 mainChatBox.enabled = uuid.length > 0
+                chatName.text = "Чат : " + name
+            }
+
+            onConnectionBroken: {
+                mainStack.connectionBroken()
             }
         }
 
@@ -234,6 +260,12 @@ ApplicationWindow {
             }
 
         }
+
+        onConnectionBroken: {
+            mainStack.pop()
+            authForm.enabledForm = true
+        }
+
     }
 
 }

@@ -47,7 +47,7 @@ public:
     void on_read(const std::string& message);
     void on_stop();
     void close();
-    bool& started();
+    bool started();
     boost::uuids::uuid& get_uuid();
     boost::uuids::uuid& get_user_uuid();
     std::string& get_name();
@@ -76,12 +76,12 @@ public:
 
     bool is_login(){return _is_login;}
 
-    bool is_open();
+    //bool is_open();
 
 private:
 
     boost::asio::io_context &ioc;
-    bool _started;
+    //bool _started;
     boost::uuids::uuid uuid_{};
     std::string name_;
     _callback_message _callback_msg;

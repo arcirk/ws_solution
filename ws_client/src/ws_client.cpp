@@ -10,7 +10,7 @@
 
 
 #include <boost/locale.hpp>
-#include <boost/lexical_cast.hpp>
+//#include <boost/lexical_cast.hpp>
 #include <boost/locale/generator.hpp>
 
 using namespace arcirk;
@@ -18,7 +18,7 @@ using namespace arcirk;
 ws_client::ws_client(net::io_context &io_context, const std::string& client_param)
 : ioc(io_context)
 {
-    _started = false;
+    //_started = false;
     decode_message = false;
     _client_param = client_param;
     set_uuid();
@@ -132,7 +132,7 @@ on_connect(session * sess){
 
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(sess);
-    _started = true;
+    //_started = true;
 
     if (_callback_msg)
     {
@@ -159,7 +159,7 @@ ws_client::on_stop() {
 
     if (_callback_msg)
     {
-        _started = false;
+        //_started = false;
         auto _msg = ws_message();
         _msg.message().uuid = get_uuid();
         _msg.message().message = "client leave";
@@ -171,7 +171,7 @@ ws_client::on_stop() {
 
     }
     if(status_changed)
-        status_changed(started());
+        status_changed(false);
 
     console_log("log: client on_stop");
 }
@@ -180,7 +180,7 @@ void
 ws_client::
 close() {
 
-    _started = false;
+    //_started = false;
 
     std::vector<boost::weak_ptr<session>> v;
     {
@@ -198,10 +198,35 @@ close() {
 //        status_changed(started());
 }
 
-bool&
+bool
 ws_client::
 started() {
-    return _started;
+
+    //bool _started = false;
+
+//    std::vector<boost::weak_ptr<session>> v;
+//    {
+//        std::lock_guard<std::mutex> lock(mutex_);
+//        v.reserve(sessions_.size());
+//        for(auto p : sessions_)
+//            v.emplace_back(p->weak_from_this());
+//    }
+//
+//    for(auto const& wp : v)
+//        if(auto sp = wp.lock()){
+//            if (sp->is_open()){
+//                _started = true;
+//                break;
+//            }
+//        }
+
+        for(auto p : sessions_){
+            if (p->is_open()){
+                return true;
+                //break;
+            }
+        }
+    //return _started;
 }
 
 boost::uuids::uuid&
@@ -454,14 +479,14 @@ void ws_client::open(const char *host, const char *port, _callback_message &msg,
 
 }
 
-bool ws_client::is_open() {
-    if (sessions_.size() > 0){
-        auto itr = sessions_.begin();
-        session* sess = *itr;
-        return sess->is_open();
-    } else
-        return false;
-}
+//bool ws_client::is_open() {
+//    if (sessions_.size() > 0){
+//        auto itr = sessions_.begin();
+//        session* sess = *itr;
+//        return sess->is_open();
+//    } else
+//        return false;
+//}
 
 
 

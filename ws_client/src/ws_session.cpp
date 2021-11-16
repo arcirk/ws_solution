@@ -34,7 +34,7 @@ session(net::io_context& ioc)
 , deadline_(ioc)
 , heartbeat_timer_(ioc)
 {
-    stopped_ = true;
+    //stopped_ = true;
 }
 
 session::~session() = default;
@@ -96,13 +96,13 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 #ifdef _WINDOWS
     err = "В соединении отказано";
 #endif
-        stopped_ = true;
+        //stopped_ = true;
         client_->error("connect", err);
         return;
     }
 
     if(ec){
-        stopped_ = true;
+        //stopped_ = true;
         return fail(ec, "connect");
     }
     // Turn off the timeout on the tcp_stream, because
@@ -143,7 +143,7 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 
     std::cout << "successful connection!" << std::endl;
 
-    stopped_ = false;
+    //stopped_ = false;
 
     client_->on_connect(this);
 
@@ -174,7 +174,10 @@ session::on_read(
         std::size_t bytes_transferred){
 
     //std::cerr << ec.value() << std::endl;
-    std::cout << "on_read stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
+    //std::cout << "on_read stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
+
+//    if(stopped_ == ws_.is_open() )
+//        stopped_ = !ws_.is_open();
 
     if(ec.value() == 2){
         std::string err = ec.message();
@@ -185,9 +188,6 @@ session::on_read(
         return;
     }
 
-    if (stopped_)
-        return;
-
     boost::ignore_unused(bytes_transferred);
 
     if(ec == websocket::error::closed){
@@ -195,13 +195,18 @@ session::on_read(
         client_->error("read", "Сервер не доступен!");
         //return;
     }
-
-    if(ec.value() == 109){
+    //125 : Операция отменена
+    if(ec.value() == 109 || ec.value() == 125){
         std::string err = ec.message();
 #ifdef _WINDOWS
         err = "Соединение разровано другой стороной!";
 #endif
+
+        if (!ws_.is_open())
+            return;
+
         client_->error("read", err);
+
         return;
     }
 
@@ -246,7 +251,7 @@ session::on_write(
 {
 //    if (stopped_)
 //        return;
-    std::cout << "on_write stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
+//    std::cout << "on_write stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
 
     if(!ws_.is_open())
         return;
@@ -279,7 +284,7 @@ session::on_write(
 void
 session::stop(bool eraseObjOnly)
 {
-    stopped_ = true;
+    //stopped_ = true;
     deadline_.cancel();
     heartbeat_timer_.cancel();
     client_->on_stop();
@@ -294,7 +299,7 @@ void
 session::send(boost::shared_ptr<std::string const> const& ss) {
 
 
-    if (stopped_)
+    if (!ws_.is_open())
         return;
 
     deliver(ss->c_str());
@@ -310,7 +315,7 @@ session::on_close(beast::error_code ec)
     if(ec)
         return fail(ec, "close");
 
-    stopped_ = true;
+    //stopped_ = true;
 
     // If we get here then the connection is closed gracefully
 

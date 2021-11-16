@@ -39,6 +39,7 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
     client->hash = settings->Hash.toStdString();
     client->host = settings->ServerHost.toStdString();
     client->port = settings->ServerPort;
+    client->app_name = settings->AppName.toStdString();
 
     client->open();
 
@@ -77,6 +78,11 @@ void bWebSocket::sendMessage(const QString &recipient, const QString &msg)
         client->send(_message, recipient.toStdString(), "");
     }
 }
+
+//bool bWebSocket::isOpen()
+//{
+//    //return client->is_open();
+//}
 
 void bWebSocket::ext_message(const std::string &msg)
 {
@@ -193,6 +199,11 @@ const QString bWebSocket::getUuidSession()
     return QString::fromStdString(client->get_app_uuid());
 }
 
+const QString bWebSocket::getAppName()
+{
+    return "qt_client";
+}
+
 
 void bWebSocket::get_messages(const QString &uuid_sub, int start_date, int end_date, int limit, const QString &uuid_form)
 {
@@ -263,7 +274,7 @@ void bWebSocket::setPwdEdit(bool value)
 bool bWebSocket::connectedStatus()
 {
     if(client){
-        return client->is_open();
+        return client->started();
     }else
         return false;
 }

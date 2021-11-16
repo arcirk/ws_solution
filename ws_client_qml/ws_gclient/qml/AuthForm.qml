@@ -18,6 +18,7 @@ Page{
     property alias enabledForm: columnLayout.enabled
 
     signal accept(string user, string pwd);
+
     function webSocketError(what, err){
         columnLayout.enabled = true
         txtError.text = err
@@ -25,6 +26,8 @@ Page{
     function websocketSetMessages(resp){
         //для совместимости
     }
+
+
     Item {
         anchors.centerIn: parent
         id: item1

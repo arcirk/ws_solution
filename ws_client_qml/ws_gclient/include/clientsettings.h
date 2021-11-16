@@ -21,6 +21,7 @@ public:
     QString ServerBinDir;
     QString ServerName;
     QString ServerStatus;
+    QString AppName;
     bool AutoConnect;
     bool SaveHash;
 };

@@ -13,6 +13,7 @@ ClientSettings::ClientSettings()
     , ServerBinDir("host")
     , ServerName("NoName")
     , ServerStatus("Не подключен")
+    , AppName("qt_client")
 
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
@@ -71,6 +72,9 @@ bool ClientSettings::init(){
     if (iter != m_currentJsonObject.end()){
         SaveHash = iter.value().toBool();
     }
+
+    AppName = "qt_client";
+
     return true;
 }
 
@@ -88,6 +92,7 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("ServerName", ServerName);
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
+    m_currentJsonObject.insert("AppName", AppName);
 
     QString saveFileName = "config.json";
     QFileInfo fileInfo(saveFileName);

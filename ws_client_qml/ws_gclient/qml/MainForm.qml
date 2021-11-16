@@ -13,12 +13,16 @@ import QtQuick.Layouts 1.12
         property string theme: "Dark" //pageMainForm.theme
         property string userUuid
 
+        signal connectionBroken;
+
         function setCache(strCache){
             activeChats.setCache(strCache);
         }
 
         function webSocketError(what, err){
-            //во всех сраницах функция
+            console.error(what + ": " + err);
+            if(!wsClient.started)
+                mainSplit.connectionBroken()
         }
 
         function websocketSetMessages(resp){

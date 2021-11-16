@@ -77,7 +77,8 @@ namespace arcirk{
     }
 
     std::string uuid_to_string(const boost::uuids::uuid& uuid){
-        return boost::lexical_cast<std::string>(uuid);
+        return boost::to_string(uuid);
+        //return boost::lexical_cast<std::string>(uuid);
     }
 
     std::string base64_encode(const std::string &s) {
