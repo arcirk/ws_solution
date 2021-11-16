@@ -41,6 +41,10 @@ Pane{
         msgModel.remove(uuid)
     }
 
+    function getCurrentChat(){
+        return msgModel.currentRecipient;
+    }
+
     ListView {
         id: listView
         objectName: "listMessages"

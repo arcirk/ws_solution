@@ -41,7 +41,7 @@ public:
     Q_INVOKABLE int getColumnIndex(const QString& name);
     Q_INVOKABLE void saveDraft(const QString& uuid, const QString& source);
     Q_INVOKABLE QString getDraft();
-
+    Q_INVOKABLE void setCountUnReadMessage(const QString& uuid);
 
     QString jsonText() const;
     void setJsonText(const QString& source);
@@ -66,6 +66,7 @@ private:
     virtual QJsonObject getJsonObject( const QModelIndex &index ) const;
     void getHeaderJsonObject();
 
+    void resetCountUnReadMsg();
 signals:
     //void currentIndexChanged(int index);
     void jsonTextChanged();

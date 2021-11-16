@@ -16,8 +16,8 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    property alias myHost: srvSettingsDlg.serverAdrr
-    property alias myPort: srvSettingsDlg.serverPort
+    property alias myHost: wsClient.host//srvSettingsDlg.serverAdrr
+    property alias myPort: wsClient.port //srvSettingsDlg.serverPort
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
 
@@ -28,28 +28,10 @@ ApplicationWindow {
 
     }
 
-    ServerSettingsDialog{
-
-        id: srvSettingsDlg
-        serverAdrr: "192.168.43.18"
-        serverPort: 8080
-        //enabled: false
-
-    }
-
-    onClosing: {
-        if(wsClient.started){
-            var cache = mainChatBox.getActiveUsersJsonText()
-            if(cache)
-                wsClient.saveCache(cache)
-        }
-
-    }
-
     WebSocket{
         id: wsClient
-        host: mainForm.myHost
-        port: mainForm.myPort
+//        host: mainForm.myHost
+//        port: mainForm.myPort
         //catalog: catalogModel
 
         onCloseConnection: {
@@ -88,6 +70,30 @@ ApplicationWindow {
             //console.debug("connection status: " + val)
             btnConected.icon.source = val ? "qrc:/images/server_network_icon_138203.svg" : "qrc:/images/server_network_off_icon_136233.svg"
             srvSettingsDlg.enabled = !val
+        }
+
+    }
+
+    ServerSettingsDialog{
+
+        id: srvSettingsDlg
+        serverAdrr: wsClient.host
+        serverPort: wsClient.port
+        //enabled: false
+
+        onClosed: {
+            if(!wsClient.started){
+                wsClient.host = srvSettingsDlg.serverAdrr
+                wsClient.port = srvSettingsDlg.serverPort
+            }
+        }
+    }
+
+    onClosing: {
+        if(wsClient.started){
+            var cache = mainChatBox.getActiveUsersJsonText()
+            if(cache)
+                wsClient.saveCache(cache)
         }
 
     }

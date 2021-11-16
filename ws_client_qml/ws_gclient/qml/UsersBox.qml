@@ -46,6 +46,10 @@ Pane {
         return usersModel.jsonText
     }
 
+    function setCountUnReadMsg(uuid){
+        usersModel.setCountUnReadMessage(uuid);
+    }
+
     property string userUuid
 
     SelectedUsersModel{
@@ -95,22 +99,28 @@ Pane {
                     checked: usersModel.currentRow === model.uuid ? true : false
 
                     textColor:{
-                        if(usersBox.theme === "Dark"){
-                            if(messageText.checked){
-                                "#bbdefb"
-                            }else
-                            {
-                                "white"
-                            }
+                        if(model.unreadMessages > 0){
+                            "#FFA500"
                         }else{
-                            if(messageText.checked){
-                                "#2196f3"
-                            }else
-                            {
-                                "black"
+                            if(usersBox.theme === "Dark"){
+                                if(messageText.checked){
+                                    "#bbdefb"
+                                }else
+                                {
+                                    "white"
+                                }
+                            }else{
+                                if(messageText.checked){
+                                    "#2196f3"
+                                }else
+                                {
+                                    "black"
+                                }
                             }
                         }
+
                     }
+
 
                     onMenuTriggered: {
                         //ctrlMessageList.messageClick(model.message)

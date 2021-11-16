@@ -27,6 +27,10 @@ import QtQuick.Layouts 1.12
 
         function messageReceived(msg, uuid, recipient){
             chatBox.messageReceived(msg, uuid, recipient);
+            if(mainSplit.currentChat !== recipient && mainSplit.currentChat.length > 0){
+                //счетчик не прочитанных сообщений
+                activeChats.setCountUnReadMsg(recipient);
+            }
         }
 
         function chatBoxRemove(uuid){

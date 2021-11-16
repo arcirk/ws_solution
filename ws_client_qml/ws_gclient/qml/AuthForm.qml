@@ -203,6 +203,9 @@ Page{
                 font.pointSize: 12
                 color: "red"
                 visible: true
+                Layout.maximumWidth: columnLayout.width
+                wrapMode: Text.WordWrap
+
             }
         }
 

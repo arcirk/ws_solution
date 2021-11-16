@@ -8,7 +8,8 @@ SelectedUsersModel::SelectedUsersModel(QObject * parent )
     m_currentRow = "";
     m_header.push_back( SelectedUsersModel::Heading( { {"title","uuid"},    {"index","uuid"} }) );
     m_header.push_back( SelectedUsersModel::Heading( { {"title","name"},   {"index","name"} }) );
-    m_header.push_back( SelectedUsersModel::Heading( { {"title","draft"},   {"index","draft"} }) );
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","draft"},   {"index","draft"} }) ); //черновик (набранный но не отправленный текст)
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","unreadMessages"},   {"index","unreadMessages"} }) ); //не прочитанные сообщения
     getHeaderJsonObject();
     m_json = QJsonArray();
     setJson(QJsonArray());
@@ -27,16 +28,27 @@ bool SelectedUsersModel::setJson(const QJsonDocument &json)
     }else{
         QJsonObject obj = jsonObj.value("chats").toObject();
         QJsonArray __header = obj.value("columns").toArray();
+        QList<QString> list; //Для новых полей
         if(!__header.isEmpty() && __header.count() > 0){
            m_header.clear();
             int i = 0;
             for (auto itr : __header) {
                 QString column = itr.toString();
                 m_header.push_back( MessageListModel::Heading( { {"title",column},    {"index",column} }) );
+                list.push_back(column);
                 i++;
+            };
+            ///
+            int ind = list.indexOf("unreadMessages");
+            if (ind == -1){
+                list.push_back("unreadMessages");
+                m_header.push_back( MessageListModel::Heading( { {"title","unreadMessages"},    {"index","unreadMessages"} }) );
             }
-            _header = __header;
+            getHeaderJsonObject();
         }
+
+
+        ///
         auto _rows = obj.value("rows").toArray();
         setJson( _rows );
         m_currentRow = jsonObj.value("currentRow").toString();
@@ -94,7 +106,7 @@ int SelectedUsersModel::columnCount(const QModelIndex &parent ) const
 
 QJsonObject SelectedUsersModel::getJsonObject( const QModelIndex &index ) const
 {
-    const QJsonValue& value = m_json[index.row() ];
+    const QJsonValue& value = m_json[index.row() ]; 
     return value.toObject();
 }
 
@@ -105,6 +117,18 @@ void SelectedUsersModel::getHeaderJsonObject()
         if(itr.size() > 0){
             _header.push_back(itr["index"]);
         }
+    }
+}
+
+void SelectedUsersModel::resetCountUnReadMsg()
+{
+    if(m_currentRow.length() > 0){
+        int col = getColumnIndex("unreadMessages");
+        if(col == 0)
+            return;
+        QModelIndex ind = item(m_currentRow, getColumnIndex("unreadMessages"));
+        if(ind.isValid())
+            setRowValue(ind, 0);
     }
 }
 
@@ -131,9 +155,12 @@ QVariant SelectedUsersModel::data( const QModelIndex &index, int role ) const
             else if( v.isBool() )
             {
                 return QString::number( v.toBool());
-            }else
-                return QString();
-
+            }else{
+                if(key == "unreadMessages")
+                    return 0;
+                else
+                    return QString();
+            }
         }
     }
 
@@ -223,9 +250,9 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name)
 QModelIndex SelectedUsersModel::item(const QString &uuid, int col)
 {
     for (int i = 0; i < rowCount(); ++i) {
-        auto currIndex = index(i, col);
+        auto currIndex = index(i, 0);
         if (data(currIndex, Qt::UserRole).toString() == uuid) {
-            return currIndex;
+            return index(i, col);
         }
     }
 
@@ -302,6 +329,7 @@ void SelectedUsersModel::setCurrentRow(const QString &uuid)
 {
     beginResetModel();
     m_currentRow = uuid;
+    resetCountUnReadMsg();
     endResetModel();
     emit currentRowChanged();
 }
@@ -310,12 +338,18 @@ void SelectedUsersModel::setRowValue(QModelIndex &index, const QVariant &value)
 {
     QJsonObject obj = getJsonObject( index );
     const QString& key = m_header[index.column()]["index"];
-
-    if(value.typeId() == QMetaType::QString){
-        QJsonObject _obj = m_json[index.row()].toObject();
-        _obj[key] = value.toString();
-        m_json[index.row()] = _obj;
-    }
+    //if( obj.contains( key ))
+    //{
+        if(value.typeId() == QMetaType::QString){
+            QJsonObject _obj = m_json[index.row()].toObject();
+            _obj[key] = value.toString();
+            m_json[index.row()] = _obj;
+        }else if(value.typeId() == QMetaType::Int){
+            QJsonObject _obj = m_json[index.row()].toObject();
+            _obj[key] = value.toInt();
+            m_json[index.row()] = _obj;
+        }
+    //}
 
 }
 
@@ -350,5 +384,42 @@ QString SelectedUsersModel::getDraft()
     QJsonObject obj = getJsonObject( ind );
     QJsonValue v = obj[ "draft" ];
     return v.toString("");
+}
+
+void SelectedUsersModel::setCountUnReadMessage(const QString &uuid)
+{
+    //увеличиваем счетчик не прочитанных сообщений
+    if(uuid == m_currentRow || uuid.isEmpty())
+        return;
+
+    int count = 0;
+    int col = getColumnIndex("unreadMessages");
+    if(col == 0)
+        return;
+    QModelIndex ind = item(uuid, col);
+    QJsonObject obj = getJsonObject( ind );
+    //динамическое обновление если нет поля
+    if (obj.count() == 3){ //временно
+        obj = getJsonObject( item(uuid, 0) );
+        //if (!obj.contains("unreadMessages"))
+        obj.insert("unreadMessages", 1);
+        beginResetModel();
+        m_json[ind.row()] = obj;
+        endResetModel();
+        qDebug() << "incsert field unreadMessages";
+        return;
+    }
+    //
+
+    QJsonValue v = obj[ "unreadMessages" ];
+    beginResetModel();
+    if(!v.isDouble())
+        setRowValue(ind, count++);
+    else{
+        int currCount = v.toInt();
+        count++;
+        setRowValue(ind, count + currCount);
+    }
+    endResetModel();
 }
 
