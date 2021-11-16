@@ -79,6 +79,13 @@ void bWebSocket::sendMessage(const QString &recipient, const QString &msg)
     }
 }
 
+void bWebSocket::getUserInfo(const QString &uuid)
+{
+    if(client->started()){
+        client->get_user_info(uuid.toStdString(), "");
+    }
+}
+
 //bool bWebSocket::isOpen()
 //{
 //    //return client->is_open();
@@ -144,6 +151,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit messageReceived(resp->message, resp->uuid, resp->recipient);
         }else if (resp->command == "set_user_cache"){
             //
+        }else if (resp->command == "get_user_info"){
+            emit userInfo(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;

@@ -26,12 +26,12 @@ Pane {
     }
 
     function setCache(strCache){
-        usersModel.jsonText = strCache;
+        usersModel.jsonText = strCache
     }
 
 
     function updateCache(jsonText){
-        wsClient.saveCache(jsonText);
+        wsClient.saveCache(jsonText)
     }
 
     //вызывается по цепочке main->MainForm->UsersBox
@@ -41,13 +41,14 @@ Pane {
     }
 
     signal selectedIem(string name, string uuid)
+    signal getUserInfo(string uuid)
 
     function getActiveUsersJsonText(){
         return usersModel.jsonText
     }
 
     function setCountUnReadMsg(uuid){
-        usersModel.setCountUnReadMessage(uuid);
+        usersModel.setCountUnReadMessage(uuid)
     }
 
     property string userUuid
@@ -146,7 +147,7 @@ Pane {
                     iconButton: true
 
                     onImageClick:{
-
+                        usersBox.getUserInfo(model.currentRow)
                     }
                 }
                 IconPane{

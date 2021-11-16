@@ -14,6 +14,7 @@ import QtQuick.Layouts 1.12
         property string userUuid
 
         signal connectionBroken;
+        signal getUserInfo(string uuid)
 
         function setCache(strCache){
             activeChats.setCache(strCache);
@@ -53,7 +54,6 @@ import QtQuick.Layouts 1.12
         function getActiveUsersJsonText(){
             return activeChats.getActiveUsersJsonText()
         }
-
 
         Page{
             SplitView.fillWidth: true
@@ -145,6 +145,10 @@ import QtQuick.Layouts 1.12
                 mainSplit.chatBoxRemove(uuid)
                 if(mainSplit.currentChat === uuid)
                     mainSplit.currentChat = ""
+            }
+
+            onGetUserInfo: function(uuid){
+                mainSplit.getUserInfo(uuid)
             }
         }
 

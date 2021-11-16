@@ -33,7 +33,7 @@ public:
     Q_INVOKABLE void saveCache(const QString& jsonText);
     Q_INVOKABLE void messages(const QString& uuid);
     Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
-    //Q_INVOKABLE bool isOpen();
+    Q_INVOKABLE void getUserInfo(const QString& uuid);
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -101,6 +101,7 @@ signals:
     void getUserCache(const QString& resp);
     void messageReceived(const QString& msg, const QString& uuid, const QString& recipient);
     void connectedStatusChanged(bool status);
+    void userInfo(const QString& uuid);
 };
 
 #endif // QMLWEBSOCKET_H

@@ -28,6 +28,12 @@ ApplicationWindow {
 
     }
 
+    UserInfoDialog{
+        id: userInfoDialog
+        visible: false
+
+    }
+
     WebSocket{
         id: wsClient
 //        host: mainForm.myHost
@@ -84,6 +90,10 @@ ApplicationWindow {
             console.debug("connection status: " + val)
             btnConected.icon.source = val ? "qrc:/images/server_network_icon_138203.svg" : "qrc:/images/server_network_off_icon_136233.svg"
             srvSettingsDlg.enabled = !val
+        }
+
+        onUserInfo: function(info){
+            userInfoDialog.open()
         }
 
     }
@@ -234,6 +244,10 @@ ApplicationWindow {
 
             onConnectionBroken: {
                 mainStack.connectionBroken()
+            }
+
+            onGetUserInfo: function(uuid){
+                wsClient.getUserInfo(uuid)
             }
         }
 
