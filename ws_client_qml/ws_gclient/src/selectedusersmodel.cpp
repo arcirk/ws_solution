@@ -213,7 +213,7 @@ QHash<int, QByteArray> SelectedUsersModel::roleNames() const
     return names;
 }
 
-void SelectedUsersModel::addRow(const QString &uuid, const QString &name)
+void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool unActive )
 {
 
     if(uuid.isEmpty())
@@ -239,7 +239,10 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name)
 
     beginResetModel();
     m_json.push_front(msg);
-    m_currentRow = uuid;
+    if(!unActive)
+        m_currentRow = uuid;
+    else
+        setCountUnReadMessage(uuid, true);
     endResetModel();
 
     emit currentRowChanged();
@@ -279,6 +282,7 @@ void SelectedUsersModel::removeRow(const QString& uuid)
         }
     }
 }
+
 
 
 QString SelectedUsersModel::jsonText() const {
@@ -386,8 +390,12 @@ QString SelectedUsersModel::getDraft()
     return v.toString("");
 }
 
-void SelectedUsersModel::setCountUnReadMessage(const QString &uuid)
+void SelectedUsersModel::setCountUnReadMessage(const QString &uuid, bool noReset )
 {
+
+    if (!is_already_added(uuid))
+        return;
+
     //увеличиваем счетчик не прочитанных сообщений
     if(uuid == m_currentRow || uuid.isEmpty())
         return;
@@ -403,23 +411,43 @@ void SelectedUsersModel::setCountUnReadMessage(const QString &uuid)
         obj = getJsonObject( item(uuid, 0) );
         //if (!obj.contains("unreadMessages"))
         obj.insert("unreadMessages", 1);
-        beginResetModel();
+        if(!noReset)
+            beginResetModel();
         m_json[ind.row()] = obj;
-        endResetModel();
-        qDebug() << "incsert field unreadMessages";
+        if(!noReset)
+            endResetModel();
+        //qDebug() << "incsert field unreadMessages";
         return;
     }
     //
 
     QJsonValue v = obj[ "unreadMessages" ];
-    beginResetModel();
-    if(!v.isDouble())
-        setRowValue(ind, count++);
-    else{
+    if(!noReset)
+        beginResetModel();
+    if(!v.isDouble()){
+        count++;
+        setRowValue(ind, count);
+    }else{
         int currCount = v.toInt();
         count++;
         setRowValue(ind, count + currCount);
     }
-    endResetModel();
+    if(!noReset)
+        endResetModel();
+}
+
+bool SelectedUsersModel::is_already_added(const QString &uuid) {
+
+    for (int i = 0; i < m_json.size(); ++i) {
+        QModelIndex ind = index(i, 0);
+        if (data(ind, Qt::UserRole).toString() == uuid)
+            return true;
+    }
+
+    return false;
+}
+
+bool SelectedUsersModel::isAlreadyAdded(const QString &uuid) {
+    return is_already_added(uuid);
 }
 

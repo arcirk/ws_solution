@@ -35,13 +35,14 @@ public:
 
 
     Q_INVOKABLE void removeRow(const QString& uuid);
-    Q_INVOKABLE void addRow(const QString& uuid, const QString &name);
+    Q_INVOKABLE void addRow(const QString& uuid, const QString &name, bool unActive = false);
     Q_INVOKABLE QModelIndex item(const QString& uuid, int col = 0);
     Q_INVOKABLE void setRowValue(QModelIndex &index, const QVariant& value);
     Q_INVOKABLE int getColumnIndex(const QString& name);
     Q_INVOKABLE void saveDraft(const QString& uuid, const QString& source);
     Q_INVOKABLE QString getDraft();
-    Q_INVOKABLE void setCountUnReadMessage(const QString& uuid);
+    Q_INVOKABLE void setCountUnReadMessage(const QString& uuid, bool noReset = false);
+    Q_INVOKABLE bool isAlreadyAdded(const QString& uuid);
 
     QString jsonText() const;
     void setJsonText(const QString& source);
@@ -67,6 +68,9 @@ private:
     void getHeaderJsonObject();
 
     void resetCountUnReadMsg();
+
+    bool is_already_added(const QString& uuid);
+
 signals:
     //void currentIndexChanged(int index);
     void jsonTextChanged();

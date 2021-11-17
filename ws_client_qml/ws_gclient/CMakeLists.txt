@@ -31,11 +31,10 @@ add_executable(ws_gclient
         src/clientsettings.cpp
         src/serveresponse.cpp
         src/qmlwebsocket.cpp
-        include/stdfx.h)
-#        include/usersmodel.h
-#        src/usersmodel.cpp
-#        include/usersproxymodel.h
-#        src/usersproxymodel.cpp)
+        include/stdfx.h
+        userinfo.cpp
+        userinfo.h
+        qml/UserInfoDialog.qml)
 
 find_package(Qt6 COMPONENTS
         Core

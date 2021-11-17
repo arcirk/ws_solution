@@ -81,9 +81,9 @@ ApplicationWindow {
         onSetMessages: function(resp){
             mainStack.currentItem.websocketSetMessages(resp)
         }
-
-        onMessageReceived: function(msg, uuid, recipient){
-            mainChatBox.messageReceived(msg, uuid, recipient)
+//
+        onMessageReceived: function(msg, uuid, recipient, recipientName){
+            mainChatBox.messageReceived(msg, uuid, recipient, recipientName)
         }
 
         onConnectedStatusChanged: function(val){

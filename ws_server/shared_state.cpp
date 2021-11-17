@@ -803,10 +803,13 @@ bool shared_state::send_message(const std::string &message, boost::uuids::uuid &
             _message.message = tmp_message;
             _message.command = "message";
             _message.uuid_channel = current_sess->get_user_uuid();
+            _message.channel_name = current_sess->get_name();
             rec_session_db_msg = arcirk::ws_message(_message).get_json(true);
         } else
             rec_session_db_msg = cur_session_db_msg;
         //////////////////
+
+
 
         //отправляем сообщение во все сессии получателя
         //recipient - идентификатор пользователя

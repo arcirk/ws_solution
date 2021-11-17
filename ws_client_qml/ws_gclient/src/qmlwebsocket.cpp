@@ -148,11 +148,13 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
         }else if (resp->command == "message"){
-            emit messageReceived(resp->message, resp->uuid, resp->recipient);
+            emit messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
         }else if (resp->command == "set_user_cache"){
             //
         }else if (resp->command == "get_user_info"){
             emit userInfo(resp->message);
+        }else if (resp->command == "client_join"){
+            emit clientJoin(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;

@@ -10,6 +10,7 @@ Pane {
     id: usersBox
 
     property string theme: "Dark"
+    property string userUuid
 
     signal setMessageModel(var modelindex);
     signal removeItem(string uuid);
@@ -35,8 +36,8 @@ Pane {
     }
 
     //вызывается по цепочке main->MainForm->UsersBox
-    function setChatItem(uuid, name){
-        usersModel.addRow(uuid, name);
+    function setChatItem(uuid, name, unActive = false){
+        usersModel.addRow(uuid, name, unActive);
         updateCache(usersModel.jsonText)
     }
 
@@ -51,7 +52,9 @@ Pane {
         usersModel.setCountUnReadMessage(uuid)
     }
 
-    property string userUuid
+    function isAlreadyAdded(uuid){
+        return usersModel.isAlreadyAdded(uuid)
+    }
 
     SelectedUsersModel{
         id: usersModel

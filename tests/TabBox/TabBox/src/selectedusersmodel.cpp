@@ -140,6 +140,8 @@ int SelectedUsersModel::addRow(const QString &uuid, const QString &name)
     if(uuid.isEmpty())
         return 0;
 
+    if(is_a)
+
     QJsonObject msg = QJsonObject();
     msg.insert("uuid", uuid);
     msg.insert("name", name);

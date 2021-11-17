@@ -30,12 +30,15 @@ import QtQuick.Layouts 1.12
             chatBox.setMessages(resp)
         }
 
-        function messageReceived(msg, uuid, recipient){
+        //
+        function messageReceived(msg, uuid, recipient, recipientName){
             chatBox.messageReceived(msg, uuid, recipient);
             if(mainSplit.currentChat !== recipient && mainSplit.currentChat.length > 0){
                 //счетчик не прочитанных сообщений
                 activeChats.setCountUnReadMsg(recipient);
             }
+            if (!activeChats.isAlreadyAdded(recipient))
+                activeChats.setChatItem(recipient, recipientName, true);
         }
 
         function chatBoxRemove(uuid){
@@ -130,6 +133,7 @@ import QtQuick.Layouts 1.12
             Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
             SplitView.minimumWidth: 300
             userUuid: mainSplit.userUuid
+
 
             onSelectedIem: function(name, uuid){
                 if(mainSplit.currentChat.length > 0)

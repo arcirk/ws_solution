@@ -192,6 +192,7 @@ namespace arcirk{
             std::string         presentation;
             boost::uuids::uuid  uuid_user;
             std::string         contentType;
+            std::string         channel_name;
 
             _ws_message();
 
@@ -212,6 +213,7 @@ namespace arcirk{
             void set_role(bVariant& val);
             void set_presentation(bVariant& val);
             void set_contentType(bVariant& val);
+            void set_channel_name(bVariant& val);
 
             setFun get_set_function(const std::string& nameField);
 

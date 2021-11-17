@@ -60,7 +60,7 @@ Pane{
         model: msgModel
 
         delegate: Column {
-            anchors.right: sentByMe ? listView.contentItem.right : undefined
+            anchors.right: !sentByMe ? listView.contentItem.right : undefined
             spacing: 6
 
             readonly property bool sentByMe: model.FirstField !== ctrlMessageList.userUuid

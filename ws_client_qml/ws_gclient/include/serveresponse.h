@@ -20,6 +20,7 @@ public:
     QString token;
     QString uuid;
     QString contentType;
+    QString recipientName;
 
     static QJsonDocument parseResp(const QString& resp);
 

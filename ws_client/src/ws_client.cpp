@@ -226,7 +226,7 @@ started() {
                 //break;
             }
         }
-    //return _started;
+    return false;
 }
 
 boost::uuids::uuid&

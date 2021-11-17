@@ -99,9 +99,11 @@ signals:
     void pwdEditChanged();
     void resetUsersCatalog(const QString& resp);
     void getUserCache(const QString& resp);
-    void messageReceived(const QString& msg, const QString& uuid, const QString& recipient);
+    void messageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
+
     void connectedStatusChanged(bool status);
     void userInfo(const QString& uuid);
+    void clientJoin(const QString& resp);
 };
 
 #endif // QMLWEBSOCKET_H

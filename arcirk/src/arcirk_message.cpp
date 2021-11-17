@@ -87,7 +87,10 @@ namespace arcirk{
             if (val.is_string())
                 contentType = val.get_string();
         }
-
+        void _ws_message::set_channel_name(bVariant& val){
+            if (val.is_string())
+                channel_name = val.get_string();
+        }
         setFun _ws_message::get_set_function(const std::string& nameField){
             if (nameField == "uuid")
             {
@@ -128,6 +131,9 @@ namespace arcirk{
             }else if (nameField == "contentType")
             {
                 return std::bind(&_ws_message::set_contentType, this, std::placeholders::_1);
+            } else if (nameField == "channel_name")
+            {
+                return std::bind(&_ws_message::set_channel_name, this, std::placeholders::_1);
             } else
                 return nullptr;
 
@@ -172,6 +178,7 @@ namespace arcirk{
             m_doc.addMember(content_value("role", m_message.role));
             m_doc.addMember(content_value("user_uuid", m_message.uuid_user));
             m_doc.addMember(content_value("contentType", m_message.contentType));
+            m_doc.addMember(content_value("channel_name", m_message.channel_name));
 
             std::string result = m_doc.to_string();
 

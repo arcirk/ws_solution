@@ -40,6 +40,7 @@ void ServeResponse::parse(const QString& resp){
             auto _recipient = obj.find("uuid_channel");
             auto _uuid = obj.find("user_uuid");
             auto _contentType = obj.find("contentType");
+            auto _recipientName = obj.find("channel_name");
 
              if(_message->isString()){
                  message = _message.value().toString();
@@ -59,7 +60,9 @@ void ServeResponse::parse(const QString& resp){
              if(_contentType->isString()){
                  contentType = _contentType.value().toString();
              }
-
+             if(_contentType->isString()){
+                 recipientName = _recipientName.value().toString();
+             }
             isParse = true;
         }
     }
