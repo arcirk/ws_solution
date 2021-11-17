@@ -58,6 +58,8 @@ Pane{
                 placeholderText: qsTr("Введите сообщение")
                 wrapMode: TextArea.Wrap
                 Material.accent: Material.Blue
+                focus: true
+                selectByMouse: true
 
                 onTextChanged: {
                     control.messageChanged(txtSendMessage.text)
@@ -75,8 +77,6 @@ Pane{
             enabled: txtSendMessage.length > 0
 
             onClicked: {
-                //btnSend.newMessage(txtSendMessage.text)
-                //control.sendMessage(txtSendMessage.text)
                 wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
                 txtSendMessage.text = "";
             }
