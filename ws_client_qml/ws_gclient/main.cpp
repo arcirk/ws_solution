@@ -14,6 +14,7 @@
 #include "include/qmlwebsocket.h"
 #include <qproxymodel.h>
 #include <qjsontablemodel.h>
+#include "userinfo.h"
 
 //bWebSocket* client;
 //UsersModel* catalogModel;
@@ -147,7 +148,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<SelectedUsersModel>("SelectedUsersModel", 1, 0, "SelectedUsersModel");
     qmlRegisterType<QJsonTableModel>("QJsonTableModel", 1, 0, "QJsonTableModel");
     qmlRegisterType<QProxyModel>("QProxyModel", 1, 0, "QProxyModel");
-
+    qmlRegisterType<UserInfo>("UserInfo", 1, 0, "UserInfo");
 
 //  //Эмуляция загрузки последнего списка диалогов
 //    SelectedUsersModel* m_usersModel = initActiveUsersModel();

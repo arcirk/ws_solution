@@ -111,8 +111,8 @@ private:
     websocket_session* get_session(boost::uuids::uuid &uuid);
     std::vector<websocket_session *> get_sessions(boost::uuids::uuid &user_uuid);
 
-    std::string get_user_subdivision(const std::string& user_ref);
-    std::string get_user_department(const std::string& user_ref);
+    void get_user_subdivision(const std::string &user_ref, arcirk::bJson *jsonObj);
+    void get_user_department(const std::string &user_ref, arcirk::bJson *jsonObj);
 
     void _add_new_user(const std::string &usr, const std::string &pwd, const std::string &role,
                        const std::string &uuid, const std::string &perf, const std::string &parent = (std::string &) "", std::string& error = (std::string &) "", bool pwd_is_hash = false);

@@ -108,7 +108,7 @@ namespace arcirk{
 
     } content_value;
 
-    class bJson : _Document {
+    class bJson : public _Document {
 
     public:
 

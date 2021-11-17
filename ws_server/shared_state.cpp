@@ -1082,9 +1082,9 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
             json->addMember(arcirk::content_value("name", row[0].at("FirstField")));
             json->addMember(arcirk::content_value("performance", row[0].at("SecondField")));
             json->addMember(arcirk::content_value("uuid", row[0].at("Ref")));
-            json->addMember(arcirk::content_value("cache", row[0].at("cache")));
-            json->addMember(arcirk::content_value("subdivision", get_user_subdivision(to_string(user_uuid))));
-            json->addMember(arcirk::content_value("department", get_user_department(to_string(user_uuid))));
+            //json->addMember(arcirk::content_value("cache", row[0].at("cache")));
+            get_user_subdivision(to_string(user_uuid), json);
+            get_user_department(to_string(user_uuid), json);
         } else
             json->addMember(arcirk::content_value("name", "не зарегистрирован"));
 
@@ -1693,7 +1693,7 @@ bool shared_state::set_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *param
     return true;
 }
 
-std::string shared_state::get_user_subdivision(const std::string &user_ref) {
+void shared_state::get_user_subdivision(const std::string &user_ref, arcirk::bJson *jsonObj) {
 
     std::string sample = "SELECT channel FROM Users WHERE %1% = '%2%'";
     std::string query = arcirk::str_sample(sample, "Ref", user_ref);
@@ -1704,7 +1704,7 @@ std::string shared_state::get_user_subdivision(const std::string &user_ref) {
     int result = sqlite3Db->execute(query, "Users", table, err);
 
     if (!err.empty()){
-        return "{}";
+        return;
     }
     if (result > 0){
         std::string parent = table[0]["channel"].get_string();
@@ -1727,16 +1727,17 @@ std::string shared_state::get_user_subdivision(const std::string &user_ref) {
         }
 
         if (table.size() > 0){
-            return  arcirk::str_sample("{\"uuid\": \"%1%\", \"name\": \"%2%\"}",
-                                       table[0]["Ref"].get_string(),
-                                       table[0]["SecondField"].get_string());
+            _Value object(rapidjson::Type::kObjectType);
+            object.SetObject();
+            jsonObj->addMember(&object, content_value("uuid", table[0]["Ref"].get_string()));
+            jsonObj->addMember(&object, content_value("name", table[0]["SecondField"].get_string()));
+            jsonObj->addMember("subdivision", object);
         }
     }
 
-    return "{}";
 }
 
-std::string shared_state::get_user_department(const std::string &user_ref) {
+void shared_state::get_user_department(const std::string &user_ref, arcirk::bJson *jsonObj) {
 
     std::string sample = "SELECT channel FROM Users WHERE %1% = '%2%'";
     std::string query = arcirk::str_sample(sample, "Ref", user_ref);
@@ -1747,7 +1748,7 @@ std::string shared_state::get_user_department(const std::string &user_ref) {
     int result = sqlite3Db->execute(query, "Users", table, err);
 
     if (!err.empty()){
-        return "{}";
+        return;
     }
     if (result > 0) {
         std::string parent = table[0]["channel"].get_string();
@@ -1757,12 +1758,13 @@ std::string shared_state::get_user_department(const std::string &user_ref) {
         result = sqlite3Db->execute(query, "Channels", table, err);
 
         if (result > 0) {
-            return arcirk::str_sample("{\"uuid\": \"%1%\", \"name\": \"%2%\"}",
-                                      table[0]["Ref"].get_string(),
-                                      table[0]["SecondField"].get_string());
+            _Value object(rapidjson::Type::kObjectType);
+            object.SetObject();
+            jsonObj->addMember(&object, content_value("uuid", table[0]["Ref"].get_string()));
+            jsonObj->addMember(&object, content_value("name", table[0]["SecondField"].get_string()));
+            jsonObj->addMember("department", object);
         }
     }
-    return "{}";
 }
 
 bool shared_state::set_content_type(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,

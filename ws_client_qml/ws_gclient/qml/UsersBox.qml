@@ -147,7 +147,7 @@ Pane {
                     iconButton: true
 
                     onImageClick:{
-                        usersBox.getUserInfo(model.currentRow)
+                        usersBox.getUserInfo(model.uuid)
                     }
                 }
                 IconPane{

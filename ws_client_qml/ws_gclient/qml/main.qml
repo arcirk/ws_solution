@@ -93,6 +93,7 @@ ApplicationWindow {
         }
 
         onUserInfo: function(info){
+            userInfoDialog.jsonText = info;
             userInfoDialog.open()
         }
 
