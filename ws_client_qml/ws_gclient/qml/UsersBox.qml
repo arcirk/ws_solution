@@ -93,12 +93,14 @@ Pane {
                 }
                 IconPane{
                     id: messageText
+                    icon: "qrc:/images/lan_check_icon_color.svg"
                     name: model.name
                     width: listUsers.width - (btnInfo.width * 2 + 10 + 10)
                     height: messageText.implicitHeight// + 24
                     ctrlPaddig: 5
                     checkable: true
                     theme: usersBox.theme
+                    iconSize: 16
 
                     checked: usersModel.currentRow === model.uuid ? true : false
 

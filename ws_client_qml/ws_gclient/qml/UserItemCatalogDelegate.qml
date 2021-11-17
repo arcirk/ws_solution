@@ -23,7 +23,7 @@ IconPane{
     name: model.SecondField
     uuid:{
         model.Ref
-        //console.debug(model.SecondField)
+
     }
 
     onClicked: {

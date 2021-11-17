@@ -30,14 +30,6 @@ function createButtons(parent){
 
 function createGroupPage(index, parent){
 
-//   let arr = new Array[5];
-//   arr[0] = ["Администрация", "Борисоглебский", "Хаданович", "Отдел продаж", "Борисова", "Отдел поставок", "Судаков"];
-//   arr[1] = ["Администрация", "Карелина", "Отдел продаж", "Менеджер", "Склад", "МТЗ"];
-//   arr[2] = ["Администрация", "Вертегова", "Отдел продаж", "Менеджер Чита", "Склад", "МТЗ"];
-//   arr[3] = ["Администрация", "Димиденко", "Отдел продаж", "Менеджер Улан-Удэ", "Склад", "МТЗ"];
-//   arr[4] = ["Администрация", "Шворень", "Отдел продаж", "Менеджер Хабаровск", "Склад", "МТЗ"];
-//   arr[5] = ["Администрация", "Былинкина", "Отдел продаж", "Менеджер Владивосток", "Склад", "МТЗ"];
-
    var componentPage = Qt.createComponent("qrc:/qml/ItemGroupPage.qml")
    var page = componentPage.createObject(parent)
 
@@ -55,8 +47,6 @@ function getActualHeight(item, actualHeight, itemCount, groupCount){
  }
 
 function getImageHtmlString(source, img){
-//    var comp = Qt.createComponent("qrc:/qml/EmptyImage.qml")
-//    var img = comp.createObject(parent)
 
     img.source = source;
 

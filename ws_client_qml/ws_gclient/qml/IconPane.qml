@@ -23,6 +23,7 @@ RoundPane {
     property alias expandState: expandIconImage.state
     property string uuid
     property bool iconButton: false
+    property int iconSize: 0
 
     QProxyModel{
         id: proxyModel
@@ -83,7 +84,7 @@ RoundPane {
             Layout.alignment: Qt.AlignCenter
             Image {
                 id: image
-                sourceSize.height: 48 //rowControl.implicitHeight * 2 //parent.height
+                sourceSize.height: control.iconSize === 0 ? 48 : control.iconSize //rowControl.implicitHeight * 2 //parent.height
                 Layout.alignment: Qt.AlignCenter
 
                 MouseArea {

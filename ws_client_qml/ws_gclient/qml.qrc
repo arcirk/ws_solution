@@ -168,5 +168,8 @@
         <file>images/wifi_network_server_icon_193541.svg</file>
         <file>qml/ServerSettingsDialog.qml</file>
         <file>qml/UserInfoDialog.qml</file>
+        <file>images/lan_check_icon_color.svg</file>
+        <file>images/lan_check_icon_137457.svg</file>
+        <file>images/lan_disconnect_icon_138437.svg</file>
     </qresource>
 </RCC>
