@@ -115,7 +115,7 @@ namespace arcirk{
         }
     }
 
-    void bJson::addMember(const std::string &member, bVariant &value) {
+    void bJson::addMember(const std::string &member, bVariant value) {
         _Value key(member.c_str(), this->GetAllocator());
         if (value.is_string()) {
             _Value val(value.get_string().c_str(), this->GetAllocator());

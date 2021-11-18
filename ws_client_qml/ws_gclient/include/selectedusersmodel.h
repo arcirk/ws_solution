@@ -79,6 +79,7 @@ signals:
     void jsonUserUuidChanged();
     void currentRowChanged();
     void draftChanged();
+    void requestUserData(const QString& userUuid, const QString& fields);
 };
 
 #endif // SELECTEDUSERSMODEL_H

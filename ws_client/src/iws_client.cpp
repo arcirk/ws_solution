@@ -476,10 +476,22 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
     }
 }
 
-//bool IClient::is_open() {
-//    if(client){
-//        return client->is_open();
-//    }
-//    return false;
-//}
+void IClient::get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param) {
+
+    boost::property_tree::ptree pt;
+
+    try {
+
+        pt.add("uuid_user", _user_uuid);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("get_user_status", uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
 

@@ -37,8 +37,10 @@ import QtQuick.Layouts 1.12
                 //счетчик не прочитанных сообщений
                 activeChats.setCountUnReadMsg(recipient);
             }
-            if (!activeChats.isAlreadyAdded(recipient))
+            if (!activeChats.isAlreadyAdded(recipient)){
                 activeChats.setChatItem(recipient, recipientName, true);
+                activeChats.setStatusUser(resp, true)
+            }
         }
 
         function chatBoxRemove(uuid){

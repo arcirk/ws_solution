@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE void messages(const QString& uuid);
     Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
     Q_INVOKABLE void getUserInfo(const QString& uuid);
+    Q_INVOKABLE void getUserStatus(const QString& uuid, const QString& param);
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);

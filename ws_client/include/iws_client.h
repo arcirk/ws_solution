@@ -61,6 +61,7 @@ public:
     void get_users_catalog(const std::string &uuid_form);
     void get_user_cache(const std::string &uuid_form);
     void set_user_cache(const std::string &cache, const std::string &uuid_form);
+    void get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
     void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
 
     std::string get_app_uuid() const;

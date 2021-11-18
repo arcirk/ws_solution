@@ -132,7 +132,8 @@ namespace arc_sqlite {
 
         std::string get_channel_token(const boost::uuids::uuid& first, const boost::uuids::uuid& second);
 
-        bool save_message(const std::string &message, const boost::uuids::uuid& first, const boost::uuids::uuid& second, std::string& ref);
+        bool save_message(const std::string &message, const boost::uuids::uuid &first, const boost::uuids::uuid &second,
+                          std::string &ref, bool active);
 
         int get_save_messages(std::string &json, const std::string& token,
                               std::string& err, int top = 10, int start_date = 0,

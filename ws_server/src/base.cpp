@@ -116,6 +116,8 @@ namespace arc_sqlite {
                 result =		 ",\n message  TEXT";
                 result.append(",\n token    TEXT UNIQUE NOT NULL");
                 result.append(",\n date     INTEGER");
+                result.append(",\n contentType TEXT      DEFAULT HTML");
+                result.append(",\n unreadMessages  INTEGER   DEFAULT (0)"); //не прочитанные сообщения всегда у получателя
                 break;
             case tables::eSubscribers:
                 result =		   ",\n channel    TEXT (36) NOT NULL";
@@ -634,7 +636,8 @@ namespace arc_sqlite {
     }
 
     bool sqlite3_db::save_message(const std::string &message, const boost::uuids::uuid &first,
-                                  const boost::uuids::uuid &second, std::string& ref) {
+                                  const boost::uuids::uuid &second,
+                                  std::string &ref, bool active) {
 
         std::string hash = get_channel_token(first, second);
         if (hash != "error"){
@@ -651,6 +654,9 @@ namespace arc_sqlite {
 
             long int dt = arcirk::current_date_seconds();
             values.push_back(arcirk::content_value("date", dt));
+
+            //не прочитанные сообщения всегда у получателя
+            values.push_back(arcirk::content_value("unreadMessages", (int)active));
 
             std::string err;
 

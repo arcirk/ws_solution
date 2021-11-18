@@ -128,7 +128,8 @@ namespace arcirk{
         void addMember(content_value value) { addMember(this, value); };
         void addMember(_Value* object, content_value val);
         void addMember(const std::string& key, _Value& value);
-        void addMember(const std::string &member, bVariant &value);
+        void addMember(const std::string &member, bVariant value);
+        //void addMember(const std::string &member, bVariant &value);
 
         //        void addObjectMember(_Value * object, content_value val);
         void addObject(_Document * doc, std::vector<content_value> &values);

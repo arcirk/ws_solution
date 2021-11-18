@@ -12,6 +12,7 @@ Dialog {
     property alias department: lblDepartment.text
     property alias userName: lblUserName.text
 
+
     UserInfo{
         id: usrInfoObj
         onParseJson: {

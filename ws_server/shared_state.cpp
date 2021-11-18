@@ -485,6 +485,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 4;
     else if (command == "get_user_info")
         return params == 1;
+    else if (command == "get_user_status")
+        return true; //params == 1; //динамически, обязательный 1 user_uuid
     else if (command == "get_group_list")
         return params == 1;
     else if (command == "add_group")
@@ -499,8 +501,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "kill_session")
         return params == 1;
-//    else if (command == "set_uuid")
-//        return params == 2;
+    else if (command == "get_user_data")
+        return true; //params == 1; //динамически, обязательный 1 user_uuid
     else if (command == "set_app_name")
         return params == 2;
     else if (command == "exec_query")
@@ -534,6 +536,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("update_user");
     commands.emplace_back("get_messages");
     commands.emplace_back("get_user_info");
+    commands.emplace_back("get_user_status");
     commands.emplace_back("get_group_list");
     commands.emplace_back("add_group");
     commands.emplace_back("edit_group");
@@ -541,7 +544,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_parent");
     commands.emplace_back("remove_user");
     commands.emplace_back("kill_session");
-//    commands.emplace_back("set_uuid");
+    commands.emplace_back("get_user_data");
     commands.emplace_back("set_app_name");
     commands.emplace_back("exec_query");
     commands.emplace_back("get_users_catalog");
@@ -588,8 +591,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::remove_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "kill_session")
         return  std::bind(&shared_state::kill_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-//    else if (command == "set_uuid")
-//        return  std::bind(&shared_state::set_uuid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "get_user_status")
+        return  std::bind(&shared_state::get_user_status, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "set_app_name")
         return  std::bind(&shared_state::set_app_name, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "exec_query")
@@ -604,6 +607,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::set_content_type, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "set_message_struct_type")
         return  std::bind(&shared_state::set_message_struct_type, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "get_user_data")
+        return  std::bind(&shared_state::get_user_data, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -820,9 +825,16 @@ bool shared_state::send_message(const std::string &message, boost::uuids::uuid &
     } else
     {
 
+
        std::string ref;
 
-       bool result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref);
+       std::string filter_app_name = "";
+        if (current_sess->get_app_name() == "qt_client")
+            filter_app_name = "qt_client";
+
+       bool active = get_user_status_(recipient, filter_app_name);
+
+       bool result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active);
 
         if (!result)
             return false;
@@ -1861,4 +1873,137 @@ bool shared_state::set_message_struct_type(boost::uuids::uuid &uuid, arcirk::bJs
 
     return true;
 
+}
+
+bool shared_state::get_user_status(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                   std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    boost::uuids::uuid user_uuid = params->get_member("uuid_user").get_uuid();
+
+    if (user_uuid != arcirk::nil_uuid()){
+
+        arcirk::bJson json{};
+        json.set_object();
+
+        std::string filter_app_name;
+
+        bVariant val;
+        if (params->getMember("app_name", val)){
+            filter_app_name = val.get_string();
+        }
+
+        bool status_ = false;
+        for (auto p : get_sessions(user_uuid)){
+            if(!filter_app_name.empty()){
+                if (filter_app_name != p->get_app_name())
+                    continue;
+            }
+            status_ = true;
+            break;
+        }
+
+        json.addMember("uuid_user", params->get_member("uuid_user"));
+        json.addMember("active", status_);
+
+        return true;
+    } else{
+        err = "Ошибка получения данных пользователя!";
+        return false;
+    }
+
+    return true;
+
+}
+
+bool shared_state::get_user_data(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                 std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    boost::uuids::uuid user_uuid = params->get_member("uuid_user").get_uuid();
+    if (user_uuid == arcirk::nil_uuid()){
+        err = "Не указан пользователь!";
+        return false;
+    }
+
+    bVariant value;
+    arcirk::bJson result{};
+    result.SetObject();
+    if(params->getMember("status", value)){
+        if(current_sess->get_app_name() == "qt_client"){
+            bVariant status = get_user_status_(user_uuid, "qt_client");
+            result.addMember("status", status);
+        }else{
+            bool status = get_user_status_(user_uuid);
+            result.addMember("status", status);
+        }
+    }
+
+    if(params->getMember("unreadMessages", value)){
+        int count = get_unread_messages_from_data(uuid, user_uuid);
+        result.addMember("unreadMessages", count);
+    }
+
+    custom_result = result.to_string();
+
+    return true;
+
+}
+
+bool shared_state::get_user_status_(boost::uuids::uuid &uuid, const std::string& filter_app_name){
+
+    bool status_ = false;
+    for (auto p : get_sessions(uuid)){
+        if(!filter_app_name.empty()){
+            if (filter_app_name != p->get_app_name())
+                continue;
+        }
+        status_ = true;
+        break;
+    }
+
+    return status_;
+
+}
+
+int shared_state::get_unread_messages_from_data(boost::uuids::uuid &uuid, boost::uuids::uuid &uuid_recipient) {
+
+    std::string token = sqlite3Db->get_channel_token(uuid, uuid_recipient);
+
+    if (token.empty() || token == "error"){
+        return 0;
+    }
+
+    std::string query = arcirk::str_sample("select sum(unreadMessages) from Messages where token = '%1%'", token);
+
+    std::vector<std::map<std::string, arcirk::bVariant>> table;
+    std::string err;
+
+    int result = sqlite3Db->execute(query, "Messages", table, err);
+
+    if(result == 0){
+        return 0;
+    }
+
+    return table[0].at("unreadMessages").get_int();
 }

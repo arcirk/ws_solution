@@ -14,12 +14,14 @@ public:
     Q_PROPERTY(QString department READ department WRITE setDepartment NOTIFY departmentChanged)
     Q_PROPERTY(QString jsonText READ jsonText WRITE setJsonText NOTIFY jsonTextChanged)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged);
+    Q_PROPERTY(QString userUuid READ userUuid NOTIFY userUuidChanged);
 
     QString userName() const;
     QString city() const;
     QString department() const;
     QString jsonText() const;
     QString status() const;
+    QString userUuid() const;
 
     void setUserName(const QString& name);
     void setCity(const QString& name);
@@ -36,6 +38,7 @@ signals:
     void jsonTextChanged();
     void statusChanged();
     void parseJson();
+    void userUuidChanged();
 
 private:
     QString m_userName;
@@ -43,6 +46,7 @@ private:
     QString m_department;
     QString m_json;
     QString m_status;
+    QString m_userUuid;
 };
 
 #endif // USERINFO_H

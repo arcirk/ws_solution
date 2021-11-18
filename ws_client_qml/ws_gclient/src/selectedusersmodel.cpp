@@ -245,7 +245,7 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
     msg.insert("uuid", uuid);
     msg.insert("name", name);
     msg.insert("draft", "");
-    msg.insert("name", 0);
+    msg.insert("unreadMessages", 0); //ToDo: добавить запрос
     msg.insert("active", false);
 
 
@@ -258,6 +258,7 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
     endResetModel();
 
     emit currentRowChanged();
+    emit requestUserData(uuid, "{\"draft\", \"unreadMessages\", \"active\"}");
 
     return;
 }

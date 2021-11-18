@@ -86,6 +86,11 @@ void bWebSocket::getUserInfo(const QString &uuid)
     }
 }
 
+void bWebSocket::getUserStatus(const QString &uuid, const QString &param)
+{
+
+}
+
 //bool bWebSocket::isOpen()
 //{
 //    //return client->is_open();

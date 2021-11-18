@@ -34,6 +34,11 @@ QString UserInfo::status() const
     return m_status;
 }
 
+QString UserInfo::userUuid() const
+{
+    return m_userUuid;
+}
+
 void UserInfo::setUserName(const QString &name)
 {
     m_userName = name;
