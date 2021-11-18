@@ -104,7 +104,9 @@ leave(websocket_session* session)
 
     if (session->authorized){
         // Оповещаем всех об отключении клиента
-        send(std::string ("Отключился клиент: ") + session->get_name() + ":" + arcirk::uuid_to_string(session->get_uuid()), "client_leave");
+        send(std::string ("{\"name\": \"") + session->get_name() +
+             "\", \"uuid_user\": \"" + arcirk::uuid_to_string(session->get_user_uuid()) + "\", \"uuid\": \"" +
+             arcirk::uuid_to_string(session->get_uuid()) + "\"}", "client_leave");
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -466,7 +468,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     if (command == "set_client_param")
         return params == 5;
     else if (command == "get_active_users")
-        return params == 1;
+        return true;//params == 1; //динамически
     else if (command == "send_all_message")
         return params == 2;
 //    else if (command == "subscribe_to_channel")
@@ -678,7 +680,9 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
-            send(std::string ("Подключился новый клиент: ") + session->get_name() + ":" + arcirk::uuid_to_string(session->get_uuid()), "client_join");
+            send(std::string ("{\"name\": \"") + session->get_name() +
+            "\", \"uuid_user\": \"" + arcirk::uuid_to_string(session->get_user_uuid()) + "\", \"uuid\": \"" +
+                         arcirk::uuid_to_string(session->get_uuid()) + "\"}", "client_join");
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;
 
             //Добавляем в список собственных сессий пользователя
@@ -710,13 +714,59 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
     arcirk::bJson json_arr{};
     json_arr.set_array();
 
-    for (auto p : sessions_){
-        _Value doc(rapidjson::Type::kObjectType);
-        json_arr.addMember(&doc, arcirk::content_value("uuid", to_string(p.second->get_uuid())));
-        json_arr.addMember(&doc, arcirk::content_value("name", p.second->get_name()));
-        json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
-        json_arr.addMember(&doc, arcirk::content_value("app_name", p.second->get_app_name()));
-        json_arr.push_back(doc) ;
+    std::string filter_app_name;
+    bool unique = false;
+
+    if(params->get_member_count() > 0){
+        bVariant val;
+        if (params->getMember("app_name", val)){
+            filter_app_name = val.get_string();
+        }
+        if (params->getMember("unique", val)){
+            unique = val.get_bool();
+        }
+    }
+    if(!unique){
+        for (auto p : sessions_){
+            if(!filter_app_name.empty()){
+                if (filter_app_name != p.second->get_app_name())
+                    continue;
+            }
+            _Value doc(rapidjson::Type::kObjectType);
+            json_arr.addMember(&doc, arcirk::content_value("uuid", to_string(p.second->get_uuid())));
+            json_arr.addMember(&doc, arcirk::content_value("name", p.second->get_name()));
+            json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
+            json_arr.addMember(&doc, arcirk::content_value("app_name", p.second->get_app_name()));
+            json_arr.addMember(&doc, arcirk::content_value("user_name", p.second->get_name()));
+            json_arr.push_back(doc) ;
+        }
+    }else{
+        std::map<boost::uuids::uuid, std::vector<content_value>> users;
+        for (auto p : sessions_){
+            boost::uuids::uuid uuid_ = p.second->get_user_uuid();
+            if (users.find(uuid_) == users.end())
+                continue;
+            if(!filter_app_name.empty()){
+                if (filter_app_name != p.second->get_app_name())
+                    continue;
+            }
+            std::vector<content_value> object;
+            object.emplace_back("uuid", to_string(p.second->get_uuid()));
+            object.emplace_back(arcirk::content_value("name", p.second->get_name()));
+            object.emplace_back(arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
+            object.emplace_back(arcirk::content_value("app_name", p.second->get_app_name()));
+            object.emplace_back(arcirk::content_value("user_name", p.second->get_name()));
+            users.insert(std::pair<boost::uuids::uuid, std::vector<content_value>>(uuid_, object));
+        }
+
+        for(const auto& itr : users){
+            _Value doc(rapidjson::Type::kObjectType);
+            for(const auto& p : itr.second){
+                json_arr.addMember(&doc, arcirk::content_value(p.key, p.value));
+            }
+            json_arr.push_back(doc) ;
+        }
+
     }
 
     custom_result = json_arr.to_string();

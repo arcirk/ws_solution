@@ -49,10 +49,6 @@ ApplicationWindow {
             mainChatBox.userUuid = wsClient.uuidUser
             mainStack.push(mainChatBox)
             mainForm.title = wsClient.user
-//            console.log("uuid: " + wsClient.uuidSession)
-//            console.log("uuid_user: " + wsClient.uuidUser)
-//            console.log("user: " + wsClient.user)
-
         }
         onQmlError: function(what, err){
 
@@ -97,6 +93,17 @@ ApplicationWindow {
             userInfoDialog.open()
         }
 
+        onGetActiveUsers: function(resp){
+           //console.debug(resp)
+            mainChatBox.resetActiveUsers(resp)
+        }
+        onClientJoin: function(resp){
+            mainChatBox.setStatusUser(resp, true)
+        }
+
+        onClientLeave: function(resp){
+            mainChatBox.clientLeave(resp)
+        }
     }
 
     ServerSettingsDialog{

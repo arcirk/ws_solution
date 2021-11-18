@@ -142,8 +142,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             std::string base64 =  resp->message.toStdString();
             QString msg = QString::fromStdString(arcirk::base64_decode(base64));
             emit getUserCache(msg);
+            client->send_command("get_active_users", nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
         }else if (resp->command == "get_messages"){
-            //qDebug() << resp->message;
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
@@ -155,7 +155,12 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit userInfo(resp->message);
         }else if (resp->command == "client_join"){
             emit clientJoin(resp->message);
+        }else if(resp->command == "get_active_users"){
+            emit getActiveUsers(resp->message);
+        }else if(resp->command == "client_leave"){
+            emit clientLeave(resp->message);
         }
+
         else
            qDebug() << "Не известная команда: " << resp->command;
     }

@@ -58,6 +58,16 @@ import QtQuick.Layouts 1.12
             return activeChats.getActiveUsersJsonText()
         }
 
+        function resetActiveUsers(resp){
+            activeChats.resetActiveUsers(resp)
+        }
+
+        function setStatusUser(resp, value){
+            activeChats.setStatusUser(resp, value)
+        }
+        function clientLeave(resp){
+            activeChats.clientLeave(resp)
+        }
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true

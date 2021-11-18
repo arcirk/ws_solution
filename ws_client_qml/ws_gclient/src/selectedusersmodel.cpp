@@ -10,6 +10,7 @@ SelectedUsersModel::SelectedUsersModel(QObject * parent )
     m_header.push_back( SelectedUsersModel::Heading( { {"title","name"},   {"index","name"} }) );
     m_header.push_back( SelectedUsersModel::Heading( { {"title","draft"},   {"index","draft"} }) ); //черновик (набранный но не отправленный текст)
     m_header.push_back( SelectedUsersModel::Heading( { {"title","unreadMessages"},   {"index","unreadMessages"} }) ); //не прочитанные сообщения
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","active"},   {"index","active"} }) );
     getHeaderJsonObject();
     m_json = QJsonArray();
     setJson(QJsonArray());
@@ -41,8 +42,13 @@ bool SelectedUsersModel::setJson(const QJsonDocument &json)
             ///
             int ind = list.indexOf("unreadMessages");
             if (ind == -1){
-                list.push_back("unreadMessages");
+                //list.push_back("unreadMessages");
                 m_header.push_back( MessageListModel::Heading( { {"title","unreadMessages"},    {"index","unreadMessages"} }) );
+            }
+            ind = list.indexOf("active");
+            if (ind == -1){
+                //list.push_back("active");
+                m_header.push_back( MessageListModel::Heading( { {"title","active"},    {"index","active"} }) );
             }
             getHeaderJsonObject();
         }
@@ -154,10 +160,12 @@ QVariant SelectedUsersModel::data( const QModelIndex &index, int role ) const
             }
             else if( v.isBool() )
             {
-                return QString::number( v.toBool());
+                return v.toBool();
             }else{
                 if(key == "unreadMessages")
                     return 0;
+                else if (key == "active")
+                    return false;
                 else
                     return QString();
             }
@@ -236,6 +244,10 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
     QJsonObject msg = QJsonObject();
     msg.insert("uuid", uuid);
     msg.insert("name", name);
+    msg.insert("draft", "");
+    msg.insert("name", 0);
+    msg.insert("active", false);
+
 
     beginResetModel();
     m_json.push_front(msg);
@@ -352,6 +364,10 @@ void SelectedUsersModel::setRowValue(QModelIndex &index, const QVariant &value)
             QJsonObject _obj = m_json[index.row()].toObject();
             _obj[key] = value.toInt();
             m_json[index.row()] = _obj;
+        }else if(value.typeId() == QMetaType::Bool){
+            QJsonObject _obj = m_json[index.row()].toObject();
+            _obj[key] = value.toBool();
+            m_json[index.row()] = _obj;
         }
     //}
 
@@ -436,6 +452,37 @@ void SelectedUsersModel::setCountUnReadMessage(const QString &uuid, bool noReset
         endResetModel();
 }
 
+void SelectedUsersModel::resetStatusActiveUsers(const QString &resp)
+{
+
+    QJsonDocument doc = QJsonDocument::fromJson(resp.toUtf8());
+    if(doc.isEmpty())
+        return;
+
+    QJsonArray arr = doc.array();
+
+    if(arr.empty())
+        return;
+
+    beginResetModel();
+    for(int i = 0 ; i < rowCount(); ++i){
+        QModelIndex ind = index(i, getColumnIndex("active"));
+        setRowValue(ind, false);
+    }
+
+    for (auto itr : arr ) {
+        QJsonObject obj = itr.toObject();
+        if(obj.contains("user_uuid")){
+            for(int i = 0 ; i < rowCount(); ++i){
+                QModelIndex ind = index(i, getColumnIndex("active"));
+                if(obj["user_uuid"] == data(ind, Qt::UserRole).toString())
+                    setRowValue(ind, true);
+            }
+        }
+    }
+    endResetModel();
+}
+
 bool SelectedUsersModel::is_already_added(const QString &uuid) {
 
     for (int i = 0; i < m_json.size(); ++i) {
@@ -449,5 +496,31 @@ bool SelectedUsersModel::is_already_added(const QString &uuid) {
 
 bool SelectedUsersModel::isAlreadyAdded(const QString &uuid) {
     return is_already_added(uuid);
+}
+
+void SelectedUsersModel::setStatusUser(const QString &resp, bool value)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(resp.toUtf8());
+    if(doc.isNull())
+        return;
+
+    QJsonObject obj = doc.object();
+    if(obj.empty())
+        return;
+    if(!obj.contains("uuid_user"))
+        return;
+    QString uuid = obj.value("uuid_user").toString();
+    if(uuid == _user_uuid){
+        return;
+    }
+    for(int i = 0 ; i < rowCount(); ++i){
+        QModelIndex ind = index(i, getColumnIndex("active"));
+        if(uuid == data(ind, Qt::UserRole).toString()){
+            beginResetModel();
+            setRowValue(ind, value);
+            endResetModel();
+            break;
+        }
+    }
 }
 

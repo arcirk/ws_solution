@@ -42,7 +42,9 @@ public:
     Q_INVOKABLE void saveDraft(const QString& uuid, const QString& source);
     Q_INVOKABLE QString getDraft();
     Q_INVOKABLE void setCountUnReadMessage(const QString& uuid, bool noReset = false);
+    Q_INVOKABLE void resetStatusActiveUsers(const QString& resp);
     Q_INVOKABLE bool isAlreadyAdded(const QString& uuid);
+    Q_INVOKABLE void setStatusUser(const QString& resp, bool value);
 
     QString jsonText() const;
     void setJsonText(const QString& source);

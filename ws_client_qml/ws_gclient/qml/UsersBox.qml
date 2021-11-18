@@ -56,6 +56,12 @@ Pane {
         return usersModel.isAlreadyAdded(uuid)
     }
 
+    function setStatusUser(resp, value){
+        usersModel.setStatusUser(resp, value)
+    }
+    function clientLeave(resp){
+        usersModel.setStatusUser(resp, false)
+    }
     SelectedUsersModel{
         id: usersModel
         userUuid: usersBox.userUuid
@@ -66,6 +72,10 @@ Pane {
             var uuid = usersModel.currentRow;
             usersBox.selectedIem(name, uuid)
         }
+    }
+
+    function resetActiveUsers(resp){
+        usersModel.resetStatusActiveUsers(resp)
     }
 
     ListView{
@@ -93,7 +103,7 @@ Pane {
                 }
                 IconPane{
                     id: messageText
-                    icon: "qrc:/images/lan_check_icon_color.svg"
+                    icon: model.active ? "qrc:/images/lan_check_icon_color.svg" : "qrc:/images/lan_disconnect_icon_138437.svg"
                     name: model.name
                     width: listUsers.width - (btnInfo.width * 2 + 10 + 10)
                     height: messageText.implicitHeight// + 24
