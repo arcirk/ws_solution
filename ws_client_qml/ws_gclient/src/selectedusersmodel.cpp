@@ -54,10 +54,13 @@ bool SelectedUsersModel::setJson(const QJsonDocument &json)
         }
 
 
+        m_currentRow = jsonObj.value("currentRow").toString();
+        ///
+        /// \brief _rows
         ///
         auto _rows = obj.value("rows").toArray();
         setJson( _rows );
-        m_currentRow = jsonObj.value("currentRow").toString();
+
    }
 
     return true;
@@ -257,10 +260,9 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
         setCountUnReadMessage(uuid, true);
     endResetModel();
 
+    emit requestUserData(uuid, "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
     emit currentRowChanged();
-    emit requestUserData(uuid, "{\"draft\", \"unreadMessages\", \"active\"}");
 
-    return;
 }
 
 QModelIndex SelectedUsersModel::item(const QString &uuid, int col)
@@ -523,5 +525,49 @@ void SelectedUsersModel::setStatusUser(const QString &resp, bool value)
             break;
         }
     }
+}
+
+void SelectedUsersModel::updateUserData(const QString &resp)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(resp.toUtf8());
+    if(doc.isNull())
+        return;
+
+    QJsonObject obj = doc.object();
+    if(obj.empty())
+        return;
+    if(!obj.contains("uuid_user"))
+        return;
+    QString uuid = obj.value("uuid_user").toString();
+    if(uuid == _user_uuid){
+        return;
+    }
+
+    int row = -1;
+
+    for (int i = 0; i < m_json.size(); ++i) {
+        QModelIndex ind = index(i, 0);
+        if (data(ind, Qt::UserRole).toString() == uuid){
+            row = i;
+            break;
+        }
+    }
+
+    if(row == -1)
+        return;
+
+
+   beginResetModel();
+   if(obj.contains("status")){
+       QModelIndex ind = index(row, getColumnIndex("active"));
+       setRowValue(ind, obj.value("status").toBool());
+   }
+   if(obj.contains("unreadMessages")){
+       QModelIndex ind = index(row, getColumnIndex("unreadMessages"));
+       setRowValue(ind, obj.value("unreadMessages").toInt());
+   }
+
+   endResetModel();
+
 }
 

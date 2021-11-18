@@ -91,10 +91,19 @@ void bWebSocket::getUserStatus(const QString &uuid, const QString &param)
 
 }
 
-//bool bWebSocket::isOpen()
-//{
-//    //return client->is_open();
-//}
+void bWebSocket::getUserData(const QString &uuid, const QString &param)
+{
+    if(client->started()){
+        client->get_user_data(uuid.toStdString(), "", param.toStdString());
+    }
+}
+
+void bWebSocket::resetUnreadMsgFromData(const QString &sender)
+{
+    if(client->started()){
+        client->reset_unread_messages(sender.toStdString(), "");
+    }
+}
 
 void bWebSocket::ext_message(const std::string &msg)
 {
@@ -164,6 +173,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit getActiveUsers(resp->message);
         }else if(resp->command == "client_leave"){
             emit clientLeave(resp->message);
+        }else if(resp->command == "get_user_data"){
+            emit requestUserData(resp->message);
         }
 
         else

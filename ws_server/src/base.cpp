@@ -656,7 +656,7 @@ namespace arc_sqlite {
             values.push_back(arcirk::content_value("date", dt));
 
             //не прочитанные сообщения всегда у получателя
-            values.push_back(arcirk::content_value("unreadMessages", (int)active));
+            values.push_back(arcirk::content_value("unreadMessages", (int)!active));
 
             std::string err;
 

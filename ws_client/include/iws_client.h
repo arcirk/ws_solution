@@ -62,7 +62,9 @@ public:
     void get_user_cache(const std::string &uuid_form);
     void set_user_cache(const std::string &cache, const std::string &uuid_form);
     void get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
+    void get_user_data(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
     void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
+    void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
 
     std::string get_app_uuid() const;
     std::string get_user_uuid() const;

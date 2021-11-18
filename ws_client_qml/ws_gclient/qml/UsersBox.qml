@@ -20,10 +20,10 @@ Pane {
         return  draft
     }
 
+//        console.log(source)
     function saveDraft(uuid, source){
         usersModel.saveDraft(uuid, source)
 //        console.log(uuid)
-//        console.log(source)
     }
 
     function setCache(strCache){
@@ -43,6 +43,7 @@ Pane {
 
     signal selectedIem(string name, string uuid)
     signal getUserInfo(string uuid)
+    signal requestUserData(string uuid, string param)
 
     function getActiveUsersJsonText(){
         return usersModel.jsonText
@@ -62,6 +63,10 @@ Pane {
     function clientLeave(resp){
         usersModel.setStatusUser(resp, false)
     }
+    function updateUserData(resp){
+        usersModel.updateUserData(resp)
+    }
+
     SelectedUsersModel{
         id: usersModel
         userUuid: usersBox.userUuid
@@ -71,6 +76,13 @@ Pane {
             var name = usersModel.data(modelIndex, Qt.UserRole + 1);
             var uuid = usersModel.currentRow;
             usersBox.selectedIem(name, uuid)
+        }
+
+        onRequestUserData: function(uuid, param){
+            usersBox.requestUserData(uuid, param)
+        }
+        onRequestSaveCache: {
+            usersBox.updateCache(usersModel.jsonText)
         }
     }
 

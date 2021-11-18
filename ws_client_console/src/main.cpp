@@ -39,7 +39,7 @@ void start(){
 
     client->admin_name = "Борисоглебский Аркадий";
     client->hash = IClient::get_hash("Борисоглебский Аркадий", "123");
-    client->host = "192.168.43.18";
+    client->host = "192.168.43.4";
     client->port = 8080;
     client->app_name = "console";
 
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
     _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
 
-    client = new IClient("192.168.43.18", 8080, callback, callback_status);
+    client = new IClient("192.168.43.4", 8080, callback, callback_status);
     //client->set_callback_status_changed(_callback_status_changed);
 
     std::string line;
@@ -101,6 +101,10 @@ int main(int argc, char** argv)
         }else if(line == "get_user_info"){
             if (client->started())
                 client->get_user_info(client->get_user_uuid(), "");
+            continue;
+        }else if(line == "get_user_data"){
+            if (client->started())
+                client->get_user_data("d7cca261-aecc-4708-872c-6cb6a664a6d7", "", "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
             continue;
         }
 

@@ -104,6 +104,11 @@ ApplicationWindow {
         onClientLeave: function(resp){
             mainChatBox.clientLeave(resp)
         }
+
+        onRequestUserData: function(resp){
+            mainChatBox.updateUserData(resp)
+        }
+
     }
 
     ServerSettingsDialog{
@@ -256,6 +261,13 @@ ApplicationWindow {
 
             onGetUserInfo: function(uuid){
                 wsClient.getUserInfo(uuid)
+            }
+
+            onRequestUserData: function(uuid, param){
+                wsClient.getUserData(uuid, param)
+            }
+            onResetUnReadMsgFromData: function(uuid){
+                wsClient.resetUnreadMsgFromData(uuid)
             }
         }
 

@@ -478,16 +478,22 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
 
 void IClient::get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param) {
 
-    boost::property_tree::ptree pt;
-
     try {
+        auto json = arcirk::bJson();
+        if(param.empty()){
+            json.SetObject();
+            json.addMember("uuid_user", _user_uuid);
+        }
+        else{
+            json.parse(param);
+            if (json.is_parse()){
+                bVariant var;
+                if (!json.getMember("uuid_user", var))
+                    json.addMember("uuid_user", _user_uuid);
+            }
+        }
 
-        pt.add("uuid_user", _user_uuid);
-
-        std::stringstream _ss;
-        boost::property_tree::json_parser::write_json(_ss, pt);
-
-        send_command("get_user_status", uuid_form, _ss.str());
+        send_command("get_user_status", uuid_form, json.to_string());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
@@ -495,3 +501,40 @@ void IClient::get_user_status(const std::string &_user_uuid, const std::string &
 }
 
 
+void IClient::get_user_data(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param) {
+
+    try {
+        auto json = arcirk::bJson();
+        if(param.empty()){
+            json.SetObject();
+            json.addMember("uuid_user", _user_uuid);
+        }
+        else{
+            json.parse(param);
+            if (json.is_parse()){
+                bVariant var;
+                if (!json.getMember("uuid_user", var))
+                    json.addMember("uuid_user", _user_uuid);
+            }
+        }
+
+        send_command("get_user_data", uuid_form, json.to_string());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}
+
+void IClient::reset_unread_messages(const std::string &user_sender, const std::string &uuid_form) {
+    try {
+
+        auto json = arcirk::bJson();
+        json.SetObject();
+        json.addMember("sender", user_sender);
+
+        send_command("reset_unread_messages", uuid_form, json.to_string());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}

@@ -517,6 +517,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "set_content_type")
         return params == 1;
+    else if (command == "reset_unread_messages")
+        return params == 1;
     else
         return false;
 }
@@ -528,7 +530,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_active_users");
     commands.emplace_back("send_all_message");
     commands.emplace_back("add_user");
-//    commands.emplace_back("subscribe_to_channel");
+    commands.emplace_back("reset_unread_messages");
 //    commands.emplace_back("subscribe_exit_channel");
     //commands.emplace_back("send_private_message");
     commands.emplace_back("message");
@@ -609,6 +611,9 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::set_message_struct_type, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "get_user_data")
         return  std::bind(&shared_state::get_user_data, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "reset_unread_messages")
+        return  std::bind(&shared_state::reset_unread_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+
     else
         return nullptr;
 }
@@ -1960,10 +1965,11 @@ bool shared_state::get_user_data(boost::uuids::uuid &uuid, arcirk::bJson *params
     }
 
     if(params->getMember("unreadMessages", value)){
-        int count = get_unread_messages_from_data(uuid, user_uuid);
+        int count = get_unread_messages_from_data(current_sess->get_user_uuid(), user_uuid);
         result.addMember("unreadMessages", count);
     }
 
+    result.addMember("uuid_user", params->get_member("uuid_user").to_string());
     custom_result = result.to_string();
 
     return true;
@@ -1994,7 +2000,7 @@ int shared_state::get_unread_messages_from_data(boost::uuids::uuid &uuid, boost:
         return 0;
     }
 
-    std::string query = arcirk::str_sample("select sum(unreadMessages) from Messages where token = '%1%'", token);
+    std::string query = arcirk::str_sample("select sum(unreadMessages) as unreadMessages from Messages where token = '%1%' and SecondField = '%2%'", token, boost::to_string(uuid));
 
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     std::string err;
@@ -2006,4 +2012,37 @@ int shared_state::get_unread_messages_from_data(boost::uuids::uuid &uuid, boost:
     }
 
     return table[0].at("unreadMessages").get_int();
+}
+
+bool
+shared_state::reset_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                    std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    boost::uuids::uuid uuid_sender = params->get_member("sender").get_uuid();
+
+    std::string token = sqlite3Db->get_channel_token(uuid, uuid_sender);
+
+    if (token.empty() || token == "error"){
+        err = "Не верный токен!";
+        return false;
+    }
+
+    std::string query = arcirk::str_sample("UPDATE Messages SET unreadMessages = '0' WHERE SecondField = '%1%' AND token = '%2%' AND unreadMessages > '0';", boost::to_string(uuid), token);
+    err = "";
+    sqlite3Db->exec(query, err);
+    if(!err.empty())
+        return false;
+
+    return true;
 }
