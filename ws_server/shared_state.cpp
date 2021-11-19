@@ -153,9 +153,10 @@ shared_state::deliver(const std::string& message, websocket_session *session)
     //это команда: cmd base64
     if (is_cmd(message))
     {
-        std::cout << "deliver: Передана команда серверу" << std::endl;
+        //std::cout << "deliver: Передана команда серверу" << std::endl;
         std::string res;
-        std::string msg_ = run_cmd(message, session->get_uuid(), command, uuid_form, res);
+        boost::uuids::uuid recipient;
+        std::string msg_ = run_cmd(message, session->get_uuid(), command, uuid_form, res, recipient);
 
         //если установка параметров сессии, требуется обновить параметры на клиенте
         if (command == "set_client_param")
@@ -166,6 +167,7 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         _message.command = command;
         _message.result = res;
         _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
+        _message.uuid_channel = recipient;
 
         auto * msg = new ws_message(_message);
         result.append(msg->get_json(true));
@@ -312,7 +314,7 @@ bool shared_state::is_cmd(const std::string& msg)
 
 std::string
 shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::string &command, std::string &uuid_form,
-                      std::string &res)
+                      std::string &res, boost::uuids::uuid  &recipient)
 {
 
     //формат сообщения
@@ -404,8 +406,8 @@ shared_state::run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::str
             result = err;
             res = "error";
         }
-
-        std::cout << "end command: " << command << std::endl;
+        recipient = msg->message().uuid_channel;
+        //std::cout << "end command: " << command << std::endl;
 
         delete params;
     }
@@ -696,9 +698,13 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
-            send(std::string ("{\"name\": \"") + session->get_name() +
-            "\", \"uuid_user\": \"" + arcirk::uuid_to_string(session->get_user_uuid()) + "\", \"uuid\": \"" +
-                         arcirk::uuid_to_string(session->get_uuid()) + "\"}", "client_join");
+            std::string m_ = arcirk::str_sample("{\"name\": \"%1%\", \"uuid\": \"%2%\", \"uuid_user\": \"%3%\", \"active\": %4%}",
+                                               session->get_name(),
+                                               boost::to_string(session->get_uuid()),
+                                               boost::to_string(session->get_user_uuid()),
+                                               "true");
+
+            send(m_, "client_join");
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;
 
             //Добавляем в список собственных сессий пользователя
@@ -845,7 +851,8 @@ bool shared_state::send_message(const std::string &message, boost::uuids::uuid &
 
        bool active = get_user_status_(recipient, filter_app_name);
 
-       bool result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active);
+       bool result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active,
+                                             current_sess->get_name());
 
         if (!result)
             return false;
@@ -1103,6 +1110,8 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params,
 
     if (!err.empty())
         return false;
+
+    msg->message().uuid_channel = recipient;
 
     return true;
 
@@ -1898,6 +1907,8 @@ bool shared_state::get_user_status(boost::uuids::uuid &uuid, arcirk::bJson *para
         json.addMember("uuid_user", params->get_member("uuid_user"));
         json.addMember("active", status_);
 
+        custom_result = json.to_string();
+
         return true;
     } else{
         err = "Ошибка получения данных пользователя!";
@@ -2008,14 +2019,14 @@ shared_state::reset_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *par
 
     boost::uuids::uuid uuid_sender = params->get_member("sender").get_uuid();
 
-    std::string token = sqlite3Db->get_channel_token(uuid, uuid_sender);
+    std::string token = sqlite3Db->get_channel_token(current_sess->get_user_uuid(), uuid_sender);
 
     if (token.empty() || token == "error"){
         err = "Не верный токен!";
         return false;
     }
 
-    std::string query = arcirk::str_sample("UPDATE Messages SET unreadMessages = '0' WHERE SecondField = '%1%' AND token = '%2%' AND unreadMessages > '0';", boost::to_string(uuid), token);
+    std::string query = arcirk::str_sample("UPDATE Messages SET unreadMessages = '0' WHERE SecondField = '%1%' AND token = '%2%' AND unreadMessages > '0';", boost::to_string(current_sess->get_user_uuid()), token);
     err = "";
     sqlite3Db->exec(query, err);
     if(!err.empty())

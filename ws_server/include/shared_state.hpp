@@ -77,7 +77,7 @@ private:
     static bool is_cmd(const std::string& msg);
     static bool is_msg(const std::string& msg);
     std::string run_cmd(const std::string &cmd, boost::uuids::uuid &uuid, std::string &command, std::string &uuid_form,
-                        std::string &res);
+                        std::string &res, boost::uuids::uuid &recipient);
     bool send_message(const std::string &message, boost::uuids::uuid &recipient, websocket_session *current_sess);
     static bool is_valid_message(const std::string &message, boost::uuids::uuid &uuid_recipient, std::string &base64,
                           std::string &err);

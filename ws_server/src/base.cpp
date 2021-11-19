@@ -637,7 +637,7 @@ namespace arc_sqlite {
 
     bool sqlite3_db::save_message(const std::string &message, const boost::uuids::uuid &first,
                                   const boost::uuids::uuid &second,
-                                  std::string &ref, bool active) {
+                                  std::string &ref, bool active, const std::string &firstName) {
 
         std::string hash = get_channel_token(first, second);
         if (hash != "error"){
@@ -666,6 +666,64 @@ namespace arc_sqlite {
                 if (!err.empty())
                     std::cerr << err << std::endl;
 
+            if(result && !active){
+                try {
+                    //сохраним в кеше получателя, при первом подключении отправитель добавится в список активных чатов
+                    std::string cache_query = arcirk::str_sample(
+                            "select cache from Users where Ref = '%1%'", boost::to_string(second));
+                    std::vector<std::map<std::string, arcirk::bVariant>> table;
+                    std::string error;
+                    int i = execute(cache_query, "Users", table, error);
+                    if (i > 0) {
+                        std::string json = arcirk::base64_decode(table[0].at("cache").to_string());
+                        auto b_json = arcirk::bJson();
+                        b_json.parse(json);
+                        std::string uuid_sender = boost::to_string(first);
+                        bool is_exists = false;
+                        if (b_json.is_parse()) {
+                            auto chats = b_json.FindMember("chats");
+                            if(!chats->value.IsObject()){
+                                return result;
+                            }
+                            auto obg_chats = chats->value.GetObject();
+                            auto arr_chats = obg_chats.FindMember("rows");
+
+                            if (arr_chats->value.IsArray()) {
+                                auto arr = arr_chats->value.GetArray();
+                                for (auto itr = arr.Begin(); itr < arr.End(); ++itr) {
+                                    auto uuid = itr->GetObject().FindMember("uuid");
+                                    if (uuid->value.IsString()) {
+                                        if (uuid->value.GetString() == uuid_sender) {
+                                            is_exists = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!is_exists) {
+                                _Value obj(rapidjson::kObjectType);
+                                obj.SetObject();
+                                b_json.addMember(&obj, arcirk::content_value("uuid", arcirk::bVariant(uuid_sender)));
+                                b_json.addMember(&obj, arcirk::content_value("name", firstName));
+                                b_json.addMember(&obj, arcirk::content_value("draft", arcirk::bVariant(std::string())));
+                                b_json.addMember(&obj, arcirk::content_value("unreadMessages", arcirk::bVariant(1)));
+                                b_json.addMember(&obj, arcirk::content_value("active", arcirk::bVariant(false)));
+
+                                arr_chats->value.GetArray().PushBack(obj, b_json.GetAllocator());
+                                std::string sz_result = arcirk::base64_encode(b_json.to_string());
+                                cache_query = arcirk::str_sample("update Users set cache='%1%' where Ref = '%2%'", sz_result,
+                                                                 boost::to_string(second));
+                                std::string err = "";
+                                exec(cache_query, err);
+                                if(!err.empty())
+                                    std::cerr << "error update user cache: " << err << std::endl;
+                            }
+                        }
+                    }
+                }catch (std::exception& e){
+                    std::cerr << "save_message error: " <<  e.what() << std::endl;
+                }
+            }
             return result;
 
         } else
@@ -839,7 +897,9 @@ namespace arc_sqlite {
         if (sqlite3_exec(db, query.c_str(), 0, 0, &err))
         {
             std::cerr << "Ошибка SQL запроса : " << err << std::endl;
+            error = err;
             sqlite3_free(err);
+            return 0;
         }
 
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &pStmt, NULL))
@@ -901,7 +961,6 @@ namespace arc_sqlite {
 
         result = json.to_string();
 
-        error = err;
         return i;
     }
 
