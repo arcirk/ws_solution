@@ -43,7 +43,7 @@ Pane {
 
     signal selectedIem(string name, string uuid)
     signal getUserInfo(string uuid)
-    signal requestUserData(string uuid, string param)
+    //signal requestUserData(string uuid, string param)
 
     function getActiveUsersJsonText(){
         return usersModel.jsonText
@@ -63,8 +63,11 @@ Pane {
     function clientLeave(resp){
         usersModel.setStatusUser(resp, false)
     }
-    function updateUserData(resp){
-        usersModel.updateUserData(resp)
+//    function updateUserData(resp){
+//        usersModel.updateUserData(resp)
+//    }
+    function setUnreadMessages(resp){
+        usersModel.setUnReadMessages(resp)
     }
 
     SelectedUsersModel{
@@ -78,9 +81,9 @@ Pane {
             usersBox.selectedIem(name, uuid)
         }
 
-        onRequestUserData: function(uuid, param){
-            usersBox.requestUserData(uuid, param)
-        }
+//        onRequestUserData: function(uuid, param){
+//            usersBox.requestUserData(uuid, param)
+//        }
         onRequestSaveCache: {
             usersBox.updateCache(usersModel.jsonText)
         }

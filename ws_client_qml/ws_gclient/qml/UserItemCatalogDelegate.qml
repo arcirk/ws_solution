@@ -20,7 +20,7 @@ IconPane{
     signal selectedChanged(QtObject item)
 
     width: parent.width
-    name: model.SecondField
+    name: SecondField
     uuid:{
         model.Ref
 

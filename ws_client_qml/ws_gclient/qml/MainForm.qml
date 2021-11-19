@@ -15,7 +15,7 @@ import QtQuick.Layouts 1.12
 
         signal connectionBroken;
         signal getUserInfo(string uuid)
-        signal resetUnReadMsgFromData(string uuid)
+        //signal resetUnReadMsgFromData(string uuid)
 
         function setCache(strCache){
             activeChats.setCache(strCache);
@@ -71,6 +71,11 @@ import QtQuick.Layouts 1.12
         function clientLeave(resp){
             activeChats.clientLeave(resp)
         }
+
+        function setUnreadMessages(resp){
+            activeChats.setUnreadMessages(resp)
+        }
+
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true
@@ -140,11 +145,11 @@ import QtQuick.Layouts 1.12
             }
         }
 
-        signal requestUserData(string uuid, string param)
+//        signal requestUserData(string uuid, string param)
 
-        function updateUserData(resp){
-            activeChats.updateUserData(resp)
-        }
+//        function updateUserData(resp){
+//            activeChats.updateUserData(resp)
+//        }
 
         UsersBox{
             id: activeChats
@@ -162,7 +167,7 @@ import QtQuick.Layouts 1.12
                 msgBox.text = activeChats.getDraft();
                 chatBox.seChatMessages(uuid)
                 msgBox.uuidRecipient = mainSplit.currentChat;
-                mainSplit.resetUnReadMsgFromData(uuid);
+                //mainSplit.resetUnReadMsgFromData(uuid);
             }
 
             onRemoveItem: function(uuid){
@@ -175,9 +180,9 @@ import QtQuick.Layouts 1.12
                 mainSplit.getUserInfo(uuid)
             }
 
-            onRequestUserData: function(uuid, param){
-                mainSplit.requestUserData(uuid, param)
-            }
+//            onRequestUserData: function(uuid, param){
+//                mainSplit.requestUserData(uuid, param)
+//            }
         }
 
     }

@@ -93,9 +93,9 @@ Page{
 
     }
 
-    onThemeChanged: {
-        //btnPageBack.icon.source = departmentUsers.theme === "Dark" ? "qrc:/images/ic-back_97586_White.svg" : "qrc:/images/ic-back_97586.svg"
-        console.debug(btnPageBack.icon.source)
-    }
+//    onThemeChanged: {
+//        //btnPageBack.icon.source = departmentUsers.theme === "Dark" ? "qrc:/images/ic-back_97586_White.svg" : "qrc:/images/ic-back_97586.svg"
+//        console.debug(btnPageBack.icon.source)
+//    }
 
 }

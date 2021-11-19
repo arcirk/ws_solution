@@ -455,6 +455,36 @@ void SelectedUsersModel::setCountUnReadMessage(const QString &uuid, bool noReset
         endResetModel();
 }
 
+void SelectedUsersModel::setUnReadMessages(const QString &resp)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(resp.toUtf8());
+
+    if(doc.isNull())
+        return;
+
+
+    QJsonObject obj = doc.object();
+
+    if(!obj.contains("rows"))
+        return;
+
+    QJsonArray arr = obj.value("rows").toArray();
+
+    beginResetModel();
+
+    for (int i = 0; i < arr.size() ; ++i ) {
+        QString uuid = arr[i].toObject().value("sender").toString();
+        QModelIndex ind = item(uuid);
+        if(uuid == data(ind, Qt::UserRole).toString()){
+            int val = arr[i].toObject().value("unreadMessages").toInt();
+            QModelIndex curr = index(ind.row(), getColumnIndex("unreadMessages"));
+;           setRowValue(curr, val);
+        }
+    }
+
+    endResetModel();
+}
+
 void SelectedUsersModel::resetStatusActiveUsers(const QString &resp)
 {
 

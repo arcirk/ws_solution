@@ -110,6 +110,7 @@ signals:
     void getActiveUsers(const QString& resp);
     void clientLeave(const QString& resp);
     void requestUserData(const QString& resp);
+    void unreadMessages(const QString& resp);
 };
 
 #endif // QMLWEBSOCKET_H

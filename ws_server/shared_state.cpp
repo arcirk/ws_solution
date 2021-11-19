@@ -20,7 +20,9 @@ shared_state(std::string doc_root)
         : doc_root_(std::move(doc_root))
 {
     sqlite3Db = new arc_sqlite::sqlite3_db();
-    sqlite3Db->open("../app/base/db.sqlite");
+    bool res = sqlite3Db->open("../app/base/db.sqlite");
+    if(!res)
+        std::cerr << "Файл базы данных не найден!";
     sqlite3Db->check_database_table(arc_sqlite::eUsers);
     sqlite3Db->check_database_table(arc_sqlite::eMessages);
     sqlite3Db->check_database_table(arc_sqlite::eChannels);
@@ -519,6 +521,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "reset_unread_messages")
         return params == 1;
+    else if (command == "get_unread_messages")
+        return params == 1;
     else
         return false;
 }
@@ -554,6 +558,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_content_type");
     commands.emplace_back("get_user_cache");
     commands.emplace_back("set_user_cache");
+    commands.emplace_back("get_unread_messages");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -613,7 +618,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::get_user_data, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "reset_unread_messages")
         return  std::bind(&shared_state::reset_unread_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-
+   else if (command == "get_unread_messages")
+        return  std::bind(&shared_state::get_unread_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
         return nullptr;
 }
@@ -942,35 +948,6 @@ bool shared_state::is_valid_message(const std::string &message, boost::uuids::uu
 
     return true;
 }
-
-//bool shared_state::subscribe_to_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
-//
-//    //params[1] - идентификатор формы
-//    boost::uuids::uuid sub = arc_json::string_to_uuid(params->getStringMember("uuid_channel"));
-//
-//    auto session_channel = get_session(sub);
-//    auto session = get_session(uuid);
-//
-//    if (session && session_channel){
-//        session_channel->join_channel(session);
-//        std::cout << "subscribe_to_channel:ok" << std::endl;
-//        send_private_message("subscribe_to_channel:true", sub, uuid);
-//        return true;
-//    }
-//    std::cout << "subscribe_to_channel:error" << std::endl;
-//    return false;
-//
-//}
-
-//bool shared_state::subscribe_exit_channel(boost::uuids::uuid &uuid, arc_json::ws_json* params, arc_json::ws_message* msg, std::string& err, std::string& custom_result) {
-//
-//    auto session_channel = get_session(msg->get_uuid_channel());
-//
-//    if (session_channel)
-//        session_channel->close_channel(msg->get_uuid());
-//
-//    return true;
-//}
 
 bool shared_state::add_new_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
@@ -2045,4 +2022,34 @@ shared_state::reset_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *par
         return false;
 
     return true;
+}
+
+bool
+shared_state::get_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                  std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    std::string json;
+    err = "";
+
+    int result = sqlite3Db->get_unread_messages(boost::to_string(current_sess->get_user_uuid()), json, err);
+
+    if(!err.empty()){
+        return false;
+    }
+
+    custom_result = json;
+    return true;
+
+
 }

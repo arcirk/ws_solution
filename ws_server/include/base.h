@@ -142,6 +142,8 @@ namespace arc_sqlite {
 
         void get_columns_arr(const std::string& table_name, std::vector<std::string> &arr);
 
+        int get_unread_messages(const std::string& recipient, std::string& result, std::string &err);
+
     private:
 
         std::string database_file;

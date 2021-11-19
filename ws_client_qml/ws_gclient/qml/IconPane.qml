@@ -251,17 +251,34 @@ RoundPane {
                 currentIndex: -1
                 anchors.fill: parent
                 model: proxyModel
-                delegate: ItemDelegate {
+                delegate: Pane {
                     id: itemChildTExt
-                    text: qsTr(model.SecondField)
-                    //height: itemChildTExt.implicitHeight
-                    highlighted: ListView.isCurrentItem
-                    width: nameItem.width - nameItem.leftPadding - itemChildTExt.rightPadding
-                    onClicked: {
-                        control.childItemClick(model.Ref, model.IsGroup, model.SecondField)
+                    background: Rectangle{
+                       color: 'green'
+                       width: nameItem.width - nameItem.leftPadding - itemChildTExt.rightPadding
+                       height: 20
+                            //anchors.fill: parent
+//                                           onClicked: {
+//                                               control.childItemClick(model.Ref, model.IsGroup, model.SecondField)
+//                                           }
                     }
 
                 }
+//                delegate: ItemDelegate {
+//                    id: itemChildTExt
+//                    text: qsTr(model.SecondField)
+
+//                    //height: itemChildTExt.implicitHeight
+//                    highlighted: ListView.isCurrentItem
+//                    width: nameItem.width - nameItem.leftPadding - itemChildTExt.rightPadding
+
+
+//                    onClicked: {
+//                        control.childItemClick(model.Ref, model.IsGroup, model.SecondField)
+//                    }
+//                    //Component.onCompleted: background.color = 'green' //textColor = 'green'
+
+//                }
                 ScrollBar.vertical: ScrollBar {}
 
             }

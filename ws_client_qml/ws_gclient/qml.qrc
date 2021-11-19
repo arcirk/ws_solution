@@ -171,5 +171,6 @@
         <file>images/lan_check_icon_color.svg</file>
         <file>images/lan_check_icon_137457.svg</file>
         <file>images/lan_disconnect_icon_138437.svg</file>
+        <file>qml/CustomItemDelegate.qml</file>
     </qresource>
 </RCC>

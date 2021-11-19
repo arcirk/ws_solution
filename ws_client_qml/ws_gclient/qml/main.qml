@@ -72,6 +72,7 @@ ApplicationWindow {
 
         onGetUserCache: function(resp){
             mainChatBox.setCache(resp)
+            console.log("set cache in file")
         }
 
         onSetMessages: function(resp){
@@ -94,7 +95,7 @@ ApplicationWindow {
         }
 
         onGetActiveUsers: function(resp){
-           //console.debug(resp)
+           console.log("get active users")
             mainChatBox.resetActiveUsers(resp)
         }
         onClientJoin: function(resp){
@@ -105,8 +106,14 @@ ApplicationWindow {
             mainChatBox.clientLeave(resp)
         }
 
-        onRequestUserData: function(resp){
-            mainChatBox.updateUserData(resp)
+//        onRequestUserData: function(resp){
+//            console.log("request user data")
+//            mainChatBox.updateUserData(resp)
+//        }
+
+        //выполняется один раз при входе
+        onUnreadMessages: function(resp){
+            mainChatBox.setUnreadMessages(resp)
         }
 
     }
@@ -263,12 +270,12 @@ ApplicationWindow {
                 wsClient.getUserInfo(uuid)
             }
 
-            onRequestUserData: function(uuid, param){
-                wsClient.getUserData(uuid, param)
-            }
-            onResetUnReadMsgFromData: function(uuid){
-                wsClient.resetUnreadMsgFromData(uuid)
-            }
+//            onRequestUserData: function(uuid, param){
+//                wsClient.getUserData(uuid, param)
+//            }
+//            onResetUnReadMsgFromData: function(uuid){
+//                wsClient.resetUnreadMsgFromData(uuid)
+//            }
         }
 
         initialItem: AuthForm{
