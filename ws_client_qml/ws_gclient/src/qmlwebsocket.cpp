@@ -86,9 +86,12 @@ void bWebSocket::getUserInfo(const QString &uuid)
     }
 }
 
-void bWebSocket::getUserStatus(const QString &uuid, const QString &param)
+void bWebSocket::getUserStatus(const QString &uuid)
 {
-
+    if(client->started()){
+        std::string param = arcirk::str_sample("{\"uuid_user\":\"%1%\", \"app_name\": \"qt_client\"}", uuid.toStdString());
+        client->get_user_status(uuid.toStdString(), "", param);
+    }
 }
 
 void bWebSocket::getUserData(const QString &uuid, const QString &param)
@@ -161,6 +164,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit getActiveUsers(resp->message);
             client->send_command("get_unread_messages", "", "");
         }else if (resp->command == "get_messages"){
+            client->reset_unread_messages(resp->recipient.toStdString(), "");
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
@@ -174,9 +178,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit clientJoin(resp->message);
         }else if(resp->command == "client_leave"){
             emit clientLeave(resp->message);
-        }/*else if(resp->command == "get_user_data"){
-            emit requestUserData(resp->message);
-        }*/
+        }else if(resp->command == "get_user_status"){
+            emit requestUserStatus(resp->message);
+        }
         else if(resp->command == "get_unread_messages"){
             //qDebug() << resp->message;
             emit unreadMessages(resp->message);

@@ -48,6 +48,7 @@ public:
     Q_INVOKABLE void resetStatusActiveUsers(const QString& resp);
     Q_INVOKABLE bool isAlreadyAdded(const QString& uuid);
     Q_INVOKABLE void setStatusUser(const QString& resp, bool value);
+    Q_INVOKABLE void setStatusUser(const QString& resp);
     Q_INVOKABLE void updateUserData(const QString& resp);
 
     QString jsonText() const;
@@ -83,7 +84,7 @@ signals:
     void jsonUserUuidChanged();
     void currentRowChanged();
     void draftChanged();
-    void requestUserData(const QString& userUuid, const QString& fields);
+    void getStatusAddedUser(const QString& userUuid);
     void requestSaveCache();
 
 };

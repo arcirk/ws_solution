@@ -57,8 +57,8 @@ Pane {
         return usersModel.isAlreadyAdded(uuid)
     }
 
-    function setStatusUser(resp, value){
-        usersModel.setStatusUser(resp, value)
+    function setStatusUser(resp){
+        usersModel.setStatusUser(resp)
     }
     function clientLeave(resp){
         usersModel.setStatusUser(resp, false)
@@ -70,6 +70,10 @@ Pane {
         usersModel.setUnReadMessages(resp)
     }
 
+    function getStatusAddedUser(uuid){
+        wsClient.getUserStatus(uuid);
+    }
+
     SelectedUsersModel{
         id: usersModel
         userUuid: usersBox.userUuid
@@ -78,7 +82,11 @@ Pane {
             var modelIndex = usersModel.item(usersModel.currentRow);
             var name = usersModel.data(modelIndex, Qt.UserRole + 1);
             var uuid = usersModel.currentRow;
-            usersBox.selectedIem(name, uuid)
+            usersBox.selectedIem(name, uuid)           
+        }
+
+        onGetStatusAddedUser: function(uuid){
+            usersBox.getStatusAddedUser(uuid)
         }
 
 //        onRequestUserData: function(uuid, param){

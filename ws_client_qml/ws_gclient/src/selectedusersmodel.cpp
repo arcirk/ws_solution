@@ -260,7 +260,7 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
         setCountUnReadMessage(uuid, true);
     endResetModel();
 
-    emit requestUserData(uuid, "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
+    emit getStatusAddedUser(uuid);
     emit currentRowChanged();
 
 }
@@ -546,6 +546,34 @@ void SelectedUsersModel::setStatusUser(const QString &resp, bool value)
     if(uuid == _user_uuid){
         return;
     }
+    for(int i = 0 ; i < rowCount(); ++i){
+        QModelIndex ind = index(i, getColumnIndex("active"));
+        if(uuid == data(ind, Qt::UserRole).toString()){
+            beginResetModel();
+            setRowValue(ind, value);
+            endResetModel();
+            break;
+        }
+    }
+}
+
+void SelectedUsersModel::setStatusUser(const QString &resp)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(resp.toUtf8());
+    if(doc.isNull())
+        return;
+
+    QJsonObject obj = doc.object();
+    if(obj.empty())
+        return;
+    if(!obj.contains("uuid_user"))
+        return;
+    QString uuid = obj.value("uuid_user").toString();
+    if(uuid == _user_uuid){
+        return;
+    }
+    bool value = obj.value("active").toBool();
+
     for(int i = 0 ; i < rowCount(); ++i){
         QModelIndex ind = index(i, getColumnIndex("active"));
         if(uuid == data(ind, Qt::UserRole).toString()){

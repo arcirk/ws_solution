@@ -40,7 +40,7 @@ import QtQuick.Layouts 1.12
             }
             if (!activeChats.isAlreadyAdded(recipient)){
                 activeChats.setChatItem(recipient, recipientName, true);
-                activeChats.setStatusUser(resp, true)
+                //activeChats.setStatusUser(resp, true)
             }
         }
 
@@ -65,9 +65,14 @@ import QtQuick.Layouts 1.12
             activeChats.resetActiveUsers(resp)
         }
 
-        function setStatusUser(resp, value){
-            activeChats.setStatusUser(resp, value)
+//        function setStatusUser(resp, value){
+//            activeChats.setStatusUser(resp, value)
+//        }
+
+        function updateStatusUser(resp){
+            activeChats.setStatusUser(resp)
         }
+
         function clientLeave(resp){
             activeChats.clientLeave(resp)
         }
@@ -166,8 +171,8 @@ import QtQuick.Layouts 1.12
                 mainSplit.currentChat = uuid
                 msgBox.text = activeChats.getDraft();
                 chatBox.seChatMessages(uuid)
-                msgBox.uuidRecipient = mainSplit.currentChat;
-                //mainSplit.resetUnReadMsgFromData(uuid);
+                msgBox.uuidRecipient = mainSplit.currentChat;               
+               //mainSplit.resetUnReadMsgFromData(uuid);
             }
 
             onRemoveItem: function(uuid){

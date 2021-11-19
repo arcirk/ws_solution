@@ -7,8 +7,9 @@ RoundPane {
     id: control
     property alias text: txt.text
     property alias icon: image.source
-    Material.elevation: 6
-    radius: 15
+    property alias ctrlPaddig: control.padding
+    Material.elevation: 0
+    radius: 1
     RowLayout{
         anchors.fill: parent
         Image {
@@ -17,6 +18,7 @@ RoundPane {
         }
         Text {
             id: txt;
+            Layout.fillWidth: true
         }
     }
 }

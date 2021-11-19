@@ -99,17 +99,17 @@ ApplicationWindow {
             mainChatBox.resetActiveUsers(resp)
         }
         onClientJoin: function(resp){
-            mainChatBox.setStatusUser(resp, true)
+            mainChatBox.updateStatusUser(resp)
         }
 
         onClientLeave: function(resp){
             mainChatBox.clientLeave(resp)
         }
 
-//        onRequestUserData: function(resp){
-//            console.log("request user data")
-//            mainChatBox.updateUserData(resp)
-//        }
+        onRequestUserStatus: function(resp){
+            mainChatBox.updateStatusUser(resp)
+        }
+
 
         //выполняется один раз при входе
         onUnreadMessages: function(resp){
