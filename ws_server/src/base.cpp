@@ -853,6 +853,8 @@ namespace arc_sqlite {
             _Value row(rapidjson::kObjectType);
             row.SetObject();
 
+            i++;
+
             for (unsigned int j = 0; j < col_count; j++) {
 
                 int iColType = sqlite3_column_type(pStmt, j);
@@ -899,6 +901,8 @@ namespace arc_sqlite {
 
         result = json.to_string();
 
+        error = err;
+        return i;
     }
 
 

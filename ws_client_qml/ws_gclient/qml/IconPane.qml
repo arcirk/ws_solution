@@ -251,19 +251,10 @@ RoundPane {
                 currentIndex: -1
                 anchors.fill: parent
                 model: proxyModel
-                delegate: Pane {
-                    id: itemChildTExt
-                    background: Rectangle{
-                       color: 'green'
-                       width: nameItem.width - nameItem.leftPadding - itemChildTExt.rightPadding
-                       height: 20
-                            //anchors.fill: parent
-//                                           onClicked: {
-//                                               control.childItemClick(model.Ref, model.IsGroup, model.SecondField)
-//                                           }
-                    }
-
+                delegate: UserItemDelegate{
+                    text: qsTr(model.SecondField)
                 }
+
 //                delegate: ItemDelegate {
 //                    id: itemChildTExt
 //                    text: qsTr(model.SecondField)
