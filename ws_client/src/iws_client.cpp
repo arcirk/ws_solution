@@ -1,4 +1,10 @@
 #include "../include/iws_client.h"
+#ifdef _WINDOWS
+#include "net.h"
+    #include "ws_client.h"
+#else
+#include "../include/ws_client.h"
+#endif // _WINDOWS
 
 #ifdef _WINDOWS
 #include <iostream>
@@ -537,4 +543,28 @@ void IClient::reset_unread_messages(const std::string &user_sender, const std::s
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
     }
+}
+
+std::string IClient::base64_encode(const std::string &s) {
+    return  arcirk::base64_encode(s);
+}
+
+std::string IClient::base64_decode(const std::string &s) {
+    return arcirk::base64_decode(s);
+}
+
+std::string IClient::nil_string_uuid() {
+    return arcirk::nil_string_uuid();
+}
+
+std::string IClient::random_uuid() {
+    return arcirk::random_uuid();
+}
+
+long int IClient::current_date_seconds() {
+    return arcirk::current_date_seconds();
+}
+
+long int IClient::add_day(const long selDate, const int dayCount) {
+    return arcirk::add_day(selDate, dayCount);
 }

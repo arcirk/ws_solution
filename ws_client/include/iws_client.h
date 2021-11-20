@@ -5,17 +5,15 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 
-#ifdef _WINDOWS
-    #include "net.h"
-    #include "ws_client.h"
-#else
-    #include "ws_client.h"
-#endif // _WINDOWS
+
+class ws_client;
 
 //typedef std::function<void(std::string)> _callback_message;
+typedef std::function<void(std::string)> _callback_message;
+typedef std::function<void(bool)> _callback_status;
 
-//__IWS_CLIENT_
 
 class  IClient{
 
@@ -31,6 +29,7 @@ public:
 
     explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback);
+    explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_status& _status_changed_fun);
     ~IClient(){
         close();
@@ -40,9 +39,7 @@ public:
 
     void close();
     void open(bool new_thread = true);
-//    std::string get_client_info();
-//    std::string get_current_name();
-    static std::string get_hash(const std::string &usr, const std::string &pwd);
+
 
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
@@ -57,7 +54,6 @@ public:
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
     bool started();
     void set_app_name(const std::string &session_uuid, const std::string& new_app_name);
-    //void set_uuid(const std::string &session_uuid, const std::string& new_uuid);
     void get_users_catalog(const std::string &uuid_form);
     void get_user_cache(const std::string &uuid_form);
     void set_user_cache(const std::string &cache, const std::string &uuid_form);
@@ -74,6 +70,13 @@ public:
     long int get_tz_offset();
 
     //bool is_open();
+    static std::string base64_encode(const std::string &s);
+    static std::string base64_decode(const std::string &s);
+    static std::string nil_string_uuid();
+    static std::string random_uuid();
+    static std::string get_hash(const std::string &usr, const std::string &pwd);
+    static long int current_date_seconds();
+    static long int add_day(const long int selDate, const int dayCount);
 
 private:
 

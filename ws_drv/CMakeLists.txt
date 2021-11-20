@@ -21,7 +21,6 @@ list(APPEND SOURCES
         ../ws_client/include/net.h
         ../ws_client/include/ws_session.h
         ../ws_client/include/ws_client.h
-        ../ws_client/include/global.h
         ../ws_client/src/ws_session.cpp
         ../ws_client/src/ws_client.cpp
         )

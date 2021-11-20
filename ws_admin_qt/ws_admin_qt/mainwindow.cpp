@@ -187,7 +187,7 @@ void MainWindow::processServeResponse(const std::string &response){
 
     std::string json;
     try {
-        json = base64_decode(response);
+        json = IClient::base64_decode(response);
     }  catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return;
@@ -353,7 +353,7 @@ void MainWindow::fillList(const QString &nodeName) {
         group_panel_setVisible(false, false);
     }else if (nodeName == "ActiveUsers"){
         group_panel_setVisible(false, true);
-        client->send_command(std::string("get_active_users"), nil_string_uuid(), std::string(""));
+        client->send_command(std::string("get_active_users"), IClient::nil_string_uuid(), std::string(""));
     }else if (nodeName == "Users"){
         group_panel_setVisible(true, false);
         client->get_group_list(client->get_app_uuid());
@@ -483,7 +483,7 @@ void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QT
             if (group_uuid.isEmpty())
                 return;
             if (client->started()) {
-                client->get_users(group_uuid.toStdString(), nil_string_uuid());
+                client->get_users(group_uuid.toStdString(), IClient::nil_string_uuid());
             }
 
         }
@@ -491,8 +491,8 @@ void MainWindow::on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QT
         if (group_header.count() > 0 && current) {
 
             QString group_uuid = current->text(group_header["Ref"]);
-            if (group_uuid.isEmpty() || group_uuid == QString::fromStdString(nil_string_uuid())){
-                client->get_users("", nil_string_uuid());
+            if (group_uuid.isEmpty() || group_uuid == QString::fromStdString(IClient::nil_string_uuid())){
+                client->get_users("", IClient::nil_string_uuid());
             }
 
         }
@@ -558,7 +558,7 @@ void MainWindow::on_btnAddUser_clicked()
     if (item){
         usr_info->parent = item->text(group_header["Ref"]);
     } else
-        usr_info->parent = QString::fromStdString(nil_string_uuid());
+        usr_info->parent = QString::fromStdString(IClient::nil_string_uuid());
 
     auto * dlg = new UserDialog(this, usr_info);
     dlg->setModal(true);
@@ -566,7 +566,7 @@ void MainWindow::on_btnAddUser_clicked()
 
     if (usr_info->accepted){
         std::string param = usr_info->to_json();
-        client->send_command("add_user", nil_string_uuid(), param);
+        client->send_command("add_user", IClient::nil_string_uuid(), param);
     }
 
     delete usr_info;
@@ -599,7 +599,7 @@ void MainWindow::on_listChildSrvObjects_itemActivated(QTableWidgetItem *item)
         if (usr_info->accepted){
 
             std::string param = user_change_request_parameters(usr_info);
-            client->send_command("update_user", nil_string_uuid(), param);
+            client->send_command("update_user", IClient::nil_string_uuid(), param);
         }
 
         delete usr_info;
@@ -619,7 +619,7 @@ void MainWindow::on_btnDeleteUser_clicked()
 
     if(result == QMessageBox::Yes){
         QString user_uuid = item->text();
-        client->remove_user(user_uuid.toStdString(), nil_string_uuid());
+        client->remove_user(user_uuid.toStdString(), IClient::nil_string_uuid());
     }
 
 }
@@ -632,7 +632,7 @@ std::string MainWindow::user_change_request_parameters(Ui::user_info *usr_info) 
     fields.push_back("role");
 
     if (!usr_info->password.isEmpty()){
-        usr_info->hash = QString::fromStdString(get_hash(usr_info->name.toStdString(), usr_info->password.toStdString()));
+        usr_info->hash = QString::fromStdString(IClient::get_hash(usr_info->name.toStdString(), usr_info->password.toStdString()));
         fields.push_back("hash");
     }
 
@@ -668,7 +668,7 @@ void MainWindow::on_btnEditUser_clicked()
         if (usr_info->accepted){
 
             std::string param = user_change_request_parameters(usr_info);
-            client->send_command("update_user", nil_string_uuid(), param);
+            client->send_command("update_user", IClient::nil_string_uuid(), param);
         }
 
         delete usr_info;
@@ -687,7 +687,7 @@ void MainWindow::on_btnAddGroup_clicked()
         info->parent_name = item->text(group_header["SecondField"]);
     }
     else{
-        info->parent_uuid = QString::fromStdString(nil_string_uuid());
+        info->parent_uuid = QString::fromStdString(IClient::nil_string_uuid());
         info->parent_name = "root";
     }
 
@@ -696,7 +696,7 @@ void MainWindow::on_btnAddGroup_clicked()
     dlg->exec();
 
     if (info ->accepted)
-        client->add_group(info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), nil_string_uuid());
+        client->add_group(info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), IClient::nil_string_uuid());
 
     delete info;
 }
@@ -710,7 +710,7 @@ void MainWindow::on_btnEditGroup_clicked()
         return;
     }
 
-    if (item->text(group_header["Ref"]).isEmpty() || item->text(group_header["Ref"]) == QString::fromStdString(nil_string_uuid())){
+    if (item->text(group_header["Ref"]).isEmpty() || item->text(group_header["Ref"]) == QString::fromStdString(IClient::nil_string_uuid())){
         QMessageBox::critical(this, "Ошибка", "Нельзя изменить текущую группу!");
         return;
     }
@@ -725,7 +725,7 @@ void MainWindow::on_btnEditGroup_clicked()
         info->parent_name = item->parent()->text(group_header["SecondField"]);
     }
     else{
-        info->parent_uuid = QString::fromStdString(nil_string_uuid());
+        info->parent_uuid = QString::fromStdString(IClient::nil_string_uuid());
         info->parent_name = "root";
     }
     auto* dlg = new GroupDialog(this, info);
@@ -733,7 +733,7 @@ void MainWindow::on_btnEditGroup_clicked()
     dlg->exec();
 
     if (info ->accepted)
-        client->edit_group(info->group_uuid.toStdString(), info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), nil_string_uuid());
+        client->edit_group(info->group_uuid.toStdString(), info->group_name.toStdString(), info->group_presentation.toStdString(), info->parent_uuid.toStdString(), IClient::nil_string_uuid());
 
     delete info;
 }
@@ -750,7 +750,7 @@ void MainWindow::on_btnDelGroup_clicked()
             return;
         }
 
-        if(current->text(group_header["Ref"]).isEmpty() || current->text(group_header["Ref"]) == QString::fromStdString(nil_string_uuid())){
+        if(current->text(group_header["Ref"]).isEmpty() || current->text(group_header["Ref"]) == QString::fromStdString(IClient::nil_string_uuid())){
             QMessageBox::critical(this, "Ошибка", "Нельзя удалить текущую группу!");
             return;
         }
@@ -761,7 +761,7 @@ void MainWindow::on_btnDelGroup_clicked()
 
         if(result == QMessageBox::Yes){
             QString user_uuid = current->text(group_header["Ref"]);
-            client->remove_group(user_uuid.toStdString(), nil_string_uuid());
+            client->remove_group(user_uuid.toStdString(), IClient::nil_string_uuid());
         }
 
     }
@@ -782,7 +782,7 @@ void MainWindow::on_btnToGroup_clicked()
         QTableWidgetItem* item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
 
         if(dlg->dlgAccepted){
-            client->set_parent(item->text().toStdString(), dlg->selected_group_uuid.toStdString(), nil_string_uuid());
+            client->set_parent(item->text().toStdString(), dlg->selected_group_uuid.toStdString(), IClient::nil_string_uuid());
         }
     }
 }
@@ -800,7 +800,7 @@ void MainWindow::on_btnViewMode_clicked()
         on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
     }else{
         if (client->started()){
-            client->get_users("", nil_string_uuid());
+            client->get_users("", IClient::nil_string_uuid());
         }
     }
 }
@@ -837,7 +837,7 @@ void MainWindow::on_btnKillSession_clicked()
         auto result =  QMessageBox::question(this, "Удаление сессии", "Удалить текущую сессию пользователя?");
 
         if(result == QMessageBox::Yes){
-            client->kill_session(item->text().toStdString(), nil_string_uuid());
+            client->kill_session(item->text().toStdString(), IClient::nil_string_uuid());
         }
 
     }

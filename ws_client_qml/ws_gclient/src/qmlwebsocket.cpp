@@ -31,7 +31,7 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
     QString _hash;
 
     if(_pwdEdit){
-        settings->Hash = QString::fromStdString( get_hash(user_name.toStdString(), user_password.toStdString()));
+        settings->Hash = QString::fromStdString( IClient::get_hash(user_name.toStdString(), user_password.toStdString()));
     }
     settings->RootUser = user_name;
 
@@ -89,7 +89,7 @@ void bWebSocket::getUserInfo(const QString &uuid)
 void bWebSocket::getUserStatus(const QString &uuid)
 {
     if(client->started()){
-        std::string param = arcirk::str_sample("{\"uuid_user\":\"%1%\", \"app_name\": \"qt_client\"}", uuid.toStdString());
+        std::string param = QString("{\"uuid_user\":\"%1\", \"app_name\": \"qt_client\"}").arg(uuid).toStdString();//IClient::str_sample("{\"uuid_user\":\"%1%\", \"app_name\": \"qt_client\"}", uuid.toStdString());
         client->get_user_status(uuid.toStdString(), "", param);
     }
 }
@@ -157,9 +157,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             client->get_user_cache("");
         }else if (resp->command == "get_user_cache"){
             std::string base64 =  resp->message.toStdString();
-            QString msg = QString::fromStdString(arcirk::base64_decode(base64));
+            QString msg = QString::fromStdString(IClient::base64_decode(base64));
             emit getUserCache(msg);
-            client->send_command("get_active_users", nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
+            client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
         }else if(resp->command == "get_active_users"){
             emit getActiveUsers(resp->message);
             client->send_command("get_unread_messages", "", "");
@@ -253,12 +253,12 @@ void bWebSocket::get_messages(const QString &uuid_sub, int start_date, int end_d
 
 long bWebSocket::currentDate()
 {
-    return current_date_seconds();
+    return IClient::current_date_seconds();
 }
 
 long bWebSocket::addDay(const long source, const int dayCount)
 {
-    return add_day(source, dayCount);
+    return IClient::add_day(source, dayCount);
 }
 
 void bWebSocket::setHost(const QString &newHost)

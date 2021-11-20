@@ -85,7 +85,7 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
             QString contentType = obj["contentType"].toString();
             QString base64 = v.toString();
 
-            QString msg = QString::fromStdString(arcirk::base64_decode(base64.toStdString()));
+            QString msg = QString::fromStdString(IClient::base64_decode(base64.toStdString()));
             QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());
             QJsonObject content = doc.object();
 
@@ -276,7 +276,7 @@ void MessageListModel::remove(const QString& uuid)
 void MessageListModel::addMessage(const QString& msg, const QString& uuid, const QString& recipient)
 {
 
-    QString message = QString::fromStdString(arcirk::base64_decode(msg.toStdString()));
+    QString message = QString::fromStdString(IClient::base64_decode(msg.toStdString()));
 
     QJsonObject _msg = QJsonDocument::fromJson(message.toUtf8()).object();
 

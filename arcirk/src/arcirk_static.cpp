@@ -181,20 +181,5 @@ namespace arcirk{
         return selDate + (dayCount * (60*60*24));
     }
 
-//    template<typename... Arguments>
-//    std::string str_sample(const std::string& fmt, const Arguments&... args)
-//    {
-////        result:
-////        std::cout << FormatArgs("no args\n"); // "no args"
-////        std::cout << FormatArgs("%s; %s; %s;\n", 123, 4.3, "foo"); // 123; 4.3; foo;
-////        std::cout << FormatArgs("%2% %1% %2%\n", 1, 12); // 12 1 12
-//
-//        boost::format f(fmt);
-//        std::initializer_list<char> {(static_cast<void>(
-//                f % args
-//        ), char{}) ...};
-//
-//        return boost::str(f);
-//    }
 
 }
