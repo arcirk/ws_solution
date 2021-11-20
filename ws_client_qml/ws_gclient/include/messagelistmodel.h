@@ -90,8 +90,6 @@ signals:
     void getMessagesForRecipient(const QString& uuid);
 
 
-public slots:
-    void onNewMessage(QString message);
 
 };
 

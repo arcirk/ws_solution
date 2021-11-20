@@ -158,10 +158,10 @@ void QmlWebSocket::getMessages(const QString &uuid_sub, int start_date, int end_
 
 long QmlWebSocket::currentDate()
 {
-    return current_date_seconds();
+    return IClient::current_date_seconds();
 }
 
 long QmlWebSocket::addDay(const long source, const int dayCount)
 {
-    return add_day(source, dayCount);
+    return IClient::add_day(source, dayCount);
 }

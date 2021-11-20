@@ -1,4 +1,4 @@
-#include "../include/stdfx.h"
+//#include "../include/stdfx.h"
 #include "../include/clientsettings.h"
 #include <iws_client.h>
 

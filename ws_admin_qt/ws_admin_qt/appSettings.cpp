@@ -1,4 +1,4 @@
-#include "stdfx.h"
+//#include "stdfx.h"
 #include "AppSettings.h"
 //#include "global.h"
 //#include "iws_client.h"

@@ -40,19 +40,18 @@ HEADERS += \
     include/qmlwebsocket.h \
     include/selectedusersmodel.h \
     include/serveresponse.h \
-    include/stdfx.h \
     userinfo.h
 
-windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
-windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
+#windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
+#windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
 QT += quickcontrols2
 
-PRECOMPILED_HEADER = include/stdfx.h
+#PRECOMPILED_HEADER = include/stdfx.h
 
 LIBS += -L"../../ws_client/cmake-build-debug"
 #LIBS += -L"../../qt_models/project/cmake-build-debug"
-windows:LIBS += -L"C:/src/GitHub/ws_solution/ws_client/cmake-build-debug"
+windows:LIBS += -L"C:\src\ws_solution\ws_client\cmake-build-debugg"
 
 INCLUDEPATH += ../../ws_client/include
 INCLUDEPATH += ../../qt_models/project/include

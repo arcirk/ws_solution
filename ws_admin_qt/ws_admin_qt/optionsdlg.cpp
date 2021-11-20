@@ -1,4 +1,4 @@
-#include "stdfx.h"
+//#include "stdfx.h"
 #include "optionsdlg.h"
 #include "ui_optionsdlg.h"
 #include <QFileDialog>

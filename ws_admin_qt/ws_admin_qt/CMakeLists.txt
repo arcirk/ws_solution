@@ -19,7 +19,6 @@ add_executable(ws_admin_qt
         optionsdlg.ui
         serveresponse.cpp
         serveresponse.h
-        stdfx.h
         ws_admin_qt.pro
         popup.cpp
         popup.h
@@ -74,9 +73,9 @@ target_link_libraries(ws_admin_qt
 
 
 
-target_precompile_headers(ws_admin_qt
-        PUBLIC
-        stdfx.h)
+#target_precompile_headers(ws_admin_qt
+#        PUBLIC
+#        _stdfx.h)
 
 if (WIN32)
 add_custom_command(
@@ -91,6 +90,7 @@ add_custom_command(
         $<TARGET_FILE:Qt6::OpenGL>
         $<TARGET_FILE:Qt6::QmlModels>
         $<TARGET_FILE:Qt6::QuickWidgets>
+        $<TARGET_FILE:ws_client>
         $<TARGET_FILE_DIR:ws_admin_qt>)
 endif()
 

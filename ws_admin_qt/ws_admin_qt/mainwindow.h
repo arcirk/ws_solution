@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#include "stdfx.h"
+//#include "stdfx.h"
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QTreeView>

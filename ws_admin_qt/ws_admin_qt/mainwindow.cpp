@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "stdfx.h"
+//#include "_stdfx.h"
 #include "serveresponse.h"
 
 #include <QModelIndex>

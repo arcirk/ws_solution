@@ -184,7 +184,7 @@ void ServeResponse::set_header_tree(QTreeWidget *tree, const QJsonObject& jsonOb
 }
 
 int ServeResponse::get_index_member(const QJsonObject &jsonObject, const QString &memberKey) {
-    int result = -1;
+    //int result = -1;
     int index = 0;
     for (auto col = jsonObject.constBegin(); col != jsonObject.constEnd(); ++col)
     {

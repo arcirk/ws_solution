@@ -7,12 +7,12 @@ UsersGroupsModel::UsersGroupsModel(QObject *parent)
 
 QModelIndex UsersGroupsModel::index(int row, int column, const QModelIndex &parent) const
 {
-    //return this->index(row, column, parent());
+    return this->index(row, column, parent);
 }
 
 QModelIndex UsersGroupsModel::parent(const QModelIndex &index) const
 {
-    // FIXME: Implement me!
+    return this->parent(index);
 }
 
 int UsersGroupsModel::rowCount(const QModelIndex &parent) const
@@ -20,7 +20,7 @@ int UsersGroupsModel::rowCount(const QModelIndex &parent) const
     if (!parent.isValid())
         return 0;
 
-    // FIXME: Implement me!
+    return this->rowCount(parent);
 }
 
 int UsersGroupsModel::columnCount(const QModelIndex &parent) const
@@ -28,7 +28,7 @@ int UsersGroupsModel::columnCount(const QModelIndex &parent) const
     if (!parent.isValid())
         return 0;
 
-    // FIXME: Implement me!
+    return this->columnCount(parent);
 }
 
 QVariant UsersGroupsModel::data(const QModelIndex &index, int role) const

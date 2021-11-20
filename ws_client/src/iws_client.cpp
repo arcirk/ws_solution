@@ -1,7 +1,10 @@
 #include "../include/iws_client.h"
 #ifdef _WINDOWS
-#include "net.h"
-    #include "ws_client.h"
+    #pragma warning(disable:4061)
+    #pragma warning(disable:4001)
+    #include  <SDKDDKVer.h>
+    #include "../include/net.h"
+    #include "../include/ws_client.h"
 #else
 #include "../include/ws_client.h"
 #endif // _WINDOWS
