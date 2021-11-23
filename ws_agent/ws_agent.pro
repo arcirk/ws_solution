@@ -5,7 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 HEADERS       = window.h
 SOURCES       = main.cpp \
                 window.cpp
-RESOURCES     = systray.qrc
+RESOURCES     = ws_agent.qrc
 
 FORMS         = window.ui
 

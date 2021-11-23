@@ -7,13 +7,13 @@
 
 int main(int argc, char *argv[])
 {
-    Q_INIT_RESOURCE(systray);
+    Q_INIT_RESOURCE(ws_agent);
 
     QApplication app(argc, argv);
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-        QMessageBox::critical(nullptr, QObject::tr("Systray"),
-                              QObject::tr("I couldn't detect any system tray "
+        QMessageBox::critical(nullptr, QObject::tr("ws_agent"),
+                              QObject::tr("Не обноружено ни одной панели задач! "
                                           "on this system."));
         return 1;
     }

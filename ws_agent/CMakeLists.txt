@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ws_systray)
+project(ws_agent)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -16,9 +16,9 @@ find_package(Qt6 COMPONENTS
         QuickControls2
         REQUIRED)
 
-add_executable(ws_systray main.cpp window.h window.cpp systray.qrc)
+add_executable(ws_agent main.cpp window.h window.cpp ws_agent.qrc)
 
-target_link_libraries(ws_systray
+target_link_libraries(ws_agent
         Qt::Core
         Qt::Gui
         Qt::Widgets
