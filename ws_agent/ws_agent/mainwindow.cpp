@@ -21,11 +21,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     trayIcon->show();
 
+    m_client = new bWebSocket();
+    m_client->get_settings()->AppName = "qt_agent";
+    if(m_client->get_settings()->RootUser.isEmpty())
+        m_client->get_settings()->RootUser = "admin";
+    ui->txtServerName->setText(m_client->get_settings()->ServerName);
+    ui->iServerPort->setValue(m_client->get_settings()->ServerPort);
+    ui->txtUserName->setText(m_client->getUserName());
+    ui->chAutiConnect->setChecked(m_client->autoConnect());
+    ui->chSaveAuth->setChecked(m_client->saveHash());
+    ui->txtPassword->setEnabled(!m_client->saveHash());
+
+
     this->setWindowFlags(Qt::Dialog);
 }
 
 MainWindow::~MainWindow()
 {
+    delete m_client;
     delete ui;
 }
 
@@ -130,3 +143,62 @@ void MainWindow::messageClicked()
                              tr("Sorry, I already gave what help I could.\n"
                                 "Maybe you should try asking a human?"));
 }
+
+void MainWindow::on_txtServerName_editingFinished()
+{
+    m_client->get_settings()->ServerName = ui->txtServerName->text();
+    m_client->get_settings()->save_settings();
+}
+
+
+void MainWindow::on_iServerPort_editingFinished()
+{
+    m_client->get_settings()->ServerPort = ui->iServerPort->value();
+    m_client->get_settings()->save_settings();
+}
+
+
+void MainWindow::on_txtUserName_editingFinished()
+{
+    m_client->get_settings()->RootUser = ui->txtUserName->text();
+    m_client->get_settings()->save_settings();
+}
+
+
+void MainWindow::on_txtPassword_editingFinished()
+{
+    //
+}
+
+
+void MainWindow::on_chSaveAuth_toggled(bool checked)
+{
+    m_client->setSaveHash(checked);
+    m_client->get_settings()->save_settings();
+}
+
+
+void MainWindow::on_chAutiConnect_toggled(bool checked)
+{
+    m_client->setAutoConnect(checked);
+    m_client->get_settings()->save_settings();
+}
+
+
+void MainWindow::on_btnConnect_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnDisconnect_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnHide_clicked()
+{
+
+}
+

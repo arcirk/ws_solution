@@ -20,6 +20,12 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         ws_agent.qrc
+        src/qmlwebsocket.cpp
+        include/qmlwebsocket.h
+        src/clientsettings.cpp
+        src/serveresponse.cpp
+        include/serveresponse.h
+        include/clientsettings.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -45,7 +51,11 @@ else()
     endif()
 endif()
 
-target_link_libraries(ws_agent PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+include_directories("../../ws_client/include")
+#link_directories("../../ws_client/cmake-build-debug")
+target_link_libraries(ws_agent PRIVATE
+        Qt${QT_VERSION_MAJOR}::Widgets
+        ws_client)
 
 set_target_properties(ws_agent PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -56,3 +66,5 @@ set_target_properties(ws_agent PROPERTIES
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(ws_agent)
 endif()
+
+

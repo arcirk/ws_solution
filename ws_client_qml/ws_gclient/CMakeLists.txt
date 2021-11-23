@@ -61,16 +61,16 @@ target_link_libraries(ws_gclient
         qjsonmodel
         )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-add_custom_command(
-        TARGET ws_gclient POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:Qt6::Widgets>
-        $<TARGET_FILE:Qt6::Core>
-        $<TARGET_FILE:Qt6::Gui>
-        $<TARGET_FILE:Qt6::Qml>
-        $<TARGET_FILE:Qt6::Quick>
-        $<TARGET_FILE:Qt6::QmlModels>
-        $<TARGET_FILE:Qt6::QuickWidgets>
-        $<TARGET_FILE:Qt6::QuickControls2>)
-endif()
+#if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+#add_custom_command(
+#        TARGET ws_gclient POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#        $<TARGET_FILE:Qt6::Widgets>
+#        $<TARGET_FILE:Qt6::Core>
+#        $<TARGET_FILE:Qt6::Gui>
+#        $<TARGET_FILE:Qt6::Qml>
+#        $<TARGET_FILE:Qt6::Quick>
+#        $<TARGET_FILE:Qt6::QmlModels>
+#        $<TARGET_FILE:Qt6::QuickWidgets>
+#        $<TARGET_FILE:Qt6::QuickControls2>)
+#endif()

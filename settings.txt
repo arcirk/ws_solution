@@ -1,2 +1,0 @@
--DCMAKE_PREFIX_PATH=/opt/Qt/6.2.0/gcc_64/lib/cmake
-sudo apt-get install libgl1-mesa-dev
