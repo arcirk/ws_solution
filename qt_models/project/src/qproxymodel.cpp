@@ -21,7 +21,6 @@ int QProxyModel::sortRole()
 void QProxyModel::setSortRole(int role)
 {
     m_sortRole = role;
-    this->setSortRole(role);
     this->setDynamicSortFilter(true);
 }
 
@@ -36,23 +35,24 @@ bool QProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
             int col = model->getColumnIndex(i.key());
             QModelIndex index = model->index(sourceRow, col, sourceParent);
 
-            if (i.value().typeId() == QMetaType::QString){
+            //if (i.value().typeId() == QMetaType::QString){
+            if (i.value().userType() == QMetaType::QString){
                 if (i.value().toString() != model->data(index).toString())
                     return false;
             }
-            else if (i.value().typeId() == QMetaType::Int){
+            else if (i.value().userType() == QMetaType::Int){
                 if (i.value().toInt() != model->data(index).toInt())
                     return false;
             }
-            else if (i.value().typeId() == QMetaType::Bool){
+            else if (i.value().userType() == QMetaType::Bool){
                 if (i.value().toBool() != model->data(index).toBool())
                     return false;
             }
-            else if (i.value().typeId() == QMetaType::Double){
+            else if (i.value().userType() == QMetaType::Double){
                 if (i.value().toDouble() != model->data(index).toDouble())
                     return false;
             }
-            else if (i.value().typeId() == QMetaType::LongLong){
+            else if (i.value().userType() == QMetaType::LongLong){
                 if (i.value().toLongLong() != model->data(index).toLongLong())
                     return false;
             }

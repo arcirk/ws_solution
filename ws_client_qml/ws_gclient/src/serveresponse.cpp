@@ -178,7 +178,7 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonArray &rows, QMap<QSt
             if (col.value().isString())
                 itemVal = new QStandardItem(col.value().toString());
             else if (col.value().isDouble())
-                itemVal = new QStandardItem(QString::number(col.value().toInteger()));
+                itemVal = new QStandardItem(QString::number(col.value().toInt()));
             else if (col.value().isBool())
                 itemVal = new QStandardItem(QString::number(col.value().toBool()));
             model->setItem(index, indexCol, itemVal);

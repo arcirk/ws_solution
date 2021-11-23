@@ -6,6 +6,9 @@
 #define WS_SOLUTION_NET_H
 
 #ifdef _WINDOWS
+    #pragma warning (disable: 4001)
+    #pragma warning (disable: 4101)
+    #pragma warning (disable: 4061)
     #include "../../ws_drv/src/stdafx.h"
 #else
 	#include <boost/asio.hpp>

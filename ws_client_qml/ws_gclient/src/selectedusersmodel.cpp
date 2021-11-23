@@ -359,15 +359,16 @@ void SelectedUsersModel::setRowValue(QModelIndex &index, const QVariant &value)
     const QString& key = m_header[index.column()]["index"];
     //if( obj.contains( key ))
     //{
-        if(value.typeId() == QMetaType::QString){
+        //if(value.typeId() == QMetaType::QString){
+        if(value.userType() == QMetaType::QString){
             QJsonObject _obj = m_json[index.row()].toObject();
             _obj[key] = value.toString();
             m_json[index.row()] = _obj;
-        }else if(value.typeId() == QMetaType::Int){
+        }else if(value.userType() == QMetaType::Int){
             QJsonObject _obj = m_json[index.row()].toObject();
             _obj[key] = value.toInt();
             m_json[index.row()] = _obj;
-        }else if(value.typeId() == QMetaType::Bool){
+        }else if(value.userType() == QMetaType::Bool){
             QJsonObject _obj = m_json[index.row()].toObject();
             _obj[key] = value.toBool();
             m_json[index.row()] = _obj;

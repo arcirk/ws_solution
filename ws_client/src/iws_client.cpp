@@ -159,7 +159,7 @@ void IClient::get_messages(const std::string &uuid_sub, const long int &start_da
 
         send_command("get_messages", uuid_form, _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 
@@ -178,7 +178,7 @@ void IClient::get_user_info(const std::string &_user_uuid, const std::string &uu
 
         send_command("get_user_info", uuid_form, _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -191,7 +191,7 @@ void IClient::get_group_list(const std::string &uuid_form) {
 
         send_command("get_group_list", uuid_form, "");
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -211,7 +211,7 @@ void IClient::add_group(const std::string &name, const std::string &presentation
 
         send_command("add_group", uuid_form, _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -268,7 +268,7 @@ void IClient::get_users(const std::string &uuid_group, const std::string &uuid_f
 
         send_command("get_users", uuid_form, _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -323,7 +323,7 @@ void IClient::kill_session(const std::string &_user_uuid, const std::string &uui
 
         send_command("kill_session", uuid_form, _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -383,7 +383,7 @@ void IClient::set_app_name(const std::string &session_uuid, const std::string &n
 
         send_command("set_app_name", nil_string_uuid(), _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -434,7 +434,7 @@ void IClient::get_user_cache(const std::string &uuid_form) {
 
         send_command("get_user_cache", nil_string_uuid(), _ss.str());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
@@ -529,7 +529,7 @@ void IClient::get_user_data(const std::string &_user_uuid, const std::string &uu
 
         send_command("get_user_data", uuid_form, json.to_string());
 
-    }catch (std::exception& e){
+    }catch (std::exception&){
         //message("error: " + std::string (e.what()));
     }
 }
