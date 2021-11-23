@@ -12,5 +12,5 @@ add_subdirectory("tests/ws_chat_qt/ws_chat_qt" "${PROJECT_SOURCE_DIR}/tests/ws_c
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests/TabBox/TabBox" "${PROJECT_SOURCE_DIR}/tests/TabBox/TabBox/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/arcirk" "${PROJECT_SOURCE_DIR}/arcirk/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client_qml/ws_gclient" "${PROJECT_SOURCE_DIR}/ws_client_qml/ws_gclient/cmake-build-debug")
-#add_subdirectory("${PROJECT_SOURCE_DIR}/ws_agent" "${PROJECT_SOURCE_DIR}/ws_agent/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ws_agent/ws_agent" "${PROJECT_SOURCE_DIR}/ws_agent/ws_agent/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qt_models/project" "${PROJECT_SOURCE_DIR}/qt_models/project/cmake-build-debug")

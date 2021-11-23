@@ -180,9 +180,10 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit clientLeave(resp->message);
         }else if(resp->command == "get_user_status"){
             emit requestUserStatus(resp->message);
+        }else if(resp->command == "reset_unread_messages"){
+            //
         }
         else if(resp->command == "get_unread_messages"){
-            //qDebug() << resp->message;
             emit unreadMessages(resp->message);
         }
         else
