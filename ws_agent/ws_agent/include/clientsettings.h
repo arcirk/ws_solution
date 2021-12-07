@@ -24,6 +24,7 @@ public:
     QString AppName;
     bool AutoConnect;
     bool SaveHash;
+    QString pathToClient;
 };
 
 #endif // APPSETTINGS_H

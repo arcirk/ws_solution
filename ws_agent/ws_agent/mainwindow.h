@@ -29,8 +29,6 @@ private slots:
     void showMessage();
     void messageClicked();
 
-    void on_txtServerName_editingFinished();
-
     void on_iServerPort_editingFinished();
 
     void on_txtUserName_editingFinished();
@@ -46,6 +44,20 @@ private slots:
     void on_btnDisconnect_clicked();
 
     void on_btnHide_clicked();
+
+    void on_btnViewPwd_toggled(bool checked);
+
+    void on_btnEditPwd_toggled(bool checked);
+
+    void on_txtServerHost_editingFinished();
+
+    //ws_client
+    void onConnectionSuccess();
+    void onCloseConnection();
+    void onQmlError(const QString& what, const QString& err);
+    void onConnectedStatusChanged(bool satus);
+    void onClientJoin(const QString& resp);
+    void onClientLeave(const QString& resp);
 
 private:
     Ui::MainWindow *ui;

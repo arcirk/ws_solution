@@ -72,8 +72,12 @@ bool ClientSettings::init(){
     if (iter != m_currentJsonObject.end()){
         SaveHash = iter.value().toBool();
     }
+    iter = m_currentJsonObject.find("pathToClient");
+    if (iter != m_currentJsonObject.end()){
+        pathToClient = iter.value().toString();
+    }
 
-    AppName = "qt_client";
+    AppName = "qt_agent";
 
     return true;
 }
@@ -93,6 +97,7 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
     m_currentJsonObject.insert("AppName", AppName);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
 
     QString saveFileName = "config.json";
     QFileInfo fileInfo(saveFileName);
@@ -107,6 +112,7 @@ void ClientSettings::save_settings(){
     // Записываем текущий объект Json в файл
     jsonFile.write(QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented));
     jsonFile.close();   // Закрываем файл
+
 }
 
 QString ClientSettings::getJson() {
@@ -119,6 +125,7 @@ QString ClientSettings::getJson() {
     m_currentJsonObject.insert("ServerName", ServerName);
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
     return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
 }
 
@@ -134,6 +141,7 @@ QJsonObject ClientSettings::getJsonObject() {
     m_currentJsonObject.insert("ServerStatus", ServerStatus);
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
     return m_currentJsonObject;
 
 }

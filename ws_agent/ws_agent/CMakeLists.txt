@@ -53,6 +53,8 @@ endif()
 
 include_directories("../../ws_client/include")
 #link_directories("../../ws_client/cmake-build-debug")
+#link_directories("/home/arcady/src/ws_solution/ws_client/cmake-build-debug")
+
 target_link_libraries(ws_agent PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
         ws_client)

@@ -25,13 +25,20 @@ MainWindow::MainWindow(QWidget *parent)
     m_client->get_settings()->AppName = "qt_agent";
     if(m_client->get_settings()->RootUser.isEmpty())
         m_client->get_settings()->RootUser = "admin";
-    ui->txtServerName->setText(m_client->get_settings()->ServerName);
+    ui->txtServerHost->setText(m_client->get_settings()->ServerHost);
     ui->iServerPort->setValue(m_client->get_settings()->ServerPort);
     ui->txtUserName->setText(m_client->getUserName());
     ui->chAutiConnect->setChecked(m_client->autoConnect());
     ui->chSaveAuth->setChecked(m_client->saveHash());
     ui->txtPassword->setEnabled(!m_client->saveHash());
+    ui->btnViewPwd->setEnabled(ui->txtPassword->isEnabled());
 
+    connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
+    connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
+    connect(m_client, &bWebSocket::qmlError, this, &MainWindow::onQmlError);
+    connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
+    connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
+    connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
 
     this->setWindowFlags(Qt::Dialog);
 }
@@ -144,12 +151,6 @@ void MainWindow::messageClicked()
                                 "Maybe you should try asking a human?"));
 }
 
-void MainWindow::on_txtServerName_editingFinished()
-{
-    m_client->get_settings()->ServerName = ui->txtServerName->text();
-    m_client->get_settings()->save_settings();
-}
-
 
 void MainWindow::on_iServerPort_editingFinished()
 {
@@ -187,6 +188,11 @@ void MainWindow::on_chAutiConnect_toggled(bool checked)
 
 void MainWindow::on_btnConnect_clicked()
 {
+    if(m_client->isStarted()){
+        return;
+    }
+
+    m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
 
 }
 
@@ -194,11 +200,72 @@ void MainWindow::on_btnConnect_clicked()
 void MainWindow::on_btnDisconnect_clicked()
 {
 
+    if(m_client->isStarted()){
+        m_client->close();
+    }
+
 }
 
 
 void MainWindow::on_btnHide_clicked()
 {
 
+}
+
+
+void MainWindow::on_btnViewPwd_toggled(bool checked)
+{
+    if(checked){
+        ui->btnViewPwd->setIcon(QIcon(QStringLiteral(":/img/images/view_hide_icon_124813.svg")));
+        ui->txtPassword->setEchoMode(QLineEdit::Normal);
+    }else{
+        ui->btnViewPwd->setIcon(QIcon(QStringLiteral(":/img/images/view_show_icon_124811.svg")));
+        ui->txtPassword->setEchoMode(QLineEdit::Password);
+    }
+
+}
+
+
+void MainWindow::on_btnEditPwd_toggled(bool checked)
+{
+    ui->txtPassword->setEnabled(checked);
+    ui->btnViewPwd->setEnabled(checked);
+}
+
+
+void MainWindow::on_txtServerHost_editingFinished()
+{
+    m_client->get_settings()->ServerHost = ui->txtServerHost->text();
+    m_client->get_settings()->save_settings();
+}
+
+void MainWindow::onConnectionSuccess()
+{
+    qDebug() << "connectionSuccess";
+}
+
+void MainWindow::onCloseConnection()
+{
+    qDebug() << "onCloseConnection";
+}
+
+void MainWindow::onQmlError(const QString &what, const QString &err)
+{
+    qDebug() << "onQmlError" << what << ": " << err;
+}
+
+void MainWindow::onConnectedStatusChanged(bool satus)
+{
+    qDebug() << "onConnectedStatusChanged" << satus;
+}
+
+void MainWindow::onClientJoin(const QString &resp)
+{
+    qDebug() << "onClientJoin" << resp;
+}
+
+void MainWindow::onClientLeave(const QString &resp)
+{
+    qDebug() << "onClientLeave" << resp;
 }
 
