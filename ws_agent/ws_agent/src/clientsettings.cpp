@@ -18,6 +18,8 @@ ClientSettings::ClientSettings()
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
 
+    pathToClient = "../../ws_client_qml/ws_gclient/cmake-build-debug/";
+
 }
 
 bool ClientSettings::init(){
@@ -78,6 +80,9 @@ bool ClientSettings::init(){
     }
 
     AppName = "qt_agent";
+
+    if(pathToClient.isEmpty())
+         pathToClient = "../../ws_client_qml/ws_gclient/cmake-build-debug/";
 
     return true;
 }

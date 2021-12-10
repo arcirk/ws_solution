@@ -59,11 +59,13 @@ private slots:
     void onClientJoin(const QString& resp);
     void onClientLeave(const QString& resp);
 
+    void openChatApp();
+
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
-    QAction *minimizeAction;
+    QAction *openQmlClient;
     QAction *maximizeAction;
     QAction *restoreAction;
     QAction *quitAction;

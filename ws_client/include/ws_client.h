@@ -70,18 +70,13 @@ public:
 
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &json_param);
 
-    //void set_status_callback(_status_changed& callback);
-
     bool decode_message;
 
     bool is_login(){return _is_login;}
 
-    //bool is_open();
-
 private:
 
     boost::asio::io_context &ioc;
-    //bool _started;
     boost::uuids::uuid uuid_{};
     std::string name_;
     _callback_message _callback_msg;
@@ -98,4 +93,8 @@ private:
     void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param, session * sess);
 
     void set_param(ptree& pt);
+
+    boost::uuids::uuid agent_session; //идентификатор сессии агента под управлением которго текущая сессия
+    boost::uuids::uuid current_client_session; //идентификатор клиента если текущая сессия является агентом.
+
 };

@@ -75,6 +75,10 @@ public:
 
     void close_channel(boost::uuids::uuid& uuid);
 
+    void set_agent_current_client(websocket_session* sess);
+
+    void set_agent(websocket_session* sess);
+
 private:
 
     std::string ip_address = "0.0.0.0";
@@ -92,6 +96,8 @@ private:
 
     bool stopped() const;
 
+    websocket_session* agent_current_client;
+    websocket_session* agent_session;
 };
 
 template<class Body, class Allocator>

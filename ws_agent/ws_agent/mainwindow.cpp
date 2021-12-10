@@ -6,6 +6,9 @@
 #include <QCloseEvent>
 #include <QMenu>
 #include <QMessageBox>
+#include <QFileInfo>
+
+#include <QProcess>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -41,6 +44,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
 
     this->setWindowFlags(Qt::Dialog);
+
+    if(QFileInfo(m_client->get_settings()->pathToClient + "ws_gclient").exists()){
+        qDebug() << "ws_gclient найден";
+    }
+    else{
+        qDebug() << "ws_gclient не найден";
+    }
 }
 
 MainWindow::~MainWindow()
@@ -52,7 +62,7 @@ MainWindow::~MainWindow()
 void MainWindow::createTrayIcon()
 {
     trayIconMenu = new QMenu(this);
-    trayIconMenu->addAction(minimizeAction);
+    trayIconMenu->addAction(openQmlClient);
     trayIconMenu->addAction(maximizeAction);
     trayIconMenu->addAction(restoreAction);
     trayIconMenu->addSeparator();
@@ -75,7 +85,7 @@ void MainWindow::setIcon()
 
 void MainWindow::setVisible(bool visible)
 {
-    minimizeAction->setEnabled(visible);
+    openQmlClient->setEnabled(true);
     maximizeAction->setEnabled(!isMaximized());
     restoreAction->setEnabled(isMaximized() || !visible);
     QMainWindow::setVisible(visible);
@@ -100,8 +110,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::createActions()
 {
-    minimizeAction = new QAction(tr("Mi&nimize"), this);
-    connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
+    openQmlClient = new QAction(tr("Открыть &чат"), this);
+    connect(openQmlClient, &QAction::triggered, this, &MainWindow::openChatApp);
 
     maximizeAction = new QAction(tr("Ma&ximize"), this);
     connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
@@ -267,5 +277,12 @@ void MainWindow::onClientJoin(const QString &resp)
 void MainWindow::onClientLeave(const QString &resp)
 {
     qDebug() << "onClientLeave" << resp;
+}
+
+void MainWindow::openChatApp()
+{
+    QProcess chat;
+    chat.start(m_client->get_settings()->pathToClient + "/ws_gclient");
+    chat.waitForFinished(-1);
 }
 

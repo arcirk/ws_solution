@@ -112,6 +112,7 @@ private:
     bool get_user_data(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool reset_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool get_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_agent_session(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
 
     int get_unread_messages_from_data(boost::uuids::uuid &uuid, boost::uuids::uuid &uuid_recipient);
 
