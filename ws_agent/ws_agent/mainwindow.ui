@@ -23,13 +23,34 @@
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="chSaveAuth">
+        <property name="text">
+         <string>Запомнить</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="btnConnect">
+        <property name="text">
+         <string>Подключится</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="txtServerHost"/>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="5" column="1">
+       <widget class="QCheckBox" name="chAutiConnect">
         <property name="text">
-         <string>Порт:</string>
+         <string>Подключатся автоматически</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="btnHide">
+        <property name="text">
+         <string>Свернуть</string>
         </property>
        </widget>
       </item>
@@ -91,10 +112,30 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="chSaveAuth">
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="txtUserName"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Запомнить</string>
+         <string>Имя пользователя:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Порт:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="btnDisconnect">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Отключится</string>
         </property>
        </widget>
       </item>
@@ -105,23 +146,6 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="chAutiConnect">
-        <property name="text">
-         <string>Подключатся автоматически</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Имя пользователя:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="txtUserName"/>
-      </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
@@ -129,24 +153,13 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="btnConnect">
-        <property name="text">
-         <string>Подключится</string>
-        </property>
-       </widget>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="pathToClient"/>
       </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="btnDisconnect">
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Отключится</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="btnHide">
-        <property name="text">
-         <string>Свернуть</string>
+         <string>Каталог клиента:</string>
         </property>
        </widget>
       </item>

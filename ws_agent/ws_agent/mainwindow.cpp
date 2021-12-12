@@ -10,6 +10,12 @@
 
 #include <QProcess>
 
+bool fileExists(QString path) {
+    QFileInfo check_file(path);
+    // check if file exists and if yes: Is it really a file and no directory?
+    return check_file.exists() && check_file.isFile();
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -35,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->chSaveAuth->setChecked(m_client->saveHash());
     ui->txtPassword->setEnabled(!m_client->saveHash());
     ui->btnViewPwd->setEnabled(ui->txtPassword->isEnabled());
+    ui->pathToClient->setText(m_client->get_settings()->pathToClient);
 
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
     connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
@@ -219,7 +226,9 @@ void MainWindow::on_btnDisconnect_clicked()
 
 void MainWindow::on_btnHide_clicked()
 {
-
+    if (trayIcon->isVisible()) {
+        hide();
+    }
 }
 
 
@@ -262,11 +271,14 @@ void MainWindow::onCloseConnection()
 void MainWindow::onQmlError(const QString &what, const QString &err)
 {
     qDebug() << "onQmlError" << what << ": " << err;
+    onDisplayError(err);
 }
 
-void MainWindow::onConnectedStatusChanged(bool satus)
+void MainWindow::onConnectedStatusChanged(bool status)
 {
-    qDebug() << "onConnectedStatusChanged" << satus;
+    qDebug() << "onConnectedStatusChanged" << status;
+    ui->btnConnect->setEnabled(!status);
+    ui->btnDisconnect->setEnabled(status);
 }
 
 void MainWindow::onClientJoin(const QString &resp)
@@ -281,8 +293,32 @@ void MainWindow::onClientLeave(const QString &resp)
 
 void MainWindow::openChatApp()
 {
-    QProcess chat;
-    chat.start(m_client->get_settings()->pathToClient + "/ws_gclient");
-    chat.waitForFinished(-1);
+    qDebug() << m_client->get_settings()->pathToClient;
+    if (m_client->isStarted()){
+
+        QString pathToClient = m_client->get_settings()->pathToClient + "/ws_gclient";
+        if(fileExists(pathToClient)){
+            QProcess chat;
+            chat.start(pathToClient);
+            chat.waitForFinished(-1);
+        }else
+            onDisplayError("Файл клиента не найден!");
+    }else
+        onDisplayError("Клиент не подключен!");
+
+}
+
+
+void MainWindow::on_pathToClient_editingFinished()
+{
+    m_client->get_settings()->pathToClient = ui->pathToClient->text();
+    m_client->get_settings()->save_settings();
+}
+
+void MainWindow::onDisplayError(const QString &err)
+{
+    QIcon msgIcon(":/img/images/381599_error_icon.svg");
+    trayIcon->showMessage("Ошибка", err, msgIcon,
+                          3 * 1000);
 }
 

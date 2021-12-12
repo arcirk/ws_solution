@@ -55,11 +55,15 @@ private slots:
     void onConnectionSuccess();
     void onCloseConnection();
     void onQmlError(const QString& what, const QString& err);
-    void onConnectedStatusChanged(bool satus);
+    void onConnectedStatusChanged(bool status);
     void onClientJoin(const QString& resp);
     void onClientLeave(const QString& resp);
 
     void openChatApp();
+
+    void on_pathToClient_editingFinished();
+
+    void onDisplayError(const QString& err);
 
 private:
     Ui::MainWindow *ui;
