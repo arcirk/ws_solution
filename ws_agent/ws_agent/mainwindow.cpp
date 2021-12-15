@@ -8,8 +8,6 @@
 #include <QMessageBox>
 #include <QFileInfo>
 
-#include <QProcess>
-
 bool fileExists(QString path) {
     QFileInfo check_file(path);
     // check if file exists and if yes: Is it really a file and no directory?
@@ -52,16 +50,27 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setWindowFlags(Qt::Dialog);
 
-    if(QFileInfo(m_client->get_settings()->pathToClient + "ws_gclient").exists()){
+    wsProc = new QProcess(this);
+   //connect(wsProc, SIGNAL(started()), this, &MainWindow::onClientStarted());
+    connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
+
+    if(QFileInfo(m_client->get_settings()->pathToClient + "/ws_gclient").exists()){
         qDebug() << "ws_gclient найден";
     }
     else{
         qDebug() << "ws_gclient не найден";
     }
+
+    if(m_client->get_settings()->AutoConnect){
+        m_client->open(m_client->getUserName(), "");
+    }
 }
 
 MainWindow::~MainWindow()
 {
+//    if(wsProc->state() == QProcess::Running){
+//        wsProc->close();
+//    }
     delete m_client;
     delete ui;
 }
@@ -127,7 +136,8 @@ void MainWindow::createActions()
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
 
     quitAction = new QAction(tr("&Выйти"), this);
-    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+    //connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+    connect(quitAction, &QAction::triggered, this, &MainWindow::appExit);
 }
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -209,6 +219,9 @@ void MainWindow::on_btnConnect_clicked()
         return;
     }
 
+    bool pwd_edit = ui->btnEditPwd->isChecked();
+    m_client->setPwdEdit(pwd_edit);
+
     m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
 
 }
@@ -220,6 +233,9 @@ void MainWindow::on_btnDisconnect_clicked()
     if(m_client->isStarted()){
         m_client->close();
     }
+//    if(wsProc->state() == QProcess::Running){
+//       wsProc->close();
+//    }
 
 }
 
@@ -261,11 +277,19 @@ void MainWindow::on_txtServerHost_editingFinished()
 void MainWindow::onConnectionSuccess()
 {
     qDebug() << "connectionSuccess";
+
+    ui->txtPassword->setEnabled(false);
+    ui->btnViewPwd->setEnabled(false);
+
 }
 
 void MainWindow::onCloseConnection()
 {
     qDebug() << "onCloseConnection";
+    if(wsProc->state() == QProcess::Running){
+        wsProc->close();
+    }
+
 }
 
 void MainWindow::onQmlError(const QString &what, const QString &err)
@@ -298,9 +322,23 @@ void MainWindow::openChatApp()
 
         QString pathToClient = m_client->get_settings()->pathToClient + "/ws_gclient";
         if(fileExists(pathToClient)){
-            QProcess chat;
-            chat.start(pathToClient);
-            chat.waitForFinished(-1);
+            if(wsProc->state() == QProcess::NotRunning){
+                qDebug() << m_client->getHash();
+                QStringList m_arg;
+                m_arg.append(m_client->getUserName());
+                m_arg.append(m_client->getHash());
+                m_arg.append(m_client->getUuidSession());
+                m_arg.append(m_client->get_settings()->ServerHost);
+                m_arg.append(QString::number(m_client->get_settings()->ServerPort));
+
+                wsProc->start(pathToClient, m_arg);
+                wsProc->waitForFinished(-1);
+//                wsProc->startDetached(pathToClient, m_arg);
+
+            }else
+            {
+
+            }
         }else
             onDisplayError("Файл клиента не найден!");
     }else
@@ -320,5 +358,19 @@ void MainWindow::onDisplayError(const QString &err)
     QIcon msgIcon(":/img/images/381599_error_icon.svg");
     trayIcon->showMessage("Ошибка", err, msgIcon,
                           3 * 1000);
+}
+
+void MainWindow::appExit()
+{
+//    if(wsProc->state() == QProcess::Running){
+//        wsProc->close();
+//    }
+
+    QCoreApplication::quit();
+}
+
+void MainWindow::onFinish(int pid, QProcess::ExitStatus status)
+{
+    qDebug() << status;
 }
 

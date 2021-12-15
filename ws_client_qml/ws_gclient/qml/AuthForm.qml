@@ -17,6 +17,8 @@ Page{
     property alias pwdEdit: editPass.checked
     property alias enabledForm: columnLayout.enabled
 
+    property QtObject arguments: []
+
     signal accept(string user, string pwd);
 
     function webSocketError(what, err){

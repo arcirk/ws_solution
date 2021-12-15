@@ -24,6 +24,11 @@ public:
     QString AppName;
     bool AutoConnect;
     bool SaveHash;
+
+    void setSettingsFileName(const QString& fname);
+
+private:
+    QString fileName;
 };
 
 #endif // APPSETTINGS_H

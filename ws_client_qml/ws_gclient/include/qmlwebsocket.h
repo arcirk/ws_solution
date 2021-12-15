@@ -22,7 +22,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool saveHash READ saveHash WRITE setSaveHash NOTIFY saveHashChanged)
     Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
     Q_PROPERTY(bool connectedStatus READ connectedStatus NOTIFY connectedStatusChanged)
-    //Q_PROPERTY(QString activePage READ getActivePage WRITE setActivePage);
+    Q_PROPERTY(QString settingsFileName READ getSettingsFileName WRITE setSettingsFileName NOTIFY settingsFileNameChanged);
 
 public:
     explicit bWebSocket(QObject *parent = nullptr);
@@ -74,12 +74,16 @@ public:
 
     bool connectedStatus();
 
+    void setSettingsFileName(const QString& fname);
+    QString getSettingsFileName();
+
 private:
     IClient * client;
     ClientSettings * settings;
     bool _pwdEdit;
     QString user;
     QString hash;
+    QString fileName;
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -112,6 +116,8 @@ signals:
     void requestUserData(const QString& resp);
     void unreadMessages(const QString& resp);
     void requestUserStatus(const QString& resp);
+    void settingsFileNameChanged();
+    //void initDone();
 };
 
 #endif // QMLWEBSOCKET_H

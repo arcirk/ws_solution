@@ -26,7 +26,7 @@ set(PROJECT_SOURCES
         src/serveresponse.cpp
         include/serveresponse.h
         include/clientsettings.h
-)
+        include/clientapp.h src/clientapp.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ws_agent

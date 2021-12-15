@@ -17,7 +17,7 @@ ClientSettings::ClientSettings()
 
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
-
+    fileName = "config.json";
 }
 
 bool ClientSettings::init(){
@@ -94,7 +94,7 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("SaveHash", SaveHash);
     m_currentJsonObject.insert("AppName", AppName);
 
-    QString saveFileName = "config.json";
+    QString saveFileName = fileName;
     QFileInfo fileInfo(saveFileName);
     QDir::setCurrent(fileInfo.path());
 
@@ -136,4 +136,8 @@ QJsonObject ClientSettings::getJsonObject() {
     m_currentJsonObject.insert("SaveHash", SaveHash);
     return m_currentJsonObject;
 
+}
+
+void ClientSettings::setSettingsFileName(const QString &fname) {
+    fileName = fname;
 }

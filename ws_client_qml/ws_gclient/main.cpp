@@ -6,11 +6,47 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-
 #include "include/qmlwebsocket.h"
 #include <qproxymodel.h>
 #include <qjsontablemodel.h>
 #include "userinfo.h"
+
+#include "include/clientsettings.h"
+
+#include <QFileInfo>
+
+bool fileExists(QString path) {
+    QFileInfo check_file(path);
+    // check if file exists and if yes: Is it really a file and no directory?
+    return check_file.exists() && check_file.isFile();
+}
+
+void updateParamsFromArgs(QStringList& arg){
+    if(arg.count() == 5){
+
+        QString usr = arg[0];
+        QString hash = arg[1];
+        QString uuidAgent = arg[2];
+        QString host = arg[3];
+        int port = arg[4].toInt();
+
+       ClientSettings * sett = new ClientSettings();
+       sett->init();
+       sett->ServerHost = host;
+       sett->ServerPort = port;
+       sett->RootUser = usr;
+       sett->Hash = hash;
+       sett->AutoConnect = true;
+       sett->SaveHash = true;
+
+       sett->setSettingsFileName("config_client.json");
+
+       sett->save_settings();
+
+       delete sett;
+
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -22,14 +58,11 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<bWebSocket>("arcirk.bWebSocket", 1, 0, "WebSocket");
 
-//    if (argc == 3){
-//        auto const address = argv[1];
-//        auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-//        //auto const user = std::max<int>(1, std::atoi(argv[3]));
-//        //qDebug() << "address:" << address << "port: " << port;
-//        client->get_settings()->ServerHost = QString(address);
-//        client->get_settings()->ServerPort = port;
-//    }
+    QStringList cmdline_args = QCoreApplication::arguments();
+
+    qDebug() << cmdline_args.length();
+
+    updateParamsFromArgs(cmdline_args);
 
     QQuickStyle::setStyle("Material");
 
@@ -46,6 +79,11 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+    bool agentUsed = cmdline_args.count() > 1;
+
+    engine.rootContext()->setContextProperty("agentUsed", agentUsed);
+
     engine.load(url);
 
     return app.exec();

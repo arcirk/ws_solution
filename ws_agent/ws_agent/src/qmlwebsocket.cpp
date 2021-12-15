@@ -10,6 +10,8 @@ bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
     _callback_status callback_status = std::bind(&bWebSocket::status_changed, this, std::placeholders::_1);
 
     client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort, callback, callback_status);
+
+    _pwdEdit = false;
 }
 
 bWebSocket::~bWebSocket()

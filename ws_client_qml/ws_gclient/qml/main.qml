@@ -16,8 +16,10 @@ ApplicationWindow {
 
     property string myTheme: "Dark"
 
-    property alias myHost: wsClient.host//srvSettingsDlg.serverAdrr
-    property alias myPort: wsClient.port //srvSettingsDlg.serverPort
+    property alias myHost: wsClient.host
+    property alias myPort: wsClient.port
+
+    //property bool isAgent: false
 
     Material.theme: myTheme === "Light" ? Material.Light : Material.Dark
 
@@ -36,6 +38,7 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
+        settingsFileName: "config_client.json"
 //        host: mainForm.myHost
 //        port: mainForm.myPort
         //catalog: catalogModel
@@ -116,6 +119,10 @@ ApplicationWindow {
             mainChatBox.setUnreadMessages(resp)
         }
 
+//        onInitDone: {
+//            console.debug("onInitDone")
+//            console.debug(arguments.count())
+//        }
     }
 
     ServerSettingsDialog{
@@ -126,19 +133,27 @@ ApplicationWindow {
         //enabled: false
 
         onClosed: {
+
             if(!wsClient.started){
                 wsClient.host = srvSettingsDlg.serverAdrr
                 wsClient.port = srvSettingsDlg.serverPort
             }
+
+
+
         }
     }
 
     onClosing: {
-        if(wsClient.started){
-            var cache = mainChatBox.getActiveUsersJsonText()
-            if(cache)
-                wsClient.saveCache(cache)
-        }
+//        if(agentUsed){
+//            mainForm.hide();
+//        }else{
+            if(wsClient.started){
+                var cache = mainChatBox.getActiveUsersJsonText()
+                if(cache)
+                    wsClient.saveCache(cache)
+            }
+        //}
 
     }
 
@@ -285,6 +300,7 @@ ApplicationWindow {
             pwdEdit: wsClient.pwdEdit
             user: wsClient.user
             enabledForm: true
+            arguments: arguments
 
             onAccept: function(user, pwd){
                 wsClient.open(user, pwd)

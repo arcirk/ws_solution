@@ -5,6 +5,8 @@
 #include <QSystemTrayIcon>
 #include "include/qmlwebsocket.h"
 
+#include <QProcess>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 class QAction;
@@ -65,6 +67,11 @@ private slots:
 
     void onDisplayError(const QString& err);
 
+    void appExit();
+
+    //void onClientStarted();
+    void onFinish(int pid,QProcess::ExitStatus status);
+
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;
@@ -75,6 +82,7 @@ private:
     QAction *quitAction;
 
     bWebSocket* m_client;
+    QProcess * wsProc;
 
     void createTrayIcon();
     void createActions();
