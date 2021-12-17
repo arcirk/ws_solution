@@ -322,3 +322,20 @@ bool bWebSocket::connectedStatus()
         return false;
 }
 
+void bWebSocket::registerToAgent(const QString &uuid) {
+
+
+}
+
+void bWebSocket::registerClientForAgent(const QString &uuid) {
+
+    QJsonObject param = QJsonObject();
+    param.insert("uuid_client", uuid);
+    param.insert("command", "setClient");
+    QString _param = QJsonDocument(param).toJson(QJsonDocument::Indented);
+
+    if(client->started()){
+        client->send_command("command_to_qt_agent", "", _param.toStdString());
+    }
+
+}

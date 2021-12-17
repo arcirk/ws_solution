@@ -37,6 +37,8 @@ public:
     Q_INVOKABLE void getUserStatus(const QString& uuid);
     Q_INVOKABLE void getUserData(const QString& uuid, const QString& param);
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
+    Q_INVOKABLE void registerClientForAgent(const QString& uuid);
+    Q_INVOKABLE void registerToAgent(const QString& uuid);
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);

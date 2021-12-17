@@ -1,4 +1,6 @@
 #include "../include/qmlwebsocket.h"
+#include "../../../ws_agent/ws_agent/include/qmlwebsocket.h"
+
 
 #include <QJsonObject>
 #include <QJsonDocument>

@@ -336,7 +336,7 @@ void MainWindow::openChatApp()
                 m_client_app.start();
             }else
             {
-                QJsonDocument param
+                //QJsonDocument param
             }
         }else
             onDisplayError("Файл клиента не найден!");
