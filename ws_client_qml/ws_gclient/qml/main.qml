@@ -52,6 +52,9 @@ ApplicationWindow {
             mainChatBox.userUuid = wsClient.uuidUser
             mainStack.push(mainChatBox)
             mainForm.title = wsClient.user
+            if(agentUsed){
+                wsClient.setUuidSessAgent(uuidAgent);
+            }
         }
         onQmlError: function(what, err){
 
@@ -145,15 +148,15 @@ ApplicationWindow {
     }
 
     onClosing: {
-//        if(agentUsed){
-//            mainForm.hide();
-//        }else{
+        if(agentUsed){
+            mainForm.hide();
+        }else{
             if(wsClient.started){
                 var cache = mainChatBox.getActiveUsersJsonText()
                 if(cache)
                     wsClient.saveCache(cache)
             }
-        //}
+        }
 
     }
 

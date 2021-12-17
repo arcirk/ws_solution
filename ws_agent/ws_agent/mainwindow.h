@@ -5,7 +5,7 @@
 #include <QSystemTrayIcon>
 #include "include/qmlwebsocket.h"
 
-#include <QProcess>
+#include "include/clientapp.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -32,28 +32,17 @@ private slots:
     void messageClicked();
 
     void on_iServerPort_editingFinished();
-
     void on_txtUserName_editingFinished();
-
     void on_txtPassword_editingFinished();
-
     void on_chSaveAuth_toggled(bool checked);
-
     void on_chAutiConnect_toggled(bool checked);
-
     void on_btnConnect_clicked();
-
     void on_btnDisconnect_clicked();
-
     void on_btnHide_clicked();
-
     void on_btnViewPwd_toggled(bool checked);
-
     void on_btnEditPwd_toggled(bool checked);
-
     void on_txtServerHost_editingFinished();
 
-    //ws_client
     void onConnectionSuccess();
     void onCloseConnection();
     void onQmlError(const QString& what, const QString& err);
@@ -66,11 +55,11 @@ private slots:
     void on_pathToClient_editingFinished();
 
     void onDisplayError(const QString& err);
-
     void appExit();
 
-    //void onClientStarted();
-    void onFinish(int pid,QProcess::ExitStatus status);
+    void output(QString data);
+    void openClientApp();
+    void exitClientApp();
 
 private:
     Ui::MainWindow *ui;
@@ -82,7 +71,7 @@ private:
     QAction *quitAction;
 
     bWebSocket* m_client;
-    QProcess * wsProc;
+    ClientApp m_client_app;
 
     void createTrayIcon();
     void createActions();

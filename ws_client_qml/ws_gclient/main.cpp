@@ -15,6 +15,8 @@
 
 #include <QFileInfo>
 
+QString uuidAgent;
+
 bool fileExists(QString path) {
     QFileInfo check_file(path);
     // check if file exists and if yes: Is it really a file and no directory?
@@ -26,7 +28,7 @@ void updateParamsFromArgs(QStringList& arg){
 
         QString usr = arg[0];
         QString hash = arg[1];
-        QString uuidAgent = arg[2];
+        uuidAgent = arg[2];
         QString host = arg[3];
         int port = arg[4].toInt();
 
@@ -83,6 +85,7 @@ int main(int argc, char *argv[])
     bool agentUsed = cmdline_args.count() > 1;
 
     engine.rootContext()->setContextProperty("agentUsed", agentUsed);
+    engine.rootContext()->setContextProperty("uuidAgent", uuidAgent);
 
     engine.load(url);
 

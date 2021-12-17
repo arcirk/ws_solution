@@ -1,5 +1,8 @@
 #include "../include/qmlwebsocket.h"
 
+#include <QJsonObject>
+#include <QJsonDocument>
+
 bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
 {
 
@@ -109,6 +112,13 @@ void bWebSocket::resetUnreadMsgFromData(const QString &sender)
 {
     if(client->started()){
         client->reset_unread_messages(sender.toStdString(), "");
+    }
+}
+
+void bWebSocket::registerToAgent()
+{
+    if(client->started()){
+        //client->se
     }
 }
 
@@ -333,5 +343,14 @@ void bWebSocket::setSettingsFileName(const QString &fname)
 QString bWebSocket::getSettingsFileName()
 {
     return fileName;
+}
+
+void bWebSocket::setUuidSessAgent(const QString &uuid)
+{
+    uuidSessionAgent = uuid;
+    QJsonObject obj = QJsonObject();
+    obj.insert("uuid_client", uuidSessionAgent);
+    obj.insert("command", "registerClient");
+
 }
 

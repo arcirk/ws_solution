@@ -37,6 +37,8 @@ public:
     Q_INVOKABLE void getUserStatus(const QString& uuid);
     Q_INVOKABLE void getUserData(const QString& uuid, const QString& param);
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
+    Q_INVOKABLE void registerToAgent();
+    Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -77,6 +79,8 @@ public:
     void setSettingsFileName(const QString& fname);
     QString getSettingsFileName();
 
+
+
 private:
     IClient * client;
     ClientSettings * settings;
@@ -84,6 +88,8 @@ private:
     QString user;
     QString hash;
     QString fileName;
+
+    QString uuidSessionAgent;
 
 signals:
     void displayError(const QString& what, const QString& err);

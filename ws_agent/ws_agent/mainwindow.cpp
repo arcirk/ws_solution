@@ -50,12 +50,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setWindowFlags(Qt::Dialog);
 
-    wsProc = new QProcess(this);
+    //wsProc = new QProcess(this);
    //connect(wsProc, SIGNAL(started()), this, &MainWindow::onClientStarted());
-    connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
+    //connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
 
     if(QFileInfo(m_client->get_settings()->pathToClient + "/ws_gclient").exists()){
         qDebug() << "ws_gclient найден";
+        m_client_app.setAppPath(m_client->get_settings()->pathToClient + "/ws_gclient");
     }
     else{
         qDebug() << "ws_gclient не найден";
@@ -286,9 +287,9 @@ void MainWindow::onConnectionSuccess()
 void MainWindow::onCloseConnection()
 {
     qDebug() << "onCloseConnection";
-    if(wsProc->state() == QProcess::Running){
-        wsProc->close();
-    }
+//    if(wsProc->state() == QProcess::Running){
+//        wsProc->close();
+//    }
 
 }
 
@@ -322,7 +323,7 @@ void MainWindow::openChatApp()
 
         QString pathToClient = m_client->get_settings()->pathToClient + "/ws_gclient";
         if(fileExists(pathToClient)){
-            if(wsProc->state() == QProcess::NotRunning){
+            if(!m_client_app.isStarted()){
                 qDebug() << m_client->getHash();
                 QStringList m_arg;
                 m_arg.append(m_client->getUserName());
@@ -330,14 +331,12 @@ void MainWindow::openChatApp()
                 m_arg.append(m_client->getUuidSession());
                 m_arg.append(m_client->get_settings()->ServerHost);
                 m_arg.append(QString::number(m_client->get_settings()->ServerPort));
-
-                wsProc->start(pathToClient, m_arg);
-                wsProc->waitForFinished(-1);
-//                wsProc->startDetached(pathToClient, m_arg);
-
+                m_client_app.setParams(m_arg);
+                m_client_app.setAppPath(pathToClient);
+                m_client_app.start();
             }else
             {
-
+                QJsonDocument param
             }
         }else
             onDisplayError("Файл клиента не найден!");
@@ -360,17 +359,24 @@ void MainWindow::onDisplayError(const QString &err)
                           3 * 1000);
 }
 
-void MainWindow::appExit()
-{
-//    if(wsProc->state() == QProcess::Running){
-//        wsProc->close();
-//    }
+void MainWindow::output(QString data) {
 
-    QCoreApplication::quit();
 }
 
-void MainWindow::onFinish(int pid, QProcess::ExitStatus status)
-{
-    qDebug() << status;
+void MainWindow::openClientApp() {
+
+}
+
+void MainWindow::exitClientApp() {
+
+}
+
+void MainWindow::appExit() {
+
+    if(m_client_app.isStarted())
+        m_client_app.stop();
+
+    QCoreApplication::quit();
+
 }
 

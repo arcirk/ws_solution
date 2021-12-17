@@ -62,8 +62,6 @@ public:
     void setPort(int newPort);
     int getPort();
 
-    //bool getStarted();
-
     bool autoConnect();
     void setAutoConnect(bool value);
 
@@ -73,6 +71,8 @@ public:
     void setPwdEdit(bool value);
 
     bool connectedStatus();
+
+    void command_to_qt_client(const QString& command);
 
 private:
     IClient * client;
@@ -85,7 +85,6 @@ signals:
     void displayError(const QString& what, const QString& err);
     void qmlError(const QString& what, const QString& err);
     void displayNotify(const QString& msg);
-    //void qmlMessage(const QmlMessage& msg);
     void connectionSuccess();
     void closeConnection();
     void user_catalog(const QString& msg);

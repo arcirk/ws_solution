@@ -525,6 +525,10 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "get_unread_messages")
         return params == 1;
+    else if (command == "command_to_qt_client")
+        return params == 2;
+    else if (command == "command_to_qt_agent")
+        return params == 2;
     else
         return false;
 }
@@ -561,6 +565,8 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_user_cache");
     commands.emplace_back("set_user_cache");
     commands.emplace_back("get_unread_messages");
+    commands.emplace_back("command_to_qt_client");
+    commands.emplace_back("command_to_qt_agent");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -622,8 +628,12 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::reset_unread_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else if (command == "get_unread_messages")
         return  std::bind(&shared_state::get_unread_messages, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-    else
-        return nullptr;
+   else if (command == "command_to_qt_client")
+       return  std::bind(&shared_state::command_to_qt_client, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else if (command == "command_to_qt_agent")
+       return  std::bind(&shared_state::command_to_qt_agent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else
+       return nullptr;
 }
 
 bool
@@ -1977,7 +1987,6 @@ bool shared_state::get_user_status_(boost::uuids::uuid &uuid, const std::string&
     }
 
     return status_;
-
 }
 
 int shared_state::get_unread_messages_from_data(boost::uuids::uuid &uuid, boost::uuids::uuid &uuid_recipient) {
@@ -2047,7 +2056,6 @@ shared_state::get_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *param
         err = boost::diagnostic_information(e);
         std::cerr << err << std::endl;
         return false;
-
     }
 
     std::string json;
@@ -2062,5 +2070,91 @@ shared_state::get_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *param
     custom_result = json;
     return true;
 
+}
 
+bool shared_state::command_to_qt_client(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                            std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    bVariant value;
+    bVariant command;
+
+    if (params->getMember("uuid_client", value)){
+        boost::uuids::uuid uuid_sess{};
+        arcirk::is_valid_uuid(value.get_string(), uuid_sess);
+        auto sess = get_session(uuid_sess);
+        if(!sess)
+            return false;
+
+        if(!params->getMember("command", command)){
+            return false;
+        }
+
+        _ws_message _message = createMessage(current_sess);
+        _message.message = command.get_string();
+        _message.command = "command_to_qt_client";
+        _message.uuid_channel = sess->get_user_uuid();
+
+        std::string msg = arcirk::ws_message(_message).get_json(true);
+
+        auto const ss = boost::make_shared<std::string const>(std::move(msg));
+        sess->send(ss);
+
+    }else
+        return false;
+
+    return true;
+}
+
+bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                        std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    bVariant value;
+    bVariant command;
+
+    if (params->getMember("uuid_agent", value)){
+        boost::uuids::uuid uuid_sess{};
+        arcirk::is_valid_uuid(value.get_string(), uuid_sess);
+        auto sess = get_session(uuid_sess);
+        if(!sess)
+            return false;
+
+        if(!params->getMember("command", command)){
+            return false;
+        }
+
+        _ws_message _message = createMessage(current_sess);
+        _message.message = command.get_string();
+        _message.command = "command_to_qt_agent";
+        _message.uuid_channel = sess->get_user_uuid();
+
+        std::string msg = arcirk::ws_message(_message).get_json(true);
+
+        auto const ss = boost::make_shared<std::string const>(std::move(msg));
+
+        sess->send(ss);
+
+    }else
+        return false;
+
+    return true;
 }
