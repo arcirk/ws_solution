@@ -19,8 +19,10 @@ public:
     QString recipient;
     QString token;
     QString uuid;
+    QString uuid_session;
     QString contentType;
     QString recipientName;
+    QString app_name;
 
     static QJsonDocument parseResp(const QString& resp);
 

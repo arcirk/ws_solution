@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
 
     if(QFileInfo(m_client->get_settings()->pathToClient + "/ws_gclient").exists()){
-        qDebug() << "ws_gclient найден";
+        //qDebug() << "ws_gclient найден";
         m_client_app.setAppPath(m_client->get_settings()->pathToClient + "/ws_gclient");
     }
     else{
@@ -80,7 +80,10 @@ void MainWindow::createTrayIcon()
 {
     trayIconMenu = new QMenu(this);
     trayIconMenu->addAction(openQmlClient);
-    trayIconMenu->addAction(maximizeAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(openConnect);
+    trayIconMenu->addAction(closeConnect);
+    trayIconMenu->addSeparator();
     trayIconMenu->addAction(restoreAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
@@ -103,7 +106,8 @@ void MainWindow::setIcon()
 void MainWindow::setVisible(bool visible)
 {
     openQmlClient->setEnabled(true);
-    maximizeAction->setEnabled(!isMaximized());
+    openConnect->setEnabled(!m_client->isStarted());
+    closeConnect->setEnabled(m_client->isStarted());
     restoreAction->setEnabled(isMaximized() || !visible);
     QMainWindow::setVisible(visible);
 }
@@ -130,8 +134,8 @@ void MainWindow::createActions()
     openQmlClient = new QAction(tr("Открыть &чат"), this);
     connect(openQmlClient, &QAction::triggered, this, &MainWindow::openChatApp);
 
-    maximizeAction = new QAction(tr("Ma&ximize"), this);
-    connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
+//    maximizeAction = new QAction(tr("Ma&ximize"), this);
+//    connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
 
     restoreAction = new QAction(tr("&Открыть настройки"), this);
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
@@ -139,6 +143,13 @@ void MainWindow::createActions()
     quitAction = new QAction(tr("&Выйти"), this);
     //connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
     connect(quitAction, &QAction::triggered, this, &MainWindow::appExit);
+
+    closeConnect = new QAction(tr("Отключится"), this);
+    connect(closeConnect, &QAction::triggered, this, &MainWindow::onCloseConnect);
+
+    openConnect = new QAction(tr("Подключиться"), this);
+    connect(openConnect, &QAction::triggered, this, &MainWindow::onOpenConnect);
+
 }
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -216,28 +227,29 @@ void MainWindow::on_chAutiConnect_toggled(bool checked)
 
 void MainWindow::on_btnConnect_clicked()
 {
-    if(m_client->isStarted()){
-        return;
-    }
+//    if(m_client->isStarted()){
+//        return;
+//    }
+//
+//    bool pwd_edit = ui->btnEditPwd->isChecked();
+//    m_client->setPwdEdit(pwd_edit);
+//
+//    m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
 
-    bool pwd_edit = ui->btnEditPwd->isChecked();
-    m_client->setPwdEdit(pwd_edit);
-
-    m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
-
+    onOpenConnect();
 }
 
 
 void MainWindow::on_btnDisconnect_clicked()
 {
 
-    if(m_client->isStarted()){
-        m_client->close();
-    }
-//    if(wsProc->state() == QProcess::Running){
-//       wsProc->close();
+//    if(m_client->isStarted()){
+//        m_client->close();
 //    }
-
+////    if(wsProc->state() == QProcess::Running){
+////       wsProc->close();
+////    }
+    onCloseConnect();
 }
 
 
@@ -277,66 +289,69 @@ void MainWindow::on_txtServerHost_editingFinished()
 
 void MainWindow::onConnectionSuccess()
 {
-    qDebug() << "connectionSuccess";
+    //qDebug() << "connectionSuccess";
 
     ui->txtPassword->setEnabled(false);
     ui->btnViewPwd->setEnabled(false);
-
+    openConnect->setEnabled(false);
+    closeConnect->setEnabled(true);
 }
 
 void MainWindow::onCloseConnection()
 {
-    qDebug() << "onCloseConnection";
-//    if(wsProc->state() == QProcess::Running){
-//        wsProc->close();
-//    }
-
+    openConnect->setEnabled(true);
+    closeConnect->setEnabled(false);
 }
 
 void MainWindow::onQmlError(const QString &what, const QString &err)
 {
-    qDebug() << "onQmlError" << what << ": " << err;
+    //qDebug() << "onQmlError" << what << ": " << err;
     onDisplayError(err);
 }
 
 void MainWindow::onConnectedStatusChanged(bool status)
 {
-    qDebug() << "onConnectedStatusChanged" << status;
+    //qDebug() << "onConnectedStatusChanged" << status;
     ui->btnConnect->setEnabled(!status);
     ui->btnDisconnect->setEnabled(status);
 }
 
 void MainWindow::onClientJoin(const QString &resp)
 {
-    qDebug() << "onClientJoin" << resp;
+    //qDebug() << "onClientJoin" << resp;
 }
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    qDebug() << "onClientLeave" << resp;
+    //qDebug() << "onClientLeave" << resp;
 }
 
 void MainWindow::openChatApp()
 {
-    qDebug() << m_client->get_settings()->pathToClient;
+    //qDebug() << m_client->get_settings()->pathToClient;
     if (m_client->isStarted()){
 
         QString pathToClient = m_client->get_settings()->pathToClient + "/ws_gclient";
         if(fileExists(pathToClient)){
             if(!m_client_app.isStarted()){
-                qDebug() << m_client->getHash();
                 QStringList m_arg;
                 m_arg.append(m_client->getUserName());
+                //qDebug() << m_client->getUserName();
                 m_arg.append(m_client->getHash());
+                //qDebug() << m_client->getHash();
                 m_arg.append(m_client->getUuidSession());
+                //qDebug() << m_client->getUuidSession();
                 m_arg.append(m_client->get_settings()->ServerHost);
+                //qDebug() << m_client->get_settings()->ServerHost;
                 m_arg.append(QString::number(m_client->get_settings()->ServerPort));
                 m_client_app.setParams(m_arg);
                 m_client_app.setAppPath(pathToClient);
                 m_client_app.start();
             }else
             {
-                //QJsonDocument param
+                if(m_client->isStarted()){
+                    m_client->agentClientShow();
+                }
             }
         }else
             onDisplayError("Файл клиента не найден!");
@@ -363,13 +378,6 @@ void MainWindow::output(QString data) {
 
 }
 
-void MainWindow::openClientApp() {
-
-}
-
-void MainWindow::exitClientApp() {
-
-}
 
 void MainWindow::appExit() {
 
@@ -377,6 +385,29 @@ void MainWindow::appExit() {
         m_client_app.stop();
 
     QCoreApplication::quit();
+
+}
+
+void MainWindow::onCloseConnect() {
+    if (m_client->isStarted()) {
+        m_client->close();
+    }
+    if (m_client_app.isStarted())
+        m_client_app.stop();
+
+}
+
+void MainWindow::onOpenConnect() {
+
+    if(m_client->isStarted()){
+        return;
+    }
+
+    bool pwd_edit = ui->btnEditPwd->isChecked();
+    m_client->setPwdEdit(pwd_edit);
+
+    m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
+
 
 }
 

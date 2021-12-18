@@ -122,10 +122,9 @@ ApplicationWindow {
             mainChatBox.setUnreadMessages(resp)
         }
 
-//        onInitDone: {
-//            console.debug("onInitDone")
-//            console.debug(arguments.count())
-//        }
+        onClientShow: {
+            mainForm.show();
+        }
     }
 
     ServerSettingsDialog{
@@ -204,7 +203,12 @@ ApplicationWindow {
                 ToolButton{
                     id: btnExit
                     //text: "Выход"
-                    enabled: mainForm.connectState ? true : false
+                    enabled:{
+                         if(agentUsed)
+                             false
+                         else
+                            mainForm.connectState ? true : false
+                    }
                     icon.source: "qrc:/images/exit.svg"
                     onClicked: {
                         if(wsClient.started){

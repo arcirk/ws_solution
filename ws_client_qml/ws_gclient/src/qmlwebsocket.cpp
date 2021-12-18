@@ -5,6 +5,9 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include <QFileInfo>
+#include <QDir>
+
 bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
 {
 
@@ -202,6 +205,10 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         else if(resp->command == "get_unread_messages"){
             emit unreadMessages(resp->message);
         }
+        else if(resp->command == "command_to_qt_client"){
+            if(resp->message == "clientShow")
+                emit clientShow();
+        }
         else
            qDebug() << "Не известная команда: " << resp->command;
     }
@@ -351,8 +358,29 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
 {
     uuidSessionAgent = uuid;
     QJsonObject obj = QJsonObject();
-    obj.insert("uuid_client", uuidSessionAgent);
+    obj.insert("uuid_agent", uuidSessionAgent);
+    obj.insert("uuid_client", getUuidSession());
     obj.insert("command", "registerClient");
+
+
+    QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+    if(client->started()){
+         client->send_command("command_to_qt_agent", "", param.toStdString());
+    }
+
+//    QString saveFileName = "testArgs.json";
+//    QFileInfo fileInfo(saveFileName);
+//    QDir::setCurrent(fileInfo.path());
+
+//    QFile jsonFile(saveFileName);
+//    if (!jsonFile.open(QIODevice::WriteOnly))
+//    {
+//        return;
+//    }
+
+//    // Записываем текущий объект Json в файл
+//    jsonFile.write(param.toUtf8());
+//    jsonFile.close();   // Закрываем файл
 
 }
 

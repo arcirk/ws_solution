@@ -56,6 +56,8 @@ void bWebSocket::close()
         client->close();
     }
 
+    m_agentClients.clear();
+
     emit startedChanged();
 }
 
@@ -187,6 +189,13 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }
         else if(resp->command == "get_unread_messages"){
             emit unreadMessages(resp->message);
+        }else if(resp->command == "connect_unknown_user"){
+            //
+        }else if(resp->command == "command_to_qt_client"){
+            //
+        }else if(resp->command == "command_to_qt_agent"){
+            //qDebug() << resp->to_string();
+            joinClientToAgent(resp);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -336,6 +345,41 @@ void bWebSocket::registerClientForAgent(const QString &uuid) {
 
     if(client->started()){
         client->send_command("command_to_qt_agent", "", _param.toStdString());
+    }
+
+}
+
+void bWebSocket::joinClientToAgent(ServeResponse *resp) {
+
+    if(resp->uuid_session.isEmpty())
+        return;
+
+    auto itr = m_agentClients.find(resp->uuid_session);
+    if(itr != m_agentClients.end())
+        return;
+
+    m_agentClients.insert(resp->uuid_session, resp->app_name);
+
+}
+
+void bWebSocket::agentClientShow() {
+
+    for (auto itr = m_agentClients.begin(); itr != m_agentClients.end(); ++itr) {
+        if (itr.value() == "qt_client"){
+
+            QJsonObject obj = QJsonObject();
+            obj.insert("uuid_agent", getUuidSession());
+            obj.insert("uuid_client", itr.key());
+            obj.insert("command", "clientShow");
+
+
+            QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+            //qDebug() << param;
+
+            if(client->started()){
+                client->send_command("command_to_qt_client", "", param.toStdString());
+            }
+        }
     }
 
 }

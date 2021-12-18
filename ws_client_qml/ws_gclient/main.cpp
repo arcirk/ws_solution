@@ -15,7 +15,22 @@
 
 #include <QFileInfo>
 
-QString uuidAgent;
+[[maybe_unused]] void testSaveArgs(QStringList& arg){
+
+    QString saveFileName = "testArgs.txt";
+    QFileInfo fileInfo(saveFileName);
+    QDir::setCurrent(fileInfo.path());
+
+    QFile jsonFile(saveFileName);
+    if (!jsonFile.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
+
+    // Записываем текущий объект Json в файл
+    jsonFile.write(arg.join(" ; ").toUtf8());
+    jsonFile.close();   // Закрываем файл
+}
 
 bool fileExists(QString path) {
     QFileInfo check_file(path);
@@ -24,15 +39,19 @@ bool fileExists(QString path) {
 }
 
 void updateParamsFromArgs(QStringList& arg){
+
+    //testSaveArgs(arg);
+
     if(arg.count() == 5){
 
-        QString usr = arg[0];
-        QString hash = arg[1];
-        uuidAgent = arg[2];
-        QString host = arg[3];
-        int port = arg[4].toInt();
+        QString pathToClient = arg[0];
+        QString usr = arg[1];
+        QString hash = arg[2];
+        QString uuidAgent = arg[3];
+        QString host = arg[4];
+        int port = arg[5].toInt();
 
-       ClientSettings * sett = new ClientSettings();
+       auto * sett = new ClientSettings();
        sett->init();
        sett->ServerHost = host;
        sett->ServerPort = port;
@@ -85,9 +104,15 @@ int main(int argc, char *argv[])
     bool agentUsed = cmdline_args.count() > 1;
 
     engine.rootContext()->setContextProperty("agentUsed", agentUsed);
+    QString uuidAgent;
+    if (agentUsed)
+        uuidAgent = cmdline_args[3];
+
     engine.rootContext()->setContextProperty("uuidAgent", uuidAgent);
 
     engine.load(url);
+
+    //testSaveArgs(cmdline_args);
 
     return app.exec();
 }

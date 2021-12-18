@@ -123,7 +123,8 @@ signals:
     void unreadMessages(const QString& resp);
     void requestUserStatus(const QString& resp);
     void settingsFileNameChanged();
-    //void initDone();
+
+    void clientShow();
 };
 
 #endif // QMLWEBSOCKET_H

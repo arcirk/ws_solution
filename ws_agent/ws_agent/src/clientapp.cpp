@@ -39,7 +39,7 @@ void ClientApp::finished(int exitCode, QProcess::ExitStatus exitStatus) {
 
 void ClientApp::readyReadStandardError() {
     if(!m_listening) return;
-    qInfo() << Q_FUNC_INFO;
+    //qInfo() << Q_FUNC_INFO;
     QByteArray data = m_process.readAllStandardError();
     QString message = "Standard Error: ";
     message.append(m_process.readAllStandardError());
@@ -48,7 +48,7 @@ void ClientApp::readyReadStandardError() {
 
 void ClientApp::readyReadStandardOutput() {
     if(!m_listening) return;
-    qInfo() << Q_FUNC_INFO;
+//    qInfo() << Q_FUNC_INFO;
     QByteArray data = m_process.readAllStandardOutput();
     emit output(QString(data.trimmed()));
 }
@@ -59,7 +59,7 @@ void ClientApp::started() {
 
 void ClientApp::stateChanged(QProcess::ProcessState newState) {
 
-    qInfo() << Q_FUNC_INFO;
+    qInfo() << Q_FUNC_INFO << newState;
     switch (newState) {
         case QProcess::NotRunning:
             emit output("Not running");
@@ -93,6 +93,8 @@ QString ClientApp::operatingSystem() {
 void ClientApp::start() {
 
     qInfo() << Q_FUNC_INFO;
+    if(m_listening)
+        return;
     if (app_path.isEmpty())
         return;
     if (params.isEmpty())

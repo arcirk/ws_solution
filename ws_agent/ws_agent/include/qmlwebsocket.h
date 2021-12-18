@@ -39,6 +39,7 @@ public:
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
     Q_INVOKABLE void registerClientForAgent(const QString& uuid);
     Q_INVOKABLE void registerToAgent(const QString& uuid);
+    Q_INVOKABLE void agentClientShow();
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -82,6 +83,9 @@ private:
     bool _pwdEdit;
     QString user;
     QString hash;
+
+    QMap<QString,QString> m_agentClients;
+    void joinClientToAgent(ServeResponse * resp);
 
 signals:
     void displayError(const QString& what, const QString& err);

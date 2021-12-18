@@ -58,17 +58,22 @@ private slots:
     void appExit();
 
     void output(QString data);
-    void openClientApp();
-    void exitClientApp();
+
+    void onCloseConnect();
+    void onOpenConnect();
 
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
     QAction *openQmlClient;
-    QAction *maximizeAction;
+    //QAction *maximizeAction;
     QAction *restoreAction;
     QAction *quitAction;
+
+    QAction *closeConnect;
+    QAction *openConnect;
+
 
     bWebSocket* m_client;
     ClientApp m_client_app;
