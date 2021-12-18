@@ -136,7 +136,7 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _ws_message _message = _ws_message();
     _message.uuid = session->get_uuid();
     _message.name = session->get_name();
-    _message.app_name = session->get_name();
+    _message.app_name = session->get_app_name();
     _message.uuid_user = session->get_user_uuid();
     _message.role = session->get_role();
     std::cout << _message.uuid << std::endl;
@@ -526,9 +526,9 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "get_unread_messages")
         return params == 1;
     else if (command == "command_to_qt_client")
-        return params == 2;
+        return params == 3;
     else if (command == "command_to_qt_agent")
-        return params == 2;
+        return params == 3;
     else
         return false;
 }
@@ -2133,6 +2133,10 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
 
     if (params->getMember("uuid_agent", value)){
         boost::uuids::uuid uuid_sess{};
+
+        //std::cout << "uuid_agent: " << value.get_string() << std::endl;
+        //std::cout << "uuid_agent: " << value.to_string() << std::endl;
+
         arcirk::is_valid_uuid(value.get_string(), uuid_sess);
         auto sess = get_session(uuid_sess);
         if(!sess)
@@ -2145,7 +2149,8 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
         _ws_message _message = createMessage(current_sess);
         _message.message = command.get_string();
         _message.command = "command_to_qt_agent";
-        _message.uuid_channel = sess->get_user_uuid();
+        _message.uuid_channel = current_sess->get_user_uuid();
+        //_message.app_name = current_sess->get_app_name();
 
         std::string msg = arcirk::ws_message(_message).get_json(true);
 
