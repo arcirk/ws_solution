@@ -20,6 +20,11 @@ public:
     QString ServerBinDir;
     QString ServerName;
     QString ServerStatus;
+    bool useWebDav;
+    QString davUser;
+    QString davPassword;
+    QString localFolder;
+    QString webDavAddress;
 };
 
 #endif // APPSETTINGS_H

@@ -15,6 +15,7 @@ appSettings::appSettings()
     , ServerBinDir("host")
     , ServerName("NoName")
     , ServerStatus("Не подключен")
+    , useWebDav(false)
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
 
@@ -64,6 +65,22 @@ bool appSettings::init(){
     if (iter != m_currentJsonObject.end()){
         ServerName = iter.value().toString();
     }
+    iter = m_currentJsonObject.find("UseWebDav");
+    if (iter != m_currentJsonObject.end()){
+        useWebDav = iter.value().toBool();
+    }
+    iter = m_currentJsonObject.find("DavUser");
+    if (iter != m_currentJsonObject.end()){
+        davUser = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("DavPassword");
+    if (iter != m_currentJsonObject.end()){
+        davPassword = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("LocalFolder");
+    if (iter != m_currentJsonObject.end()){
+        localFolder = iter.value().toString();
+    }
     return true;
 }
 
@@ -76,6 +93,10 @@ void appSettings::save_settings(){
     m_currentJsonObject.insert("Hash", Hash);
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
+    m_currentJsonObject.insert("UseWebDav", useWebDav);
+    m_currentJsonObject.insert("DavUser", davUser);
+    m_currentJsonObject.insert("DavPassword", davPassword);
+    m_currentJsonObject.insert("LocalFolder", localFolder);
 
     QString saveFileName = "config.json";
     QFileInfo fileInfo(saveFileName);
@@ -100,6 +121,10 @@ QString appSettings::getJson() {
     m_currentJsonObject.insert("Hash", Hash);
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
+    m_currentJsonObject.insert("UseWebDav", useWebDav);
+    m_currentJsonObject.insert("DavUser", davUser);
+    m_currentJsonObject.insert("DavPassword", davPassword);
+    m_currentJsonObject.insert("LocalFolder", localFolder);
     return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
 }
 
@@ -113,6 +138,10 @@ QJsonObject appSettings::getJsonObject() {
     m_currentJsonObject.insert("ServerBinDir", ServerBinDir);
     m_currentJsonObject.insert("ServerName", ServerName);
     m_currentJsonObject.insert("ServerStatus", ServerStatus);
+    m_currentJsonObject.insert("UseWebDav", useWebDav);
+    m_currentJsonObject.insert("DavUser", davUser);
+    m_currentJsonObject.insert("DavPassword", davPassword);
+    m_currentJsonObject.insert("LocalFolder", localFolder);
     return m_currentJsonObject;
 
 }

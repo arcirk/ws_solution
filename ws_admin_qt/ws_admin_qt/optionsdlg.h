@@ -25,6 +25,14 @@ private slots:
 
     void on_editPwd_clicked(bool checked);
 
+    void on_btnDavPwd_toggled(bool checked);
+
+    void on_radioUseWebDav_toggled(bool checked);
+
+    void on_radioUseLocalFolder_toggled(bool checked);
+
+    void on_btnSelectLocalFolder_clicked();
+
 private:
     Ui::OptionsDlg *ui;
     appSettings * _settings;

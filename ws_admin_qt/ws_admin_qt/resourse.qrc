@@ -13,6 +13,8 @@
         <file>res/move_element.png</file>
         <file>res/send.svg</file>
         <file>res/KillSession.png</file>
+        <file>res/viewPwd.svg</file>
+        <file>res/viewPwd1.svg</file>
     </qresource>
     <qresource prefix="/">
         <file>Chat.qml</file>
