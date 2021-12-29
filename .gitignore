@@ -88,3 +88,5 @@ bin/
 .vscode
 **/.idea/
 .settings
+
+ws_server/CMakeFiles
