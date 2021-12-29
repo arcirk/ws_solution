@@ -15,6 +15,13 @@ endif()
 #    target_link_libraries(ws_server ${CMAKE_DL_LIBS})
 #endif()
 
+SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+#[[SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        CACHE PATH "Output directory for executables and DLL's.")]]
+
+link_directories(../arcirk/)
+
 add_executable(ws_server
         main.cpp
         include/websocket_session.hpp
@@ -55,7 +62,10 @@ target_link_libraries(ws_server PRIVATE
         arcirk)
         #${SQLITE3_LIBRARIES}
 
+#add_custom_command(TARGET ws_server PRE_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory
+#        ${CMAKE_SOURCE_DIR}/ws_server/app/base/ $<TARGET_FILE_DIR:ws_server>)
+
 add_custom_command(TARGET ws_server PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/ws_server/app $<TARGET_FILE_DIR:ws_server>)
-
+        ${CMAKE_SOURCE_DIR}/ws_server/app/ ${CMAKE_BINARY_DIR})

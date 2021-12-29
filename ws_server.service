@@ -1,0 +1,9 @@
+[Unit]
+Description= arcadics websocket service
+After=network.target
+[Service]
+Type=simple
+ExecStart=/home/arcady/src/ws_solution/ws_server/x64/ws_server
+WorkingDirectory=/home/arcady/src/ws_solution/ws_server/x64/
+[Install]
+WantedBy=multi-user.target

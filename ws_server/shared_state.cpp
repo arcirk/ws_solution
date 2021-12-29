@@ -20,7 +20,7 @@ shared_state(std::string doc_root)
         : doc_root_(std::move(doc_root))
 {
     sqlite3Db = new arc_sqlite::sqlite3_db();
-    bool res = sqlite3Db->open("../app/base/db.sqlite");
+    bool res = sqlite3Db->open("base/db.sqlite");
     if(!res)
         std::cerr << "Файл базы данных не найден!";
     sqlite3Db->check_database_table(arc_sqlite::eUsers);

@@ -96,7 +96,7 @@ main(int argc, char* argv[])
     setlocale(LC_ALL, "Russian");
 
     settings st;
-    if (!st.get_settings("../app/config/conf.json")){
+    if (!st.get_settings("config/conf.json")){
         std::cerr <<
                   "Error: Ошибка чтения настроек сервера!\n";
         return EXIT_FAILURE;
