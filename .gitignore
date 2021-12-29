@@ -90,3 +90,4 @@ bin/
 .settings
 
 ws_server/CMakeFiles
+arcirk/CMakeFiles
