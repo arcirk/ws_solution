@@ -6,21 +6,61 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/lib/cmake")
+#set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/lib/cmake")
+
+SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
+
+#set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+link_directories(
+        "../ws_client/cmake-build-debug"
+        "../qt_models/project/cmake-build-debug"
+)
+
+find_library(
+    ws_client
+    qjsonmodel)
 
 find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        Network
         REQUIRED)
 
 add_executable(ws_admin
         main.cpp
-        resources.qrc)
+        resources.qrc
+        include/clientsettings.h
+        include/qmlwebsocket.h
+        include/serveresponse.h
+        src/clientsettings.cpp
+        src/qmlwebsocket.cpp
+        src/serveresponse.cpp
+        mainwindow.cpp
+        mainwindow.h
+        mainwindow.ui
+        include/optionsdialog.h
+        src/optionsdialog.cpp
+        form/optionsdialog.ui)
+
+include_directories("../ws_client/include")
+include_directories("../qt_models/project/include")
+
+#link_directories(${CMAKE_BINARY_DIR}/lib)
 
 target_link_libraries(ws_admin
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::Network
+        ws_client
+        qjsonmodel
         )
 
+if(QT_VERSION_MAJOR EQUAL 6)
+     qt_finalize_executable(ws_admin)
+endif()

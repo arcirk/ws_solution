@@ -1,2 +1,23 @@
-<!DOCTYPE RCC>
-<RCC version="1.0"/>
+<RCC>
+    <qresource prefix="/images">
+        <file>img/viewPwd1.svg</file>
+        <file>img/viewPwd.svg</file>
+        <file>img/edit.png</file>
+        <file>img/uset_not_auth.png</file>
+        <file>img/UserMonitorImages.png</file>
+        <file>img/UserListImages.png</file>
+        <file>img/user_auth.png</file>
+        <file>img/tbreflist.png</file>
+        <file>img/tbglacti.png</file>
+        <file>img/send.svg</file>
+        <file>img/select_value.png</file>
+        <file>img/saveToServer.png</file>
+        <file>img/saveData.png</file>
+        <file>img/new_element.png</file>
+        <file>img/move_element.png</file>
+        <file>img/list_tree.png</file>
+        <file>img/KillSession.png</file>
+        <file>img/getData.png</file>
+        <file>img/delete.png</file>
+    </qresource>
+</RCC>
