@@ -105,6 +105,7 @@ namespace arc_sqlite {
                 result.append(	",\n Performance TEXT");
                 result.append(	",\n channel TEXT (36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'");
                 result.append(	",\n cache TEXT");
+                result.append(	",\n webdav TEXT");
                 break;
             case tables::eChannels:
                 result = ",\n Parent      TEXT (36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'";

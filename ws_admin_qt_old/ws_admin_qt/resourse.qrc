@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/new/icons">
+        <file>res/tbreflist.png</file>
+        <file>res/tbglacti.png</file>
+        <file>res/delete.png</file>
+        <file>res/UserMonitorImages.png</file>
+        <file>res/select_value.png</file>
+        <file>res/UserListImages.png</file>
+        <file>res/uset_not_auth.png</file>
+        <file>res/user_auth.png</file>
+        <file>res/new_element.png</file>
+        <file>res/list_tree.png</file>
+        <file>res/move_element.png</file>
+        <file>res/send.svg</file>
+        <file>res/KillSession.png</file>
+        <file>res/viewPwd.svg</file>
+        <file>res/viewPwd1.svg</file>
+        <file>res/saveToServer.png</file>
+        <file>res/getData.png</file>
+        <file>res/saveData.png</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>Chat.qml</file>
+        <file>ListDelegate.qml</file>
+        <file>GroupPage.qml</file>
+        <file>ListMessages.qml</file>
+    </qresource>
+</RCC>

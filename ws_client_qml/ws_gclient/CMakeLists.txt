@@ -34,7 +34,9 @@ add_executable(ws_gclient
         include/stdfx.h
         userinfo.cpp
         userinfo.h
-        qml/UserInfoDialog.qml)
+        qml/UserInfoDialog.qml
+        include/webdav.h
+        src/webdav.cpp)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -43,6 +45,7 @@ find_package(Qt6 COMPONENTS
         QuickWidgets
         QmlModels
         QuickControls2
+        Network
         REQUIRED)
 
 include_directories("../../ws_client/include")
@@ -57,6 +60,7 @@ target_link_libraries(ws_gclient
         Qt6::QuickWidgets
         Qt6::QmlModels
         Qt6::QuickControls2
+        Qt6::Network
         ws_client
         qjsonmodel
         )
