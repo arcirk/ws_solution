@@ -55,8 +55,8 @@ find_package(Qt6 COMPONENTS
         QmlModels
         REQUIRED)
 
-include_directories("../../ws_client/include")
-link_directories(../../ws_client/cmake-build-debug)
+include_directories("../../../ws_client/include")
+link_directories(../../../ws_client/cmake-build-debug)
 #target_link_libraries(ws_admin_qt PUBLIC ws_client)
 
 target_link_libraries(ws_admin_qt_old

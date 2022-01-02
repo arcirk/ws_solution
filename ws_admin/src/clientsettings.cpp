@@ -14,7 +14,7 @@ ClientSettings::ClientSettings()
     , ServerPort(8080)
     , RootUser("admin")
     , ServerName("NoName")
-    , AppName("qt_client")
+    , AppName("admin_console")
 
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));
@@ -73,7 +73,7 @@ bool ClientSettings::init(){
         ServerPort = 8080;
         RootUser = "admin";
         ServerName = "NoName";
-        AppName = "qt_client";
+        AppName = "admin_console";
         AutoConnect = false;
         isLocalInstallation = false;
         RunAsService = false;
@@ -129,7 +129,7 @@ bool ClientSettings::init(){
         RunAsService = iter.value().toBool();
     }
 
-    AppName = "qt_client";
+    AppName = "admin_console";
 
     jsonFile.close();
 

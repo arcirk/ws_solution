@@ -209,6 +209,33 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             if(resp->message == "clientShow")
                 emit clientShow();
         }
+        else if(resp->command == "get_group_list"){
+            emit getGroupList(resp->message);
+        }
+        else if(resp->command == "get_users"){
+            emit getListUsers(resp->message);
+        }
+        else if(resp->command == "add_group"){
+            emit addGroupUsers(resp->message);
+        }
+        else if(resp->command == "edit_group"){
+            emit editGroupUsers(resp->message);
+        }
+        else if(resp->command == "remove_group"){
+            emit removeGroupUsers(resp->message);
+        }else if (resp->command == "add_user"){
+            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+            emit addUser(resp->message);
+        }else if (resp->command == "remove_user"){
+            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+            emit deleteUser(resp->message);
+        }else if (resp->command == "update_user"){
+            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+            emit updateUser(resp->message);
+        }else if (resp->command == "set_parent"){
+            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
+            emit setUserParent(resp->message);
+        }
         else
            qDebug() << "Не известная команда: " << resp->command;
     }
@@ -265,7 +292,8 @@ const QString bWebSocket::getUuidSession()
 
 const QString bWebSocket::getAppName()
 {
-    return "qt_client";
+    //return "qt_client";
+    return "admin_console";
 }
 
 
@@ -359,6 +387,31 @@ void bWebSocket::updateSettings()
     settings->init();
 }
 
+const QString bWebSocket::nilUuid()
+{
+    return QString::fromStdString(IClient::nil_string_uuid());
+}
+
+const QString bWebSocket::randomUuid()
+{
+    return QString::fromStdString(IClient::random_uuid());
+}
+
+void bWebSocket::removeUser(const QString &uuid)
+{
+    client->remove_user(uuid.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::setParent(const QString &uuid, const QString &parent)
+{
+    client->set_parent(uuid.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::killSession(const QString &uuid)
+{
+    client->kill_session(uuid.toStdString(), IClient::nil_string_uuid());
+}
+
 void bWebSocket::setUuidSessAgent(const QString &uuid)
 {
     uuidSessionAgent = uuid;
@@ -387,5 +440,34 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
 //    jsonFile.write(param.toUtf8());
 //    jsonFile.close();   // Закрываем файл
 
+}
+
+void bWebSocket::getUsers(const QString &parent)
+{
+    client->get_users(parent.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::addGroup(const QString &name, const QString &presentation, const QString &parent)
+{
+    client->add_group(name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::editGroup(const QString &uuid, const QString &name, const QString &presentation, const QString &parent)
+{
+    client->edit_group(uuid.toStdString(), name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::removeGroup(const QString &uuid)
+{
+    client->remove_group(uuid.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::sendCommand(const QString &cmd, const QString &uuidForm, const QString &param)
+{
+    std::string form = uuidForm.toStdString();
+    if(form.empty())
+        form = IClient::nil_string_uuid();
+
+    client->send_command(cmd.toStdString(), form, param.toStdString());
 }
 

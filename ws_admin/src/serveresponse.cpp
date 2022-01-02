@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include <QFileInfo>
 #include <QDir>
+#include <QTableWidgetItem>
 
 ServeResponse::ServeResponse(const QString& resp)
 {
@@ -189,4 +190,135 @@ QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonArray &rows, QMap<QSt
     proxyModel->setSourceModel(model);
 
     return proxyModel;
+}
+
+void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonObject& json) {
+
+    table->setColumnCount(2);
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem("Свойство"));
+    table->setHorizontalHeaderItem(1, new QTableWidgetItem("Значение"));
+
+    int index = 0;
+
+    table->setRowCount((int)json.count());
+
+    for (auto it = json.constBegin(); it != json.constEnd(); ++it)
+    {
+        auto itemKey = new QTableWidgetItem(it.key());
+        itemKey->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        table->setItem(index, 0, itemKey);
+
+        QTableWidgetItem *itemVal = nullptr;
+        if (it.value().isString())
+            itemVal = new QTableWidgetItem(it.value().toString());
+        else if (it.value().isDouble())
+            itemVal = new QTableWidgetItem(QString::number(it.value().toInteger()));
+        else if (it.value().isBool())
+            itemVal = new QTableWidgetItem(QString::number(it.value().toBool()));
+
+        if (itemVal){
+            itemVal->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+            table->setItem(index, 1, itemVal);
+        }
+
+        index++;
+    }
+
+}
+
+void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonArray& array) {
+
+    auto rowCount = array.count();
+    table->setRowCount((int)rowCount);
+
+    int colCount = 0;
+
+    int index = 0;
+    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    {
+        if(it->isObject()){
+            QJsonObject currentObject = it->toObject();
+            int indexCol = 0;
+            if (index == 0){
+                colCount = (int)currentObject.count();
+                table->setColumnCount(colCount);
+                for (auto col = currentObject.constBegin(); col != currentObject.constEnd(); ++col)
+                {
+                    table->setHorizontalHeaderItem(indexCol, new QTableWidgetItem(col.key()));
+                    indexCol++;
+                }
+                table->setColumnCount(colCount);
+
+            }else
+            {
+                if (colCount != currentObject.count() ){
+                    table->clear();
+                    table->setRowCount(0);
+                    table->setColumnCount(0);
+                    return;
+                }
+            }
+            indexCol = 0;
+            for (auto rowVal = currentObject.constBegin(); rowVal != currentObject.constEnd(); ++rowVal)
+            {
+                QTableWidgetItem *itemVal = nullptr;
+                if (rowVal.value().isString())
+                    itemVal = new QTableWidgetItem(rowVal.value().toString());
+                else if (rowVal.value().isDouble())
+                    itemVal = new QTableWidgetItem(QString::number(rowVal.value().toInteger()));
+                else if (rowVal.value().isBool())
+                    itemVal = new QTableWidgetItem(QString::number(rowVal.value().toBool()));
+
+                if (itemVal){
+                    itemVal->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                    table->setItem(index, indexCol, itemVal);
+                }
+                indexCol++;
+            }
+            index++;
+        }
+    }
+
+}
+
+void ServeResponse::loadTableFromJson(QTableWidget *table, const QJsonArray& array, const QMap<QString, int>&header){
+
+    auto rowCount = array.count();
+    table->setRowCount((int)rowCount);
+    table->setColumnCount((int)header.count());
+
+    for (auto col = header.constBegin(); col != header.constEnd(); ++col)
+    {
+        const QString& key = col.key();
+        table->setHorizontalHeaderItem(col.value(), new QTableWidgetItem(key));
+    }
+
+    int index = 0;
+    for (auto it = array.constBegin(); it != array.constEnd(); ++it)
+    {
+        if(it->isObject()){
+            QJsonObject currentObject = it->toObject();
+            for (const auto& col : header.keys())
+            {
+                const QString& key = col;
+                auto rowVal = currentObject.find(key);
+
+                QTableWidgetItem *itemVal = nullptr;
+                if (rowVal.value().isString())
+                    itemVal = new QTableWidgetItem(rowVal.value().toString());
+                else if (rowVal.value().isDouble())
+                    itemVal = new QTableWidgetItem(QString::number(rowVal.value().toInteger()));
+                else if (rowVal.value().isBool())
+                    itemVal = new QTableWidgetItem(QString::number(rowVal.value().toBool()));
+
+                if (itemVal){
+                    itemVal->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                    table->setItem(index, header[col], itemVal);
+                }
+            }
+
+            index++;
+        }
+    }
+
 }

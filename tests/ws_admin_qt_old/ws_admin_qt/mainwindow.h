@@ -13,7 +13,7 @@
 #include <QtQml/QQmlComponent>
 #include <QtQml/QQmlDebuggingEnabler>
 
-#include "../../ws_client/include/iws_client.h"
+#include "iws_client.h"
 
 #include "popup.h"
 #include "userdialog.h"
@@ -81,6 +81,8 @@ private slots:
     void on_btnSendMessage_clicked();
 
     void on_btnKillSession_clicked();
+
+    void on_treeChannels_itemSelectionChanged();
 
 private:
     enum treeItemType{itTopItem=1001,itGroupItem,itImageItem};

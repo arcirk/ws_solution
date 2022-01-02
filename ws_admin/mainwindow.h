@@ -6,6 +6,7 @@
 
 #include "include/clientsettings.h"
 #include "include/qmlwebsocket.h"
+#include "include/userdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,10 +31,47 @@ private slots:
     void on_mnuDisconnect_triggered();
 
     //webSocket
-    void connectedStatusChanged(bool status);
-    void displayError(const QString& what, const QString& err);
+    void onConnectedStatusChanged(bool status);
+    void onDisplayError(const QString& what, const QString& err);
+    void onGetActiveUsers(const QString& resp);
+    void onGetGroupList(const QString& resp);
+    void onFillUsers(const QString& resp);
+    void onAddGroup(const QString& resp);
+    void onEditGroup(const QString& resp);
+    void onRemoveGroup(const QString& resp);
+    void onAddUser(const QString& resp);
+    void onDeleteUser(const QString& resp);
+    void onUpdateUser(const QString& resp);
+    void onSetUserParent(const QString& resp);
+    void onClientLeave(const QString& resp);
+    void onClientJoin(const QString& resp);
 
+    void on_treeSrvObjects_itemSelectionChanged();
+    void on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
 
+    void on_btnAddGroup_clicked();
+
+    void on_btnEditGroup_clicked();
+
+    void on_btnDelGroup_clicked();
+
+    void on_treeChannels_itemActivated(QTreeWidgetItem *item, int column);
+
+    void on_btnAddUser_clicked();
+
+    void on_btnEditUser_clicked();
+
+    void on_btnDeleteUser_clicked();
+
+    void on_listChildSrvObjects_itemActivated(QTableWidgetItem *item);
+
+    void on_btnViewMode_toggled(bool checked);
+
+    void on_btnToGroup_clicked();
+
+    void on_btnKillSession_clicked();
+
+    void on_mnuAbout_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -47,10 +85,22 @@ private:
     QTableWidget * listChildServerObjects;
     QTreeWidget * treeChannelsObjects;
 
+    QString currentNode;
+    QMap<QString, int> treeGroupHeader;
+    bool view_mode_hierarchy;
+
     //form
     void fillTree(bool started);
+    void fillList(const QString &nodeName);
     QString serverView();
     void visibilityСontrol(bool visible, bool isSessions);
+    void resizeColumns();
+    void setHeaderAliases(QTableWidget* table);
+    void treeGroupCreateColumns(QMap<QString, int> header, QTreeWidget* tree);
+    void treeGroupCreateRootItems(QSortFilterProxyModel* model, QTreeWidget* tree, QMap<QString, int> header);
+    void fillTreeGroup(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header);
+
+    std::string user_change_request_parameters(Ui::user_info *usr_info);
 };
 
 #endif // MAINWINDOW_H

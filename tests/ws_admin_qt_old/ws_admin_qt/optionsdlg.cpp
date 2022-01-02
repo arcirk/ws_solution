@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QDir>
 
-#include "../../ws_client/include/iws_client.h"
+#include "iws_client.h"
 
 OptionsDlg::OptionsDlg(appSettings * settings, QWidget *parent) :
     QDialog(parent),

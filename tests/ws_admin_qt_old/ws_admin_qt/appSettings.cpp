@@ -2,7 +2,7 @@
 #include "AppSettings.h"
 //#include "global.h"
 //#include "iws_client.h"
-#include "../../ws_client/include/iws_client.h"
+#include "iws_client.h"
 
 #include <QFileInfo>
 #include <QDir>

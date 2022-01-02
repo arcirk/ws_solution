@@ -39,6 +39,12 @@ public:
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
     Q_INVOKABLE void registerToAgent();
     Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
+    Q_INVOKABLE void getUsers(const QString& parent);
+    Q_INVOKABLE void addGroup(const QString& name, const QString& presentation, const QString& parent);
+    Q_INVOKABLE void editGroup(const QString& uuid, const QString& name, const QString& presentation, const QString& parent);
+    Q_INVOKABLE void removeGroup(const QString& uuid);
+
+    Q_INVOKABLE void sendCommand(const QString& cmd, const QString& uuidForm = "", const QString& param = "");
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -80,6 +86,13 @@ public:
     QString getSettingsFileName();
 
     void updateSettings();
+
+    static const QString nilUuid();
+    static const QString randomUuid();
+
+    void removeUser(const QString& uuid);
+    void setParent(const QString& uuid, const QString& parent);
+    void killSession(const QString& uuid);
 
 private:
     IClient * client;
@@ -123,6 +136,16 @@ signals:
     void unreadMessages(const QString& resp);
     void requestUserStatus(const QString& resp);
     void settingsFileNameChanged();
+    void getGroupList(const QString& resp);
+    void getListUsers(const QString& resp);
+    void addGroupUsers(const QString& resp);
+    void editGroupUsers(const QString& resp);
+    void removeGroupUsers(const QString& resp);
+
+    void addUser(const QString& resp);
+    void updateUser(const QString& resp);
+    void deleteUser(const QString& resp);
+    void setUserParent(const QString& resp);
 
     void clientShow();
 };

@@ -843,3 +843,9 @@ void MainWindow::on_btnKillSession_clicked()
     }
 }
 
+
+void MainWindow::on_treeChannels_itemSelectionChanged()
+{
+
+}
+

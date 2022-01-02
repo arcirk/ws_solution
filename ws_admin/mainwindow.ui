@@ -38,6 +38,9 @@
          <layout class="QHBoxLayout" name="toolBtnGroupBox">
           <item>
            <widget class="QToolButton" name="btnSaveData">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>...</string>
             </property>
@@ -49,6 +52,9 @@
           </item>
           <item>
            <widget class="QToolButton" name="btnGetData">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>...</string>
             </property>

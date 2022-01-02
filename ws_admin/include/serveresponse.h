@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSortFilterProxyModel>
+#include <QTableWidget>
 
 class ServeResponse
 {
@@ -32,6 +33,10 @@ public:
     static void debugSaveResponse(const QString& filename, const QString& json = "");
 
     QString to_string() const;
+
+    static void loadTableFromJson(QTableWidget* table, const QJsonObject& json);
+    static void loadTableFromJson(QTableWidget* table, const QJsonArray& arr);
+    static void loadTableFromJson(QTableWidget *table, const QJsonArray& array, const QMap<QString, int> &header);
 
 private:
     void parse(const QString& resp);
