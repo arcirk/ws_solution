@@ -15,6 +15,7 @@ class MessageListModel : public QAbstractTableModel
     //Q_PROPERTY(QString companionUuid READ companionUuid WRITE setCompanionUuid NOTIFY companionUuidChanged)
     //Q_PROPERTY(QString jsonText READ jsonText WRITE setJsonText NOTIFY jsonTextChanged)
     Q_PROPERTY(QString currentRecipient READ currentRecipient WRITE setCurrentRecipient NOTIFY currentRecipientChanged)
+    //Q_PROPERTY(QString currentToken READ currentToken WRITE setCurrentToken NOTIFY currentTokenChanged)
 
 public:
     typedef QMap<QString,QString> Heading;
@@ -47,6 +48,7 @@ public:
     Q_INVOKABLE void setDocument(const QString& uuid);
     Q_INVOKABLE void remove(const QString& uuid);
     Q_INVOKABLE void addMessage(const QString& msg, const QString& uuid, const QString& recipient);
+    Q_INVOKABLE QString getCurrentChatHash() const;
 
 //    QString jsonText() const;
 //    void setJsonText(const QString& source);
@@ -81,12 +83,15 @@ private:
 
     QString getRoleName(int role) const;
 
+    //void setCurrentToken(const QString& token);
+    //QString currentToken();
+
 signals:
     void UserUuidChanged(QString uuid);
    //void companionUuidChanged(QString uuid);
     void currentRecipientChanged();
     void jsonTextChanged();
-
+    void tokenChanged(const QString& token);
     void getMessagesForRecipient(const QString& uuid);
 
 

@@ -62,6 +62,14 @@ private slots:
     void onCloseConnect();
     void onOpenConnect();
 
+    void on_chUseLocalDirectory_toggled(bool checked);
+
+    void on_lineDavDirectory_editingFinished();
+
+    void on_btnSelClientFolder_clicked();
+
+    void on_btnSelDavFolder_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;

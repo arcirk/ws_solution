@@ -479,14 +479,39 @@ void ws_client::open(const char *host, const char *port, _callback_message &msg,
 
 }
 
-//bool ws_client::is_open() {
-//    if (sessions_.size() > 0){
-//        auto itr = sessions_.begin();
-//        session* sess = *itr;
-//        return sess->is_open();
-//    } else
-//        return false;
-//}
+void
+ws_client::set_webdav_settings_on_client(const std::string &sett) {
 
+    auto json = arcirk::bJson();
+    json.parse(sett);
 
+    _webdav_host = json.get_member("webdav_host").get_string();
+    _webdav_user = json.get_member("webdav_user").get_string();
+    _webdav_pwd = json.get_member("webdav_pwd").get_string();
+    _webdav_ssl = json.get_member("webdav_pwd").get_bool();
 
+}
+
+void ws_client::set_webdav_directory(const std::string &dir) {
+
+    _webdav_local_dir = dir;
+}
+
+void ws_client::use_webdav_local_dir(bool val) {
+    _webdav_use_local = val;
+}
+
+std::string ws_client::get_webdav_user() const {
+    return _webdav_user;
+}
+
+std::string ws_client::get_webdav_pwd() const {
+    return _webdav_pwd;
+}
+
+std::string ws_client::get_webdav_host() const {
+    return _webdav_host;
+}
+bool ws_client::get_webdav_ssl() {
+    return _webdav_ssl;
+}

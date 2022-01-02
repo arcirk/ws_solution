@@ -40,6 +40,9 @@ public:
     Q_INVOKABLE void registerToAgent();
     Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
 
+    Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName);
+    Q_INVOKABLE void downloadFile(const QString& token, const QString& fileName);
+
     void ext_message(const std::string& msg);
     void status_changed(bool status);
 
@@ -123,6 +126,8 @@ signals:
     void unreadMessages(const QString& resp);
     void requestUserStatus(const QString& resp);
     void settingsFileNameChanged();
+
+    void getChannelToken(const QString& resp);
 
     void clientShow();
 };

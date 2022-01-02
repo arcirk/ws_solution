@@ -437,30 +437,6 @@ shared_state::get_sessions(boost::uuids::uuid &user_uuid) {
     return {};
 }
 
-//void shared_state::send_private_message(const std::string &message, boost::uuids::uuid &recipient,
-//                                        boost::uuids::uuid &sender) {
-
-//    auto session = get_session(recipient);
-//    auto session_sender = get_session(sender);
-//
-//    std::string name = "admin";
-//
-//    if (session_sender){
-//        name = session_sender->get_name();
-//    }
-//
-//    if (session){
-//
-//        auto* msg = new arc_json::ws_message(session->get_uuid(), name, message, "send_private_message", session->get_app_name());
-//
-//        auto const ss = boost::make_shared<std::string const>(msg->get_json(true));
-//
-//        session->send(ss);
-//
-//        delete msg;
-//    }
-
-//}
 void shared_state::on_start() {
 
     //get shared channels
@@ -529,6 +505,12 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 3;
     else if (command == "command_to_qt_agent")
         return params == 3;
+    else if (command == "get_webdav_settings")
+        return params == 1;
+    else if (command == "set_webdav_settings")
+        return params == 5;
+    else if (command == "get_channel_token")
+        return params == 3;
     else
         return false;
 }
@@ -567,6 +549,9 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_unread_messages");
     commands.emplace_back("command_to_qt_client");
     commands.emplace_back("command_to_qt_agent");
+    commands.emplace_back("get_webdav_settings");
+    commands.emplace_back("set_webdav_settings");
+    commands.emplace_back("get_channel_token");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -632,6 +617,12 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
        return  std::bind(&shared_state::command_to_qt_client, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else if (command == "command_to_qt_agent")
        return  std::bind(&shared_state::command_to_qt_agent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else if (command == "get_webdav_settings")
+       return  std::bind(&shared_state::get_webdav_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else if (command == "set_webdav_settings")
+       return  std::bind(&shared_state::set_webdav_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+   else if (command == "get_channel_token")
+       return  std::bind(&shared_state::get_channel_token, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else
        return nullptr;
 }
@@ -1064,6 +1055,17 @@ bool shared_state::update_user(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
 
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
     boost::uuids::uuid recipient{};
     std::string _recipient = params->get_member("recipient").to_string();
     if (!arcirk::is_valid_uuid(_recipient, recipient)){
@@ -1090,6 +1092,7 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params,
     std::map<std::string, arcirk::bVariant> fields;
     fields.insert(std::pair<std::string, arcirk::bVariant>("uuid", arcirk::uuid_to_string(uuid)));
     fields.insert(std::pair<std::string, arcirk::bVariant>("uuid_recipient", _recipient));
+    fields.insert(std::pair<std::string, arcirk::bVariant>("token", token));
 
     int result = sqlite3Db->get_save_messages(json, token, err, limit, start_date, end_date, fields);
 
@@ -1112,6 +1115,7 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params,
         obj_json->addMember("uuid", uuid_var);
         arcirk::bVariant uuid_recipient_var = _recipient;
         obj_json->addMember("uuid_recipient", uuid_recipient_var);
+        obj_json->addMember("token", token);
         obj_json->addMember("columns", _header);
         obj_json->addMember("rows", _rows);
         custom_result = obj_json->to_string();
@@ -1122,6 +1126,17 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params,
         return false;
 
     msg->message().uuid_channel = recipient;
+
+//    //костыль, временно
+//    if(current_sess->get_app_name() == "qt_client"){
+//        _ws_message _message = createMessage(current_sess);
+//        _message.message = token;
+//        _message.command = "get_channel_token";
+//        _message.uuid_channel = recipient;
+//        std::string m = arcirk::ws_message(_message).get_json(true);
+//        auto const ss = boost::make_shared<std::string const>(std::move(m));
+//        current_sess->send(ss);
+//    }
 
     return true;
 
@@ -1536,54 +1551,6 @@ bool shared_state::kill_session(boost::uuids::uuid &uuid, arcirk::bJson *params,
     return true;
 
 }
-
-//bool shared_state::set_uuid(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
-//                            std::string &err, std::string &custom_result) {
-//
-//    auto  current_sess = get_session(uuid);
-//
-//    try {
-//        current_sess->throw_authorized();
-//    }catch (boost::exception const &e) {
-//        err = boost::diagnostic_information(e);
-//        std::cerr << err << std::endl;
-//        return false;
-//
-//    }
-//
-//    if (current_sess->get_role() != "admin"){
-//        err = "не достаточно прав доступа для команды!";
-//        return false;
-//    }
-//
-//    std::string _uuid = params->get_member("uuid_set").get_string();
-//    if (_uuid.empty()){
-//        err = "не указан идентификатор сессии!!";
-//        return false;
-//    }
-//
-//    boost::uuids::uuid uuid_set = arcirk::string_to_uuid(_uuid, false);
-//    auto  session_set = get_session(uuid_set);
-//    if (!session_set) //такой сессии не существует
-//        return false;
-//
-//    std::string _new_uuid = params->get_member("new_uuid").get_string();
-//    if (_new_uuid.empty())
-//        return false;
-//
-//    boost::uuids::uuid new_uuid = arcirk::string_to_uuid(_new_uuid, false);
-//
-//    auto  session_valid = get_session(uuid_set);
-//    if (session_valid) //сессия с таким идентификатором уже  существует
-//        return false;
-//
-//    //обновляем uuid сессии
-//    sessions_.erase(uuid_set);
-//    session_set->set_uuid(new_uuid);
-//    sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session_set->get_uuid(), session_set));
-//
-//    return true;
-//}
 
 bool shared_state::set_app_name(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                 std::string &err, std::string &custom_result) {
@@ -2160,6 +2127,119 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
 
     }else
         return false;
+
+    return true;
+}
+
+std::string shared_state::_get_webdav_settings() const {
+
+    arcirk::bJson json{};
+    std::string _webdav_host;
+    std::string _webdav_user;
+    std::string _webdav_pwd;
+    bool _webdav_ssl = false;
+
+    if (json.from_file("config/conf.json")){
+        if (json.is_parse()){
+            _webdav_host = json.get_member("webdav_host").get_string();
+            _webdav_user = json.get_member("webdav_user").get_string();
+            _webdav_pwd = json.get_member("webdav_pwd").get_string();
+            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
+        }
+    }
+
+//    if (json.get_member_count() == 0){
+//        json.set_object();
+//        json.addMember(arcirk::content_value("webdav_host", _webdav_host));
+//        json.addMember(arcirk::content_value("webdav_user", _webdav_user));
+//        json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
+//        json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
+//    }
+
+    arcirk::bJson wd_json{};
+    wd_json.set_object();
+    wd_json.addMember(arcirk::content_value("webdav_host", _webdav_host));
+    wd_json.addMember(arcirk::content_value("webdav_user", _webdav_user));
+    wd_json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
+    wd_json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
+
+    return wd_json.to_string();
+
+}
+
+bool shared_state::get_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                       std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    custom_result = _get_webdav_settings();
+
+    return true;
+
+}
+bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                        std::string &err, std::string &custom_result){
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    std::string _webdav_host = params->get_member("webdav_host").get_string();
+    std::string _webdav_user = params->get_member("webdav_user").get_string();
+    std::string _webdav_pwd = params->get_member("webdav_pwd").get_string();
+    bool _webdav_ssl = params->get_member("webdav_ssl").get_bool();
+
+    arcirk::bJson json{};
+    json.from_file("config/conf.json");
+    if (json.get_member_count() == 0){
+        json.set_object();
+    }
+
+    json.addMember(arcirk::content_value("webdav_host", _webdav_host), true);
+    json.addMember(arcirk::content_value("webdav_user", _webdav_user), true);
+    json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd), true);
+    json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl), true);
+
+    json.to_file("config/conf.json");
+
+    return true;
+}
+
+bool shared_state::get_channel_token(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg, std::string &err,
+                                     std::string &custom_result) {
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    std::string user_uuid = params->get_member("user_uuid").get_string();
+    std::string recipient_uuid = params->get_member("recipient_uuid").get_string();
+
+    std::string result = sqlite3Db->get_channel_token(arcirk::string_to_uuid(user_uuid), arcirk::string_to_uuid(recipient_uuid));
+
+    if(result == "error")
+        return false;
+
+    custom_result = result;
 
     return true;
 }

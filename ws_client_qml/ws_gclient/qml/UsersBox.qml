@@ -15,6 +15,10 @@ Pane {
     signal setMessageModel(var modelindex);
     signal removeItem(string uuid);
 
+    function getCurrentToken(){
+        return usersModel.getCurrentToken();
+    }
+
     function getDraft(){
         let draft = usersModel.getDraft();
         return  draft
@@ -72,6 +76,10 @@ Pane {
 
     function getStatusAddedUser(uuid){
         wsClient.getUserStatus(uuid);
+    }
+
+    function setToken(token){
+        usersModel.setToken(token);
     }
 
     SelectedUsersModel{
@@ -172,6 +180,7 @@ Pane {
                     onClicked: {
                         //mainForm.title = "Чат - " + model.name
                         listUsers.selectedRow(model)
+                        //console.debug(model.token)
                     }
 
                 }
@@ -206,7 +215,10 @@ Pane {
 
         onSelectedRow: function(modelindex){
             model.currentRow = modelindex.uuid
+            //console.debug(modelindex.token)
             //usersBox.selectedIem(modelindex)
+            //console.debug(usersModel.getCurrentToken());
+
         }
 
         onRemoveRow: function(modelindex){

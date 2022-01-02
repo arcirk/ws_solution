@@ -61,6 +61,7 @@ public:
     void get_user_data(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
     void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
     void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
+    void get_channel_token(const std::string &user_sender, const std::string &uuid_form);
 
     std::string get_app_uuid() const;
     std::string get_user_uuid() const;
@@ -77,6 +78,15 @@ public:
     static std::string get_hash(const std::string &usr, const std::string &pwd);
     static long int current_date_seconds();
     static long int add_day(const long int selDate, const int dayCount);
+
+    void set_webdav_settings_on_client(const std::string& resp, const std::string& localDir, bool useLocalDir);
+    void set_webdav_settings_on_server();
+
+    std::string get_webdav_user() const;
+    std::string get_webdav_pwd() const;
+    std::string get_webdav_host() const;
+    bool get_webdav_ssl();
+
 
 private:
 

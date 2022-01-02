@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
 project(ws_agent VERSION 0.1 LANGUAGES CXX)
 
@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+
+link_directories("../../ws_client/cmake-build-debug")
+#find_library(ws_client)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -52,7 +55,7 @@ else()
 endif()
 
 include_directories("../../ws_client/include")
-#link_directories("../../ws_client/cmake-build-debug")
+
 #link_directories("/home/arcady/src/ws_solution/ws_client/cmake-build-debug")
 
 target_link_libraries(ws_agent PRIVATE

@@ -94,6 +94,9 @@ public:
     void setParent(const QString& uuid, const QString& parent);
     void killSession(const QString& uuid);
 
+    void setWebDavSettingsToClient(const QString& resp);
+    void setWebDavSettingsToServer();
+
 private:
     IClient * client;
     ClientSettings * settings;

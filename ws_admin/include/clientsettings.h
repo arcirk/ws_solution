@@ -27,6 +27,12 @@ public:
     QString ServerWorkingDirectory;
     bool isLocalInstallation;
     bool RunAsService;
+    bool UseLocalWebDAvDirectory;
+    QString LocalWebDavDirectory;
+    QString WebdavHost;
+    QString WebdavUser;
+    QString WebdavPwd;
+    bool WebdavSSL;
 
     QString password;
     bool pwdEdit;

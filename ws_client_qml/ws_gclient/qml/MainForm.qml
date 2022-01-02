@@ -81,6 +81,10 @@ import QtQuick.Layouts 1.12
             activeChats.setUnreadMessages(resp)
         }
 
+        function setToken(token){
+            activeChats.setToken(token)
+        }
+
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true
@@ -104,6 +108,9 @@ import QtQuick.Layouts 1.12
                         onMessageClick: function(msg) {
                             dialogMsg.textMsg = msg
                             dialogMsg.open()
+                        }
+                        onTokenChanged: function(token){
+                            mainSplit.setToken(token)
                         }
                     }
                     MessageBox{
@@ -129,6 +136,11 @@ import QtQuick.Layouts 1.12
                         onMessageChanged: function(source){
                             //activeChats.setCurrentDraft(source)
                             mainSplit.draft = source;
+                        }
+
+                        onSelectFile: function(fileName){
+                            //console.debug(activeChats.getCurrentToken())
+                            wsClient.uploadFile(activeChats.getCurrentToken(), fileName)
                         }
                     }
 

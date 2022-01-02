@@ -74,6 +74,15 @@ public:
 
     bool is_login(){return _is_login;}
 
+    void set_webdav_settings_on_client(const std::string& sett);
+
+    void set_webdav_directory(const std::string& dir);
+    void use_webdav_local_dir(bool val);
+    std::string get_webdav_user() const;
+    std::string get_webdav_pwd() const;
+    std::string get_webdav_host() const;
+    bool get_webdav_ssl();
+
 private:
 
     boost::asio::io_context &ioc;
@@ -85,6 +94,13 @@ private:
     std::string _app_name;
     boost::uuids::uuid  _user_uuid{};
     bool _is_login;
+
+    std::string _webdav_host;
+    std::string _webdav_user;
+    std::string _webdav_pwd;
+    bool _webdav_use_local;
+    std::string _webdav_local_dir;
+    bool _webdav_ssl;
 
     static void console_log(const std::string logText){
         std::cout << logText << std::endl;

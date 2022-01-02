@@ -22,6 +22,8 @@ ClientSettings::ClientSettings()
     isLocalInstallation = false;
     pwdEdit = false;
     password = "";
+    UseLocalWebDAvDirectory = false;
+    WebdavSSL = false;
 }
 
 ClientSettings &ClientSettings::operator=(const ClientSettings &from)
@@ -44,6 +46,12 @@ ClientSettings &ClientSettings::operator=(const ClientSettings &from)
     RunAsService = from.RunAsService;
     pwdEdit = from.pwdEdit;
     password = from.password;
+    UseLocalWebDAvDirectory = from.UseLocalWebDAvDirectory;
+    LocalWebDavDirectory = from.LocalWebDavDirectory;
+    WebdavHost = from.WebdavHost;
+    WebdavUser = from.WebdavUser;
+    WebdavPwd = from.WebdavPwd;
+    WebdavSSL = from.WebdavSSL;
 
     return *this;
 }
@@ -80,6 +88,8 @@ bool ClientSettings::init(){
         SaveHash = false;
         pwdEdit = false;
         password = "";
+        UseLocalWebDAvDirectory = false;
+        WebdavSSL = false;
         return false;
     }
 
@@ -128,6 +138,31 @@ bool ClientSettings::init(){
     if (iter != m_currentJsonObject.end()){
         RunAsService = iter.value().toBool();
     }
+    iter = m_currentJsonObject.find("UseLocalWebDAvDirectory");
+    if (iter != m_currentJsonObject.end()){
+        UseLocalWebDAvDirectory = iter.value().toBool();
+    }
+    iter = m_currentJsonObject.find("LocalWebDavDirectory");
+    if (iter != m_currentJsonObject.end()){
+        LocalWebDavDirectory = iter.value().toString();
+    }
+
+    iter = m_currentJsonObject.find("WebdavHost");
+    if (iter != m_currentJsonObject.end()){
+        WebdavHost = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("WebdavUser");
+    if (iter != m_currentJsonObject.end()){
+        WebdavUser = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("WebdavPwd");
+    if (iter != m_currentJsonObject.end()){
+        WebdavPwd = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("WebdavSSL");
+    if (iter != m_currentJsonObject.end()){
+        WebdavSSL = iter.value().toBool();
+    }
 
     AppName = "admin_console";
 
@@ -153,7 +188,12 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
     m_currentJsonObject.insert("AppName", AppName);
     m_currentJsonObject.insert("RunAsService", RunAsService);
-
+    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
+    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
+    m_currentJsonObject.insert("WebdavHost", WebdavHost);
+    m_currentJsonObject.insert("WebdavUser", WebdavUser);
+    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
+    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
     //qDebug() << QApplication::applicationDirPath() ;
 
     QDir dirConf(QApplication::applicationDirPath() + "/config");
@@ -190,7 +230,12 @@ QString ClientSettings::getJson() {
     m_currentJsonObject.insert("SaveHash", SaveHash);
     m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
     m_currentJsonObject.insert("RunAsService", RunAsService);
-
+    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
+    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
+    m_currentJsonObject.insert("WebdavHost", WebdavHost);
+    m_currentJsonObject.insert("WebdavUser", WebdavUser);
+    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
+    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
     return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
 }
 
@@ -208,6 +253,12 @@ QJsonObject ClientSettings::getJsonObject() {
     m_currentJsonObject.insert("SaveHash", SaveHash);
     m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
     m_currentJsonObject.insert("RunAsService", RunAsService);
+    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
+    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
+    m_currentJsonObject.insert("WebdavHost", WebdavHost);
+    m_currentJsonObject.insert("WebdavUser", WebdavUser);
+    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
+    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
     return m_currentJsonObject;
 
 }

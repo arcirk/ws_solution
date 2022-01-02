@@ -47,6 +47,18 @@ private slots:
 
     void on_chkAutoConnect_toggled(bool checked);
 
+    void on_radioUseLocalFolder_toggled(bool checked);
+
+    void on_txtLocalFilesFolder_textChanged();
+
+    void on_lineAddressWebDav_editingFinished();
+
+    void on_chSSL_toggled(bool checked);
+
+    void on_lineEdtWebDAvUser_editingFinished();
+
+    void on_lineEdtWebDavPassword_editingFinished();
+
 private:
     Ui::OptionsDialog *ui;
     ClientSettings settings;

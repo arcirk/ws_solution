@@ -22,12 +22,12 @@ import Qt.labs.platform 1.1
         //nameFilters: ["JSON File (* .json)"]
         onAccepted: {
             fds.selectFile(fds.file, basename(fds.file)) ;
-            console.log("You chose: " + fds.file);
+            //console.log("You chose: " + fds.file);
         }
 
         onRejected: {
             labels.text = "";
-            console.log("Canceled");
+            //console.log("Canceled");
             Qt.quit();
         }
 

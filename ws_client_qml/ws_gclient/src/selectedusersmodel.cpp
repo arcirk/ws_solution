@@ -11,6 +11,7 @@ SelectedUsersModel::SelectedUsersModel(QObject * parent )
     m_header.push_back( SelectedUsersModel::Heading( { {"title","draft"},   {"index","draft"} }) ); //черновик (набранный но не отправленный текст)
     m_header.push_back( SelectedUsersModel::Heading( { {"title","unreadMessages"},   {"index","unreadMessages"} }) ); //не прочитанные сообщения
     m_header.push_back( SelectedUsersModel::Heading( { {"title","active"},   {"index","active"} }) );
+    m_header.push_back( SelectedUsersModel::Heading( { {"title","token"},   {"index","token"} }) );
     getHeaderJsonObject();
     m_json = QJsonArray();
     setJson(QJsonArray());
@@ -49,6 +50,11 @@ bool SelectedUsersModel::setJson(const QJsonDocument &json)
             if (ind == -1){
                 //list.push_back("active");
                 m_header.push_back( MessageListModel::Heading( { {"title","active"},    {"index","active"} }) );
+            }
+            ind = list.indexOf("token");
+            if (ind == -1){
+                //list.push_back("active");
+                m_header.push_back( MessageListModel::Heading( { {"title","token"},    {"index","token"} }) );
             }
             getHeaderJsonObject();
         }
@@ -149,6 +155,9 @@ QVariant SelectedUsersModel::data( const QModelIndex &index, int role ) const
     if (role >= Qt::UserRole){
         QJsonObject obj = getJsonObject( index );
         QString key = QString::fromStdString(roleNames()[role].toStdString());
+        if (key == "token")
+            qDebug() << key;
+
         if( obj.contains( key ))
         {
             QJsonValue v = obj[ key ];
@@ -250,7 +259,7 @@ void SelectedUsersModel::addRow(const QString &uuid, const QString &name, bool u
     msg.insert("draft", "");
     msg.insert("unreadMessages", 0); //ToDo: добавить запрос
     msg.insert("active", false);
-
+    msg.insert("token", "");
 
     beginResetModel();
     m_json.push_front(msg);
@@ -343,6 +352,7 @@ QString SelectedUsersModel::currentRow()
 {
     return m_currentRow;
 }
+
 
 void SelectedUsersModel::setCurrentRow(const QString &uuid)
 {
@@ -628,5 +638,18 @@ void SelectedUsersModel::updateUserData(const QString &resp)
 
    endResetModel();
 
+}
+
+void SelectedUsersModel::setToken(const QString &token)
+{
+    QModelIndex ind = item(m_currentRow, getColumnIndex("token"));
+    setRowValue(ind, token);
+}
+
+QString SelectedUsersModel::getCurrentToken()
+{
+    QModelIndex ind = item(m_currentRow, getColumnIndex("token"));
+    QJsonObject obj = getJsonObject( ind );
+    return obj["token"].toString();
 }
 

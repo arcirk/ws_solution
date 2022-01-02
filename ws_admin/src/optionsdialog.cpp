@@ -21,6 +21,13 @@ OptionsDialog::OptionsDialog(QWidget *parent, const ClientSettings& sett) :
     ui->chkSavePwd->setChecked(sett.SaveHash);
     ui->Password->setText("***");
 
+    ui->radioUseLocalFolder->setChecked(sett.UseLocalWebDAvDirectory);
+    ui->txtLocalFilesFolder->setText(sett.LocalWebDavDirectory);
+    ui->lineAddressWebDav->setText(sett.WebdavHost);
+    ui->lineEdtWebDAvUser->setText(sett.WebdavUser);
+    ui->lineEdtWebDavPassword->setText(sett.WebdavPwd);
+    ui->chSSL->setChecked(sett.WebdavSSL);
+
     settings = sett;
     settings.password = "***";
 }
@@ -128,5 +135,41 @@ void OptionsDialog::on_chkSavePwd_toggled(bool checked)
 void OptionsDialog::on_chkAutoConnect_toggled(bool checked)
 {
     settings.AutoConnect = checked;
+}
+
+
+void OptionsDialog::on_radioUseLocalFolder_toggled(bool checked)
+{
+    settings.UseLocalWebDAvDirectory = checked;
+}
+
+
+void OptionsDialog::on_txtLocalFilesFolder_textChanged()
+{
+    settings.LocalWebDavDirectory = ui->txtLocalFilesFolder->toPlainText();
+}
+
+
+void OptionsDialog::on_lineAddressWebDav_editingFinished()
+{
+    settings.WebdavHost = ui->lineAddressWebDav->text();
+}
+
+
+void OptionsDialog::on_chSSL_toggled(bool checked)
+{
+    settings.WebdavSSL = checked;
+}
+
+
+void OptionsDialog::on_lineEdtWebDAvUser_editingFinished()
+{
+    settings.WebdavUser = ui->lineEdtWebDAvUser->text();
+}
+
+
+void OptionsDialog::on_lineEdtWebDavPassword_editingFinished()
+{
+    settings.WebdavPwd = ui->lineEdtWebDavPassword->text();
 }
 

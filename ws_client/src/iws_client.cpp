@@ -571,3 +571,67 @@ long int IClient::current_date_seconds() {
 long int IClient::add_day(const long selDate, const int dayCount) {
     return arcirk::add_day(selDate, dayCount);
 }
+
+void IClient::set_webdav_settings_on_client(const std::string& resp, const std::string& localDir, bool useLocalDir) {
+
+    client->set_webdav_settings_on_client(resp);
+
+    client->set_webdav_directory(localDir);
+    client->use_webdav_local_dir(useLocalDir);
+
+}
+
+std::string IClient::get_webdav_user() const {
+    return client->get_webdav_user();
+}
+
+std::string IClient::get_webdav_pwd() const {
+    return client->get_webdav_pwd();
+}
+
+std::string IClient::get_webdav_host() const {
+    return client->get_webdav_host();
+}
+bool IClient::get_webdav_ssl() {
+    return client->get_webdav_ssl();
+}
+
+void IClient::set_webdav_settings_on_server() {
+
+    boost::property_tree::ptree pt;
+
+    try {
+        pt.add("uuid_form", arcirk::nil_string_uuid());
+        pt.add("webdav_host", get_webdav_host());
+        pt.add("webdav_user", get_webdav_user());
+        pt.add("webdav_pwd", get_webdav_pwd());
+        pt.add("webdav_ssl", get_webdav_ssl());
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("set_webdav_settings", nil_string_uuid(), _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+
+}
+
+void IClient::get_channel_token(const std::string &user_sender, const std::string &uuid_form) {
+    boost::property_tree::ptree pt;
+
+    try {
+        pt.add("uuid_form", uuid_form);
+        pt.add("user_uuid", get_user_uuid());
+        pt.add("recipient_uuid", user_sender);
+
+        std::stringstream _ss;
+        boost::property_tree::json_parser::write_json(_ss, pt);
+
+        send_command("get_channel_token", uuid_form, _ss.str());
+
+    }catch (std::exception& e){
+        //message("error: " + std::string (e.what()));
+    }
+}

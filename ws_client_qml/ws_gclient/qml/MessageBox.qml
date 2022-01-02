@@ -21,6 +21,8 @@ Pane{
     signal sendMessage(string msg)
     signal messageChanged(string source)
 
+    signal selectFile(string fileName)
+
     property alias text: txtSendMessage.text
     property string uuidRecipient
 
@@ -101,6 +103,8 @@ Pane{
             //console.log(Qt.resolvedUrl("pics/logo.png"))
             wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
             txtSendMessage.text = cashe;
+
+            control.selectFile(fpath);
         }
     }
 

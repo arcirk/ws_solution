@@ -19,6 +19,7 @@ class SelectedUsersModel : public QAbstractTableModel
     Q_PROPERTY(QString userUuid READ userUuid WRITE setUserUuid NOTIFY jsonUserUuidChanged)
     Q_PROPERTY(QString currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
 
+
 public:
     typedef QMap<QString,QString> Heading;
     typedef QVector<Heading> Header;
@@ -51,6 +52,9 @@ public:
     Q_INVOKABLE void setStatusUser(const QString& resp);
     Q_INVOKABLE void updateUserData(const QString& resp);
 
+    Q_INVOKABLE void setToken(const QString& token);
+    Q_INVOKABLE QString getCurrentToken();
+
     QString jsonText() const;
     void setJsonText(const QString& source);
 
@@ -58,9 +62,8 @@ public:
     void setUserUuid(const QString& uuid);
 
     QString currentRow();
+
     void setCurrentRow(const QString& uuid);
-
-
 
 private:
     Header m_header{};

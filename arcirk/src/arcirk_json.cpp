@@ -89,6 +89,44 @@ namespace arcirk{
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
     }
+    void bJson::addMember(_Document *doc, content_value &val, bool updateIsExists) {
+
+        _Value::MemberIterator itr = doc->FindMember(val.key.c_str());
+
+        if (itr != doc->MemberEnd()) {
+            if(!updateIsExists){
+                std::cerr << "error: the key '" << val.key.c_str() << "' already exists" <<std::endl;
+            }else{
+                if (val.value.is_string()) {
+                    itr->value.SetString(val.value.get_string().c_str(), doc->GetAllocator());
+                } else if (val.value.is_bool()) {
+                    itr->value.SetBool(val.value.get_bool());
+                } else if (val.value.is_int()) {
+                    itr->value.SetInt(val.value.get_int());
+                }else if (val.value.is_uuid()) {
+                    itr->value.SetString(val.value.to_string().c_str(), doc->GetAllocator());
+                }
+
+            }
+            return;
+        }
+
+        _Value key(val.key.c_str(), doc->GetAllocator());
+
+        if (val.value.is_string()) {
+            _Value value(val.value.get_string().c_str(), doc->GetAllocator());
+            doc->AddMember(key, value, doc->GetAllocator());
+        } else if (val.value.is_bool()) {
+            doc->AddMember(key, val.value.get_bool(), doc->GetAllocator());
+        } else if (val.value.is_int()) {
+            doc->AddMember(key, val.value.get_int(), doc->GetAllocator());
+        }else if (val.value.is_uuid()) {
+            _Value value(val.value.to_string().c_str(), doc->GetAllocator());
+            doc->AddMember(key, value, doc->GetAllocator());
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+    }
 
     unsigned int bJson::get_member_count() {
         return this->MemberCount();
@@ -245,6 +283,19 @@ namespace arcirk{
 
         return is_parse_;
 
+    }
+
+    bool bJson::to_file(const std::string &filename) {
+        if(!is_parse_)
+            return false;
+
+        std::ofstream ofs(filename);
+        OStreamWrapper osw(ofs);
+
+        Writer<OStreamWrapper> writer(osw);
+        this->Accept(writer);
+
+        return true;
     }
 
     std::string bJson::get_pt_member(ptree& pt, const std::string& key){

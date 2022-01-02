@@ -90,7 +90,7 @@ ApplicationWindow {
         }
 
         onConnectedStatusChanged: function(val){
-            console.debug("connection status: " + val)
+            //console.debug("connection status: " + val)
             btnConected.icon.source = val ? "qrc:/images/server_network_icon_138203.svg" : "qrc:/images/server_network_off_icon_136233.svg"
             srvSettingsDlg.enabled = !val
         }

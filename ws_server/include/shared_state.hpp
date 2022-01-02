@@ -115,6 +115,9 @@ private:
     bool set_agent_session(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool command_to_qt_client(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
     bool command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
+    bool get_channel_token(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result);
 
     int get_unread_messages_from_data(boost::uuids::uuid &uuid, boost::uuids::uuid &uuid_recipient);
 
@@ -136,6 +139,9 @@ private:
     void remove_group_hierarchy(const std::string &current_uuid, std::string &err);
 
     void send_error(const std::string& err, websocket_session *session, const std::string& command, const std::string& uuid_form);
+
+    std::string  _get_webdav_settings() const;
+
 };
 
 

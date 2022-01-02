@@ -25,6 +25,8 @@ public:
     bool AutoConnect;
     bool SaveHash;
     QString pathToClient;
+    QString WebDavDirectory;
+    bool UseLocalWebDavDirectory;
 };
 
 #endif // APPSETTINGS_H

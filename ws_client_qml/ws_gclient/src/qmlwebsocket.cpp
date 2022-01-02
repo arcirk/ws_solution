@@ -182,8 +182,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if(resp->command == "get_active_users"){
             emit getActiveUsers(resp->message);
             client->send_command("get_unread_messages", "", "");
-        }else if (resp->command == "get_messages"){
+        }else if (resp->command == "get_messages"){           
             client->reset_unread_messages(resp->recipient.toStdString(), "");
+            //client->get_channel_token(resp->recipient.toStdString(), "");
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
@@ -200,7 +201,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if(resp->command == "get_user_status"){
             emit requestUserStatus(resp->message);
         }else if(resp->command == "reset_unread_messages"){
-            //
+
         }
         else if(resp->command == "get_unread_messages"){
             emit unreadMessages(resp->message);
@@ -208,6 +209,11 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         else if(resp->command == "command_to_qt_client"){
             if(resp->message == "clientShow")
                 emit clientShow();
+        }
+        else if(resp->command == "get_channel_token"){
+            qDebug() << "get_channel_token: " << resp->message;
+            //client->reset_unread_messages(resp->recipient.toStdString(), "");
+            emit getChannelToken(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -368,19 +374,15 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
          client->send_command("command_to_qt_agent", "", param.toStdString());
     }
 
-//    QString saveFileName = "testArgs.json";
-//    QFileInfo fileInfo(saveFileName);
-//    QDir::setCurrent(fileInfo.path());
+}
 
-//    QFile jsonFile(saveFileName);
-//    if (!jsonFile.open(QIODevice::WriteOnly))
-//    {
-//        return;
-//    }
+void bWebSocket::uploadFile(const QString &token, const QString &fileName)
+{
+    qDebug() << "uploadFile: " << token << " " << fileName;
+}
 
-//    // Записываем текущий объект Json в файл
-//    jsonFile.write(param.toUtf8());
-//    jsonFile.close();   // Закрываем файл
-
+void bWebSocket::downloadFile(const QString &token, const QString &fileName)
+{
+    qDebug() << "downloadFile: " << token << " " << fileName;
 }
 

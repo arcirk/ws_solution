@@ -113,7 +113,7 @@ namespace arcirk{
     public:
 
         bool from_file(const std::string& filename);
-
+        bool to_file(const std::string& filename);
         //
         //        bool getMember(const std::string &member, std::string &result);
         //        bool getMember(const std::string &member, int &result);
@@ -125,7 +125,9 @@ namespace arcirk{
         //        bool getMembers(const std::string &member, std::vector <std::vector<content_value>> &value);
         //
         static void addMember(_Document * doc, content_value& value);
+        static void addMember(_Document *doc, content_value &val, bool updateIsExists);
         void addMember(content_value value) { addMember(this, value); };
+        void addMember(content_value value, bool updateIsExists) { addMember(this, value, updateIsExists); };
         void addMember(_Value* object, content_value val);
         void addMember(const std::string& key, _Value& value);
         void addMember(const std::string &member, bVariant value);

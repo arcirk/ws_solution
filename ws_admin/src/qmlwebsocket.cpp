@@ -170,7 +170,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_content_type"){
             client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
         }else if (resp->command == "set_message_struct_type"){
-            //client->get_users_catalog("");
+            client->send_command("get_webdav_settings", "", "");
         }else if (resp->command == "get_users_catalog"){
             //emit resetUsersCatalog(resp->message);
             //client->get_user_cache("");
@@ -235,6 +235,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_parent"){
             //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
             emit setUserParent(resp->message);
+        }else if (resp->command == "get_webdav_settings"){
+            //qDebug() << "get_webdav_settings: " << resp->message;
+            setWebDavSettingsToClient(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -410,6 +413,24 @@ void bWebSocket::setParent(const QString &uuid, const QString &parent)
 void bWebSocket::killSession(const QString &uuid)
 {
     client->kill_session(uuid.toStdString(), IClient::nil_string_uuid());
+}
+
+void bWebSocket::setWebDavSettingsToClient(const QString &resp)
+{
+    client->set_webdav_settings_on_client(resp.toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDAvDirectory);
+
+    settings->WebdavHost = QString::fromStdString(client->get_webdav_host());
+    settings->WebdavUser = QString::fromStdString(client->get_webdav_user());
+    settings->WebdavPwd = QString::fromStdString(client->get_webdav_pwd());
+    settings->WebdavSSL = client->get_webdav_ssl();
+
+    settings->save_settings();
+}
+
+void bWebSocket::setWebDavSettingsToServer()
+{
+    updateSettings();
+    client->set_webdav_settings_on_server();
 }
 
 void bWebSocket::setUuidSessAgent(const QString &uuid)

@@ -24,6 +24,9 @@ public:
     QString AppName;
     bool AutoConnect;
     bool SaveHash;
+    QString pathToClient;
+    QString WebDavDirectory;
+    bool UseLocalWebDavDirectory;
 
     void setSettingsFileName(const QString& fname);
 

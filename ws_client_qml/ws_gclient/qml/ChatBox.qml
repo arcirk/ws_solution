@@ -14,6 +14,7 @@ Pane{
     property alias listModel: listView.model
 
     signal messageClick(string msg);
+    signal tokenChanged(string token);
 
     MessageListModel{
         id: msgModel
@@ -22,11 +23,17 @@ Pane{
         onGetMessagesForRecipient: function(uuid){
             wsClient.messages(uuid);
         }
+
+        onTokenChanged: function(token){
+            //console.debug("token changed: " + token)
+            ctrlMessageList.tokenChanged(token)
+        }
     }
 
 
     function setMessages(resp){
         msgModel.addDocument(resp)
+        //console.debug(msgModel.currentToken);
     }
 
     function seChatMessages(uuid){
@@ -49,10 +56,6 @@ Pane{
         id: listView
         objectName: "listMessages"
         anchors.fill: parent
-//        Layout.fillWidth: true
-//        Layout.fillHeight: true
-        //Layout.topMargin: 110
-        //Layout.margins: pane.leftPadding + messageField.leftPadding
         displayMarginBeginning: 40
         displayMarginEnd: 40
         verticalLayoutDirection: ListView.BottomToTop

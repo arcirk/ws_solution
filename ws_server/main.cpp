@@ -47,6 +47,11 @@ typedef struct settings{
     std::string root_dir;
     std::string debug_dir;
 
+    std::string _webdav_host;
+    std::string _webdav_user;
+    std::string _webdav_pwd;
+    bool _webdav_ssl;
+
     bool get_settings(const std::string& filename){
 
         arcirk::bJson json{};
@@ -57,6 +62,11 @@ typedef struct settings{
             port = json.get_member("port").get_int();
             root_dir = json.get_member("root_dir").get_string();
             debug_dir = json.get_member("debug_dir").get_string();
+            _webdav_host = json.get_member("webdav_host").get_string();
+            _webdav_user = json.get_member("webdav_user").get_string();
+            _webdav_pwd = json.get_member("webdav_pwd").get_string();
+            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
+
             return true;
         }
         return false;
@@ -71,6 +81,11 @@ typedef struct settings{
         json.addMember(arcirk::content_value("port", (long int)port));
         json.addMember(arcirk::content_value("root_dir", root_dir));
         json.addMember(arcirk::content_value("debug_dir", debug_dir));
+        json.addMember(arcirk::content_value("webdav_host", _webdav_host));
+        json.addMember(arcirk::content_value("webdav_user", _webdav_user));
+        json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
+        json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
+
         return json.to_string();
     }
 
@@ -83,6 +98,10 @@ typedef struct settings{
             port = json.get_member("port").get_int();
             root_dir = json.get_member("root_dir").get_string();
             debug_dir = json.get_member("debug_dir").get_string();
+            _webdav_host = json.get_member("webdav_host").get_string();
+            _webdav_user = json.get_member("webdav_user").get_string();
+            _webdav_pwd = json.get_member("webdav_pwd").get_string();
+            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
             return true;
         }
         return false;

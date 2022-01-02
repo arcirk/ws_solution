@@ -224,6 +224,8 @@ void MessageListModel::addDocument(const QString& json){
     QString uuid_recipient = obj.value("uuid_recipient").toString();
     QJsonArray mesgArr = obj.value("rows").toArray();
 
+    m_Token = obj.value("token").toString();
+
     auto itr = m_arrMsg.find(uuid_recipient);
     if (itr != m_arrMsg.end()){
         m_arrMsg.erase(itr);
@@ -233,6 +235,8 @@ void MessageListModel::addDocument(const QString& json){
      beginResetModel();
      m_currentRecipient = uuid_recipient;
      endResetModel();
+
+     emit tokenChanged(m_Token);
 }
 
 void MessageListModel::setDocument(const QString& uuid)
@@ -293,6 +297,11 @@ void MessageListModel::addMessage(const QString& msg, const QString& uuid, const
         }
     }
 
+}
+
+QString MessageListModel::getCurrentChatHash() const
+{
+    //QString roomHash = IClient::get
 }
 
 QString MessageListModel::currentRecipient()

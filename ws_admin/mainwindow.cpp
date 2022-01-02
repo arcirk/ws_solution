@@ -155,6 +155,8 @@ void MainWindow::on_mnuOptions_triggered()
 
     delete optDlg;
 
+    client->setWebDavSettingsToServer();
+
 }
 
 

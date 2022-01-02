@@ -72,6 +72,18 @@ bool ClientSettings::init(){
     if (iter != m_currentJsonObject.end()){
         SaveHash = iter.value().toBool();
     }
+    iter = m_currentJsonObject.find("pathToClient");
+    if (iter != m_currentJsonObject.end()){
+        pathToClient = iter.value().toString();
+    }
+    iter = m_currentJsonObject.find("UseLocalWebDavDirectory");
+    if (iter != m_currentJsonObject.end()){
+        UseLocalWebDavDirectory = iter.value().toBool();
+    }
+    iter = m_currentJsonObject.find("WebDavDirectory");
+    if (iter != m_currentJsonObject.end()){
+        WebDavDirectory = iter.value().toString();
+    }
 
     AppName = "qt_client";
 
@@ -93,6 +105,9 @@ void ClientSettings::save_settings(){
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
     m_currentJsonObject.insert("AppName", AppName);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
+    m_currentJsonObject.insert("WebDavDirectory", WebDavDirectory);
+    m_currentJsonObject.insert("UseLocalWebDavDirectory", UseLocalWebDavDirectory);
 
     QString saveFileName = fileName;
     QFileInfo fileInfo(saveFileName);
@@ -119,6 +134,10 @@ QString ClientSettings::getJson() {
     m_currentJsonObject.insert("ServerName", ServerName);
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
+    m_currentJsonObject.insert("WebDavDirectory", WebDavDirectory);
+    m_currentJsonObject.insert("UseLocalWebDavDirectory", UseLocalWebDavDirectory);
+
     return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
 }
 
@@ -134,6 +153,10 @@ QJsonObject ClientSettings::getJsonObject() {
     m_currentJsonObject.insert("ServerStatus", ServerStatus);
     m_currentJsonObject.insert("AutoConnect", AutoConnect);
     m_currentJsonObject.insert("SaveHash", SaveHash);
+    m_currentJsonObject.insert("pathToClient", pathToClient);
+    m_currentJsonObject.insert("WebDavDirectory", WebDavDirectory);
+    m_currentJsonObject.insert("UseLocalWebDavDirectory", UseLocalWebDavDirectory);
+
     return m_currentJsonObject;
 
 }
