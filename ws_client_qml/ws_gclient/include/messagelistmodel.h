@@ -22,7 +22,6 @@ public:
     typedef QVector<Heading> Header;
     explicit MessageListModel(QObject * parent = 0);
 
-    //bool setJson( const QJsonDocument& json );
 
 
 
@@ -48,7 +47,6 @@ public:
     Q_INVOKABLE void setDocument(const QString& uuid);
     Q_INVOKABLE void remove(const QString& uuid);
     Q_INVOKABLE void addMessage(const QString& msg, const QString& uuid, const QString& recipient);
-    Q_INVOKABLE QString getCurrentChatHash() const;
 
 //    QString jsonText() const;
 //    void setJsonText(const QString& source);

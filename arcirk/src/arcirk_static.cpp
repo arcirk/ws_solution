@@ -4,9 +4,13 @@
 
 #include "../include/arcirk.h"
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
+#define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
 const std::string base64_padding[] = {"", "==", "="};
 typedef boost::variant<std::string, long int, bool, double, boost::uuids::uuid> _Variant;
+
+using namespace boost::filesystem;
 
 namespace arcirk{
 
@@ -181,5 +185,72 @@ namespace arcirk{
         return selDate + (dayCount * (60*60*24));
     }
 
+    std::string get_home(){
+#ifdef _WINDOWS
+        return getenv("APPDATA");
+#else
+        return getenv("HOME");
+#endif
+    }
+
+    bool verify_directory(const std::string& dir_path) {
+
+        path p(dir_path);
+
+        if (!exists(p)) {
+            return boost::filesystem::create_directories(p);
+        }
+
+        return true;
+    }
+
+    std::string get_conf_dirname(){
+#ifdef _WINDOWS
+        return "arcirk";
+#else
+        return ".arcirk";
+#endif
+    }
+
+    std::string get_conf_directory(){
+        return get_home() + path::separator + get_conf_dirname();
+    }
+
+    bool verify_conf_directory(){
+
+        bool result = verify_directory(get_conf_directory());
+        return result;
+    }
+
+    void* crypt(void* data, unsigned data_size, void* key, unsigned key_size)
+    {
+        assert(data && data_size);
+        if (!key || !key_size) return data;
+
+        auto* kptr = (uint8_t*)key; // начало ключа
+        uint8_t* eptr = kptr + key_size; // конец ключа
+
+        // отксоривание
+        for (auto* dptr = (uint8_t*)data; data_size--; dptr++)
+        {
+            *dptr ^= *kptr++;
+            if (kptr == eptr) kptr = (uint8_t*)key; // переход на начало ключа
+        }
+        return data;
+    }
+
+    std::string _crypt(const std::string &source, const std::string& key) {
+
+        int n = (int)source.length();
+        char text[n + 1];
+        std::strcpy(text, source.c_str());
+        int n1 = (int)key.length();
+        char pass[n1 + 1];
+        std::strcpy(pass, key.c_str());
+
+        crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
+
+        return text;
+    }
 
 }

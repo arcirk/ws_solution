@@ -9,11 +9,10 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    settings("conf.json", false)
 {
     ui->setupUi(this);
-
-    settings.init();
 
     lblStatusService = new QLabel(this);
     statusBar()->addWidget(lblStatusService);
@@ -28,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     lblStatusSocket->setText("Статус подключения: Не активное");
+
+    settings[bConfFieldsWrapper::AppName] = "admin_console";
+    settings.save();
 
     client = new bWebSocket(this);
 
@@ -61,14 +63,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     view_mode_hierarchy = true;
 
-    if(settings.AutoConnect){
-        client->open(settings.RootUser, "");
+    if(settings[bConfFieldsWrapper::AutoConnect].toBool()){
+        client->open(settings[bConfFieldsWrapper::User].toString(), "");
     }
 
 }
 
 QString MainWindow::serverView(){
-    return settings.ServerName + " [" + settings.ServerHost + ":" + QString::number(settings.ServerPort) + "]";
+    return settings[bConfFieldsWrapper::ServerName].toString() + " [" + settings[bConfFieldsWrapper::ServerHost].toString() + ":" + QString::number(settings[bConfFieldsWrapper::ServerPort].toInt()) + "]";
 }
 
 void MainWindow::fillTree(bool started){
@@ -139,23 +141,24 @@ void MainWindow::on_mnuExit_triggered()
 void MainWindow::on_mnuOptions_triggered()
 {
 
-    auto optDlg = new OptionsDialog(this, settings);
+    auto optDlg = new OptionsDialog(this);
     optDlg->setModal(true);
     optDlg->exec();
 
     if(optDlg->result() == QDialog::Accepted){
-        settings = optDlg->getSettings();
-        if(settings.pwdEdit){
-            settings.Hash = QString::fromStdString(IClient::get_hash(settings.RootUser.toStdString(), settings.password.toStdString()));
-        }
-        settings.pwdEdit = false;
-        settings.password = "";
-        settings.save_settings();
+        settings = ClientSettings("conf.json", false);
+//        settings = optDlg->getSettings();
+//        if(settings.pwdEdit){
+//            settings[bConfFieldsWrapper::Hash] = QString::fromStdString(IClient::get_hash(settings[bConfFieldsWrapper::User].toString().toStdString(), settings.password.toStdString()));
+//        }
+//        settings.pwdEdit = false;
+//        settings.password = "";
+//        settings.save();
     }
 
     delete optDlg;
 
-    client->setWebDavSettingsToServer();
+    //client->setWebDavSettingsToServer();
 
 }
 
@@ -200,7 +203,7 @@ void MainWindow::on_mnuStart_triggered()
         return;
     }
 
-    if (settings.RunAsService){
+    if (settings[bConfFieldsWrapper::RunAsService].toBool()){
 
         bool bOk;
         QString str = QInputDialog::getText( 0,
@@ -228,8 +231,8 @@ void MainWindow::on_mnuStart_triggered()
         lblStatusService->setText("Сервис не запущен.");
 
     if(isServiceStarted){
-        if(settings.AutoConnect && !client->isStarted())
-            client->open(settings.RootUser, "");
+        if(settings[bConfFieldsWrapper::AutoConnect].toBool() && !client->isStarted())
+            client->open(settings[bConfFieldsWrapper::User].toString(), "");
    }
 }
 
@@ -241,7 +244,7 @@ void MainWindow::on_mnuStop_triggered()
         return;
     }
 
-    if (settings.RunAsService){
+    if (settings[bConfFieldsWrapper::RunAsService].toBool()){
 
         bool bOk;
         QString str = QInputDialog::getText( 0,
@@ -302,7 +305,7 @@ void MainWindow::on_mnuConnect_triggered()
 
     client->updateSettings();
 
-    client->open(settings.RootUser, "");
+    client->open(settings[bConfFieldsWrapper::User].toString(), "");
 }
 
 

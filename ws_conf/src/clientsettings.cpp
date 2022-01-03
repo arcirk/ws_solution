@@ -12,8 +12,7 @@ ClientSettings::ClientSettings()
     , RootUser("admin")
     , ServerBinDir("host")
     , ServerName("NoName")
-    , ServerStatus("Не подключен")
-    , AppName("qt_client")
+    , AppName("NoName")
 
 {
     Hash = QString::fromStdString(IClient::get_hash("admin", "admin"));

@@ -155,20 +155,21 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_content_type"){
             client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
         }else if (resp->command == "set_message_struct_type"){
-            client->get_users_catalog("");
+            //client->get_users_catalog("");
+            client->send_command("get_webdav_settings", "", "");
         }else if (resp->command == "get_users_catalog"){
             emit resetUsersCatalog(resp->message);
-            client->get_user_cache("");
+            //client->get_user_cache("");
         }else if (resp->command == "get_user_cache"){
             std::string base64 =  resp->message.toStdString();
             QString msg = QString::fromStdString(IClient::base64_decode(base64));
             emit getUserCache(msg);
-            client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
+            //client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
         }else if(resp->command == "get_active_users"){
             emit getActiveUsers(resp->message);
-            client->send_command("get_unread_messages", "", "");
+            //client->send_command("get_unread_messages", "", "");
         }else if (resp->command == "get_messages"){
-            client->reset_unread_messages(resp->recipient.toStdString(), "");
+            //client->reset_unread_messages(resp->recipient.toStdString(), "");
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
@@ -196,6 +197,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if(resp->command == "command_to_qt_agent"){
             //qDebug() << resp->to_string();
             joinClientToAgent(resp);
+        }else if (resp->command == "get_webdav_settings"){
+            //qDebug() << "get_webdav_settings: " << resp->message;
+            setWebDavSettingsToClient(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -382,4 +386,16 @@ void bWebSocket::agentClientShow() {
         }
     }
 
+}
+
+void bWebSocket::setWebDavSettingsToClient(const QString &resp)
+{
+    client->set_webdav_settings_on_client(resp.toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDavDirectory);
+
+    settings->WebdavHost = QString::fromStdString(client->get_webdav_host());
+    settings->WebdavUser = QString::fromStdString(client->get_webdav_user());
+    settings->WebdavPwd = QString::fromStdString(client->get_webdav_pwd());
+    settings->WebdavSSL = client->get_webdav_ssl();
+
+    settings->save_settings();
 }

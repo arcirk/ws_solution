@@ -14,17 +14,16 @@ public:
     QString getJson();
     QJsonObject getJsonObject();
 
-    QString ServerHost;
-    int ServerPort;
-    QString RootUser;
+    QString Host;
+    int Port;
+    QString User;
     QString Hash;
-    QString ServerBinDir;
+    QString ServerBinaryDir;
     QString ServerName;
-    QString ServerStatus;
-    QString AppName;
+    QString Target;
     bool AutoConnect;
     bool SaveHash;
-    QString pathToClient;
+    QString ClientBinaryDir;
     QString LocalWebDavDirectory;
     bool UseLocalWebDavDirectory;
     QString WebdavHost;
@@ -32,10 +31,6 @@ public:
     QString WebdavPwd;
     bool WebdavSSL;
 
-    void setSettingsFileName(const QString& fname);
-
-private:
-    QString fileName;
 };
 
 #endif // APPSETTINGS_H

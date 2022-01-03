@@ -286,8 +286,8 @@ namespace arcirk{
     }
 
     bool bJson::to_file(const std::string &filename) {
-        if(!is_parse_)
-            return false;
+//        if(!is_parse_)
+//            return false;
 
         std::ofstream ofs(filename);
         OStreamWrapper osw(ofs);

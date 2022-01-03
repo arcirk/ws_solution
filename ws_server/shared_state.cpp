@@ -2133,35 +2133,15 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
 
 std::string shared_state::_get_webdav_settings() const {
 
-    arcirk::bJson json{};
-    std::string _webdav_host;
-    std::string _webdav_user;
-    std::string _webdav_pwd;
-    bool _webdav_ssl = false;
-
-    if (json.from_file("config/conf.json")){
-        if (json.is_parse()){
-            _webdav_host = json.get_member("webdav_host").get_string();
-            _webdav_user = json.get_member("webdav_user").get_string();
-            _webdav_pwd = json.get_member("webdav_pwd").get_string();
-            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
-        }
-    }
-
-//    if (json.get_member_count() == 0){
-//        json.set_object();
-//        json.addMember(arcirk::content_value("webdav_host", _webdav_host));
-//        json.addMember(arcirk::content_value("webdav_user", _webdav_user));
-//        json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
-//        json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
-//    }
+    using arcirk::bConfFields;
+    arcirk::bConf conf("conf.json", true);
 
     arcirk::bJson wd_json{};
     wd_json.set_object();
-    wd_json.addMember(arcirk::content_value("webdav_host", _webdav_host));
-    wd_json.addMember(arcirk::content_value("webdav_user", _webdav_user));
-    wd_json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
-    wd_json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
+    wd_json.addMember(arcirk::content_value("webdav_host", conf[WebDavHost].get_string()));
+    wd_json.addMember(arcirk::content_value("webdav_user", conf[WebDavUser].get_string()));
+    wd_json.addMember(arcirk::content_value("webdav_pwd", conf[WebDavPwd].get_string()));
+    wd_json.addMember(arcirk::content_value("webdav_ssl", conf[WebDavSSL].get_bool()));
 
     return wd_json.to_string();
 
@@ -2203,18 +2183,14 @@ bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *
     std::string _webdav_pwd = params->get_member("webdav_pwd").get_string();
     bool _webdav_ssl = params->get_member("webdav_ssl").get_bool();
 
-    arcirk::bJson json{};
-    json.from_file("config/conf.json");
-    if (json.get_member_count() == 0){
-        json.set_object();
-    }
+    using arcirk::bConfFields;
 
-    json.addMember(arcirk::content_value("webdav_host", _webdav_host), true);
-    json.addMember(arcirk::content_value("webdav_user", _webdav_user), true);
-    json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd), true);
-    json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl), true);
-
-    json.to_file("config/conf.json");
+    arcirk::bConf conf("conf.json", true);
+    conf[WebDavHost] = _webdav_host;
+    conf[WebDavUser] = _webdav_user;
+    conf[WebDavPwd] = _webdav_pwd; //уже шифрованный
+    conf[WebDavSSL] = _webdav_ssl;
+    conf.save();
 
     return true;
 }

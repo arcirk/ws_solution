@@ -2,7 +2,7 @@
 #define OPTIONSDIALOG_H
 
 #include <QDialog>
-#include "clientsettings.h"
+#include <clientsettings.h>
 
 namespace Ui {
 class OptionsDialog;
@@ -13,10 +13,10 @@ class OptionsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit OptionsDialog(QWidget *parent, const ClientSettings& sett);
+    explicit OptionsDialog(QWidget *parent);
     ~OptionsDialog() override;
 
-    [[nodiscard]] ClientSettings& getSettings() const;
+    //[[nodiscard]] ClientSettings& getSettings() const;
 
 private slots:
     void on_chkSrvLocalInstall_toggled(bool checked);
@@ -58,6 +58,8 @@ private slots:
     void on_lineEdtWebDAvUser_editingFinished();
 
     void on_lineEdtWebDavPassword_editingFinished();
+
+    void on_btnViewDavPwd_toggled(bool checked);
 
 private:
     Ui::OptionsDialog *ui;

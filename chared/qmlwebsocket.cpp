@@ -1,27 +1,22 @@
-#include "../include/qmlwebsocket.h"
-#include "../../../ws_agent/ws_agent/include/qmlwebsocket.h"
-
-
+#include "qmlwebsocket.h"
 #include <QJsonObject>
 #include <QJsonDocument>
 
 #include <QFileInfo>
 #include <QDir>
 
-bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
+bWebSocket::bWebSocket(QObject *parent)
+: QObject(parent),
+  settings("conf.json", false)
 {
-
-    settings = new ClientSettings();
-    settings->init();
 
     _callback_message callback = std::bind(&bWebSocket::ext_message, this, std::placeholders::_1);
     _callback_status callback_status = std::bind(&bWebSocket::status_changed, this, std::placeholders::_1);
 
-    client = new IClient(settings->ServerHost.toStdString(), settings->ServerPort, callback, callback_status);
+    client = new IClient(settings[bConfFieldsWrapper::ServerHost].toString().toStdString(), settings[bConfFieldsWrapper::ServerPort].toInt(), callback, callback_status);
 
     _pwdEdit = false;
 
-   // emit initDone();
 }
 
 bWebSocket::~bWebSocket()
@@ -43,19 +38,19 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
     QString _hash;
 
     if(_pwdEdit){
-        settings->Hash = QString::fromStdString( IClient::get_hash(user_name.toStdString(), user_password.toStdString()));
+        settings[bConfFieldsWrapper::Hash] = QString::fromStdString( IClient::get_hash(user_name.toStdString(), user_password.toStdString()));
     }
-    settings->RootUser = user_name;
+    settings[bConfFieldsWrapper::User] = user_name;
 
-    client->admin_name = settings->RootUser.toStdString();
-    client->hash = settings->Hash.toStdString();
-    client->host = settings->ServerHost.toStdString();
-    client->port = settings->ServerPort;
-    client->app_name = settings->AppName.toStdString();
+    client->admin_name = settings[bConfFieldsWrapper::User].toString().toStdString();
+    client->hash = settings[bConfFieldsWrapper::Hash].toString().toStdString();
+    client->host = settings[bConfFieldsWrapper::ServerHost].toString().toStdString();
+    client->port = settings[bConfFieldsWrapper::ServerPort].toInt();
+    client->app_name = settings[bConfFieldsWrapper::AppName].toString().toStdString();
 
     client->open();
 
-    settings->save_settings();
+    settings.save();
 
     emit startedChanged();
 }
@@ -237,7 +232,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit setUserParent(resp->message);
         }else if (resp->command == "get_webdav_settings"){
             //qDebug() << "get_webdav_settings: " << resp->message;
-            setWebDavSettingsToClient(resp->message);
+            //setWebDavSettingsToClient(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -246,33 +241,29 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
     delete resp;
 }
 
-ClientSettings *bWebSocket::get_settings()
-{
-    return settings;
-}
+//ClientSettings *bWebSocket::get_settings()
+//{
+//    return settings;
+//}
 
 const QString bWebSocket::getUserName()
 {
-    if(settings)
-        return settings->RootUser;
-    else
-        return "";
+//    if(settings)
+        return settings[bConfFieldsWrapper::User].toString();
+//    else
+//        return "";
 }
 
 void bWebSocket::setUserName(const QString &name)
 {
-    if(settings)
-        settings->RootUser = name;
-
+    settings[bConfFieldsWrapper::User] = name;
+    settings.save();
     user = name;
 }
 
 const QString bWebSocket::getHash()
 {
-    if(settings){
-        return settings->Hash;
-    }else
-        return "";
+    return settings[bConfFieldsWrapper::Hash].toString();
 }
 
 bool bWebSocket::isStarted()
@@ -318,42 +309,46 @@ long bWebSocket::addDay(const long source, const int dayCount)
 
 void bWebSocket::setHost(const QString &newHost)
 {
-    settings->ServerHost = newHost;
+    settings[bConfFieldsWrapper::ServerHost] = newHost;
+    settings.save();
 }
 
-const QString &bWebSocket::getHost()
+QString bWebSocket::getHost()
 {
-    return settings->ServerHost;
+    return settings[bConfFieldsWrapper::ServerHost].toString();
 }
 
 void bWebSocket::setPort(int newPort)
 {
-    settings->ServerPort = newPort;
+    settings[bConfFieldsWrapper::ServerPort]= newPort;
+    settings.save();
 }
 
 int bWebSocket::getPort()
 {
-    return settings->ServerPort;
+    return settings[bConfFieldsWrapper::ServerPort].toInt();
 }
 
 bool bWebSocket::autoConnect()
 {
-    return settings->AutoConnect;
+    return settings[bConfFieldsWrapper::AutoConnect].toBool();
 }
 
 void bWebSocket::setAutoConnect(bool value)
 {
-    settings->AutoConnect = value;
+    settings[bConfFieldsWrapper::AutoConnect] = value;
+    settings.save();
 }
 
 bool bWebSocket::saveHash()
 {
-    return settings->SaveHash;
+    return settings[bConfFieldsWrapper::SaveHash].toBool();
 }
 
 void bWebSocket::setSaveHash(bool value)
 {
-    settings->SaveHash = value;
+    settings[bConfFieldsWrapper::SaveHash] = value;
+    settings.save();
 }
 
 bool bWebSocket::pwdEdit()
@@ -377,7 +372,8 @@ bool bWebSocket::connectedStatus()
 void bWebSocket::setSettingsFileName(const QString &fname)
 {
     fileName = fname;
-    settings->setSettingsFileName(fname);
+    //settings->setSettingsFileName(fname);
+    settings = ClientSettings(fname, false);
 }
 
 QString bWebSocket::getSettingsFileName()
@@ -387,8 +383,7 @@ QString bWebSocket::getSettingsFileName()
 
 void bWebSocket::updateSettings()
 {
-    settings->init();
-    client->set_webdav_settings_on_client(settings->getJson().toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDAvDirectory);
+    //client->set_webdav_settings_on_client(settings->getJson().toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDAvDirectory);
 }
 
 const QString bWebSocket::nilUuid()
@@ -418,14 +413,14 @@ void bWebSocket::killSession(const QString &uuid)
 
 void bWebSocket::setWebDavSettingsToClient(const QString &resp)
 {
-    client->set_webdav_settings_on_client(resp.toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDAvDirectory);
+    client->set_webdav_settings_on_client(resp.toStdString(), settings[bConfFieldsWrapper::LocalWebDavDirectory].toString().toStdString(), settings[bConfFieldsWrapper::UseLocalWebDavDirectory].toBool());
 
-    settings->WebdavHost = QString::fromStdString(client->get_webdav_host());
-    settings->WebdavUser = QString::fromStdString(client->get_webdav_user());
-    settings->WebdavPwd = QString::fromStdString(client->get_webdav_pwd());
-    settings->WebdavSSL = client->get_webdav_ssl();
+    settings[bConfFieldsWrapper::WebDavHost] = QString::fromStdString(client->get_webdav_host());
+    settings[bConfFieldsWrapper::WebDavUser] = QString::fromStdString(client->get_webdav_user());
+    settings[bConfFieldsWrapper::WebDavPwd] = QString::fromStdString(client->get_webdav_pwd());
+    settings[bConfFieldsWrapper::WebDavSSL] = client->get_webdav_ssl();
 
-    settings->save_settings();
+    settings.save();
 }
 
 void bWebSocket::setWebDavSettingsToServer()

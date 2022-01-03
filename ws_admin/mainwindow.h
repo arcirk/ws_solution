@@ -4,8 +4,8 @@
 #include <QMainWindow>
 #include <QtWidgets>
 
-#include "include/clientsettings.h"
-#include "include/qmlwebsocket.h"
+#include <clientsettings.h>
+#include <qmlwebsocket.h>
 #include "include/userdialog.h"
 
 QT_BEGIN_NAMESPACE
@@ -76,6 +76,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     ClientSettings settings;
+
     QLabel* lblStatusService;
     QLabel* lblStatusSocket;
     bWebSocket* client;

@@ -65,6 +65,15 @@ namespace arcirk{
     std::string random_uuid();
     long int add_day(const long int selDate, const int dayCount);
 
+    std::string _crypt(const std::string &source, const std::string& key);
+    void* crypt(void* data, unsigned data_size, void* key, unsigned key_size);
+
+    bool verify_conf_directory();
+    std::string get_conf_directory();
+    std::string get_conf_dirname();
+    bool verify_directory(const std::string& dir_path);
+    std::string get_home();
+
     template<typename... Arguments>
     std::string str_sample(const std::string& fmt, const Arguments&... args){return boost::str((boost::format(fmt) % ... % args));}
 
@@ -126,6 +135,7 @@ namespace arcirk{
         //
         static void addMember(_Document * doc, content_value& value);
         static void addMember(_Document *doc, content_value &val, bool updateIsExists);
+
         void addMember(content_value value) { addMember(this, value); };
         void addMember(content_value value, bool updateIsExists) { addMember(this, value, updateIsExists); };
         void addMember(_Value* object, content_value val);
@@ -245,6 +255,49 @@ namespace arcirk{
                 _ws_message m_message;
                 bJson m_doc{};
         };
+
+    enum bConfFields{
+        ServerHost = 0,
+        ServerPort,
+        User,
+        Hash,
+        ServerName,
+        AppName,
+        AutoConnect,
+        SaveHash,
+        ServerWorkingDirectory,
+        ClientWorkingDirectory,
+        isLocalInstallation,
+        RunAsService,
+        UseLocalWebDavDirectory,
+        LocalWebDavDirectory,
+        WebDavHost,
+        WebDavUser,
+        WebDavPwd,
+        WebDavSSL
+    };
+
+    class bConf{
+    public:
+        explicit
+        bConf(const std::string& file_name = "", bool public_settings = false);
+
+        bVariant & operator[] (bConfFields index);
+        bVariant const& operator[] (bConfFields index) const;
+
+        void save();
+        bool parse();
+        bVariant get(bConfFields index) const;
+        void set(bConfFields index, const bVariant& value);
+
+    private:
+        std::string output_directory;
+        std::string output_filename;
+        void init(bool server);
+
+        std::vector<bVariant> m_vec;
+    };
+
 
    // } //websockets
 }

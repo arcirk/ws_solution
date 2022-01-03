@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->txtPassword->setEnabled(!m_client->saveHash());
     ui->btnViewPwd->setEnabled(ui->txtPassword->isEnabled());
     ui->pathToClient->setText(m_client->get_settings()->pathToClient);
-    ui->lineDavDirectory->setText(m_client->get_settings()->WebDavDirectory);
+    ui->lineDavDirectory->setText(m_client->get_settings()->LocalWebDavDirectory);
     ui->chUseLocalDirectory->setChecked(m_client->get_settings()->UseLocalWebDavDirectory);
 
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
@@ -424,7 +424,7 @@ void MainWindow::on_chUseLocalDirectory_toggled(bool checked)
 
 void MainWindow::on_lineDavDirectory_editingFinished()
 {
-    m_client->get_settings()->WebDavDirectory = ui->lineDavDirectory->text();
+    m_client->get_settings()->LocalWebDavDirectory = ui->lineDavDirectory->text();
     m_client->get_settings()->save_settings();
 }
 

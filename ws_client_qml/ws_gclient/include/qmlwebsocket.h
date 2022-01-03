@@ -94,6 +94,8 @@ private:
 
     QString uuidSessionAgent;
 
+    void setWebDavSettingsToClient(const QString &resp);
+
 signals:
     void displayError(const QString& what, const QString& err);
     void qmlError(const QString& what, const QString& err);

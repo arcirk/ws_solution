@@ -22,7 +22,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool saveHash READ saveHash WRITE setSaveHash NOTIFY saveHashChanged)
     Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
     Q_PROPERTY(bool connectedStatus READ connectedStatus NOTIFY connectedStatusChanged)
-    //Q_PROPERTY(QString activePage READ getActivePage WRITE setActivePage);
+    Q_PROPERTY(QString settingsFileName READ getSettingsFileName WRITE setSettingsFileName NOTIFY settingsFileNameChanged);
 
 public:
     explicit bWebSocket(QObject *parent = nullptr);
@@ -37,9 +37,14 @@ public:
     Q_INVOKABLE void getUserStatus(const QString& uuid);
     Q_INVOKABLE void getUserData(const QString& uuid, const QString& param);
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
-    Q_INVOKABLE void registerClientForAgent(const QString& uuid);
-    Q_INVOKABLE void registerToAgent(const QString& uuid);
-    Q_INVOKABLE void agentClientShow();
+    Q_INVOKABLE void registerToAgent();
+    Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
+    Q_INVOKABLE void getUsers(const QString& parent);
+    Q_INVOKABLE void addGroup(const QString& name, const QString& presentation, const QString& parent);
+    Q_INVOKABLE void editGroup(const QString& uuid, const QString& name, const QString& presentation, const QString& parent);
+    Q_INVOKABLE void removeGroup(const QString& uuid);
+
+    Q_INVOKABLE void sendCommand(const QString& cmd, const QString& uuidForm = "", const QString& param = "");
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -61,9 +66,11 @@ public:
     static long int addDay(const long int source, const int dayCount);
 
     void setHost(const QString& newHost);
-    const QString& getHost();
+    QString getHost();
     void setPort(int newPort);
     int getPort();
+
+    //bool getStarted();
 
     bool autoConnect();
     void setAutoConnect(bool value);
@@ -75,24 +82,36 @@ public:
 
     bool connectedStatus();
 
-    void command_to_qt_client(const QString& command);
+    void setSettingsFileName(const QString& fname);
+    QString getSettingsFileName();
+
+    void updateSettings();
+
+    static const QString nilUuid();
+    static const QString randomUuid();
+
+    void removeUser(const QString& uuid);
+    void setParent(const QString& uuid, const QString& parent);
+    void killSession(const QString& uuid);
+
+    void setWebDavSettingsToClient(const QString& resp);
+    void setWebDavSettingsToServer();
 
 private:
     IClient * client;
-    ClientSettings * settings;
+    ClientSettings settings;
     bool _pwdEdit;
     QString user;
     QString hash;
+    QString fileName;
 
-    QMap<QString,QString> m_agentClients;
-    void joinClientToAgent(ServeResponse * resp);
-
-    void setWebDavSettingsToClient(const QString &resp);
+    QString uuidSessionAgent;
 
 signals:
     void displayError(const QString& what, const QString& err);
     void qmlError(const QString& what, const QString& err);
     void displayNotify(const QString& msg);
+    //void qmlMessage(const QmlMessage& msg);
     void connectionSuccess();
     void closeConnection();
     void user_catalog(const QString& msg);
@@ -119,6 +138,19 @@ signals:
     void requestUserData(const QString& resp);
     void unreadMessages(const QString& resp);
     void requestUserStatus(const QString& resp);
+    void settingsFileNameChanged();
+    void getGroupList(const QString& resp);
+    void getListUsers(const QString& resp);
+    void addGroupUsers(const QString& resp);
+    void editGroupUsers(const QString& resp);
+    void removeGroupUsers(const QString& resp);
+
+    void addUser(const QString& resp);
+    void updateUser(const QString& resp);
+    void deleteUser(const QString& resp);
+    void setUserParent(const QString& resp);
+
+    void clientShow();
 };
 
 #endif // QMLWEBSOCKET_H

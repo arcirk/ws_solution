@@ -299,10 +299,6 @@ void MessageListModel::addMessage(const QString& msg, const QString& uuid, const
 
 }
 
-QString MessageListModel::getCurrentChatHash() const
-{
-    //QString roomHash = IClient::get
-}
 
 QString MessageListModel::currentRecipient()
 {

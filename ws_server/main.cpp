@@ -39,96 +39,103 @@
 //#include <sql.h>
 //#include <stdio.h>
 
-typedef struct settings{
-
-    std::string name;
-    std::string host;
-    int port;
-    std::string root_dir;
-    std::string debug_dir;
-
-    std::string _webdav_host;
-    std::string _webdav_user;
-    std::string _webdav_pwd;
-    bool _webdav_ssl;
-
-    bool get_settings(const std::string& filename){
-
-        arcirk::bJson json{};
-
-        if (json.from_file(filename)){
-            name = json.get_member("name").get_string();
-            host = json.get_member("host").get_string();
-            port = json.get_member("port").get_int();
-            root_dir = json.get_member("root_dir").get_string();
-            debug_dir = json.get_member("debug_dir").get_string();
-            _webdav_host = json.get_member("webdav_host").get_string();
-            _webdav_user = json.get_member("webdav_user").get_string();
-            _webdav_pwd = json.get_member("webdav_pwd").get_string();
-            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
-
-            return true;
-        }
-        return false;
-    }
-
-    std::string to_string() const{
-
-        arcirk::bJson json{};
-        json.set_object();
-        json.addMember(arcirk::content_value("name", name));
-        json.addMember(arcirk::content_value("host", host));
-        json.addMember(arcirk::content_value("port", (long int)port));
-        json.addMember(arcirk::content_value("root_dir", root_dir));
-        json.addMember(arcirk::content_value("debug_dir", debug_dir));
-        json.addMember(arcirk::content_value("webdav_host", _webdav_host));
-        json.addMember(arcirk::content_value("webdav_user", _webdav_user));
-        json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
-        json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
-
-        return json.to_string();
-    }
-
-    bool parse(const std::string& text){
-        arcirk::bJson json{};
-        json.parse(text);
-        if (json.is_parse()){
-            name = json.get_member("name").get_string();
-            host = json.get_member("host").get_string();
-            port = json.get_member("port").get_int();
-            root_dir = json.get_member("root_dir").get_string();
-            debug_dir = json.get_member("debug_dir").get_string();
-            _webdav_host = json.get_member("webdav_host").get_string();
-            _webdav_user = json.get_member("webdav_user").get_string();
-            _webdav_pwd = json.get_member("webdav_pwd").get_string();
-            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
-            return true;
-        }
-        return false;
-    }
-
-}settings;
+//typedef struct settings{
+//
+//    std::string name;
+//    std::string host;
+//    int port;
+//    std::string root_dir;
+//    std::string debug_dir;
+//
+//    std::string _webdav_host;
+//    std::string _webdav_user;
+//    std::string _webdav_pwd;
+//    bool _webdav_ssl;
+//
+//    bool get_settings(const std::string& filename){
+//
+//        arcirk::bJson json{};
+//
+//        if (json.from_file(filename)){
+//            name = json.get_member("name").get_string();
+//            host = json.get_member("host").get_string();
+//            port = json.get_member("port").get_int();
+//            root_dir = json.get_member("root_dir").get_string();
+//            debug_dir = json.get_member("debug_dir").get_string();
+//            _webdav_host = json.get_member("webdav_host").get_string();
+//            _webdav_user = json.get_member("webdav_user").get_string();
+//            _webdav_pwd = json.get_member("webdav_pwd").get_string();
+//            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
+//
+//            return true;
+//        }
+//        return false;
+//    }
+//
+//    std::string to_string() const{
+//
+//        arcirk::bJson json{};
+//        json.set_object();
+//        json.addMember(arcirk::content_value("name", name));
+//        json.addMember(arcirk::content_value("host", host));
+//        json.addMember(arcirk::content_value("port", (long int)port));
+//        json.addMember(arcirk::content_value("root_dir", root_dir));
+//        json.addMember(arcirk::content_value("debug_dir", debug_dir));
+//        json.addMember(arcirk::content_value("webdav_host", _webdav_host));
+//        json.addMember(arcirk::content_value("webdav_user", _webdav_user));
+//        json.addMember(arcirk::content_value("webdav_pwd", _webdav_pwd));
+//        json.addMember(arcirk::content_value("webdav_ssl", _webdav_ssl));
+//
+//        return json.to_string();
+//    }
+//
+//    bool parse(const std::string& text){
+//        arcirk::bJson json{};
+//        json.parse(text);
+//        if (json.is_parse()){
+//            name = json.get_member("name").get_string();
+//            host = json.get_member("host").get_string();
+//            port = json.get_member("port").get_int();
+//            root_dir = json.get_member("root_dir").get_string();
+//            debug_dir = json.get_member("debug_dir").get_string();
+//            _webdav_host = json.get_member("webdav_host").get_string();
+//            _webdav_user = json.get_member("webdav_user").get_string();
+//            _webdav_pwd = json.get_member("webdav_pwd").get_string();
+//            _webdav_ssl = json.get_member("webdav_ssl").get_bool();
+//            return true;
+//        }
+//        return false;
+//    }
+//
+//}settings;
 
 int
 main(int argc, char* argv[])
 {
     setlocale(LC_ALL, "Russian");
 
-    settings st;
-    if (!st.get_settings("config/conf.json")){
-        std::cerr <<
-                  "Error: Ошибка чтения настроек сервера!\n";
-        return EXIT_FAILURE;
+//    settings st;
+//    if (!st.get_settings("config/conf.json")){
+//        std::cerr <<
+//                  "Error: Ошибка чтения настроек сервера!\n";
+//        return EXIT_FAILURE;
+//    }
+
+    arcirk::bConf st = arcirk::bConf("conf.json", true);
+
+    std::string host = arcirk::bIp::get_default_host(st[arcirk::bConfFields::ServerHost].get_string());
+
+    if (host != st[arcirk::bConfFields::ServerHost].get_string()){
+        st[arcirk::bConfFields::ServerHost] = host;
+        st.save();
     }
 
-    std::string host = arcirk::bIp::get_default_host(st.host);
-
-    std::cout << "Start server " << host << ":" << st.port << std::endl;
+    std::cout << "Start server " << host << ":" << st[arcirk::bConfFields::ServerPort].to_string() << std::endl;
 
     auto const threads = 4;
     auto address = net::ip::make_address(host);
-    auto port = static_cast<unsigned short>(st.port);
-    auto doc_root = st.root_dir;
+    auto port = static_cast<unsigned short>(st[arcirk::bConfFields::ServerPort].get_int());
+    auto rootDir = st[arcirk::bConfFields::ServerWorkingDirectory].to_string();
 
     // The io_context is required for all I/O
     net::io_context ioc;
@@ -137,7 +144,7 @@ main(int argc, char* argv[])
     boost::make_shared<listener>(
             ioc,
             tcp::endpoint{address, port},
-            boost::make_shared<shared_state>(doc_root + "html/"))->run();//, boost::make_shared<channel>())->run();
+            boost::make_shared<shared_state>(rootDir + "/html/"))->run();//, boost::make_shared<channel>())->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     net::signal_set signals(ioc, SIGINT, SIGTERM);

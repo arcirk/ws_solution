@@ -1,34 +1,40 @@
 #include "../include/optionsdialog.h"
 #include "../form/ui_optionsdialog.h"
 
+#include <iws_client.h>
 #include <QFileDialog>
 
-OptionsDialog::OptionsDialog(QWidget *parent, const ClientSettings& sett) :
+OptionsDialog::OptionsDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::OptionsDialog)
+    ui(new Ui::OptionsDialog),
+    settings("conf.json", false)
 {
     ui->setupUi(this);
 
-    ui->chkSrvLocalInstall->setChecked(sett.isLocalInstallation);
-    ui->chkRunAsService->setChecked(sett.RunAsService);
-    ui->txtWorkingDirectory->setText(sett.ServerWorkingDirectory);
-    ui->ServerName->setText(sett.ServerName);
-    ui->ServerHost->setText(sett.ServerHost);
-    ui->ServerPort->setValue(sett.ServerPort);
-    ui->RootUser->setText(sett.RootUser);
-    ui->ServerName->setText(sett.ServerName);
-    ui->chkAutoConnect->setChecked(sett.AutoConnect);
-    ui->chkSavePwd->setChecked(sett.SaveHash);
+    ui->chkSrvLocalInstall->setChecked(settings[bConfFieldsWrapper::isLocalInstallation].toBool());
+    ui->chkRunAsService->setChecked(settings[bConfFieldsWrapper::RunAsService].toBool());
+    ui->txtWorkingDirectory->setText(settings[bConfFieldsWrapper::ServerWorkingDirectory].toString());
+    ui->ServerName->setText(settings[bConfFieldsWrapper::ServerName].toString());
+    ui->ServerHost->setText(settings[bConfFieldsWrapper::ServerHost].toString());
+    ui->ServerPort->setValue(settings[bConfFieldsWrapper::ServerPort].toInt());
+    ui->RootUser->setText(settings[bConfFieldsWrapper::User].toString());
+    ui->chkAutoConnect->setChecked(settings[bConfFieldsWrapper::AutoConnect].toBool());
+    ui->chkSavePwd->setChecked(settings[bConfFieldsWrapper::SaveHash].toBool());
     ui->Password->setText("***");
 
-    ui->radioUseLocalFolder->setChecked(sett.UseLocalWebDAvDirectory);
-    ui->txtLocalFilesFolder->setText(sett.LocalWebDavDirectory);
-    ui->lineAddressWebDav->setText(sett.WebdavHost);
-    ui->lineEdtWebDAvUser->setText(sett.WebdavUser);
-    ui->lineEdtWebDavPassword->setText(sett.WebdavPwd);
-    ui->chSSL->setChecked(sett.WebdavSSL);
+    ui->radioUseLocalFolder->setChecked(settings[bConfFieldsWrapper::UseLocalWebDavDirectory].toBool());
+    ui->txtLocalFilesFolder->setText(settings[bConfFieldsWrapper::LocalWebDavDirectory].toString());
+    ui->lineAddressWebDav->setText(settings[bConfFieldsWrapper::WebDavHost].toString());
+    ui->lineEdtWebDAvUser->setText(settings[bConfFieldsWrapper::WebDavUser].toString());
 
-    settings = sett;
+    std::string dPwd = settings[bConfFieldsWrapper::WebDavPwd].toString().toStdString();
+    QString pass;
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    ui->lineEdtWebDavPassword->setText(pass);
+    ui->chSSL->setChecked(settings[bConfFieldsWrapper::WebDavSSL].toBool());
+
     settings.password = "***";
 }
 
@@ -37,32 +43,51 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
-ClientSettings& OptionsDialog::getSettings() const
-{
-    return const_cast<ClientSettings &>(settings);
-}
+//ClientSettings& OptionsDialog::getSettings() const
+//{
+//    return const_cast<ClientSettings &>(settings);
+//}
 
 void OptionsDialog::on_chkSrvLocalInstall_toggled(bool checked)
 {
-    settings.isLocalInstallation = checked;
+    settings[bConfFieldsWrapper::isLocalInstallation] = checked;
 }
 
 
 void OptionsDialog::on_chkRunAsService_toggled(bool checked)
 {
-    settings.RunAsService = checked;
+    settings[bConfFieldsWrapper::RunAsService] = checked;
 }
 
 
 void OptionsDialog::on_txtWorkingDirectory_textChanged()
 {
-    settings.ServerWorkingDirectory = ui->txtWorkingDirectory->toPlainText();
+    settings[bConfFieldsWrapper::ServerWorkingDirectory] = ui->txtWorkingDirectory->toPlainText();
 }
 
 
 void OptionsDialog::on_OptionsDialog_accepted()
 {
-   //std::copy()
+   if(settings.pwdEdit){
+       settings[bConfFieldsWrapper::Hash] = QString::fromStdString(IClient::get_hash(settings[bConfFieldsWrapper::User].toString().toStdString(), settings.password.toStdString()));
+    }
+    settings.pwdEdit = false;
+    settings.password = "";
+
+//    std::string dPwd = settings[bConfFieldsWrapper::WebDavPwd].toString().toStdString();
+//    QString pass;
+//    if (!dPwd.empty()){
+//        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+//    }
+
+    QString pass;
+    std::string dPwd = ui->lineEdtWebDavPassword->text().toStdString();
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    settings[bConfFieldsWrapper::WebDavPwd] = pass;
+
+    settings.save();
 }
 
 
@@ -81,25 +106,25 @@ void OptionsDialog::on_btnSelectFolder_clicked()
 
 void OptionsDialog::on_ServerName_editingFinished()
 {
-    settings.ServerName = ui->ServerName->text();
+    settings[bConfFieldsWrapper::ServerName] = ui->ServerName->text();
 }
 
 
 void OptionsDialog::on_ServerHost_editingFinished()
 {
-    settings.ServerHost = ui->ServerHost->text();
+    settings[bConfFieldsWrapper::ServerHost] = ui->ServerHost->text();
 }
 
 
 void OptionsDialog::on_ServerPort_valueChanged(double arg1)
 {
-    settings.ServerPort = arg1;
+    settings[bConfFieldsWrapper::ServerPort] = arg1;
 }
 
 
 void OptionsDialog::on_RootUser_editingFinished()
 {
-    settings.RootUser = ui->RootUser->text();
+    settings[bConfFieldsWrapper::User] = ui->RootUser->text();
 }
 
 
@@ -128,48 +153,55 @@ void OptionsDialog::on_Password_editingFinished()
 
 void OptionsDialog::on_chkSavePwd_toggled(bool checked)
 {
-    settings.SaveHash = checked;
+    settings[bConfFieldsWrapper::SaveHash] = checked;
 }
 
 
 void OptionsDialog::on_chkAutoConnect_toggled(bool checked)
 {
-    settings.AutoConnect = checked;
+    settings[bConfFieldsWrapper::AutoConnect] = checked;
 }
 
 
 void OptionsDialog::on_radioUseLocalFolder_toggled(bool checked)
 {
-    settings.UseLocalWebDAvDirectory = checked;
+    settings[bConfFieldsWrapper::UseLocalWebDavDirectory] = checked;
 }
 
 
 void OptionsDialog::on_txtLocalFilesFolder_textChanged()
 {
-    settings.LocalWebDavDirectory = ui->txtLocalFilesFolder->toPlainText();
+    settings[bConfFieldsWrapper::LocalWebDavDirectory] = ui->txtLocalFilesFolder->toPlainText();
 }
 
 
 void OptionsDialog::on_lineAddressWebDav_editingFinished()
 {
-    settings.WebdavHost = ui->lineAddressWebDav->text();
+    settings[bConfFieldsWrapper::WebDavHost] = ui->lineAddressWebDav->text();
 }
 
 
 void OptionsDialog::on_chSSL_toggled(bool checked)
 {
-    settings.WebdavSSL = checked;
+    settings[bConfFieldsWrapper::WebDavSSL] = checked;
 }
 
 
 void OptionsDialog::on_lineEdtWebDAvUser_editingFinished()
 {
-    settings.WebdavUser = ui->lineEdtWebDAvUser->text();
+    settings[bConfFieldsWrapper::WebDavUser] = ui->lineEdtWebDAvUser->text();
 }
 
 
 void OptionsDialog::on_lineEdtWebDavPassword_editingFinished()
 {
-    settings.WebdavPwd = ui->lineEdtWebDavPassword->text();
+    //settings[bConfFieldsWrapper::WebDavPwd] = ui->lineEdtWebDavPassword->text();
+}
+
+
+void OptionsDialog::on_btnViewDavPwd_toggled(bool checked)
+{
+    auto echoMode = checked ? QLineEdit::Normal : QLineEdit::Password;
+    ui->lineEdtWebDavPassword->setEchoMode(echoMode);
 }
 

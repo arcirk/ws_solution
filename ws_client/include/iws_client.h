@@ -7,13 +7,11 @@
 #include <string>
 #include <functional>
 
-
 class ws_client;
 
 //typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
-
 
 class  IClient{
 
@@ -87,11 +85,7 @@ public:
     std::string get_webdav_host() const;
     bool get_webdav_ssl();
 
-
 private:
-
-    //std::string log_path;
-
     ws_client * client;
     std::string _client_param;
     _callback_message callback_msg;

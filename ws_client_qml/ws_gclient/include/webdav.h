@@ -39,6 +39,8 @@ public:
     Q_INVOKABLE void getSettings();
     Q_INVOKABLE void saveSettings();
 
+    Q_INVOKABLE void uploadFile(const QString& token, const QString& file);
+
     void davError(QNetworkReply::NetworkError type);
     void createDirectory(const QString& dirName, const QString& path);
 

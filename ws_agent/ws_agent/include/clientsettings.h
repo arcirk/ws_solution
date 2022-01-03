@@ -25,8 +25,13 @@ public:
     bool AutoConnect;
     bool SaveHash;
     QString pathToClient;
-    QString WebDavDirectory;
+    QString LocalWebDavDirectory;
     bool UseLocalWebDavDirectory;
+    QString WebdavHost;
+    QString WebdavUser;
+    QString WebdavPwd;
+    bool WebdavSSL;
+
 };
 
 #endif // APPSETTINGS_H

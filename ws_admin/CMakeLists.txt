@@ -11,18 +11,15 @@ set(CMAKE_AUTOUIC ON)
 SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-
-#set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 link_directories(
         "../ws_client/cmake-build-debug"
-        "../qt_models/project/cmake-build-debug"
 )
 
-find_library(
-    ws_client
-    qjsonmodel)
+#find_library(
+#    ws_client
+#    qjsonmodel)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -34,12 +31,12 @@ find_package(Qt6 COMPONENTS
 add_executable(ws_admin
         main.cpp
         resources.qrc
-        include/clientsettings.h
-        include/qmlwebsocket.h
-        include/serveresponse.h
-        src/clientsettings.cpp
-        src/qmlwebsocket.cpp
-        src/serveresponse.cpp
+        ../chared/clientsettings.h
+        ../chared/qmlwebsocket.h
+        ../chared/serveresponse.h
+        ../chared/clientsettings.cpp
+        ../chared/qmlwebsocket.cpp
+        ../chared/serveresponse.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
@@ -64,7 +61,8 @@ add_executable(ws_admin
         )
 
 include_directories("../ws_client/include")
-include_directories("../qt_models/project/include")
+#include_directories("../qt_models/project/include")
+include_directories("../chared")
 
 #link_directories(${CMAKE_BINARY_DIR}/lib)
 
@@ -74,7 +72,6 @@ target_link_libraries(ws_admin
         Qt::Widgets
         Qt::Network
         ws_client
-        qjsonmodel
         )
 
 if(QT_VERSION_MAJOR EQUAL 6)

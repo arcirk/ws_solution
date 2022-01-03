@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QDir>
 
+#include "../include/webdav.h"
+
 bWebSocket::bWebSocket(QObject *parent) : QObject(parent)
 {
 
@@ -201,7 +203,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if(resp->command == "get_user_status"){
             emit requestUserStatus(resp->message);
         }else if(resp->command == "reset_unread_messages"){
-
+            client->send_command("get_webdav_settings", "", "");
         }
         else if(resp->command == "get_unread_messages"){
             emit unreadMessages(resp->message);
@@ -209,11 +211,15 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         else if(resp->command == "command_to_qt_client"){
             if(resp->message == "clientShow")
                 emit clientShow();
+            //client->send_command("get_webdav_settings", "", "");
         }
         else if(resp->command == "get_channel_token"){
             qDebug() << "get_channel_token: " << resp->message;
             //client->reset_unread_messages(resp->recipient.toStdString(), "");
             emit getChannelToken(resp->message);
+        }else if (resp->command == "get_webdav_settings"){
+            //qDebug() << "get_webdav_settings: " << resp->message;
+            setWebDavSettingsToClient(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -379,6 +385,13 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
 void bWebSocket::uploadFile(const QString &token, const QString &fileName)
 {
     qDebug() << "uploadFile: " << token << " " << fileName;
+
+    QWebDav webDav = QWebDav(this);
+    webDav.setHost(settings->WebdavHost);
+    webDav.setUser(settings->WebdavUser);
+    webDav.setPassword(settings->WebdavPwd);
+    webDav.setSsl(settings->WebdavSSL);
+    webDav.uploadFile(token,fileName);
 }
 
 void bWebSocket::downloadFile(const QString &token, const QString &fileName)
@@ -386,3 +399,14 @@ void bWebSocket::downloadFile(const QString &token, const QString &fileName)
     qDebug() << "downloadFile: " << token << " " << fileName;
 }
 
+void bWebSocket::setWebDavSettingsToClient(const QString &resp)
+{
+    client->set_webdav_settings_on_client(resp.toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDavDirectory);
+
+    settings->WebdavHost = QString::fromStdString(client->get_webdav_host());
+    settings->WebdavUser = QString::fromStdString(client->get_webdav_user());
+    settings->WebdavPwd = QString::fromStdString(client->get_webdav_pwd());
+    settings->WebdavSSL = client->get_webdav_ssl();
+
+    settings->save_settings();
+}

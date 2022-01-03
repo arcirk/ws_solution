@@ -16,7 +16,6 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-//using namespace arcirk;
 
 IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
@@ -25,7 +24,6 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     callback_msg = callback;
     client = nullptr;
     app_name = "admin_console";
-    //client_uuid = arc_json::random_uuid();
     user_uuid = nil_string_uuid();
 }
 IClient::IClient(const std::string &_host, const int &_port, _callback_message &callback,
@@ -35,7 +33,6 @@ IClient::IClient(const std::string &_host, const int &_port, _callback_message &
     callback_msg = callback;
     client = nullptr;
     app_name = "admin_console";
-    //client_uuid = arc_json::random_uuid();
     user_uuid = nil_string_uuid();
     _status_changed = _status_changed_fun;
 }
@@ -83,26 +80,18 @@ void IClient::close() {
         delete client;
         client = nullptr;
     }
-//
-//    if(_status_changed){
-//        _status_changed(false);
-//    }
+
 
 }
 
 void IClient::start() {
-
-   //_callback_message callback = std::bind(&IClient::ext_message, this, std::placeholders::_1);
 
     boost::asio::io_context ioc;
 
     close();
 
     client = new ws_client(ioc, _client_param);
-    //client->set_status_callback(callback_status_changed);
-    //client->open(host.c_str(), std::to_string(port).c_str(), callback);
     client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
-    //client->set_status_callback(_callback_status_changed);
     delete client;
     client = nullptr;
 
