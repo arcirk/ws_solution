@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include "qmlwebsocket.h"
+#include <qmlwebsocket.h>
 
 namespace Ui {
 

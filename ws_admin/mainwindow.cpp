@@ -10,7 +10,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    settings("conf.json", false)
+    settings("conf_admin_console.json", false)
 {
     ui->setupUi(this);
 
@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings[bConfFieldsWrapper::AppName] = "admin_console";
     settings.save();
 
-    client = new bWebSocket(this);
+    client = new bWebSocket(this, settings.confFileName());
 
     connect(client, SIGNAL(connectedStatusChanged(bool)), this, SLOT(onConnectedStatusChanged(bool)));
     connect(client, SIGNAL(displayError(QString,QString)), this, SLOT(onDisplayError(QString,QString)));
@@ -137,28 +137,22 @@ void MainWindow::on_mnuExit_triggered()
     QApplication::exit();
 }
 
-
 void MainWindow::on_mnuOptions_triggered()
 {
-
     auto optDlg = new OptionsDialog(this);
     optDlg->setModal(true);
     optDlg->exec();
 
+    QString confFile = settings.confFileName();
+
     if(optDlg->result() == QDialog::Accepted){
-        settings = ClientSettings("conf.json", false);
-//        settings = optDlg->getSettings();
-//        if(settings.pwdEdit){
-//            settings[bConfFieldsWrapper::Hash] = QString::fromStdString(IClient::get_hash(settings[bConfFieldsWrapper::User].toString().toStdString(), settings.password.toStdString()));
-//        }
-//        settings.pwdEdit = false;
-//        settings.password = "";
-//        settings.save();
+        settings = ClientSettings(confFile, false);
+        if(client->isStarted()){
+            client->setWebDavSettingsToServer();
+        }
     }
 
     delete optDlg;
-
-    //client->setWebDavSettingsToServer();
 
 }
 

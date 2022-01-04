@@ -77,7 +77,7 @@ public:
     static long int current_date_seconds();
     static long int add_day(const long int selDate, const int dayCount);
 
-    void set_webdav_settings_on_client(const std::string& resp, const std::string& localDir, bool useLocalDir);
+    void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
 
     std::string get_webdav_user() const;

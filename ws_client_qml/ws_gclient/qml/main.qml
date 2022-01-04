@@ -38,7 +38,9 @@ ApplicationWindow {
 
     WebSocket{
         id: wsClient
-        settingsFileName: "config_client.json"
+        //settingsFileName: "conf_qt_client.json"
+        appName: "qt_client"
+
 //        host: mainForm.myHost
 //        port: mainForm.myPort
         //catalog: catalogModel

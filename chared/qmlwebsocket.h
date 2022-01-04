@@ -9,11 +9,10 @@
 class bWebSocket : public QObject
 {
     Q_OBJECT
-    //Q_PROPERTY(bool started READ isStarted);
     Q_PROPERTY(QString user READ getUserName WRITE setUserName NOTIFY userChanged)
     Q_PROPERTY(QString hash READ getHash);
     Q_PROPERTY(QString uuidUser READ getUserUUID);
-    Q_PROPERTY(QString appName READ getAppName);
+    Q_PROPERTY(QString appName READ getAppName WRITE setAppName NOTIFY appNameChanged);
     Q_PROPERTY(QString uuidSession READ getUuidSession);
     Q_PROPERTY(QString host READ getHost WRITE setHost NOTIFY hostChanged)
     Q_PROPERTY(int port READ getPort WRITE setPort NOTIFY portChanged)
@@ -25,7 +24,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(QString settingsFileName READ getSettingsFileName WRITE setSettingsFileName NOTIFY settingsFileNameChanged);
 
 public:
-    explicit bWebSocket(QObject *parent = nullptr);
+    explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "");
     ~bWebSocket();
 
     Q_INVOKABLE void open(const QString& user_name, const QString& user_password);
@@ -37,8 +36,8 @@ public:
     Q_INVOKABLE void getUserStatus(const QString& uuid);
     Q_INVOKABLE void getUserData(const QString& uuid, const QString& param);
     Q_INVOKABLE void resetUnreadMsgFromData(const QString& sender);
-    Q_INVOKABLE void registerToAgent();
-    Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
+
+
     Q_INVOKABLE void getUsers(const QString& parent);
     Q_INVOKABLE void addGroup(const QString& name, const QString& presentation, const QString& parent);
     Q_INVOKABLE void editGroup(const QString& uuid, const QString& name, const QString& presentation, const QString& parent);
@@ -46,20 +45,32 @@ public:
 
     Q_INVOKABLE void sendCommand(const QString& cmd, const QString& uuidForm = "", const QString& param = "");
 
+    //agent
+    Q_INVOKABLE void agentClientShow();
+    Q_INVOKABLE void registerToAgent(const QString& uuid);
+    Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
+    Q_INVOKABLE void registerClientForAgent(const QString& uuid);
+
+    //webdaw
+    Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName);
+    Q_INVOKABLE void downloadFile(const QString& token, const QString& fileName);
+
     void ext_message(const std::string& msg);
     void status_changed(bool status);
 
     void processServeResponse(const QString& jsonResp);
 
-    ClientSettings * get_settings();
+    ClientSettings & options();
 
-    const QString getUserName();
+    [[nodiscard]] QString getUserName() const;
     void setUserName(const QString& name);
-    const QString getHash();
+    [[nodiscard]] QString getHash() const;
     bool isStarted();
     const QString getUserUUID();
     const QString getUuidSession();
     const QString getAppName();
+    void setAppName(const QString& name);
+
     void get_messages(const QString& uuid_sub, int start_date, int end_date, int limit = 100, const QString& uuid_form = "");
 
     static long int currentDate();
@@ -103,9 +114,11 @@ private:
     bool _pwdEdit;
     QString user;
     QString hash;
-    QString fileName;
+    QString confFileName;
 
-    QString uuidSessionAgent;
+    QString uuidSessionAgent;    
+    QMap<QString,QString> m_agentClients;
+    void joinClientToAgent(ServeResponse * resp);
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -151,6 +164,10 @@ signals:
     void setUserParent(const QString& resp);
 
     void clientShow();
+
+    void getChannelToken(const QString& resp);
+
+    void appNameChanged();
 };
 
 #endif // QMLWEBSOCKET_H

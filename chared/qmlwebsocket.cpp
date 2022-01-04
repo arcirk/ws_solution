@@ -5,10 +5,23 @@
 #include <QFileInfo>
 #include <QDir>
 
-bWebSocket::bWebSocket(QObject *parent)
+#ifdef QT_QML_CLIENT_APP
+#include "../../../ws_client_qml/ws_gclient/include/webdav.h"
+#endif
+
+bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 : QObject(parent),
-  settings("conf.json", false)
+  settings(confFile, false, true)
 {
+    //Предполагаем что если не указан конфиг файл тогда инициализация происходит из qml модуля
+    //по этому запрещаем сохранять настройки при инициализации - no_save_def = true
+    //если имя файла не указано то настройки загрузятся по умолчанию в файле conf.json, нам это не нужно
+    //по этому инициализируем снова
+    if (confFile.isEmpty()){
+        //разрешим сохранение с указанным именем файла, или загрузим сохраненные настройки
+        settings = ClientSettings("conf_qt_client.json", false);
+    }
+
 
     _callback_message callback = std::bind(&bWebSocket::ext_message, this, std::placeholders::_1);
     _callback_status callback_status = std::bind(&bWebSocket::status_changed, this, std::placeholders::_1);
@@ -24,6 +37,8 @@ bWebSocket::~bWebSocket()
     if (client->started()) {
         client->close();
     }
+
+    m_agentClients.clear();
 
     delete client;
 
@@ -115,13 +130,6 @@ void bWebSocket::resetUnreadMsgFromData(const QString &sender)
     }
 }
 
-void bWebSocket::registerToAgent()
-{
-    if(client->started()){
-        //client->se
-    }
-}
-
 void bWebSocket::ext_message(const std::string &msg)
 {
     QString resp = ServeResponse::base64_decode(msg);
@@ -165,27 +173,44 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_content_type"){
             client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
         }else if (resp->command == "set_message_struct_type"){
+#ifdef QT_QML_CLIENT_APP
+            client->get_users_catalog("");
+#else
             client->send_command("get_webdav_settings", "", "");
+#endif
         }else if (resp->command == "get_users_catalog"){
-            //emit resetUsersCatalog(resp->message);
-            //client->get_user_cache("");
+#ifdef QT_QML_CLIENT_APP
+            emit resetUsersCatalog(resp->message);
+            client->get_user_cache("");
+#endif
         }else if (resp->command == "get_user_cache"){
-            //std::string base64 =  resp->message.toStdString();
-            //QString msg = QString::fromStdString(IClient::base64_decode(base64));
-            //emit getUserCache(msg);
-            //client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
+#ifdef QT_QML_CLIENT_APP
+            std::string base64 =  resp->message.toStdString();
+            QString msg = QString::fromStdString(IClient::base64_decode(base64));
+            emit getUserCache(msg);
+            client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
+#endif
         }else if(resp->command == "get_active_users"){
             emit getActiveUsers(resp->message);
-            //client->send_command("get_unread_messages", "", "");
+#ifdef QT_QML_CLIENT_APP
+            client->send_command("get_unread_messages", "", "");
+#endif
         }else if (resp->command == "get_messages"){
-            //client->reset_unread_messages(resp->recipient.toStdString(), "");
+#ifdef QT_QML_CLIENT_APP
+            client->reset_unread_messages(resp->recipient.toStdString(), "");
+#endif
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
             emit closeConnection();            
         }else if (resp->command == "message"){
             emit messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
         }else if (resp->command == "set_user_cache"){
-            //
+#ifdef QT_QML_CLIENT_APP
+            std::string base64 =  resp->message.toStdString();
+            QString msg = QString::fromStdString(IClient::base64_decode(base64));
+            emit getUserCache(msg);
+            client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
+#endif
         }else if (resp->command == "get_user_info"){
             emit userInfo(resp->message);
         }else if (resp->command == "client_join"){
@@ -195,14 +220,18 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if(resp->command == "get_user_status"){
             emit requestUserStatus(resp->message);
         }else if(resp->command == "reset_unread_messages"){
-            //
+#ifdef QT_QML_CLIENT_APP
+            client->send_command("get_webdav_settings", "", "");
+#endif
         }
         else if(resp->command == "get_unread_messages"){
             emit unreadMessages(resp->message);
         }
         else if(resp->command == "command_to_qt_client"){
+#ifdef QT_QML_CLIENT_APP
             if(resp->message == "clientShow")
                 emit clientShow();
+#endif
         }
         else if(resp->command == "get_group_list"){
             emit getGroupList(resp->message);
@@ -219,20 +248,23 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         else if(resp->command == "remove_group"){
             emit removeGroupUsers(resp->message);
         }else if (resp->command == "add_user"){
-            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
             emit addUser(resp->message);
         }else if (resp->command == "remove_user"){
-            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
             emit deleteUser(resp->message);
         }else if (resp->command == "update_user"){
-            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
             emit updateUser(resp->message);
         }else if (resp->command == "set_parent"){
-            //on_treeChannels_currentItemChanged(ui->treeChannels->currentItem(), nullptr);
             emit setUserParent(resp->message);
+        }else if(resp->command == "get_channel_token"){
+#ifdef QT_QML_CLIENT_APP
+            qDebug() << "get_channel_token: " << resp->message;
+            //client->reset_unread_messages(resp->recipient.toStdString(), "");
+            emit getChannelToken(resp->message);
+#endif
         }else if (resp->command == "get_webdav_settings"){
-            //qDebug() << "get_webdav_settings: " << resp->message;
-            //setWebDavSettingsToClient(resp->message);
+            setWebDavSettingsToClient(resp->message);
+        }else if (resp->command == "set_webdav_settings"){
+            //обновились настройки webdav на сервере
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -241,12 +273,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
     delete resp;
 }
 
-//ClientSettings *bWebSocket::get_settings()
-//{
-//    return settings;
-//}
 
-const QString bWebSocket::getUserName()
+QString bWebSocket::getUserName() const
 {
 //    if(settings)
         return settings[bConfFieldsWrapper::User].toString();
@@ -261,7 +289,7 @@ void bWebSocket::setUserName(const QString &name)
     user = name;
 }
 
-const QString bWebSocket::getHash()
+QString bWebSocket::getHash() const
 {
     return settings[bConfFieldsWrapper::Hash].toString();
 }
@@ -371,19 +399,20 @@ bool bWebSocket::connectedStatus()
 
 void bWebSocket::setSettingsFileName(const QString &fname)
 {
-    fileName = fname;
-    //settings->setSettingsFileName(fname);
+    confFileName = fname;
     settings = ClientSettings(fname, false);
 }
 
 QString bWebSocket::getSettingsFileName()
 {
-    return fileName;
+    return confFileName;
 }
 
 void bWebSocket::updateSettings()
 {
-    //client->set_webdav_settings_on_client(settings->getJson().toStdString(), settings->LocalWebDavDirectory.toStdString(), settings->UseLocalWebDAvDirectory);
+    QString confFileName = settings.confFileName();
+    settings = ClientSettings(confFileName, false);
+    client->set_webdav_settings_on_client(settings.to_string().toStdString());
 }
 
 const QString bWebSocket::nilUuid()
@@ -413,7 +442,7 @@ void bWebSocket::killSession(const QString &uuid)
 
 void bWebSocket::setWebDavSettingsToClient(const QString &resp)
 {
-    client->set_webdav_settings_on_client(resp.toStdString(), settings[bConfFieldsWrapper::LocalWebDavDirectory].toString().toStdString(), settings[bConfFieldsWrapper::UseLocalWebDavDirectory].toBool());
+    client->set_webdav_settings_on_client(resp.toStdString());
 
     settings[bConfFieldsWrapper::WebDavHost] = QString::fromStdString(client->get_webdav_host());
     settings[bConfFieldsWrapper::WebDavUser] = QString::fromStdString(client->get_webdav_user());
@@ -488,3 +517,86 @@ void bWebSocket::sendCommand(const QString &cmd, const QString &uuidForm, const 
     client->send_command(cmd.toStdString(), form, param.toStdString());
 }
 
+ClientSettings &bWebSocket::options() {
+    return settings;
+}
+
+void bWebSocket::agentClientShow() {
+
+    for (auto itr = m_agentClients.begin(); itr != m_agentClients.end(); ++itr) {
+        if (itr.value() == "qt_client"){
+
+            QJsonObject obj = QJsonObject();
+            obj.insert("uuid_agent", getUuidSession());
+            obj.insert("uuid_client", itr.key());
+            obj.insert("command", "clientShow");
+
+
+            QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+            //qDebug() << param;
+
+            if(client->started()){
+                client->send_command("command_to_qt_client", "", param.toStdString());
+            }
+        }
+    }
+
+}
+
+
+void bWebSocket::joinClientToAgent(ServeResponse *resp) {
+
+    if(resp->uuid_session.isEmpty())
+        return;
+
+    auto itr = m_agentClients.find(resp->uuid_session);
+    if(itr != m_agentClients.end())
+        return;
+
+    m_agentClients.insert(resp->uuid_session, resp->app_name);
+
+}
+
+void bWebSocket::registerToAgent(const QString &uuid) {
+
+
+}
+
+void bWebSocket::registerClientForAgent(const QString &uuid) {
+
+    QJsonObject param = QJsonObject();
+    param.insert("uuid_client", uuid);
+    param.insert("command", "setClient");
+    QString _param = QJsonDocument(param).toJson(QJsonDocument::Indented);
+
+    if(client->started()){
+        client->send_command("command_to_qt_agent", "", _param.toStdString());
+    }
+
+}
+
+void bWebSocket::uploadFile(const QString &token, const QString &fileName)
+{
+    qDebug() << "uploadFile: " << token << " " << fileName;
+
+
+#ifdef QT_QML_CLIENT_APP
+    QWebDav webDav = QWebDav(this);
+    webDav.setHost(settings[bConfFieldsWrapper::WebDavHost].toString());
+    webDav.setUser(settings[bConfFieldsWrapper::WebDavUser].toString());
+    webDav.setPassword(settings[bConfFieldsWrapper::WebDavPwd].toString());
+    webDav.setSsl(settings[bConfFieldsWrapper::WebDavSSL].toBool());
+    webDav.uploadFile(token,fileName);
+#endif
+
+}
+
+void bWebSocket::downloadFile(const QString &token, const QString &fileName)
+{
+    qDebug() << "downloadFile: " << token << " " << fileName;
+}
+
+void bWebSocket::setAppName(const QString &name) {
+    settings[bConfFieldsWrapper::AppName] = name;
+    settings.save();
+}

@@ -3,11 +3,13 @@
 
 #include <iws_client.h>
 #include <QFileDialog>
+#include <bwebdav.h>
+#include <QMessageBox>
 
 OptionsDialog::OptionsDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::OptionsDialog),
-    settings("conf.json", false)
+    settings("conf_admin_console.json", false)
 {
     ui->setupUi(this);
 
@@ -43,28 +45,20 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
-//ClientSettings& OptionsDialog::getSettings() const
-//{
-//    return const_cast<ClientSettings &>(settings);
-//}
-
 void OptionsDialog::on_chkSrvLocalInstall_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::isLocalInstallation] = checked;
 }
-
 
 void OptionsDialog::on_chkRunAsService_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::RunAsService] = checked;
 }
 
-
 void OptionsDialog::on_txtWorkingDirectory_textChanged()
 {
     settings[bConfFieldsWrapper::ServerWorkingDirectory] = ui->txtWorkingDirectory->toPlainText();
 }
-
 
 void OptionsDialog::on_OptionsDialog_accepted()
 {
@@ -90,7 +84,6 @@ void OptionsDialog::on_OptionsDialog_accepted()
     settings.save();
 }
 
-
 void OptionsDialog::on_btnSelectFolder_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
@@ -103,30 +96,25 @@ void OptionsDialog::on_btnSelectFolder_clicked()
 
 }
 
-
 void OptionsDialog::on_ServerName_editingFinished()
 {
     settings[bConfFieldsWrapper::ServerName] = ui->ServerName->text();
 }
-
 
 void OptionsDialog::on_ServerHost_editingFinished()
 {
     settings[bConfFieldsWrapper::ServerHost] = ui->ServerHost->text();
 }
 
-
 void OptionsDialog::on_ServerPort_valueChanged(double arg1)
 {
     settings[bConfFieldsWrapper::ServerPort] = arg1;
 }
 
-
 void OptionsDialog::on_RootUser_editingFinished()
 {
     settings[bConfFieldsWrapper::User] = ui->RootUser->text();
 }
-
 
 void OptionsDialog::on_btnViewPwd_toggled(bool checked)
 {
@@ -134,74 +122,89 @@ void OptionsDialog::on_btnViewPwd_toggled(bool checked)
     ui->Password->setEchoMode(echoMode);
 }
 
-
 void OptionsDialog::on_editPwd_toggled(bool checked)
 {
-    //QString defPwd = checked ? "" : ;
     ui->Password->setEnabled(checked);
-    //ui->Password->setText(defPwd);
     ui->btnViewPwd->setEnabled(checked);
     settings.pwdEdit = checked;
 }
-
 
 void OptionsDialog::on_Password_editingFinished()
 {
     settings.password = ui->Password->text();
 }
 
-
 void OptionsDialog::on_chkSavePwd_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::SaveHash] = checked;
 }
-
 
 void OptionsDialog::on_chkAutoConnect_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::AutoConnect] = checked;
 }
 
-
 void OptionsDialog::on_radioUseLocalFolder_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::UseLocalWebDavDirectory] = checked;
 }
-
 
 void OptionsDialog::on_txtLocalFilesFolder_textChanged()
 {
     settings[bConfFieldsWrapper::LocalWebDavDirectory] = ui->txtLocalFilesFolder->toPlainText();
 }
 
-
 void OptionsDialog::on_lineAddressWebDav_editingFinished()
 {
     settings[bConfFieldsWrapper::WebDavHost] = ui->lineAddressWebDav->text();
 }
-
 
 void OptionsDialog::on_chSSL_toggled(bool checked)
 {
     settings[bConfFieldsWrapper::WebDavSSL] = checked;
 }
 
-
 void OptionsDialog::on_lineEdtWebDAvUser_editingFinished()
 {
     settings[bConfFieldsWrapper::WebDavUser] = ui->lineEdtWebDAvUser->text();
 }
-
 
 void OptionsDialog::on_lineEdtWebDavPassword_editingFinished()
 {
     //settings[bConfFieldsWrapper::WebDavPwd] = ui->lineEdtWebDavPassword->text();
 }
 
-
 void OptionsDialog::on_btnViewDavPwd_toggled(bool checked)
 {
     auto echoMode = checked ? QLineEdit::Normal : QLineEdit::Password;
     ui->lineEdtWebDavPassword->setEchoMode(echoMode);
+}
+
+void OptionsDialog::on_btnVerifyWebDav_clicked()
+{
+    auto pWebDav = new bWebDav(this, settings.confFileName());
+
+    QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
+    pWebDav->verify();
+}
+
+void OptionsDialog::onVerifyRootDirResult(bool result, bool isConnection) {
+
+    if (!isConnection){
+        QMessageBox::critical(this, "Ошибка", "Ошибка соединения!");
+    }else{
+        if (result){
+            QMessageBox::information(this, tr("Успех"),
+                                     tr("Успешное подключение!"));
+        }else{
+            auto result =  QMessageBox::question(this, "Каталог на сервере", "Доступ есть, но каталог программы не найден.\n"
+                                                                             "Создать каталог!");
+            if(result == QMessageBox::Yes){
+
+            }
+        }
+    }
+
+
 }
 

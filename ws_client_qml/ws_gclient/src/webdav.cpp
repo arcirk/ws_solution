@@ -7,7 +7,7 @@
 #include <QJsonObject>
 #include <QFileInfo>
 #include <QDir>
-
+#include <clientsettings.h>
 
 QWebDav::QWebDav(QObject *parent)
         : QObject{parent}
@@ -103,11 +103,13 @@ QString QWebDav::getUrlCloud(bool hostOnly, bool fullPath)
 
     QString url;
 
+    std::string m_password_decode = ClientSettings::crypt(m_password.toStdString(), "my_key");
+
     if(!hostOnly){
         if(fullPath){
-            url = QString("%1://%2:%3@%4/%5/%6/%7/").arg(chame, m_user, m_password, m_host, rootPath(), m_user, rootDir());
+            url = QString("%1://%2:%3@%4/%5/%6/%7/").arg(chame, m_user, QString::fromStdString(m_password_decode), m_host, rootPath(), m_user, rootDir());
         }else
-            url = QString("%1://%2:%3@%4/").arg(chame, m_user, m_password, m_host);
+            url = QString("%1://%2:%3@%4/").arg(chame, m_user, QString::fromStdString(m_password_decode), m_host);
     }else{
         if(fullPath){
             url =  QString("%1://%2/%3/%4/%5/").arg(chame, m_host, rootPath(), m_user, rootDir());
@@ -317,7 +319,7 @@ void QWebDav::createDirectory(const QString &dirName, const QString &path)
 
     gRequest.setSslConfiguration(config);
 
-    QString dirPath = getUrlCloud(false, true);//m_currentUrl;
+    QString dirPath = getUrlCloud(true, true);//m_currentUrl;
     if(!path.isEmpty()){
         dirPath.append(path + "/");
     }
@@ -334,14 +336,16 @@ void QWebDav::createDirectory(const QString &dirName, const QString &path)
     gRequest.setUrl(url);
     //gRequest.setRawHeader("Connection", "keep-alive");
 
-//    QString concatenated = m_user + ":" + m_password;
-//    QByteArray data = concatenated.toLocal8Bit().toBase64();
-//   QString headerData = "Basic " + data;
-//    gRequest.setRawHeader("Authorization", headerData.toLocal8Bit());
-    //gRequest.setRawHeader("Depth", "1");
-    //gRequest.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded; charset=UTF-8");
+    std::string m_password_decode = ClientSettings::crypt(m_password.toStdString(), "my_key");
+
+    QString concatenated = m_user + ":" + QString::fromStdString(m_password_decode);
+    QByteArray data = concatenated.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+    gRequest.setRawHeader("Authorization", headerData.toLocal8Bit());
+    gRequest.setRawHeader("Depth", "1");
+    gRequest.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded; charset=UTF-8");
     //gManager->sendCustomRequest(gRequest, "MKCOL");
-    gRequest.setAttribute(QNetworkRequest::User, QVariant("mkcol"));
+    //gRequest.setAttribute(QNetworkRequest::User, QVariant("mkcol"));
     QByteArray verb("MKCOL");
     auto m_reply = gManager->sendCustomRequest(gRequest, verb);
     QObject::connect(m_reply, &QNetworkReply::finished, [=]() {

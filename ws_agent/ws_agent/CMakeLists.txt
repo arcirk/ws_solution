@@ -15,7 +15,9 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 link_directories("../../ws_client/cmake-build-debug")
-#find_library(ws_client)
+include_directories("../../chared")
+include_directories("../../ws_client/include")
+
 
 set(PROJECT_SOURCES
         main.cpp
@@ -23,13 +25,14 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         ws_agent.qrc
-        src/qmlwebsocket.cpp
-        include/qmlwebsocket.h
-        src/clientsettings.cpp
-        src/serveresponse.cpp
-        include/serveresponse.h
-        include/clientsettings.h
-        include/clientapp.h src/clientapp.cpp)
+        ../../chared/qmlwebsocket.cpp
+        ../../chared/qmlwebsocket.h
+        ../../chared/clientsettings.cpp
+        ../../chared/serveresponse.cpp
+        ../../chared/serveresponse.h
+        ../../chared/clientsettings.h
+        include/clientapp.h
+        src/clientapp.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ws_agent
@@ -54,9 +57,6 @@ else()
     endif()
 endif()
 
-include_directories("../../ws_client/include")
-
-#link_directories("/home/arcady/src/ws_solution/ws_client/cmake-build-debug")
 
 target_link_libraries(ws_agent PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets

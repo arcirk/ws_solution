@@ -31,6 +31,11 @@ const QString bFieldsStr[] = {
         "WebDavPwd",
         "WebDavSSL"};
 
+
+QString ClientSettings::confFileName() const {
+    return output_filename;
+}
+
 QString ClientSettings::get_home(){
 #ifdef _WINDOWS
     return getenv("APPDATA");
@@ -63,35 +68,35 @@ bool ClientSettings::verify_directory(const QString& dir_path) {
     return true;
 }
 
-ClientSettings::ClientSettings()
-{
-    pwdEdit = false;
+//ClientSettings::ClientSettings()
+//{
+//    pwdEdit = false;
+//
+//    QString file_name = "conf.json";
+//
+//    init(false);
+//
+//    output_directory = QCoreApplication::applicationDirPath() + QDir::separator() + "config";
+//
+//    bool result = verify_directory(output_directory);
+//
+//    if(!result){
+//        qDebug() << "Error verify config directory!";
+//        return;
+//    }
+//
+//    if(!file_name.isEmpty())
+//        output_filename = file_name;
+//
+//    QString fileName = output_directory + QDir::separator() + output_filename;
+//
+//    if (!QFile(fileName).exists())
+//        save();
+//    else
+//        parse();
+//}
 
-    QString file_name = "conf.json";
-
-    init(false);
-
-    output_directory = QCoreApplication::applicationDirPath() + QDir::separator() + "config";
-
-    bool result = verify_directory(output_directory);
-
-    if(!result){
-        qDebug() << "Error verify config directory!";
-        return;
-    }
-
-    if(!file_name.isEmpty())
-        output_filename = file_name;
-
-    QString fileName = output_directory + QDir::separator() + output_filename;
-
-    if (!QFile(fileName).exists())
-        save();
-    else
-        parse();
-}
-
-ClientSettings::ClientSettings(const QString &file_name, bool public_settings) {
+ClientSettings::ClientSettings(const QString &file_name, bool public_settings, bool no_save_def) {
 
     pwdEdit = false;
 
@@ -114,8 +119,10 @@ ClientSettings::ClientSettings(const QString &file_name, bool public_settings) {
 
     QString fileName = output_directory + QDir::separator() + output_filename;
 
-    if (!QFile(fileName).exists())
-        save();
+    if (!QFile(fileName).exists()){
+        if (!no_save_def)
+            save();
+    }
     else
         parse();
 }
@@ -237,220 +244,6 @@ bool ClientSettings::parse() {
     return true;
 }
 
-//
-//ClientSettings &ClientSettings::operator=(const ClientSettings &from)
-//{
-//    if (this == &from)
-//    {
-//        return *this;
-//    }
-//
-//    ServerHost = from.ServerHost;
-//    ServerPort = from.ServerPort;
-//    RootUser = from.RootUser;
-//    Hash = from.Hash;
-//    ServerName = from.ServerName;
-//    AppName = from.AppName;
-//    AutoConnect = from.AutoConnect;
-//    SaveHash = from.SaveHash;
-//    ServerWorkingDirectory = from.ServerWorkingDirectory;
-//    isLocalInstallation = from.isLocalInstallation;
-//    RunAsService = from.RunAsService;
-//    pwdEdit = from.pwdEdit;
-//    password = from.password;
-//    UseLocalWebDAvDirectory = from.UseLocalWebDAvDirectory;
-//    LocalWebDavDirectory = from.LocalWebDavDirectory;
-//    WebdavHost = from.WebdavHost;
-//    WebdavUser = from.WebdavUser;
-//    WebdavPwd = from.WebdavPwd;
-//    WebdavSSL = from.WebdavSSL;
-//
-//    return *this;
-//}
-
-
-//
-//bool ClientSettings::init(){
-//
-//    QDir dirConf(QApplication::applicationDirPath() + "/config");
-//    if (!dirConf.exists())
-//        dirConf.mkdir(QApplication::applicationDirPath() + "/config");
-//
-//    if(fileName.isEmpty())
-//        fileName = "conf.json";
-//
-//    QString fpath = QApplication::applicationDirPath() + "/config/" + fileName;
-//
-//    QJsonObject m_currentJsonObject = QJsonObject();
-//
-//    QFileInfo fileInfo(fpath);
-//    QDir::setCurrent(fileInfo.path());
-//
-//    QFile jsonFile(fpath);
-//    if (!jsonFile.open(QIODevice::ReadOnly))
-//    {
-//        ServerHost ="localhost";
-//        ServerPort = 8080;
-//        RootUser = "admin";
-//        ServerName = "NoName";
-//        AppName = "admin_console";
-//        AutoConnect = false;
-//        isLocalInstallation = false;
-//        RunAsService = false;
-//        SaveHash = false;
-//        pwdEdit = false;
-//        password = "";
-//        UseLocalWebDAvDirectory = false;
-//        WebdavSSL = false;
-//        return false;
-//    }
-//
-//    QByteArray saveData = jsonFile.readAll();
-//    QJsonDocument jsonDocument(QJsonDocument::fromJson(saveData));
-//
-//    m_currentJsonObject = jsonDocument.object();
-//
-//    auto iter = m_currentJsonObject.find("ServerHost");
-//    if (iter != m_currentJsonObject.end()){
-//        ServerHost = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("ServerPort");
-//    if (iter != m_currentJsonObject.end()){
-//        ServerPort = iter.value().toInt();
-//    }
-//    iter = m_currentJsonObject.find("RootUser");
-//    if (iter != m_currentJsonObject.end()){
-//        RootUser = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("Hash");
-//    if (iter != m_currentJsonObject.end()){
-//        Hash = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("ServerWorkingDirectory");
-//    if (iter != m_currentJsonObject.end()){
-//        ServerWorkingDirectory = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("ServerName");
-//    if (iter != m_currentJsonObject.end()){
-//        ServerName = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("AutoConnect");
-//    if (iter != m_currentJsonObject.end()){
-//        AutoConnect = iter.value().toBool();
-//    }
-//    iter = m_currentJsonObject.find("SaveHash");
-//    if (iter != m_currentJsonObject.end()){
-//        SaveHash = iter.value().toBool();
-//    }
-//    iter = m_currentJsonObject.find("isLocalInstallation");
-//    if (iter != m_currentJsonObject.end()){
-//        isLocalInstallation = iter.value().toBool();
-//    }
-//    iter = m_currentJsonObject.find("RunAsService");
-//    if (iter != m_currentJsonObject.end()){
-//        RunAsService = iter.value().toBool();
-//    }
-//    iter = m_currentJsonObject.find("UseLocalWebDAvDirectory");
-//    if (iter != m_currentJsonObject.end()){
-//        UseLocalWebDAvDirectory = iter.value().toBool();
-//    }
-//    iter = m_currentJsonObject.find("LocalWebDavDirectory");
-//    if (iter != m_currentJsonObject.end()){
-//        LocalWebDavDirectory = iter.value().toString();
-//    }
-//
-//    iter = m_currentJsonObject.find("WebdavHost");
-//    if (iter != m_currentJsonObject.end()){
-//        WebdavHost = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("WebdavUser");
-//    if (iter != m_currentJsonObject.end()){
-//        WebdavUser = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("WebdavPwd");
-//    if (iter != m_currentJsonObject.end()){
-//        WebdavPwd = iter.value().toString();
-//    }
-//    iter = m_currentJsonObject.find("WebdavSSL");
-//    if (iter != m_currentJsonObject.end()){
-//        WebdavSSL = iter.value().toBool();
-//    }
-//
-//    AppName = "admin_console";
-//
-//    jsonFile.close();
-//
-//    return true;
-//}
-//
-//void ClientSettings::save_settings(){
-//
-//    if(!SaveHash)
-//        Hash = "";
-//
-//    QJsonObject m_currentJsonObject = QJsonObject();
-//    m_currentJsonObject.insert("ServerHost", ServerHost);
-//    m_currentJsonObject.insert("ServerPort", ServerPort);
-//    m_currentJsonObject.insert("RootUser", RootUser);
-//    m_currentJsonObject.insert("Hash", Hash);
-//    m_currentJsonObject.insert("ServerWorkingDirectory", ServerWorkingDirectory);
-//    m_currentJsonObject.insert("ServerName", ServerName);
-//    m_currentJsonObject.insert("AutoConnect", AutoConnect);
-//    m_currentJsonObject.insert("SaveHash", SaveHash);
-//    m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
-//    m_currentJsonObject.insert("AppName", AppName);
-//    m_currentJsonObject.insert("RunAsService", RunAsService);
-//    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
-//    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
-//    m_currentJsonObject.insert("WebdavHost", WebdavHost);
-//    m_currentJsonObject.insert("WebdavUser", WebdavUser);
-//    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
-//    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
-//    //qDebug() << QApplication::applicationDirPath() ;
-//
-//    QDir dirConf(QApplication::applicationDirPath() + "/config");
-//    if (!dirConf.exists())
-//        dirConf.mkdir(QApplication::applicationDirPath()+ "/config");
-//
-//    if(fileName.isEmpty())
-//        fileName = "conf.json";
-//
-//    QString saveFileName = QApplication::applicationDirPath() + "/config/" + fileName;
-//
-//    QFileInfo fileInfo(saveFileName);
-//    QDir::setCurrent(fileInfo.path());
-//
-//    QFile jsonFile(saveFileName);
-//    if (!jsonFile.open(QIODevice::WriteOnly))
-//    {
-//        return;
-//    }
-//
-//    jsonFile.write(QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented));
-//    jsonFile.close();
-//}
-//
-//QString ClientSettings::getJson() {
-//    QJsonObject m_currentJsonObject = QJsonObject();
-//    m_currentJsonObject.insert("ServerHost", ServerHost);
-//    m_currentJsonObject.insert("ServerPort", ServerPort);
-//    m_currentJsonObject.insert("RootUser", RootUser);
-//    m_currentJsonObject.insert("Hash", Hash);
-//    m_currentJsonObject.insert("ServerWorkingDirectory", ServerWorkingDirectory);
-//    m_currentJsonObject.insert("ServerName", ServerName);
-//    m_currentJsonObject.insert("AutoConnect", AutoConnect);
-//    m_currentJsonObject.insert("SaveHash", SaveHash);
-//    m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
-//    m_currentJsonObject.insert("RunAsService", RunAsService);
-//    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
-//    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
-//    m_currentJsonObject.insert("WebdavHost", WebdavHost);
-//    m_currentJsonObject.insert("WebdavUser", WebdavUser);
-//    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
-//    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
-//    return QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented);
-//}
-//
 QJsonObject ClientSettings::getJsonObject() {
 
     QString fileName = output_directory + QDir::separator() + output_filename;
@@ -462,36 +255,12 @@ QJsonObject ClientSettings::getJsonObject() {
     QByteArray saveData = jsonFile.readAll();
     QJsonDocument m_doc(QJsonDocument::fromJson(saveData));
 
-    if(!m_doc.isNull())
+    if(!m_doc.isObject())
         return {};
 
     return m_doc.object();
 
-//    QJsonObject m_currentJsonObject = QJsonObject();
-//    m_currentJsonObject.insert("ServerHost", ServerHost);
-//    m_currentJsonObject.insert("ServerPort", ServerPort);
-//    m_currentJsonObject.insert("RootUser", RootUser);
-//    m_currentJsonObject.insert("Hash", Hash);
-//    m_currentJsonObject.insert("ServerWorkingDirectory", ServerWorkingDirectory);
-//    m_currentJsonObject.insert("ServerName", ServerName);
-//    m_currentJsonObject.insert("ServerStatus", ServerStatus);
-//    m_currentJsonObject.insert("AutoConnect", AutoConnect);
-//    m_currentJsonObject.insert("SaveHash", SaveHash);
-//    m_currentJsonObject.insert("isLocalInstallation", isLocalInstallation);
-//    m_currentJsonObject.insert("RunAsService", RunAsService);
-//    m_currentJsonObject.insert("UseLocalWebDAvDirectory", UseLocalWebDAvDirectory);
-//    m_currentJsonObject.insert("LocalWebDavDirectory", LocalWebDavDirectory);
-//    m_currentJsonObject.insert("WebdavHost", WebdavHost);
-//    m_currentJsonObject.insert("WebdavUser", WebdavUser);
-//    m_currentJsonObject.insert("WebdavPwd", WebdavPwd);
-//    m_currentJsonObject.insert("WebdavSSL", WebdavSSL);
-//    return m_currentJsonObject;
-//
 }
-//
-//void ClientSettings::setSettingsFileName(const QString &fname) {
-//    fileName = fname;
-//}
 
 bool ClientSettings::createDaemonFile()
 {
@@ -740,4 +509,28 @@ std::string ClientSettings::crypt(const std::string &source, const std::string& 
     _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
 
     return text;
+}
+
+QString ClientSettings::to_string() const {
+
+    QJsonDocument m_doc{};
+    QJsonObject obj = QJsonObject();
+
+    int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+
+    for (int i = 0; i < fCount; ++i) {
+        QString key = bFieldsStr[i];
+        QVariant value = m_vec[i];
+        if (value.userType() == QMetaType::QString)
+            obj.insert(key, value.toString());
+        else if (value.userType() == QMetaType::Int)
+            obj.insert(key, value.toInt());
+        else if (value.userType() == QMetaType::Bool)
+            obj.insert(key, value.toBool());
+        else
+            obj.insert(key, "");
+    }
+    m_doc.setObject(obj);
+
+    return QJsonDocument(obj).toJson(QJsonDocument::Indented);
 }

@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <clientsettings.h>
 
 class ClientApp : public QObject
 {
@@ -19,6 +20,8 @@ public:
     void setParams(QStringList& param);
     void setAppPath(const QString& appPath);
     bool isStarted();
+
+    ClientSettings & options();
 
 public slots:
     void start();
@@ -40,6 +43,7 @@ private:
     QProcess m_process;
     QStringList params;
     QString app_path;
+    ClientSettings settings;
 
 //    //bool running;
 //    QString m_address;

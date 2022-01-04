@@ -9,6 +9,8 @@
 #include <QFileInfo>
 #include <QFileDialog>
 
+#include <clientsettings.h>
+
 bool fileExists(QString path) {
     QFileInfo check_file(path);
     // check if file exists and if yes: Is it really a file and no directory?
@@ -29,20 +31,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     trayIcon->show();
 
-    m_client = new bWebSocket();
-    m_client->get_settings()->AppName = "qt_agent";
-    if(m_client->get_settings()->RootUser.isEmpty())
-        m_client->get_settings()->RootUser = "admin";
-    ui->txtServerHost->setText(m_client->get_settings()->ServerHost);
-    ui->iServerPort->setValue(m_client->get_settings()->ServerPort);
+    m_client = new bWebSocket(this, "conf_qt_agent.json");
+    m_client->options()[bConfFieldsWrapper::AppName] = "qt_agent";
+    if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty())
+        m_client->options()[bConfFieldsWrapper::User] = "admin";
+    ui->txtServerHost->setText(m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+    ui->iServerPort->setValue(m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
     ui->txtUserName->setText(m_client->getUserName());
     ui->chAutiConnect->setChecked(m_client->autoConnect());
     ui->chSaveAuth->setChecked(m_client->saveHash());
     ui->txtPassword->setEnabled(!m_client->saveHash());
     ui->btnViewPwd->setEnabled(ui->txtPassword->isEnabled());
-    ui->pathToClient->setText(m_client->get_settings()->pathToClient);
-    ui->lineDavDirectory->setText(m_client->get_settings()->LocalWebDavDirectory);
-    ui->chUseLocalDirectory->setChecked(m_client->get_settings()->UseLocalWebDavDirectory);
+    ui->pathToClient->setText(m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString());
+    ui->lineDavDirectory->setText(m_client->options()[bConfFieldsWrapper::LocalWebDavDirectory].toString());
+    ui->chUseLocalDirectory->setChecked(m_client->options()[bConfFieldsWrapper::UseLocalWebDavDirectory].toBool());
 
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
     connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
@@ -57,15 +59,16 @@ MainWindow::MainWindow(QWidget *parent)
    //connect(wsProc, SIGNAL(started()), this, &MainWindow::onClientStarted());
     //connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
 
-    if(QFileInfo(m_client->get_settings()->pathToClient + "/ws_gclient").exists()){
-        //qDebug() << "ws_gclient найден";
-        m_client_app.setAppPath(m_client->get_settings()->pathToClient + "/ws_gclient");
+    QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + "/ws_gclient";
+
+    if(QFileInfo(clientFileName).exists()){
+        m_client_app.setAppPath(clientFileName);
     }
     else{
         qDebug() << "ws_gclient не найден";
     }
 
-    if(m_client->get_settings()->AutoConnect){
+    if(m_client->options()[bConfFieldsWrapper::AutoConnect].toBool()){
         m_client->open(m_client->getUserName(), "");
     }
 }
@@ -196,15 +199,15 @@ void MainWindow::messageClicked()
 
 void MainWindow::on_iServerPort_editingFinished()
 {
-    m_client->get_settings()->ServerPort = ui->iServerPort->value();
-    m_client->get_settings()->save_settings();
+    m_client->options()[bConfFieldsWrapper::ServerPort] = ui->iServerPort->value();
+    m_client->options().save();
 }
 
 
 void MainWindow::on_txtUserName_editingFinished()
 {
-    m_client->get_settings()->RootUser = ui->txtUserName->text();
-    m_client->get_settings()->save_settings();
+    m_client->options()[bConfFieldsWrapper::User] = ui->txtUserName->text();
+    m_client->options().save();
 }
 
 
@@ -217,14 +220,14 @@ void MainWindow::on_txtPassword_editingFinished()
 void MainWindow::on_chSaveAuth_toggled(bool checked)
 {
     m_client->setSaveHash(checked);
-    m_client->get_settings()->save_settings();
+    m_client->options().save();
 }
 
 
 void MainWindow::on_chAutiConnect_toggled(bool checked)
 {
     m_client->setAutoConnect(checked);
-    m_client->get_settings()->save_settings();
+    m_client->options().save();
 }
 
 
@@ -286,8 +289,8 @@ void MainWindow::on_btnEditPwd_toggled(bool checked)
 
 void MainWindow::on_txtServerHost_editingFinished()
 {
-    m_client->get_settings()->ServerHost = ui->txtServerHost->text();
-    m_client->get_settings()->save_settings();
+    m_client->options()[bConfFieldsWrapper::ServerHost] = ui->txtServerHost->text();
+    m_client->options().save();
 }
 
 void MainWindow::onConnectionSuccess()
@@ -334,7 +337,7 @@ void MainWindow::openChatApp()
     //qDebug() << m_client->get_settings()->pathToClient;
     if (m_client->isStarted()){
 
-        QString pathToClient = m_client->get_settings()->pathToClient + "/ws_gclient";
+        QString pathToClient = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + "/ws_gclient";
         if(fileExists(pathToClient)){
             if(!m_client_app.isStarted()){
                 QStringList m_arg;
@@ -344,9 +347,9 @@ void MainWindow::openChatApp()
                 //qDebug() << m_client->getHash();
                 m_arg.append(m_client->getUuidSession());
                 //qDebug() << m_client->getUuidSession();
-                m_arg.append(m_client->get_settings()->ServerHost);
+                m_arg.append(m_client->options()[bConfFieldsWrapper::ServerHost].toString());
                 //qDebug() << m_client->get_settings()->ServerHost;
-                m_arg.append(QString::number(m_client->get_settings()->ServerPort));
+                m_arg.append(QString::number(m_client->options()[bConfFieldsWrapper::ServerPort].toInt()));
                 m_client_app.setParams(m_arg);
                 m_client_app.setAppPath(pathToClient);
                 m_client_app.start();
@@ -366,8 +369,8 @@ void MainWindow::openChatApp()
 
 void MainWindow::on_pathToClient_editingFinished()
 {
-    m_client->get_settings()->pathToClient = ui->pathToClient->text();
-    m_client->get_settings()->save_settings();
+    m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory] = ui->pathToClient->text();
+    m_client_app.options().save();
 }
 
 void MainWindow::onDisplayError(const QString &err)
@@ -417,15 +420,15 @@ void MainWindow::onOpenConnect() {
 
 void MainWindow::on_chUseLocalDirectory_toggled(bool checked)
 {
-    m_client->get_settings()->UseLocalWebDavDirectory = checked;
-    m_client->get_settings()->save_settings();
+    m_client->options()[bConfFieldsWrapper::UseLocalWebDavDirectory] = checked;
+    m_client->options().save();;
 }
 
 
 void MainWindow::on_lineDavDirectory_editingFinished()
 {
-    m_client->get_settings()->LocalWebDavDirectory = ui->lineDavDirectory->text();
-    m_client->get_settings()->save_settings();
+    m_client->options()[bConfFieldsWrapper::LocalWebDavDirectory] = ui->lineDavDirectory->text();
+    m_client->options().save();
 }
 
 

@@ -37,6 +37,8 @@ add_executable(ws_admin
         ../chared/clientsettings.cpp
         ../chared/qmlwebsocket.cpp
         ../chared/serveresponse.cpp
+        ../chared/bwebdav.h
+        ../chared/bwebdav.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
@@ -58,7 +60,7 @@ add_executable(ws_admin
         include/selectgroupdialog.h
         src/selectgroupdialog.cpp
         form/selectgroupdialog.ui
-        )
+        ../chared/bwebdav.h ../chared/bwebdav.cpp)
 
 include_directories("../ws_client/include")
 #include_directories("../qt_models/project/include")

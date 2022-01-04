@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <clientsettings.h>
+#include <bwebdav.h>
 
 namespace Ui {
 class OptionsDialog;
@@ -61,9 +62,14 @@ private slots:
 
     void on_btnViewDavPwd_toggled(bool checked);
 
+    void on_btnVerifyWebDav_clicked();
+
+    void onVerifyRootDirResult(bool result, bool isConnection);
+
 private:
     Ui::OptionsDialog *ui;
     ClientSettings settings;
+    bWebDav * webDav;
 };
 
 #endif // OPTIONSDIALOG_H

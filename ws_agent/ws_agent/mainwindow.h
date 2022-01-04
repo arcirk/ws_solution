@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
-#include "include/qmlwebsocket.h"
+#include <qmlwebsocket.h>
 
 #include "include/clientapp.h"
 
@@ -75,7 +75,6 @@ private:
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
     QAction *openQmlClient;
-    //QAction *maximizeAction;
     QAction *restoreAction;
     QAction *quitAction;
 

@@ -1,6 +1,6 @@
 #include "../include/groupdialog.h"
 #include "../form/ui_groupdialog.h"
-#include "../include/qmlwebsocket.h"
+#include <qmlwebsocket.h>
 
 GroupDialog::GroupDialog(QWidget *parent, Ui::group_info* info) :
     QDialog(parent),

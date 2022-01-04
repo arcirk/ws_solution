@@ -3,7 +3,7 @@
 //
 
 #include "../include/arcirk.h"
-
+#include "rapidjson/filewritestream.h"
 
 namespace arcirk{
 
@@ -294,6 +294,17 @@ namespace arcirk{
 
         Writer<OStreamWrapper> writer(osw);
         this->Accept(writer);
+
+
+//        FILE* fp = fopen(filename.c_str(), "wb"); // non-Windows use "w"
+//
+//        char writeBuffer[65536];
+//        FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+//
+//        Writer<FileWriteStream> writer(os);
+//        this->Accept(writer);
+//
+//        fclose(fp);
 
         return true;
     }

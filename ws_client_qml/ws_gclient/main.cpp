@@ -6,12 +6,12 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-#include "include/qmlwebsocket.h"
+#include <qmlwebsocket.h>
 #include <qproxymodel.h>
 #include <qjsontablemodel.h>
 #include "userinfo.h"
 
-#include "include/clientsettings.h"
+#include <clientsettings.h>
 
 #include <QFileInfo>
 
@@ -51,21 +51,22 @@ void updateParamsFromArgs(QStringList& arg){
         QString host = arg[4];
         int port = arg[5].toInt();
 
-       auto * sett = new ClientSettings();
-       sett->init();
-       sett->ServerHost = host;
-       sett->ServerPort = port;
-       sett->RootUser = usr;
-       sett->Hash = hash;
-       sett->AutoConnect = true;
-       sett->SaveHash = true;
+        auto  sett = ClientSettings("conf_qt_client.json", false);
+        sett[bConfFieldsWrapper::ServerHost] = host;
+        sett[bConfFieldsWrapper::ServerPort] = port;
+        sett[bConfFieldsWrapper::User] = usr;
+        sett[bConfFieldsWrapper::Hash] = hash;
+        sett[bConfFieldsWrapper::AutoConnect] = true;
+        sett[bConfFieldsWrapper::SaveHash] = true;
+        sett[bConfFieldsWrapper::AppName] = "qt_client";
 
-       sett->setSettingsFileName("config_client.json");
+        sett.save();
 
-       sett->save_settings();
-
-       delete sett;
-
+    }else
+    {
+        auto  sett = ClientSettings("conf_qt_client.json", false);
+        sett[bConfFieldsWrapper::AppName] = "qt_client";
+        sett.save();
     }
 }
 

@@ -485,10 +485,14 @@ ws_client::set_webdav_settings_on_client(const std::string &sett) {
     auto json = arcirk::bJson();
     json.parse(sett);
 
-    _webdav_host = json.get_member("webdav_host").get_string();
-    _webdav_user = json.get_member("webdav_user").get_string();
-    _webdav_pwd = json.get_member("webdav_pwd").get_string();
-    _webdav_ssl = json.get_member("webdav_pwd").get_bool();
+    if(json.is_parse()){
+        _webdav_host = json.get_member(bConf::get_field_alias(bConfFields::WebDavHost)).get_string();
+        _webdav_user = json.get_member(bConf::get_field_alias(bConfFields::WebDavUser)).get_string();
+        _webdav_pwd = json.get_member(bConf::get_field_alias(bConfFields::WebDavPwd)).get_string();
+        _webdav_ssl = json.get_member(bConf::get_field_alias(bConfFields::WebDavSSL)).get_bool();
+        _webdav_use_local = json.get_member(bConf::get_field_alias(bConfFields::UseLocalWebDavDirectory)).get_bool();
+        _webdav_local_dir = json.get_member(bConf::get_field_alias(bConfFields::LocalWebDavDirectory)).get_bool();
+    }
 
 }
 

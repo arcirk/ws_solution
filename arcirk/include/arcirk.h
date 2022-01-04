@@ -280,7 +280,7 @@ namespace arcirk{
     class bConf{
     public:
         explicit
-        bConf(const std::string& file_name = "", bool public_settings = false);
+        bConf(const std::string& file_name = "", bool public_settings = false, bool no_save_def = false);
 
         bVariant & operator[] (bConfFields index);
         bVariant const& operator[] (bConfFields index) const;
@@ -289,6 +289,8 @@ namespace arcirk{
         bool parse();
         bVariant get(bConfFields index) const;
         void set(bConfFields index, const bVariant& value);
+
+        static std::string get_field_alias(bConfFields val);
 
     private:
         std::string output_directory;

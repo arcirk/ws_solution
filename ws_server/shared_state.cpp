@@ -2138,10 +2138,10 @@ std::string shared_state::_get_webdav_settings() const {
 
     arcirk::bJson wd_json{};
     wd_json.set_object();
-    wd_json.addMember(arcirk::content_value("webdav_host", conf[WebDavHost].get_string()));
-    wd_json.addMember(arcirk::content_value("webdav_user", conf[WebDavUser].get_string()));
-    wd_json.addMember(arcirk::content_value("webdav_pwd", conf[WebDavPwd].get_string()));
-    wd_json.addMember(arcirk::content_value("webdav_ssl", conf[WebDavSSL].get_bool()));
+    wd_json.addMember(arcirk::content_value(bConf::get_field_alias(WebDavHost), conf[WebDavHost].get_string()));
+    wd_json.addMember(arcirk::content_value(bConf::get_field_alias(WebDavUser), conf[WebDavUser].get_string()));
+    wd_json.addMember(arcirk::content_value(bConf::get_field_alias(WebDavPwd), conf[WebDavPwd].get_string()));
+    wd_json.addMember(arcirk::content_value(bConf::get_field_alias(WebDavSSL), conf[WebDavSSL].get_bool()));
 
     return wd_json.to_string();
 
@@ -2178,10 +2178,15 @@ bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *
         return false;
     }
 
-    std::string _webdav_host = params->get_member("webdav_host").get_string();
-    std::string _webdav_user = params->get_member("webdav_user").get_string();
-    std::string _webdav_pwd = params->get_member("webdav_pwd").get_string();
-    bool _webdav_ssl = params->get_member("webdav_ssl").get_bool();
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string _webdav_host = params->get_member(bConf::get_field_alias(WebDavHost)).get_string();
+    std::string _webdav_user = params->get_member(bConf::get_field_alias(WebDavUser)).get_string();
+    std::string _webdav_pwd = params->get_member(bConf::get_field_alias(WebDavPwd)).get_string();
+    bool _webdav_ssl = params->get_member(bConf::get_field_alias(WebDavSSL)).get_bool();
 
     using arcirk::bConfFields;
 
@@ -2191,6 +2196,31 @@ bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *
     conf[WebDavPwd] = _webdav_pwd; //уже шифрованный
     conf[WebDavSSL] = _webdav_ssl;
     conf.save();
+
+    //оповестим всех клиентов с изменениями настроек webdav
+    std::string resp = _get_webdav_settings();
+    std::vector<boost::weak_ptr<websocket_session>> v;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        v.reserve(sessions_.size());
+        for(auto p : sessions_){
+            if (p.second->get_app_name() == "qt_client" || p.second->get_app_name() == "qt_agent")
+                v.emplace_back(p.second->weak_from_this());
+        }
+
+    }
+
+    for(auto const& wp : v)
+        if(auto sp = wp.lock()){
+                _ws_message _message = createMessage(sp.get());
+                _message.message = resp;
+                _message.command = "get_webdav_settings";
+                auto * new_msg = new ws_message(_message);
+                std::string sz_new_msg = new_msg->get_json(true);
+                auto const ss = boost::make_shared<std::string const>(std::move(sz_new_msg));
+                sp->send(ss);
+                delete new_msg;
+        }
 
     return true;
 }

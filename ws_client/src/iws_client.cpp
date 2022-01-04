@@ -561,12 +561,9 @@ long int IClient::add_day(const long selDate, const int dayCount) {
     return arcirk::add_day(selDate, dayCount);
 }
 
-void IClient::set_webdav_settings_on_client(const std::string& resp, const std::string& localDir, bool useLocalDir) {
+void IClient::set_webdav_settings_on_client(const std::string& param) {
 
-    client->set_webdav_settings_on_client(resp);
-
-    client->set_webdav_directory(localDir);
-    client->use_webdav_local_dir(useLocalDir);
+    client->set_webdav_settings_on_client(param);
 
 }
 
@@ -587,19 +584,30 @@ bool IClient::get_webdav_ssl() {
 
 void IClient::set_webdav_settings_on_server() {
 
-    boost::property_tree::ptree pt;
+    //ptree не понимает тип bool, очень жаль
+    //boost::property_tree::ptree pt;
 
     try {
-        pt.add("uuid_form", arcirk::nil_string_uuid());
-        pt.add("webdav_host", get_webdav_host());
-        pt.add("webdav_user", get_webdav_user());
-        pt.add("webdav_pwd", get_webdav_pwd());
-        pt.add("webdav_ssl", get_webdav_ssl());
+//        pt.add("uuid_form", arcirk::nil_string_uuid());
+//        pt.add(bConf::get_field_alias(bConfFields::WebDavHost), get_webdav_host());
+//        pt.add(bConf::get_field_alias(bConfFields::WebDavUser), get_webdav_user());
+//        pt.add(bConf::get_field_alias(bConfFields::WebDavPwd), get_webdav_pwd());
+//        bool val = get_webdav_ssl();
+//        pt.add(bConf::get_field_alias(bConfFields::WebDavSSL), val);
+//
+//        std::stringstream _ss;
+//        boost::property_tree::json_parser::write_json(_ss, pt);
 
-        std::stringstream _ss;
-        boost::property_tree::json_parser::write_json(_ss, pt);
 
-        send_command("set_webdav_settings", nil_string_uuid(), _ss.str());
+        arcirk::bJson json{};
+        json.set_object();
+        json.addMember(arcirk::content_value("uuid_form", arcirk::nil_string_uuid()));
+        json.addMember(arcirk::content_value(bConf::get_field_alias(bConfFields::WebDavHost), get_webdav_host()));
+        json.addMember(arcirk::content_value(bConf::get_field_alias(bConfFields::WebDavUser), get_webdav_user()));
+        json.addMember(arcirk::content_value(bConf::get_field_alias(bConfFields::WebDavPwd), get_webdav_pwd()));
+        json.addMember(arcirk::content_value(bConf::get_field_alias(bConfFields::WebDavSSL), get_webdav_ssl()));
+
+        send_command("set_webdav_settings", nil_string_uuid(), json.to_string());
 
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));

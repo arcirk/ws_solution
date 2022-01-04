@@ -1,4 +1,6 @@
 QT += quick
+QT += widgets
+QT += network
 
 CONFIG += c++17
 
@@ -10,11 +12,12 @@ SOURCES += \
         ../../qt_models/project/src/qjsontablemodel.cpp \
         ../../qt_models/project/src/qproxymodel.cpp \
         main.cpp \
-        src/clientsettings.cpp \
         src/messagelistmodel.cpp \
-        src/qmlwebsocket.cpp \
         src/selectedusersmodel.cpp \
-        src/serveresponse.cpp \
+        ../../chared/clientsettings.cpp \
+        ../../chared/serveresponse.cpp \
+        ../../chared/qmlwebsocket.cpp \
+        src/webdav.cpp \
         userinfo.cpp
 
 RESOURCES += qml.qrc
@@ -35,19 +38,21 @@ DISTFILES +=
 HEADERS += \
     ../../qt_models/project/include/qjsontablemodel.h \
     ../../qt_models/project/include/qproxymodel.h \
-    include/clientsettings.h \
     include/messagelistmodel.h \
-    include/qmlwebsocket.h \
     include/selectedusersmodel.h \
-    include/serveresponse.h \
+    ../../chared/clientsettings.h \
+    ../../chared/serveresponse.h \
+    ../../chared/qmlwebsocket.h \
+    include/webdav.h \
     userinfo.h
 
+#pch.h /
 #windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
 #windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
 QT += quickcontrols2
 
-#PRECOMPILED_HEADER = include/stdfx.h
+#PRECOMPILED_HEADER = pch.h
 
 LIBS += -L"../../ws_client/cmake-build-debug"
 #LIBS += -L"../../qt_models/project/cmake-build-debug"
@@ -55,6 +60,9 @@ windows:LIBS += -L"C:\src\ws_solution\ws_client\cmake-build-debugg"
 
 INCLUDEPATH += ../../ws_client/include
 INCLUDEPATH += ../../qt_models/project/include
+INCLUDEPATH += ../../chared
 
 unix:LIBS += -lboost_thread
 LIBS += -lws_client
+
+DEFINES += QT_QML_CLIENT_APP

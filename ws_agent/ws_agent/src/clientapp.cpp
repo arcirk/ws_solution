@@ -6,8 +6,12 @@
 #include <utility>
 #include <QProcess>
 
-ClientApp::ClientApp(QObject *parent) : QObject(parent)
+ClientApp::ClientApp(QObject *parent) :
+    QObject(parent),
+    settings("conf_qt_client.json", false)
 {
+
+    settings[bConfFieldsWrapper::AppName] = "qt_client";
 
     connect(&m_process, &QProcess::errorOccurred, this, &ClientApp::errorOccured);
     connect(&m_process, &QProcess::readyReadStandardError, this, &ClientApp::readyReadStandardError);
@@ -125,4 +129,9 @@ void ClientApp::setAppPath(const QString &appPath) {
 
 bool ClientApp::isStarted() {
     return m_process.state() == QProcess::Running;
+}
+
+ClientSettings &ClientApp::options()
+{
+    return settings;
 }

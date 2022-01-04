@@ -28,17 +28,18 @@ enum bConfFieldsWrapper{
 class ClientSettings{
 
 public:
+//    explicit
+//    ClientSettings();
     explicit
-    ClientSettings();
-    explicit
-    ClientSettings(const QString& file_name = "", bool public_settings = false);
+    ClientSettings(const QString& file_name = "", bool public_settings = false, bool no_save_def = false);
 
     QVariant & operator[] (bConfFieldsWrapper index);
     QVariant const& operator[] (bConfFieldsWrapper index) const;
 
     void save();
-
     bool parse();
+    QString to_string() const;
+
 //    QVariant & operator[] (bConfFieldsWrapper index);
 //
 //    QVariant const& operator[] (bConfFieldsWrapper index) const;
@@ -79,12 +80,10 @@ public:
 
     static std::string crypt(const std::string &source, const std::string& key);
 
+    [[nodiscard]] QString confFileName() const;
 
 private:
     static void* _crypt(void* data, unsigned data_size, void* key, unsigned key_size);
-//    QString fileName;
-//    QString ServerStatus;
-//    QString ServerWorkingDirectory;
 
     bool createDaemonFile();
     bool installDaemonFile(const QString &pwd);

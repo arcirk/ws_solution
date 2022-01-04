@@ -30,7 +30,7 @@ const std::string bFieldsStr[] = {
 
 namespace arcirk{
 
-    bConf::bConf(const std::string& file_name, bool public_settings){
+    bConf::bConf(const std::string& file_name, bool public_settings, bool no_save_def){
 
         init(public_settings);
 
@@ -51,8 +51,12 @@ namespace arcirk{
 
         std::string fileName = output_directory + boost::filesystem::path::separator + output_filename;
 
-        if (!exists(path(fileName)))
+        if (!exists(path(fileName))){
+            if(public_settings)
+                m_vec[AppName] = "server";
+            if(!no_save_def)
             save();
+        }
         else
             parse();
 
@@ -151,5 +155,9 @@ namespace arcirk{
         }
 
         return true;
+    }
+
+    std::string bConf::get_field_alias(bConfFields val){
+        return bFieldsStr[val];
     }
 }
