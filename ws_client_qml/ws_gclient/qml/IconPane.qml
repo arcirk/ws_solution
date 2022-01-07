@@ -151,6 +151,12 @@ RoundPane {
                                 control.menuTriggered("mnuOpen")
                             }
                         }
+                        Action {
+                            text: "Сохранить в директорию"
+                            onTriggered: {
+                                control.menuTriggered("mnuSaveAs")
+                            }
+                        }
                         Action { text: "Копировать" }
                         Action { text: "Переслать" }
                         Action { text: "Удалить"; enabled: !menuDeleteDisable; onTriggered: console.debug("delete")}

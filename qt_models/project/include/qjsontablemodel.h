@@ -37,6 +37,7 @@ public:
     void setJsonText(const QString& source);
 
     Q_INVOKABLE void reset();
+
 signals:
     void jsonTextChanged();
 private:

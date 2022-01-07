@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-//import QtQuick.Dialogs 1.2
+//import QtQuick.Dialogs 1.3
 import Qt.labs.platform 1.1
 
 //import QtQuick.Controls.Material 2.15
@@ -8,6 +8,17 @@ import Qt.labs.platform 1.1
 //import QtQuick.Layouts 1.12
 
     FileDialog {
+        id:fds
+
+        property bool saveDialog: false
+        property string ref: ""
+        property string token: ""
+        property string fileName: ""
+
+
+        //selectExisting: !saveDialog
+
+        //fileMode: FileDialog.SaveFile
 
         function basename(str)
         {
@@ -16,9 +27,12 @@ import Qt.labs.platform 1.1
 
         signal selectFile(string fpath, string name)
 
-        id:fds
-        title: "Выберете файл"
+
+        title: saveDialog ? "Сохранить как" : "Выберете файл"
         folder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+
+        fileMode: saveDialog ? FileDialog.SaveFile : FileDialog.OpenFile
+
         //nameFilters: ["JSON File (* .json)"]
         onAccepted: {
             fds.selectFile(fds.file, basename(fds.file)) ;
@@ -26,10 +40,12 @@ import Qt.labs.platform 1.1
         }
 
         onRejected: {
-            labels.text = "";
+            //labels.text = "";
             //console.log("Canceled");
-            Qt.quit();
+           // Qt.quit();
         }
+
+
 
     }
 

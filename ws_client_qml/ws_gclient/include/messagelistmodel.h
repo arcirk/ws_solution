@@ -48,6 +48,7 @@ public:
     Q_INVOKABLE void remove(const QString& uuid);
     Q_INVOKABLE void addMessage(const QString& msg, const QString& uuid, const QString& recipient);
 
+
 //    QString jsonText() const;
 //    void setJsonText(const QString& source);
 
@@ -78,6 +79,7 @@ private:
 
     void addDocument(QJsonDocument doc, const QString& uuid);
     virtual QJsonObject getJsonObject( const QModelIndex &index ) const;
+    QVariant getCustomRole(const QModelIndex &index, const QString& roleName) const;
 
     QString getRoleName(int role) const;
 

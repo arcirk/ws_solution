@@ -114,6 +114,10 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
         }
 
     }
+    else {
+        QVariant result = getCustomRole(index, roleName);
+        return result;
+    }
 
     switch( role )
     {
@@ -156,10 +160,26 @@ QHash<int, QByteArray> MessageListModel::roleNames() const
 
     QHash<int, QByteArray> names;
 
-    for (int i = 0; i < m_header.size(); ++i) {
+    int i = 0;
+
+    for (i = 0; i < m_header.size(); ++i) {
         const QString& key = m_header[i]["index"];
         names[Qt::UserRole + i] = key.toUtf8();
     }
+
+    //можно добавить остальные поля в объекте message при необходимости
+//    _msg.message().uuid = get_uuid();
+//    _msg.message().message = message;
+//    _msg.message().name = get_name();
+//    _msg.message().uuid_channel = uuid_channel;
+//    _msg.message().app_name = get_app_name();
+//    _msg.message().command = command;
+//    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+//    _msg.message().uuid_user = get_user_uuid();
+//    _msg.message().object_name = objectName;
+//    _msg.message().msg_ref = arcirk::random_uuid();
+    names[Qt::UserRole + i] = QString("object_name").toUtf8();
+    names[Qt::UserRole + i + 1] = QString("msg_ref").toUtf8();
 
     return names;
 }
@@ -286,7 +306,7 @@ void MessageListModel::addMessage(const QString& msg, const QString& uuid, const
 
     QJsonArray rows = _msg.value("rows").toArray();
 
-    qDebug() << "MessageListModel::addMessage: " << recipient << " " << uuid << " " << m_userUuid << " " << currentRecipient();
+    //qDebug() << "MessageListModel::addMessage: " << recipient << " " << uuid << " " << m_userUuid << " " << currentRecipient();
 
     if(rows.size() > 0){
         auto itr = m_arrMsg.find(recipient);
@@ -312,4 +332,24 @@ void MessageListModel::setCurrentRecipient(const QString &uuid)
 {
     m_currentRecipient = uuid;
     setDocument(uuid);
+}
+
+
+QVariant MessageListModel::getCustomRole(const QModelIndex &index, const QString& roleName) const
+{
+    QJsonObject obj = getJsonObject( index );
+    if( obj.contains( "message" ))
+    {
+        QJsonValue v = obj[ "message" ];
+        QString base64 = v.toString();
+
+        QString msg = QString::fromStdString(IClient::base64_decode(base64.toStdString()));
+        QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());
+        QJsonObject content = doc.object();
+
+        QString result = content[roleName].toString();
+
+        return result;
+    }else
+        return {};
 }

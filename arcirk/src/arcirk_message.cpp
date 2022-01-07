@@ -22,11 +22,13 @@ namespace arcirk{
                 , presentation("noname")
                 , uuid_user(nil_uuid())
                 , contentType("HTML")
+                , object_name("")
+                , msg_ref(nil_string_uuid())
         {
         }
         std::vector<std::string> _ws_message::get_fields(){
             return {"uuid", "name", "uuid_channel", "message", "uuid_form", "command"
-                    , "hash", "app_name", "result", "role", "presentation", "uuid_user"};
+                    , "hash", "app_name", "result", "role", "presentation", "uuid_user", "object_name"};
         }
         void _ws_message::set_value(const std::string& nameField, bVariant& val){
 
@@ -91,6 +93,14 @@ namespace arcirk{
             if (val.is_string())
                 channel_name = val.get_string();
         }
+        void _ws_message::set_object_name(bVariant& val){
+            if (val.is_string())
+                object_name = val.get_string();
+        }
+        void _ws_message::set_msg_ref(bVariant& val){
+            if (val.is_string())
+                msg_ref = val.get_string();
+        }
         setFun _ws_message::get_set_function(const std::string& nameField){
             if (nameField == "uuid")
             {
@@ -134,7 +144,13 @@ namespace arcirk{
             } else if (nameField == "channel_name")
             {
                 return std::bind(&_ws_message::set_channel_name, this, std::placeholders::_1);
-            } else
+            } else if (nameField == "object_name")
+            {
+                return std::bind(&_ws_message::set_object_name, this, std::placeholders::_1);
+            }else if (nameField == "msg_ref")
+            {
+                return std::bind(&_ws_message::set_msg_ref, this, std::placeholders::_1);
+            }else
                 return nullptr;
 
         }
@@ -179,6 +195,8 @@ namespace arcirk{
             m_doc.addMember(content_value("user_uuid", m_message.uuid_user));
             m_doc.addMember(content_value("contentType", m_message.contentType));
             m_doc.addMember(content_value("channel_name", m_message.channel_name));
+            m_doc.addMember(content_value("object_name", m_message.object_name));
+            m_doc.addMember(content_value("msg_ref", m_message.msg_ref));
 
             std::string result = m_doc.to_string();
 

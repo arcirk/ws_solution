@@ -834,8 +834,8 @@ bool shared_state::is_msg(const std::string& msg)
     return false;
 }
 
-bool shared_state::send_message(const std::string &message, boost::uuids::uuid &recipient,
-                                websocket_session *current_sess) {
+bool
+shared_state::send_message(const std::string &message, boost::uuids::uuid &recipient, websocket_session *current_sess) {
 
     if (recipient == boost::uuids::nil_uuid()){
         //отправить всем (общий чат)

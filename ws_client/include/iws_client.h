@@ -57,7 +57,7 @@ public:
     void set_user_cache(const std::string &cache, const std::string &uuid_form);
     void get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
     void get_user_data(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
-    void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
+    void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form, const std::string& objectName = "", const std::string& msg_ref = "");
     void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
     void get_channel_token(const std::string &user_sender, const std::string &uuid_form);
 
@@ -84,6 +84,8 @@ public:
     std::string get_webdav_pwd() const;
     std::string get_webdav_host() const;
     bool get_webdav_ssl();
+
+    static std::string get_string_random_uuid();
 
 private:
     ws_client * client;

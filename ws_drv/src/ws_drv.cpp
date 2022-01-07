@@ -244,7 +244,7 @@ void ws_drv::send(const variant_t& msg, const variant_t& sub_user_uuid, const va
     {
         if (client->started())
         {
-            client->send(_msg, false, _sub_user_uuid, _uuid_form);
+            client->send(_msg, false, _sub_user_uuid);
         }
     }
 }

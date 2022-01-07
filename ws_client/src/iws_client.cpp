@@ -452,7 +452,7 @@ void IClient::set_user_cache(const std::string &cache, const std::string &uuid_f
     }
 }
 
-void IClient::send(const std::string &msg, const std::string &sub_user_uuid, const std::string &uuid_form) {
+void IClient::send(const std::string &msg, const std::string &sub_user_uuid, const std::string &uuid_form, const std::string& objectName, const std::string& msg_ref) {
 
     std::string _msg = msg;
     std::string _uuid_form = uuid_form;
@@ -469,7 +469,7 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
     {
         if (client->started())
         {
-            client->send(_msg, false, _sub_user_uuid, _uuid_form);
+            client->send(_msg, false, _sub_user_uuid, _uuid_form, "message", objectName, msg_ref);
         }
     }
 }
@@ -631,4 +631,8 @@ void IClient::get_channel_token(const std::string &user_sender, const std::strin
     }catch (std::exception& e){
         //message("error: " + std::string (e.what()));
     }
+}
+
+std::string IClient::get_string_random_uuid() {
+    return arcirk::random_uuid();
 }

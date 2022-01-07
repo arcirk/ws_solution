@@ -119,6 +119,7 @@ namespace arc_sqlite {
                 result.append(",\n date     INTEGER");
                 result.append(",\n contentType TEXT      DEFAULT HTML");
                 result.append(",\n unreadMessages  INTEGER   DEFAULT (0)"); //не прочитанные сообщения всегда у получателя
+                result.append(",\n objectName TEXT");
                 break;
             case tables::eSubscribers:
                 result =		   ",\n channel    TEXT (36) NOT NULL";
@@ -658,6 +659,9 @@ namespace arc_sqlite {
 
             //не прочитанные сообщения всегда у получателя
             values.push_back(arcirk::content_value("unreadMessages", (int)!active));
+
+//            //имя файла
+//            values.push_back(arcirk::content_value("objectName", objectName));
 
             std::string err;
 

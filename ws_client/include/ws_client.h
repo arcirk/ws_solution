@@ -35,7 +35,8 @@ public:
     void open(const char *host, const char *port, const char *name, const char *uuid);
     void open(const char* host, const char* port, _callback_message& msg);
     void open(const char* host, const char* port, _callback_message& msg, _callback_status& st);
-    void send(const std::string &message, bool is_cmd = true, const std::string& sub_user_uuid = "", const std::string& uuid_form = "", const std::string& command = "message");
+    void send(const std::string &message, bool is_cmd, const std::string &sub_user_uuid = "", const std::string &uuid_form = "",
+              const std::string &command = "", const std::string &objectName = "", const std::string &msg_ref = "");
 //    void
 //    to_channel(const std::string &message, const std::string& uuid_sub, const std::string& uuid_form);
     void on_connect(session * sess);

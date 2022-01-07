@@ -6,6 +6,9 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrl>
+#include <QEventLoop>
+#include <QFile>
+#include <QDir>
 
 bWebDav::bWebDav(QObject *parent, const QString& confFileName)
         : QObject{parent},
@@ -37,7 +40,6 @@ bool bWebDav::verifyRootDir() {
     QByteArray verb("PROPFIND");
     auto m_reply = gManager->sendCustomRequest(gRequest, verb);
     QObject::connect(m_reply, &QNetworkReply::finished, [=]() {
-
         if(m_reply->error() == QNetworkReply::NoError){
             QString ans = m_reply->readAll();
             qDebug() << qPrintable(ans);
@@ -100,7 +102,7 @@ void bWebDav::verify() {
 
 void bWebDav::createDirectory(const QString &name) {
 
-    QNetworkRequest gRequest = getRequest();
+    QNetworkRequest gRequest = getRequest(name);
 
     QByteArray verb("MKCOL");
     auto m_reply = gManager->sendCustomRequest(gRequest, verb);
@@ -131,7 +133,7 @@ QNetworkRequest bWebDav::getRequest(const QString& addPath) {
     if (!addPath.isEmpty())
         dirPath.append(addPath);
 
-    qDebug() << dirPath;
+    qDebug() << "bWebDav::getRequest::dirPath: " << dirPath;
     QUrl url(dirPath);
 
     gRequest.setUrl(url);
@@ -148,18 +150,112 @@ QNetworkRequest bWebDav::getRequest(const QString& addPath) {
     return gRequest;
 }
 
-void bWebDav::put(const QString &roomToken, const QString &addPath) {
+QNetworkReply* bWebDav::put(const QString& filePath, QIODevice* data)
+{
 
-    QNetworkRequest gRequest = getRequest();
+    QNetworkRequest gRequest = getRequest(filePath);
 
-    QByteArray verb("MKCOL");
+    QNetworkReply* reply = gManager->put(gRequest, data);
+
+    return reply;
+}
+
+QNetworkReply* bWebDav::put(const QString& filePath, const QByteArray& data)
+{
+    QNetworkRequest gRequest = getRequest(filePath);
+
+    QNetworkReply* reply = gManager->put(gRequest, data);
+
+    return reply;
+}
+
+
+bool bWebDav::exists(const QString &roomToken) {
+
+    QEventLoop loop;
+
+    QNetworkRequest gRequest = getRequest(roomToken);
+
+    QByteArray verb("PROPFIND");
+
+    loop.connect(gManager, SIGNAL(finished(QNetworkReply*)),SLOT(quit()));
+
     auto m_reply = gManager->sendCustomRequest(gRequest, verb);
-    QObject::connect(m_reply, &QNetworkReply::finished, [=]() {
 
-        if(m_reply->error() == QNetworkReply::NoError){
+    loop.exec();
 
+    //qDebug() << "exit loop";
+
+    return m_reply->error() == QNetworkReply::NoError;
+}
+
+void bWebDav::uploadFile(const QString &roomToken, const QString &fileName, const QString &ref) {
+
+    if(!exists(roomToken))
+        return;
+
+    if(fileName.isEmpty())
+        return;
+
+    QString _fp = fileName;
+
+    if(_fp.startsWith("file:///"))
+        _fp = QUrl(fileName).toLocalFile();
+
+    if(!_fp.isEmpty()){
+        _fp = QDir::toNativeSeparators(_fp);
+    }
+
+    QFile file(_fp);
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
+    QByteArray _data = file.readAll();
+
+    QString name = QFileInfo(_fp).fileName();
+
+    if(!ref.isEmpty()){
+        name.append(".");
+        name.append(ref);
+    }
+
+    auto reply = put(roomToken + "/" + name,_data);
+
+    QObject::connect(reply, &QNetworkReply::uploadProgress, this, &bWebDav::uploadProgress);
+    QObject::connect(reply, &QNetworkReply::finished, [=]() {
+
+        if(reply->error() == QNetworkReply::NoError){
+            qDebug() << "bWebDav::uploadFile: finished ";
+            emit uploadFinished();
         }
         else
-            davError(m_reply->error());
+            davError(reply->error());
     });
+
+
+}
+
+bool bWebDav::createDirectorySynch(const QString &name) {
+
+    QEventLoop loop;
+    QNetworkRequest gRequest = getRequest(name);
+
+    QByteArray verb("MKCOL");
+
+    loop.connect(gManager, SIGNAL(finished(QNetworkReply*)),SLOT(quit()));
+    auto m_reply = gManager->sendCustomRequest(gRequest, verb);
+    loop.exec();
+    return m_reply->error() == QNetworkReply::NoError;
+
+}
+void bWebDav::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    qDebug() << "QWebdav::downloadProgress() = " << bytesReceived << " in " << bytesReceived;
+}
+
+void bWebDav::uploadProgress(qint64 bytesSent, qint64 bytesTotal)
+{
+
+    qDebug() << "QWebdav::uploadProgress() = " << bytesSent << " in " << bytesTotal;
+
 }

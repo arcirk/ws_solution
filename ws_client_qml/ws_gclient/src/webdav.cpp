@@ -359,12 +359,13 @@ void QWebDav::createDirectory(const QString &dirName, const QString &path)
     });
 }
 
+
 void QWebDav::uploadFile(const QString &token, const QString &file) {
 
     if (token.isEmpty())
         return;
 
-    createDirectory(token, "");
+//    createDirectory(token, "");
 //    QFile::copy("/home/arcady/GitHub/ws_solution/ws_client_qml/ws_gclient/include/clientsettings.h",
 //                "https://webDavUser:@LbyFvj1@arcirk.ru/remote.php/dav/files/webDavUser/test/clientsettings.h");
 

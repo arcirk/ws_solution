@@ -21,7 +21,7 @@ Pane{
     signal sendMessage(string msg)
     signal messageChanged(string source)
 
-    signal selectFile(string fileName)
+    signal selectFile(string fileName, string ref)
 
     property alias text: txtSendMessage.text
     property string uuidRecipient
@@ -93,34 +93,33 @@ Pane{
 
         onSelectFile: function(fpath, name){
 
-            if(!wsClient.verifyLocalRoomCacheDirectory(roomToken))
-            {
-                console.log("SelectFileDialog: error verify chache directory!")
-                return
-            }
+//            if(!wsClient.verifyLocalRoomCacheDirectory(roomToken))
+//            {
+//               console.log("SelectFileDialog: error verify chache directory!")
+//                return
+//            }
 
-            //ToDo: сдесь нужно закинуть на webdav
 //            //копируем файл в кеш пользователя с начала
 //            let res = wsClient.saveFileToUserCache(roomToken, fpath, "");
 //            if(!res)
 //                return;
 
-            let cashe = txtSendMessage.text;
-            //let format = name.toUpperCase().substr(-3, 3);
-            //let format;
-            //let mime;
-
-            //if(Scripts.isImage(fpath, format, mime)){
-                txtSendMessage.text = wsClient.getObjectHtmlSource(fpath)
-            //}
-            //else
-            //    txtSendMessage.text = "<a href=\"" + fpath + "\">"+name+"</a>"
-
-            wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
-
-            txtSendMessage.text = cashe;
-
-            control.selectFile(fpath);
+//            if(roomToken === undefined)
+//            {
+//                console.log("не инициализирован токен чата!")
+//                return
+//            }
+            if(roomToken.length === 0)
+            {
+                console.log("не инициализирован токен чата!")
+                return
+            }
+            let cache = txtSendMessage.text;
+            let msg_ref = wsClient.getRandomUUID();
+            txtSendMessage.text = wsClient.getObjectHtmlSource(fpath)
+            wsClient.sendMessage(uuidRecipient, txtSendMessage.text, wsClient.getFileName(fpath), msg_ref)
+            txtSendMessage.text = cache;
+            control.selectFile(fpath, msg_ref);
         }
     }
 

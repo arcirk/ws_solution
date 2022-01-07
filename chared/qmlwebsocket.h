@@ -6,6 +6,10 @@
 #include "clientsettings.h"
 #include "serveresponse.h"
 
+//#ifdef QT_QML_CLIENT_APP
+#include "bwebdav.h"
+//#endif
+
 class bWebSocket : public QObject
 {
     Q_OBJECT
@@ -31,7 +35,7 @@ public:
     Q_INVOKABLE void close();
     Q_INVOKABLE void saveCache(const QString& jsonText);
     Q_INVOKABLE void messages(const QString& uuid);
-    Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg);
+    Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg, const QString& objectName = "", const QString& msg_ref = "");
     Q_INVOKABLE void getUserInfo(const QString& uuid);
     Q_INVOKABLE void getUserStatus(const QString& uuid);
     Q_INVOKABLE void getUserData(const QString& uuid, const QString& param);
@@ -52,14 +56,16 @@ public:
     Q_INVOKABLE void registerClientForAgent(const QString& uuid);
 
     //webdaw
-    Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName);
+    Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName, const QString &ref);
     Q_INVOKABLE void downloadFile(const QString& token, const QString& fileName);
     Q_INVOKABLE bool verifyLocalRoomCacheDirectory(const QString& roomToken);
     Q_INVOKABLE bool saveFileToUserCache(const QString& token, const QString& localFile, const QString& refMessage);
-
+    Q_INVOKABLE QString getFileName(const QString& filePath);
     //
     Q_INVOKABLE QString getObjectHtmlSource(const QString& fileName);
     Q_INVOKABLE bool isImage(const QString& fileName);
+
+    Q_INVOKABLE QString getRandomUUID();
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -126,6 +132,8 @@ private:
     QMap<QString,QString> m_agentClients;
     void joinClientToAgent(ServeResponse * resp);
     QStringList getImageMimeType();
+
+    bWebDav * pWebDav;
 
 signals:
     void displayError(const QString& what, const QString& err);

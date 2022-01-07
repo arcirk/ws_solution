@@ -15,6 +15,7 @@ Pane{
 
     signal messageClick(string msg);
     signal tokenChanged(string token);
+    signal saveAs(string token, string object_name, string msg_ref)
 
     MessageListModel{
         id: msgModel
@@ -91,8 +92,13 @@ Pane{
                     textColor: sentByMe ? "black" : "white"
                     Material.background: sentByMe ? "lightgrey" : "steelblue" //sentByMe ? Material.Grey : Material.Blue
 
-                    onMenuTriggered: {
-                        ctrlMessageList.messageClick(model.message)
+                    onMenuTriggered: function(name) {
+                        //console.log("ChatBox::messageText::onMenuTriggered:model.object_name: " + model.object_name)
+                        //console.log("ChatBox::messageText::onMenuTriggered:model.msg_ref: " + model.msg_ref)
+                        if(name === "mnuOpen")
+                            ctrlMessageList.messageClick(model.message)
+                        else if (name === "mnuSaveAs")
+                            ctrlMessageList.saveAs(model.token, model.object_name, model.msg_ref)
                     }
 
                     onImageClick: {

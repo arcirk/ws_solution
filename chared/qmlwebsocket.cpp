@@ -8,9 +8,6 @@
 #include <QBuffer>
 #include <QMimeDatabase>
 
-#ifdef QT_QML_CLIENT_APP
-#include "../../../ws_client_qml/ws_gclient/include/webdav.h"
-#endif
 
 bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 : QObject(parent),
@@ -32,6 +29,8 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
     client = new IClient(settings[bConfFieldsWrapper::ServerHost].toString().toStdString(), settings[bConfFieldsWrapper::ServerPort].toInt(), callback, callback_status);
 
     _pwdEdit = false;
+
+    pWebDav= new bWebDav(this, settings.confFileName());
 
 }
 
@@ -84,6 +83,7 @@ void bWebSocket::close()
 
 void bWebSocket::saveCache(const QString &jsonText)
 {
+    //qDebug() << "bWebSocket::saveCache: " << qPrintable(jsonText);
     client->set_user_cache(jsonText.toStdString(), "");
 }
 
@@ -95,12 +95,12 @@ void bWebSocket::messages(const QString &uuid)
     get_messages(uuid, start_date, current_date);
 }
 
-void bWebSocket::sendMessage(const QString &recipient, const QString &msg)
+void bWebSocket::sendMessage(const QString &recipient, const QString &msg, const QString& objectName, const QString& msg_ref)
 {
     if(client->started()){
         //сдесь в base64 и полностью сообщение из-за html конфликтов при чтении json
         std::string _message = msg.toUtf8().toBase64().toStdString();
-        client->send(_message, recipient.toStdString(), "");
+        client->send(_message, recipient.toStdString(), "", objectName.toStdString(), msg_ref.toStdString());
     }
 }
 
@@ -114,7 +114,7 @@ void bWebSocket::getUserInfo(const QString &uuid)
 void bWebSocket::getUserStatus(const QString &uuid)
 {
     if(client->started()){
-        std::string param = QString("{\"uuid_user\":\"%1\", \"app_name\": \"qt_client\"}").arg(uuid).toStdString();//IClient::str_sample("{\"uuid_user\":\"%1%\", \"app_name\": \"qt_client\"}", uuid.toStdString());
+        std::string param = QString("{\"uuid_user\":\"%1\", \"app_name\": \"qt_client\"}").arg(uuid).toStdString();
         client->get_user_status(uuid.toStdString(), "", param);
     }
 }
@@ -208,12 +208,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "message"){
             emit messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
         }else if (resp->command == "set_user_cache"){
-#ifdef QT_QML_CLIENT_APP
-            std::string base64 =  resp->message.toStdString();
-            QString msg = QString::fromStdString(IClient::base64_decode(base64));
-            emit getUserCache(msg);
-            client->send_command("get_active_users", IClient::nil_string_uuid(), "{\"app_name\": \"qt_client\", \"unique\": \"true\"}");
-#endif
+            //
         }else if (resp->command == "get_user_info"){
             emit userInfo(resp->message);
         }else if (resp->command == "client_join"){
@@ -576,8 +571,7 @@ QStringList bWebSocket::getImageMimeType()
 }
 
 void bWebSocket::registerToAgent(const QString &uuid) {
-
-
+    qDebug() << "bWebSocket::registerToAgent: " << uuid;
 }
 
 void bWebSocket::registerClientForAgent(const QString &uuid) {
@@ -593,19 +587,36 @@ void bWebSocket::registerClientForAgent(const QString &uuid) {
 
 }
 
-void bWebSocket::uploadFile(const QString &token, const QString &fileName)
+void bWebSocket::uploadFile(const QString &token, const QString &fileName, const QString &ref)
 {
-    qDebug() << "uploadFile: " << token << " " << fileName;
+    qDebug() << "bWebSocket::uploadFile: " << token << " " << fileName;
+
+//#ifdef QT_QML_CLIENT_APP
+    if(token.isEmpty())
+    {
+        qDebug() << "bWebSocket::uploadFile: не указан токен чата!";
+        return;
+    }
+
+    if(!pWebDav->exists(token)){
+        qDebug() << "bWebSocket::uploadFile::createDirectory: " <<  token;
+        bool result = pWebDav->createDirectorySynch(token);
+//        if (result)
+//            qDebug() << "bWebSocket::uploadFile::createDirectorySynch: ok";
+//        else
+//            qDebug() << "bWebSocket::uploadFile::createDirectorySynch: false";
+
+        if(!result)
+        {
+            qDebug() << "error create chat cache folder!";
+            return;
+        }
+    }
+
+    pWebDav->uploadFile(token, fileName, ref);
 
 
-#ifdef QT_QML_CLIENT_APP
-    QWebDav webDav = QWebDav(this);
-    webDav.setHost(settings[bConfFieldsWrapper::WebDavHost].toString());
-    webDav.setUser(settings[bConfFieldsWrapper::WebDavUser].toString());
-    webDav.setPassword(settings[bConfFieldsWrapper::WebDavPwd].toString());
-    webDav.setSsl(settings[bConfFieldsWrapper::WebDavSSL].toBool());
-    webDav.uploadFile(token,fileName);
-#endif
+//#endif
 
 }
 
@@ -636,6 +647,24 @@ bool bWebSocket::saveFileToUserCache(const QString &token, const QString &localF
 
     return false;
 
+}
+
+QString bWebSocket::getFileName(const QString &filePath)
+{
+    QString _fp = filePath;
+
+    if(_fp.startsWith("file:///"))
+        _fp = QUrl(filePath).toLocalFile();
+
+    if(!_fp.isEmpty()){
+        _fp = QDir::toNativeSeparators(_fp);
+    }
+
+    QFile file(_fp);
+
+    QString name = QFileInfo(_fp).fileName();
+
+    return name;
 }
 
 QString bWebSocket::getObjectHtmlSource(const QString &fileName)
@@ -700,7 +729,7 @@ QString bWebSocket::getObjectHtmlSource(const QString &fileName)
         }else
             base64 = _data.toBase64();
 
-        return "<img src=\"data:" + mime + ";base64," + base64 + "\">";
+        return "<img src=\"data:" + mime + ";base64," + base64 + "\"><br><a href=\"" + fileName + "\">" + name + "</a>";
     }
 
 }
@@ -726,4 +755,9 @@ bool bWebSocket::isImage(const QString& fileName) {
     QStringList suff = getImageMimeType();
     return suff.indexOf(_mime.name()) != -1;
 
+}
+
+QString bWebSocket::getRandomUUID()
+{
+    return QString::fromStdString(client->get_string_random_uuid());
 }

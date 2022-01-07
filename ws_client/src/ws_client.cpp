@@ -38,7 +38,8 @@ ws_client::ws_client(net::io_context &io_context, const std::string& client_para
 
 void
 ws_client::
-send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, const std::string& uuid_form, const std::string& command)
+send(const std::string &message, bool is_cmd, const std::string &sub_user_uuid, const std::string &uuid_form,
+     const std::string &command, const std::string &objectName, const std::string &msg_ref)
 {
 
 
@@ -68,6 +69,11 @@ send(const std::string &message, bool is_cmd, const std::string& sub_user_uuid, 
     _msg.message().command = command;
     _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
     _msg.message().uuid_user = get_user_uuid();
+    _msg.message().object_name = objectName;
+    if (msg_ref.empty())
+        _msg.message().msg_ref = arcirk::random_uuid();
+    else
+        _msg.message().msg_ref = msg_ref;
 
     msg.append(_msg.get_json(true));
 
@@ -312,7 +318,7 @@ ws_client::on_read(const std::string& message) {
                 }
             }
         }catch (std::exception& e){
-            std::cerr << e.what() << std::endl;
+            std::cerr << "ws_client::on_read:set_client_param error: " << e.what() << std::endl;
             _callback_msg(e.what());
             return;
         }
@@ -322,6 +328,7 @@ ws_client::on_read(const std::string& message) {
     try {
         if (_callback_msg)
         {
+            //std::cout << "decode_message: {" << decode_message << "}" << std::endl;
             if (!decode_message){
                 _callback_msg(msg);
             } else{
@@ -332,8 +339,9 @@ ws_client::on_read(const std::string& message) {
         }
     }
     catch (std::exception& e){
-        std::cout << "error: " << e.what() << std::endl;
-        std::cout << "msg: {" << message << "}" << std::endl;
+        std::cerr << "ws_client::on_read error: " << e.what() << std::endl;
+        //std::cout << "message: {" << message << "}" << std::endl;
+        //std::cout << "msg: {" << msg << "}" << std::endl;
         return;
     }
 

@@ -37,6 +37,6 @@ Dialog {
 
     }
     onTextMsgChanged: {
-        console.log(textMsg)
+        //console.log(textMsg)
     }
 }

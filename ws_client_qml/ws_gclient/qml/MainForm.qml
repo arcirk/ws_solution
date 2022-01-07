@@ -86,6 +86,17 @@ import QtQuick.Layouts 1.12
             activeChats.setToken(token)
         }
 
+        SelectFolderDialog{
+            id: saveDlg
+            //saveDialog: true
+
+            onSelectFolder: function(fpath){
+
+                console.debug("saveDialog" + ":" + fpath + " " + saveDlg.ref + " " + saveDlg.token + " " + saveDlg.fileName)
+
+            }
+        }
+
         Page{
             SplitView.fillWidth: true
             SplitView.fillHeight: true
@@ -107,11 +118,20 @@ import QtQuick.Layouts 1.12
                         Material.background: mainSplit.theme === "Light" ? "#ECEFF1" : undefined
 
                         onMessageClick: function(msg) {
+                            //console.debug(msg)
                             dialogMsg.textMsg = msg
                             dialogMsg.open()
                         }
                         onTokenChanged: function(token){
                             mainSplit.setToken(token)
+                        }
+                        onSaveAs: function(token, object_name, msg_ref){
+                            saveDlg.fileName = object_name;
+                            saveDlg.token = token;
+                            saveDlg.ref = msg_ref;
+                            saveDlg.title = "Выберете директорию";
+                            //saveDlg.currentFile = "file:///" + object_name
+                            saveDlg.open();
                         }
                     }
                     MessageBox{
@@ -139,9 +159,9 @@ import QtQuick.Layouts 1.12
                             mainSplit.draft = source;
                         }
 
-                        onSelectFile: function(fileName){
+                        onSelectFile: function(fileName, ref){
                             //console.debug(activeChats.getCurrentToken())
-                            wsClient.uploadFile(activeChats.getCurrentToken(), fileName)
+                            wsClient.uploadFile(activeChats.getCurrentToken(), fileName, ref)
                         }
                     }
 
