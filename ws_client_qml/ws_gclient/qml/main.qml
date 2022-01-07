@@ -204,7 +204,6 @@ ApplicationWindow {
                 }
                 ToolButton{
                     id: btnExit
-                    //text: "Выход"
                     enabled:{
                          if(agentUsed)
                              false

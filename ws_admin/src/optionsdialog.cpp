@@ -3,8 +3,8 @@
 
 #include <iws_client.h>
 #include <QFileDialog>
-#include <bwebdav.h>
 #include <QMessageBox>
+#include <bwebdav.h>
 
 OptionsDialog::OptionsDialog(QWidget *parent) :
     QDialog(parent),
@@ -38,6 +38,12 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     ui->chSSL->setChecked(settings[bConfFieldsWrapper::WebDavSSL].toBool());
 
     settings.password = "***";
+
+    pWebDav= new bWebDav(this, settings.confFileName());
+
+    QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
+    QObject::connect(pWebDav, SIGNAL(createDir(bool, QString)), this, SLOT(onCreateWbDavDirectory(bool, QString )));
+
 }
 
 OptionsDialog::~OptionsDialog()
@@ -182,10 +188,8 @@ void OptionsDialog::on_btnViewDavPwd_toggled(bool checked)
 
 void OptionsDialog::on_btnVerifyWebDav_clicked()
 {
-    auto pWebDav = new bWebDav(this, settings.confFileName());
-
-    QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
     pWebDav->verify();
+
 }
 
 void OptionsDialog::onVerifyRootDirResult(bool result, bool isConnection) {
@@ -200,11 +204,21 @@ void OptionsDialog::onVerifyRootDirResult(bool result, bool isConnection) {
             auto result =  QMessageBox::question(this, "Каталог на сервере", "Доступ есть, но каталог программы не найден.\n"
                                                                              "Создать каталог!");
             if(result == QMessageBox::Yes){
-
+                pWebDav->createDirectory(pWebDav->rootDirName);
             }
         }
     }
 
 
+}
+
+void OptionsDialog::onCreateWbDavDirectory(bool result, const QString &name) {
+    if (result){
+        QMessageBox::information(this, tr("Успех"),
+                                 QString("Каталог файлов %1 успешно создан!").arg(name));
+    }else{
+        QMessageBox::information(this, tr("Ошибка"),
+                                 "Ошибка создания каталога файлов!");
+    }
 }
 

@@ -432,6 +432,22 @@ bool ClientSettings::statusService()
     return result;
 }
 
+bool ClientSettings::verifyLocalRoomCacheDirectory(const QString &roomToken)
+{
+    if(roomToken.isEmpty())
+        return false;
+    QString cachePath = getUserRoomsCacheDirectory() +  QDir::separator() + roomToken;
+    QDir dir = QDir(cachePath);
+    if(!dir.exists())
+        return dir.mkpath(cachePath);
+    return true;
+}
+
+QString ClientSettings::getUserRoomsCacheDirectory()
+{
+    return get_conf_directory() + QDir::separator() + "cache";
+}
+
 bool ClientSettings::installDaemonFile(const QString &pwd) {
 
     QFile daemonFile(QApplication::applicationDirPath() + "/config/ws_server.service");

@@ -4,6 +4,9 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QImage>
+#include <QBuffer>
+#include <QMimeDatabase>
 
 #ifdef QT_QML_CLIENT_APP
 #include "../../../ws_client_qml/ws_gclient/include/webdav.h"
@@ -557,6 +560,21 @@ void bWebSocket::joinClientToAgent(ServeResponse *resp) {
 
 }
 
+QStringList bWebSocket::getImageMimeType()
+{
+    QStringList result = {
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "image/bmp",
+        "image/vnd.microsoft.icon",
+        "image/tiff",
+        "image/svg+xml"
+    };
+
+    return result;
+}
+
 void bWebSocket::registerToAgent(const QString &uuid) {
 
 
@@ -596,7 +614,116 @@ void bWebSocket::downloadFile(const QString &token, const QString &fileName)
     qDebug() << "downloadFile: " << token << " " << fileName;
 }
 
+bool bWebSocket::verifyLocalRoomCacheDirectory(const QString& roomToken)
+{
+    return ClientSettings::verifyLocalRoomCacheDirectory(roomToken);
+}
+
+bool bWebSocket::saveFileToUserCache(const QString &token, const QString &localFile, const QString& refMessage)
+{
+    QFile file(localFile);
+    if(!file.exists())
+        return false;
+    if(ClientSettings::verifyLocalRoomCacheDirectory(token)){
+          QString newFile = ClientSettings::getUserRoomsCacheDirectory() + QDir::separator() + token
+                  + file.fileName() + "." + refMessage;
+          QFile nFile(newFile);
+          if(!nFile.exists()){
+              file.copy(newFile);
+              return true;
+          }
+    }
+
+    return false;
+
+}
+
+QString bWebSocket::getObjectHtmlSource(const QString &fileName)
+{
+    if(fileName.isEmpty())
+        return {};
+
+    QString _fp = fileName;
+
+    if(_fp.startsWith("file:///"))
+        _fp = QUrl(fileName).toLocalFile();
+
+    if(!_fp.isEmpty()){
+        _fp = QDir::toNativeSeparators(_fp);
+    }
+
+    QFile file(_fp);
+
+    QString name = QFileInfo(_fp).fileName();
+
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+
+    QMimeDatabase db;
+    QMimeType _mime = db.mimeTypeForFile(_fp, QMimeDatabase::MatchContent);
+    QString format = _mime.preferredSuffix();
+    QString mime = _mime.name();
+    QStringList suff = getImageMimeType();
+
+    bool is_image = false;
+    if(!mime.isEmpty())
+        is_image = suff.indexOf(mime) != -1;
+
+    if(!is_image){
+        return "<a href=\"" + fileName + "\">"+name+"</a>";
+    }
+    else{
+
+        QByteArray _data = file.readAll();
+        QString base64;
+
+        auto *img = new QImage();
+        img->loadFromData(_data);
+        if(img->size().height() > 400 || img->size().width() > 400){
+            QSize size = img->size();
+            if(size.height() > 400){
+                float p = 400 / (float)size.height();
+                size.setHeight((int)(p * (float)size.height()));
+                size.setWidth((int)(p * (float)size.width()));
+            }
+            if(size.width() > 400){
+                float p = 400 / (float)size.width();
+                size.setHeight((int)(p * (float)size.height()));
+                size.setWidth((int)(p * (float)size.width()));
+            }
+            QImage small = img->scaled(size);
+            QByteArray arr;
+            QBuffer buffer(&arr);
+            buffer.open(QIODevice::WriteOnly);
+            small.save(&buffer, format.toUpper().toLocal8Bit().data());
+            base64 = arr.toBase64();
+        }else
+            base64 = _data.toBase64();
+
+        return "<img src=\"data:" + mime + ";base64," + base64 + "\">";
+    }
+
+}
+
 void bWebSocket::setAppName(const QString &name) {
     settings[bConfFieldsWrapper::AppName] = name;
     settings.save();
+}
+
+bool bWebSocket::isImage(const QString& fileName) {
+
+    QString _fp = fileName;
+    if(_fp.startsWith("file:///"))
+        _fp = QUrl(fileName).toLocalFile();
+    if(_fp.isEmpty()){
+        return false;
+    }
+
+    QMimeDatabase db;
+    QMimeType _mime = db.mimeTypeForFile(_fp, QMimeDatabase::MatchContent);
+    if(_mime.name().isEmpty())
+        return false;
+    QStringList suff = getImageMimeType();
+    return suff.indexOf(_mime.name()) != -1;
+
 }

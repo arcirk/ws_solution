@@ -66,3 +66,5 @@ unix:LIBS += -lboost_thread
 LIBS += -lws_client
 
 DEFINES += QT_QML_CLIENT_APP
+
+CONFIG(debug, debug|release): DEFINES +=  DEBUG_MODE

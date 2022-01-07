@@ -65,11 +65,13 @@ private slots:
     void on_btnVerifyWebDav_clicked();
 
     void onVerifyRootDirResult(bool result, bool isConnection);
+    void onCreateWbDavDirectory(bool result, const QString& name);
 
 private:
     Ui::OptionsDialog *ui;
     ClientSettings settings;
-    bWebDav * webDav;
+    bWebDav * pWebDav;
+
 };
 
 #endif // OPTIONSDIALOG_H

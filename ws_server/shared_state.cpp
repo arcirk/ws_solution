@@ -843,7 +843,6 @@ bool shared_state::send_message(const std::string &message, boost::uuids::uuid &
     } else
     {
 
-
        std::string ref;
 
        std::string filter_app_name = "";

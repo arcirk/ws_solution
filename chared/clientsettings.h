@@ -78,6 +78,9 @@ public:
     bool stopService(const QString &pwd);
     bool statusService();
 
+    static bool verifyLocalRoomCacheDirectory(const QString& roomToken);
+    static QString getUserRoomsCacheDirectory();
+
     static std::string crypt(const std::string &source, const std::string& key);
 
     [[nodiscard]] QString confFileName() const;

@@ -6,7 +6,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-#target_precompile_headers(ws_gclient PRIVATE pch.h)
 add_definitions(-DQT_QML_CLIENT_APP)
 
 add_executable(ws_gclient
@@ -40,10 +39,7 @@ add_executable(ws_gclient
         include/webdav.h
         src/webdav.cpp)
 
-link_directories(
-        "../../ws_client/cmake-build-debug"
-        "../../qt_models/project/cmake-build-debug"
-)
+
 
 find_package(Qt6 COMPONENTS
         Core
@@ -59,6 +55,11 @@ find_package(Qt6 COMPONENTS
 include_directories("../../ws_client/include")
 include_directories("../../qt_models/project/include")
 include_directories("../../chared")
+
+link_directories(
+        "../../ws_client/cmake-build-debug"
+        "../../qt_models/project/cmake-build-debug"
+)
 
 target_link_libraries(ws_gclient
         Qt6::Core
@@ -76,6 +77,9 @@ target_link_libraries(ws_gclient
 
 
 
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    message("debug mode")
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #add_custom_command(

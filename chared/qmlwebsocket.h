@@ -54,6 +54,12 @@ public:
     //webdaw
     Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName);
     Q_INVOKABLE void downloadFile(const QString& token, const QString& fileName);
+    Q_INVOKABLE bool verifyLocalRoomCacheDirectory(const QString& roomToken);
+    Q_INVOKABLE bool saveFileToUserCache(const QString& token, const QString& localFile, const QString& refMessage);
+
+    //
+    Q_INVOKABLE QString getObjectHtmlSource(const QString& fileName);
+    Q_INVOKABLE bool isImage(const QString& fileName);
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -119,6 +125,7 @@ private:
     QString uuidSessionAgent;    
     QMap<QString,QString> m_agentClients;
     void joinClientToAgent(ServeResponse * resp);
+    QStringList getImageMimeType();
 
 signals:
     void displayError(const QString& what, const QString& err);

@@ -286,13 +286,16 @@ void MessageListModel::addMessage(const QString& msg, const QString& uuid, const
 
     QJsonArray rows = _msg.value("rows").toArray();
 
-    qDebug() << recipient << " " << uuid << " " << m_userUuid << " " << currentRecipient();
+    qDebug() << "MessageListModel::addMessage: " << recipient << " " << uuid << " " << m_userUuid << " " << currentRecipient();
 
     if(rows.size() > 0){
         auto itr = m_arrMsg.find(recipient);
         if(itr != m_arrMsg.end()){
             beginResetModel();
-            m_arrMsg[recipient].push_front(rows[0].toObject());
+            QJsonObject obj = rows[0].toObject();
+            // проверим сообщение, если есть тег file:// обработаем передачу файлов
+            //--
+            m_arrMsg[recipient].push_front(obj);
             endResetModel();
         }
     }

@@ -8,19 +8,21 @@
 #include <QUrl>
 
 bWebDav::bWebDav(QObject *parent, const QString& confFileName)
-        : QObject{parent}
+        : QObject{parent},
+          _confFileName(confFileName)
 {
+    gManager = new QNetworkAccessManager(this);
+
     m_ssl = false;
     m_rootPath = "remote.php/dav/files";
-    m_rootDir = "wsdata";
-
-    settings = ClientSettings(confFileName, false, true);
+    m_rootDir = rootDirName;
 
     updateSettings();
 }
 
 void bWebDav::updateSettings() {
 
+    settings = ClientSettings(_confFileName, false, true);
     m_host = settings[bConfFieldsWrapper::WebDavHost].toString();
     m_user = settings[bConfFieldsWrapper::WebDavUser].toString();
     m_password = settings[bConfFieldsWrapper::WebDavPwd].toString();
@@ -30,30 +32,7 @@ void bWebDav::updateSettings() {
 
 bool bWebDav::verifyRootDir() {
 
-    auto *gManager = new QNetworkAccessManager;
-    QNetworkRequest gRequest;
-
-    if (m_ssl){
-        QSslConfiguration config = QSslConfiguration::defaultConfiguration();
-        config.setPeerVerifyMode(QSslSocket::VerifyNone);
-        config.setProtocol(QSsl::TlsV1_0OrLater);
-        gRequest.setSslConfiguration(config);
-    }
-
-    QString dirPath = getUrlCloud(true, true);
-    qDebug() << dirPath;
-    QUrl url(dirPath);
-
-    gRequest.setUrl(url);
-    gRequest.setRawHeader("Connection", "keep-alive");
-
-    std::string m_password_decode = ClientSettings::crypt(m_password.toStdString(), "my_key");
-    QString concatenated = m_user + ":" + QString::fromStdString(m_password_decode);
-    QByteArray data = concatenated.toLocal8Bit().toBase64();
-    QString headerData = "Basic " + data;
-    gRequest.setRawHeader("Authorization", headerData.toLocal8Bit());
-    gRequest.setRawHeader("Depth", "1");
-    gRequest.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded; charset=UTF-8");
+    QNetworkRequest gRequest = getRequest();
 
     QByteArray verb("PROPFIND");
     auto m_reply = gManager->sendCustomRequest(gRequest, verb);
@@ -77,6 +56,9 @@ bool bWebDav::verifyRootDir() {
 }
 
 QString bWebDav::getUrlCloud(bool hostOnly, bool fullPath) {
+
+    updateSettings();
+
     if(m_user.isEmpty() || m_host.isEmpty() || m_password.isEmpty())
         return {};
 
@@ -86,8 +68,9 @@ QString bWebDav::getUrlCloud(bool hostOnly, bool fullPath) {
         chame.append("s");
 
     QString url;
+    std::string std_pwd = m_password.toStdString();
 
-    std::string m_password_decode = ClientSettings::crypt(m_password.toStdString(), "my_key");
+    std::string m_password_decode = ClientSettings::crypt(std_pwd, "my_key");
 
     if(!hostOnly){
         if(fullPath){
@@ -113,4 +96,70 @@ void bWebDav::davError(QNetworkReply::NetworkError type)
 
 void bWebDav::verify() {
     verifyRootDir();
+}
+
+void bWebDav::createDirectory(const QString &name) {
+
+    QNetworkRequest gRequest = getRequest();
+
+    QByteArray verb("MKCOL");
+    auto m_reply = gManager->sendCustomRequest(gRequest, verb);
+    QObject::connect(m_reply, &QNetworkReply::finished, [=]() {
+
+        if(m_reply->error() == QNetworkReply::NoError){
+            qDebug() << "create directory:ok";
+            emit createDir(true, name);
+        }
+        else
+            davError(m_reply->error());
+    });
+
+}
+
+QNetworkRequest bWebDav::getRequest(const QString& addPath) {
+
+    QNetworkRequest gRequest;
+
+    if (m_ssl){
+        QSslConfiguration config = QSslConfiguration::defaultConfiguration();
+        config.setPeerVerifyMode(QSslSocket::VerifyNone);
+        config.setProtocol(QSsl::TlsV1_0OrLater);
+        gRequest.setSslConfiguration(config);
+    }
+
+    QString dirPath = getUrlCloud(true, true);
+    if (!addPath.isEmpty())
+        dirPath.append(addPath);
+
+    qDebug() << dirPath;
+    QUrl url(dirPath);
+
+    gRequest.setUrl(url);
+    gRequest.setRawHeader("Connection", "keep-alive");
+
+    std::string m_password_decode = ClientSettings::crypt(m_password.toStdString(), "my_key");
+    QString concatenated = m_user + ":" + QString::fromStdString(m_password_decode);
+    QByteArray data = concatenated.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+    gRequest.setRawHeader("Authorization", headerData.toLocal8Bit());
+    gRequest.setRawHeader("Depth", "1");
+    gRequest.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded; charset=UTF-8");
+
+    return gRequest;
+}
+
+void bWebDav::put(const QString &roomToken, const QString &addPath) {
+
+    QNetworkRequest gRequest = getRequest();
+
+    QByteArray verb("MKCOL");
+    auto m_reply = gManager->sendCustomRequest(gRequest, verb);
+    QObject::connect(m_reply, &QNetworkReply::finished, [=]() {
+
+        if(m_reply->error() == QNetworkReply::NoError){
+
+        }
+        else
+            davError(m_reply->error());
+    });
 }

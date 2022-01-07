@@ -25,6 +25,8 @@ Pane{
 
     property alias text: txtSendMessage.text
     property string uuidRecipient
+    property string roomToken
+    property string refMessage
 
     RowLayout {
         anchors.fill: parent
@@ -90,18 +92,32 @@ Pane{
         id: selDlg
 
         onSelectFile: function(fpath, name){
-            let cashe = txtSendMessage.text;
 
-            if(Scripts.isImage(name.toLowerCase().substr(-3, 3) )){
-                txtSendMessage.text = Scripts.getImageHtmlString(fpath, emptyImg)//"<img width=\""+ img.width +"\" height=\""+ img.height +"\" align=\"middle\" src=\""+fpath+"\">"
+            if(!wsClient.verifyLocalRoomCacheDirectory(roomToken))
+            {
+                console.log("SelectFileDialog: error verify chache directory!")
+                return
             }
-            else
-                  txtSendMessage.text = "<a href=\"" + fpath + "\">"+name+"</a>"
 
-            //btnSend.newMessage(txtSendMessage.text)
-            //control.sendMessage(txtSendMessage.text)
-            //console.log(Qt.resolvedUrl("pics/logo.png"))
+            //ToDo: сдесь нужно закинуть на webdav
+//            //копируем файл в кеш пользователя с начала
+//            let res = wsClient.saveFileToUserCache(roomToken, fpath, "");
+//            if(!res)
+//                return;
+
+            let cashe = txtSendMessage.text;
+            //let format = name.toUpperCase().substr(-3, 3);
+            //let format;
+            //let mime;
+
+            //if(Scripts.isImage(fpath, format, mime)){
+                txtSendMessage.text = wsClient.getObjectHtmlSource(fpath)
+            //}
+            //else
+            //    txtSendMessage.text = "<a href=\"" + fpath + "\">"+name+"</a>"
+
             wsClient.sendMessage(uuidRecipient, txtSendMessage.text)
+
             txtSendMessage.text = cashe;
 
             control.selectFile(fpath);

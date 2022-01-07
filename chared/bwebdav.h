@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QNetworkReply>
 #include "clientsettings.h"
+#include <QNetworkAccessManager>
 
 class bWebDav : public QObject {
 Q_OBJECT
@@ -16,21 +17,33 @@ public:
 
     void davError(QNetworkReply::NetworkError type);
     void verify();
+    void createDirectory(const QString& name);
+
+    const QString rootDirName = "wsdata";
 
 private:
+    ClientSettings settings;
+    QNetworkAccessManager * gManager;
+
     QString m_host;
     QString m_user;
     QString m_password;
     QString m_rootDir;
     QString m_rootPath;
     bool m_ssl;
-    ClientSettings settings;
+    QString _confFileName;
+
 
     void updateSettings();
     bool verifyRootDir();
     QString getUrlCloud(bool hostOnly, bool fullPath);
 
+    QNetworkRequest getRequest(const QString& addPath = "");
+    void put(const QString& roomToken, const QString& addPath);
+    void get(const QString& roomToken, const QString& fileName);
+
 signals:
     void verifyRootDirResult(bool result, bool isConnection);
+    void createDir(bool result, const QString& name);
 };
 #endif //WS_SOLUTION_BWEBDAV_H

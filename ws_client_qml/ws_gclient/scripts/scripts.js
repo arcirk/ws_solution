@@ -46,28 +46,31 @@ function getActualHeight(item, actualHeight, itemCount, groupCount){
        return item.height - (groupCount * actualHeight)
  }
 
-function getImageHtmlString(source, img){
+//function getImageHtmlString(source, format, mime){
 
-    img.source = source;
+//    let base64 = wsClient.getImageSource(source, format);
 
-    if(img.heght > 400){
-        img.sourceSize.height = 400
-    }
-    if(img.width > 400){
-        img.sourceSize.width = 400
-    }
+//    var result = "";
+//    if(base64.length > 0)
+//        result = "<img src=\"data:" + mime + ";base64," + base64 + "\">";
 
-    var result = "<img id=\"ImageMsg\" width=\""+ img.width +"\" height=\""+ img.height +"\" align=\"middle\" src=\""+source+"\">";
 
-    return result
-}
+//    return result
+//}
 
-function isImage(source){
-    let result = {}
-    result["png"] = "png"
-    result["jpg"] = "jpg"
-    result["svg"] = "svg"
-    result["jpeg"] = "jpeg"
+//function isImage(source, format, mime){
+//    // let format = source.toUpperCase().substr(-3, 3);
+//    // let b = wsClient.isImage(source);
+//    // let result = {}
+//    // result["PNG"] = "PNG"
+//    // result["JPG"] = "JPG"
+//    // result["SVG"] = "SVG"
+//    // result["JPEG"] = "JPEG"
+//    //
+//    // return result[source] !== undefined
+//    let _format;
+//    let _mime;
+//    let result = wsClient.isImage(source, _format, _mime);
+//    return result;
+//}
 
-    return result[source] !== undefined
-}

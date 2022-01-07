@@ -50,6 +50,7 @@ import QtQuick.Layouts 1.12
 
         property string draft: ""
         property string currentChat: ""
+        property string currentToken: ""
 
         function setChatItem(uuid, name){
             activeChats.setChatItem(uuid, name);
@@ -183,14 +184,18 @@ import QtQuick.Layouts 1.12
                 mainSplit.currentChat = uuid
                 msgBox.text = activeChats.getDraft();
                 chatBox.seChatMessages(uuid)
-                msgBox.uuidRecipient = mainSplit.currentChat;               
-               //mainSplit.resetUnReadMsgFromData(uuid);
+                msgBox.uuidRecipient = mainSplit.currentChat;
+                msgBox.roomToken = activeChats.getCurrentToken();
+
             }
 
             onRemoveItem: function(uuid){
                 mainSplit.chatBoxRemove(uuid)
-                if(mainSplit.currentChat === uuid)
+                if(mainSplit.currentChat === uuid){
                     mainSplit.currentChat = ""
+                    mainSplit.currentToken = ""
+                }
+
             }
 
             onGetUserInfo: function(uuid){
