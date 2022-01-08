@@ -354,8 +354,10 @@ void QWebdav::uploadFile(const QString &roomToken, const QString &fileName, cons
 void
 QWebdav::downloadFile(const QString &roomToken, const QString &fileName, const QString &ref, const QString &outputDir) {
 
-    if(roomToken.isEmpty() || fileName.isEmpty() || outputDir.isEmpty())
+    if(roomToken.isEmpty() || fileName.isEmpty() || outputDir.isEmpty()){
+        emit downloadError();
         return;
+    }
 
     QString _fp = outputDir;
 
@@ -370,6 +372,7 @@ QWebdav::downloadFile(const QString &roomToken, const QString &fileName, const Q
     auto file = new QFile(_fp, this);
     if (!file->open(QIODevice::WriteOnly)){
         qDebug() << "error open file for write";
+        emit downloadError();
         return;
     }
 

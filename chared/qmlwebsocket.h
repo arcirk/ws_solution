@@ -145,6 +145,7 @@ private:
     bool m_is_agent;
     QString uuidSessionAgent;
 
+    void responceCommand(ServeResponse * resp);
 
 signals:
     void displayError(const QString& what, const QString& err);

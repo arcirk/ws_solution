@@ -274,12 +274,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
 #ifdef QT_AGENT_APP
-            if(resp->command == "registerClient")
-                joinClientToAgent(resp);
-            else if(resp->command == "displayError")
-                emit displayError("Ошибка", resp->message);
-
-
+            responceCommand(resp);
 #endif
         }
         else
@@ -476,7 +471,7 @@ void bWebSocket::setWebDavSettingsToServer()
 
 bool bWebSocket::isAgentUse()
 {
-    return uuidSessionAgent.isEmpty();
+    return !uuidSessionAgent.isEmpty();
 }
 
 
@@ -493,12 +488,13 @@ void bWebSocket::setIsAgent(bool val)
 
 void bWebSocket::setUuidSessAgent(const QString &uuid)
 {
+    qDebug() << "bWebSocket::setUuidSessAgent::registerClient";
     uuidSessionAgent = uuid;
     QJsonObject obj = QJsonObject();
     obj.insert("uuid_agent", uuidSessionAgent);
     obj.insert("uuid_client", getUuidSession());
     obj.insert("command", "registerClient");
-    obj.insert("message", "Регистрация клиента у агента");
+    obj.insert("message", "{\"command\":\"registerClient\", \"message\":\"Регистрация клиента у агента.\"}");
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
     if(client->started()){
@@ -588,6 +584,21 @@ QStringList bWebSocket::getImageMimeType()
     };
 
     return result;
+}
+
+void bWebSocket::responceCommand(ServeResponse * resp)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(resp->message.toUtf8());
+    if(!doc.isObject())
+        return;
+    QJsonObject obj = doc.object();
+
+    QString command = obj.value("command").toString();
+    QString message = obj.value("message").toString();
+    if(command == "registerClient")
+        joinClientToAgent(resp);
+    else if(command== "displayError")
+        emit displayError("Ошибка", message);
 }
 
 void bWebSocket::registerToAgent(const QString &uuid) {
@@ -844,14 +855,14 @@ void bWebSocket::uploadFinished()
 
 void bWebSocket::downloadError()
 {
-    //qDebug() << "ошибка загрузки файла с сервера!";
+    qDebug() << "bWebSocket::downloadError";
     emit webDavError("Ошибка загрузки файла с сервера!");
     if(isAgentUse()){
         QJsonObject obj = QJsonObject();
         obj.insert("uuid_agent", uuidSessionAgent);
         obj.insert("uuid_client", getUuidSession());
         obj.insert("command", "displayError");
-        obj.insert("message", "Ошибка загрузки файла с сервера!");
+        obj.insert("message", "{\"command\":\"displayError\", \"message\":\"Ошибка загрузки файла с сервера!\"}");
 
 
         QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
