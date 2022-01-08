@@ -52,22 +52,20 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
     connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
     connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
+    connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
 
     this->setWindowFlags(Qt::Dialog);
 
-    //wsProc = new QProcess(this);
-   //connect(wsProc, SIGNAL(started()), this, &MainWindow::onClientStarted());
-    //connect(wsProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(onFinish(int,QProcess::ExitStatus)));
+    QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + "ws_gclient";
 
-    QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + "/ws_gclient";
-
-    if(QFileInfo(clientFileName).exists()){
+    if(QFileInfo::exists(clientFileName)){
         m_client_app.setAppPath(clientFileName);
     }
     else{
         qDebug() << "ws_gclient не найден";
     }
 
+    m_client->setIsAgent(true);
     if(m_client->options()[bConfFieldsWrapper::AutoConnect].toBool()){
         m_client->open(m_client->getUserName(), "");
     }
@@ -312,7 +310,7 @@ void MainWindow::onCloseConnection()
 void MainWindow::onQmlError(const QString &what, const QString &err)
 {
     //qDebug() << "onQmlError" << what << ": " << err;
-    onDisplayError(err);
+    onDisplayError(what, err);
 }
 
 void MainWindow::onConnectedStatusChanged(bool status)
@@ -360,9 +358,9 @@ void MainWindow::openChatApp()
                 }
             }
         }else
-            onDisplayError("Файл клиента не найден!");
+            onDisplayError("Ошибка", "Файл клиента не найден!");
     }else
-        onDisplayError("Клиент не подключен!");
+        onDisplayError("Ошибка", "Клиент не подключен!");
 
 }
 
@@ -373,10 +371,10 @@ void MainWindow::on_pathToClient_editingFinished()
     m_client_app.options().save();
 }
 
-void MainWindow::onDisplayError(const QString &err)
+void MainWindow::onDisplayError(const QString& what, const QString& err)
 {
     QIcon msgIcon(":/img/images/381599_error_icon.svg");
-    trayIcon->showMessage("Ошибка", err, msgIcon,
+    trayIcon->showMessage(what, err, msgIcon,
                           3 * 1000);
 }
 

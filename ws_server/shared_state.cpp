@@ -217,7 +217,7 @@ shared_state::deliver(const std::string& message, websocket_session *session)
         std::string base64;
         if (is_valid_message(message, uuid_recipient, base64, err)){
             if (!send_message(base64, uuid_recipient, session)){
-                send_error("Ошибка отправки сообещения!", session, command, uuid_form);
+                send_error("Ошибка отправки сообщения!", session, command, uuid_form);
             }
         }else{
             send_error(err, session, command, uuid_form);
@@ -504,7 +504,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "command_to_qt_client")
         return params == 3;
     else if (command == "command_to_qt_agent")
-        return params == 3;
+        return params == 4;
     else if (command == "get_webdav_settings")
         return params == 1;
     else if (command == "set_webdav_settings")
@@ -2113,7 +2113,7 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
         }
 
         _ws_message _message = createMessage(current_sess);
-        _message.message = command.get_string();
+        _message.message = params->get_member("message").to_string();
         _message.command = "command_to_qt_agent";
         _message.uuid_channel = current_sess->get_user_uuid();
         //_message.app_name = current_sess->get_app_name();

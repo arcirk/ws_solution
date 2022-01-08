@@ -30,8 +30,17 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 
     _pwdEdit = false;
 
-    pWebDav= new bWebDav(this, settings.confFileName());
+    //pWebDav= new bWebDav(this, settings.confFileName());
+    qWebdav = new QWebdav(this, settings.confFileName());
+    connect(qWebdav, &QWebdav::errorChanged, this, &bWebSocket::onWebDavError);
+    connect(qWebdav, &QWebdav::downloadFinished, this, &bWebSocket::downloadFinished);
+    connect(qWebdav, &QWebdav::uploadFinished, this, &bWebSocket::uploadFinished);
+    connect(qWebdav, &QWebdav::downloadError, this, &bWebSocket::downloadError);
+    connect(qWebdav, &QWebdav::uploadError, this, &bWebSocket::uploadError);
+    connect(qWebdav, &QWebdav::downloadProgress, this, &bWebSocket::onDownloadProgress);
+    connect(qWebdav, &QWebdav::uploadProgress, this, &bWebSocket::onUploadProgress);
 
+    m_is_agent = false;
 }
 
 bWebSocket::~bWebSocket()
@@ -263,6 +272,15 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             setWebDavSettingsToClient(resp->message);
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
+        }else if (resp->command == "command_to_qt_agent"){
+#ifdef QT_AGENT_APP
+            if(resp->command == "registerClient")
+                joinClientToAgent(resp);
+            else if(resp->command == "displayError")
+                emit displayError("Ошибка", resp->message);
+
+
+#endif
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
@@ -456,6 +474,23 @@ void bWebSocket::setWebDavSettingsToServer()
     client->set_webdav_settings_on_server();
 }
 
+bool bWebSocket::isAgentUse()
+{
+    return uuidSessionAgent.isEmpty();
+}
+
+
+bool bWebSocket::isAgent()
+{
+    return m_is_agent;
+}
+
+void bWebSocket::setIsAgent(bool val)
+{
+    m_is_agent = val;
+}
+
+
 void bWebSocket::setUuidSessAgent(const QString &uuid)
 {
     uuidSessionAgent = uuid;
@@ -463,26 +498,12 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
     obj.insert("uuid_agent", uuidSessionAgent);
     obj.insert("uuid_client", getUuidSession());
     obj.insert("command", "registerClient");
-
+    obj.insert("message", "Регистрация клиента у агента");
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
     if(client->started()){
          client->send_command("command_to_qt_agent", "", param.toStdString());
     }
-
-//    QString saveFileName = "testArgs.json";
-//    QFileInfo fileInfo(saveFileName);
-//    QDir::setCurrent(fileInfo.path());
-
-//    QFile jsonFile(saveFileName);
-//    if (!jsonFile.open(QIODevice::WriteOnly))
-//    {
-//        return;
-//    }
-
-//    // Записываем текущий объект Json в файл
-//    jsonFile.write(param.toUtf8());
-//    jsonFile.close();   // Закрываем файл
 
 }
 
@@ -552,7 +573,6 @@ void bWebSocket::joinClientToAgent(ServeResponse *resp) {
         return;
 
     m_agentClients.insert(resp->uuid_session, resp->app_name);
-
 }
 
 QStringList bWebSocket::getImageMimeType()
@@ -574,38 +594,33 @@ void bWebSocket::registerToAgent(const QString &uuid) {
     qDebug() << "bWebSocket::registerToAgent: " << uuid;
 }
 
-void bWebSocket::registerClientForAgent(const QString &uuid) {
+//void bWebSocket::registerClientForAgent(const QString &uuid) {
 
-    QJsonObject param = QJsonObject();
-    param.insert("uuid_client", uuid);
-    param.insert("command", "setClient");
-    QString _param = QJsonDocument(param).toJson(QJsonDocument::Indented);
+////    QJsonObject param = QJsonObject();
+////    param.insert("uuid_client", uuid);
+////    param.insert("command", "setClient");
 
-    if(client->started()){
-        client->send_command("command_to_qt_agent", "", _param.toStdString());
-    }
+////    QString _param = QJsonDocument(param).toJson(QJsonDocument::Indented);
 
-}
+////    if(client->started()){
+////        client->send_command("command_to_qt_agent", "", _param.toStdString());
+////    }
+
+//}
 
 void bWebSocket::uploadFile(const QString &token, const QString &fileName, const QString &ref)
 {
     qDebug() << "bWebSocket::uploadFile: " << token << " " << fileName;
 
-//#ifdef QT_QML_CLIENT_APP
     if(token.isEmpty())
     {
         qDebug() << "bWebSocket::uploadFile: не указан токен чата!";
         return;
     }
 
-    if(!pWebDav->exists(token)){
+    if(!qWebdav->exists(token)){
         qDebug() << "bWebSocket::uploadFile::createDirectory: " <<  token;
-        bool result = pWebDav->createDirectorySynch(token);
-//        if (result)
-//            qDebug() << "bWebSocket::uploadFile::createDirectorySynch: ok";
-//        else
-//            qDebug() << "bWebSocket::uploadFile::createDirectorySynch: false";
-
+        bool result = qWebdav->mkdirSynch(token);
         if(!result)
         {
             qDebug() << "error create chat cache folder!";
@@ -613,16 +628,22 @@ void bWebSocket::uploadFile(const QString &token, const QString &fileName, const
         }
     }
 
-    pWebDav->uploadFile(token, fileName, ref);
-
-
-//#endif
+    qWebdav->uploadFile(token, fileName, ref);
 
 }
 
-void bWebSocket::downloadFile(const QString &token, const QString &fileName)
+void
+bWebSocket::downloadFile(const QString &token, const QString &fileName, const QString &ref, const QString &outputDir)
 {
-    qDebug() << "downloadFile: " << token << " " << fileName;
+    qDebug() << "downloadFile: " << token << " " << fileName << " " << ref << " " << outputDir;
+    if(token.isEmpty())
+    {
+        qDebug() << "bWebSocket::uploadFile: не указан токен чата!";
+        return;
+    }
+
+    qWebdav->downloadFile(token, fileName, ref, outputDir);
+
 }
 
 bool bWebSocket::verifyLocalRoomCacheDirectory(const QString& roomToken)
@@ -757,7 +778,92 @@ bool bWebSocket::isImage(const QString& fileName) {
 
 }
 
+bool bWebSocket::fileExists(const QString &path)
+{
+    QString _fp = path;
+    if(_fp.startsWith("file:///"))
+        _fp = QUrl(path).toLocalFile();
+    if(_fp.isEmpty()){
+        return false;
+    }
+
+    QFile file(_fp);
+    return file.exists();
+}
+
 QString bWebSocket::getRandomUUID()
 {
     return QString::fromStdString(client->get_string_random_uuid());
+}
+
+QString bWebSocket::separator()
+{
+    return QDir::separator();
+}
+
+void bWebSocket::onWebDavError(QNetworkReply::NetworkError type, const QString &error) {
+    qDebug() << type << ":" << error;
+    emit webDavError(error);
+}
+
+void bWebSocket::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    if(bytesTotal == 0){
+        emit setProgress(0);
+        return;
+    }
+
+    double result = (double)bytesReceived / (double)bytesTotal;
+    emit setProgress(result);
+    //qDebug() << "bWebSocket::onDownloadProgress:" << result;
+}
+
+void bWebSocket::onUploadProgress(qint64 bytesSent, qint64 bytesTotal)
+{
+    if(bytesTotal == 0){
+        emit setProgress(0);
+        return;
+    }
+
+    double result = (double)bytesSent / (double)bytesTotal;
+    emit setProgress(result);
+    //qDebug() << "bWebSocket::onDownloadProgress:" << result;
+}
+
+void bWebSocket::downloadFinished()
+{
+    //qDebug() << "успешная загрузка файла с сервера!";
+    //emit webDavError("успешная загрузка файла с сервера!");
+}
+
+void bWebSocket::uploadFinished()
+{
+    //qDebug() << "успешная загрузка файла на сервер!";
+    //emit webDavError("успешная загрузка файла на сервер!");
+}
+
+void bWebSocket::downloadError()
+{
+    //qDebug() << "ошибка загрузки файла с сервера!";
+    emit webDavError("Ошибка загрузки файла с сервера!");
+    if(isAgentUse()){
+        QJsonObject obj = QJsonObject();
+        obj.insert("uuid_agent", uuidSessionAgent);
+        obj.insert("uuid_client", getUuidSession());
+        obj.insert("command", "displayError");
+        obj.insert("message", "Ошибка загрузки файла с сервера!");
+
+
+        QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+        if(client->started()){
+             client->send_command("command_to_qt_agent", "", param.toStdString());
+        }
+
+    }
+}
+
+void bWebSocket::uploadError()
+{
+    //qDebug() << "ошибка загрузки файла на сервера!";
+    emit webDavError("ошибка загрузки файла на сервер!");
 }

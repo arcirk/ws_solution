@@ -6,9 +6,8 @@
 #include "clientsettings.h"
 #include "serveresponse.h"
 
-//#ifdef QT_QML_CLIENT_APP
-#include "bwebdav.h"
-//#endif
+#include "qwebdav.h"
+
 
 class bWebSocket : public QObject
 {
@@ -26,6 +25,8 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool pwdEdit READ pwdEdit WRITE setPwdEdit NOTIFY pwdEditChanged)
     Q_PROPERTY(bool connectedStatus READ connectedStatus NOTIFY connectedStatusChanged)
     Q_PROPERTY(QString settingsFileName READ getSettingsFileName WRITE setSettingsFileName NOTIFY settingsFileNameChanged);
+    Q_PROPERTY(bool isAgentUse READ isAgentUse)
+    Q_PROPERTY(bool isAgent READ isAgent);
 
 public:
     explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "");
@@ -53,19 +54,21 @@ public:
     Q_INVOKABLE void agentClientShow();
     Q_INVOKABLE void registerToAgent(const QString& uuid);
     Q_INVOKABLE void setUuidSessAgent(const QString& uuid);
-    Q_INVOKABLE void registerClientForAgent(const QString& uuid);
+    //Q_INVOKABLE void registerClientForAgent(const QString& uuid);
 
     //webdaw
     Q_INVOKABLE void uploadFile(const QString& token, const QString& fileName, const QString &ref);
-    Q_INVOKABLE void downloadFile(const QString& token, const QString& fileName);
+    Q_INVOKABLE void
+    downloadFile(const QString &token, const QString &fileName, const QString &ref, const QString &outputDir);
     Q_INVOKABLE bool verifyLocalRoomCacheDirectory(const QString& roomToken);
     Q_INVOKABLE bool saveFileToUserCache(const QString& token, const QString& localFile, const QString& refMessage);
     Q_INVOKABLE QString getFileName(const QString& filePath);
     //
     Q_INVOKABLE QString getObjectHtmlSource(const QString& fileName);
     Q_INVOKABLE bool isImage(const QString& fileName);
-
+    Q_INVOKABLE bool fileExists(const QString& path);
     Q_INVOKABLE QString getRandomUUID();
+    Q_INVOKABLE QString separator();
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -120,6 +123,10 @@ public:
     void setWebDavSettingsToClient(const QString& resp);
     void setWebDavSettingsToServer();
 
+    bool isAgentUse();
+    bool isAgent();
+    void setIsAgent(bool val);
+
 private:
     IClient * client;
     ClientSettings settings;
@@ -128,12 +135,16 @@ private:
     QString hash;
     QString confFileName;
 
-    QString uuidSessionAgent;    
+
     QMap<QString,QString> m_agentClients;
     void joinClientToAgent(ServeResponse * resp);
     QStringList getImageMimeType();
 
-    bWebDav * pWebDav;
+    QWebdav * qWebdav;
+
+    bool m_is_agent;
+    QString uuidSessionAgent;
+
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -183,6 +194,21 @@ signals:
     void getChannelToken(const QString& resp);
 
     void appNameChanged();
+
+    void setProgress(double value);
+    void webDavError(const QString& err);
+
+
+private slots:
+    void onWebDavError(QNetworkReply::NetworkError type, const QString& error);
+    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void onUploadProgress(qint64 bytesSent, qint64 bytesTotal);
+
+public slots:
+    void downloadFinished();
+    void uploadFinished();
+    void downloadError();
+    void uploadError();
 };
 
 #endif // QMLWEBSOCKET_H

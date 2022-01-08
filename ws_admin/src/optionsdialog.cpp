@@ -39,10 +39,12 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
 
     settings.password = "***";
 
-    pWebDav= new bWebDav(this, settings.confFileName());
+    //pWebDav= new bWebDav(this, settings.confFileName());
+    qWebdav= new QWebdav(this, settings.confFileName());
+    QObject::connect(qWebdav, SIGNAL(errorChanged(QNetworkReply::NetworkError, QString)), this, SLOT(onWebDavError(QNetworkReply::NetworkError, QString)));
 
-    QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
-    QObject::connect(pWebDav, SIGNAL(createDir(bool, QString)), this, SLOT(onCreateWbDavDirectory(bool, QString )));
+    //QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
+    //QObject::connect(pWebDav, SIGNAL(createDir(bool, QString)), this, SLOT(onCreateWbDavDirectory(bool, QString )));
 
 }
 
@@ -188,37 +190,49 @@ void OptionsDialog::on_btnViewDavPwd_toggled(bool checked)
 
 void OptionsDialog::on_btnVerifyWebDav_clicked()
 {
-    pWebDav->verify();
+    //pWebDav->verify();
 
-}
+    //меняем на текущие
+    qWebdav->setUser(ui->lineEdtWebDAvUser->text());
+    qWebdav->setPassword(ui->lineEdtWebDavPassword->text());
+    qWebdav->setHost(ui->lineAddressWebDav->text());
+    qWebdav->setSsl(ui->chSSL->isChecked());
 
-void OptionsDialog::onVerifyRootDirResult(bool result, bool isConnection) {
+    //синхронные вызовы
+    bool isConnections = qWebdav->isConnections();
+    bool exists = false;
+    if(isConnections)
+        exists = qWebdav->rootExists();
 
-    if (!isConnection){
+    if (!isConnections){
         QMessageBox::critical(this, "Ошибка", "Ошибка соединения!");
     }else{
-        if (result){
+        if (exists){
             QMessageBox::information(this, tr("Успех"),
                                      tr("Успешное подключение!"));
         }else{
-            auto result =  QMessageBox::question(this, "Каталог на сервере", "Доступ есть, но каталог программы не найден.\n"
+            auto result =  QMessageBox::question(this, "Каталог на сервере", "Доступ есть, но основной каталог программы не найден.\n"
                                                                              "Создать каталог!");
             if(result == QMessageBox::Yes){
-                pWebDav->createDirectory(pWebDav->rootDirName);
+                bool mkdir = qWebdav->mkdirSynch("");
+                if(mkdir)
+                    QMessageBox::information(this, tr("Успех"),
+                                             tr("Каталог успешно создан!"));
+                else
+                    QMessageBox::critical(this, tr("Ошибка"),
+                                             tr("Ошибка создания каталога!"));
             }
         }
     }
 
-
+    //восстановим старые настройки
+    qWebdav->resetSettings();
 }
 
-void OptionsDialog::onCreateWbDavDirectory(bool result, const QString &name) {
-    if (result){
-        QMessageBox::information(this, tr("Успех"),
-                                 QString("Каталог файлов %1 успешно создан!").arg(name));
-    }else{
-        QMessageBox::information(this, tr("Ошибка"),
-                                 "Ошибка создания каталога файлов!");
-    }
+
+void OptionsDialog::onWebDavError(QNetworkReply::NetworkError type, const QString& error) {
+
+    qDebug() << type << ":" << error;
+
 }
 

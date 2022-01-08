@@ -54,7 +54,7 @@ private slots:
 
     void on_pathToClient_editingFinished();
 
-    void onDisplayError(const QString& err);
+    void onDisplayError(const QString& what, const QString& err);
     void appExit();
 
     void output(QString data);
@@ -88,5 +88,8 @@ private:
     void createTrayIcon();
     void createActions();
     void setIcon();
+
+//signals:
+//    void displayError(const QString& what, const QString& err);
 };
 #endif // MAINWINDOW_H

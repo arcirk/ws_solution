@@ -103,6 +103,13 @@ QVariant MessageListModel::data( const QModelIndex &index, int role ) const
             return result;
         }
 
+    }else if (roleName == "token"){
+        QJsonObject obj = getJsonObject( index );
+        if( obj.contains( "token" ))
+        {
+            QJsonValue v = obj[ "token" ];
+            return v.toString();
+        }
     }
     else if (roleName == "date"){
         QJsonObject obj = getJsonObject( index );

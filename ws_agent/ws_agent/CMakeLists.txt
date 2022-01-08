@@ -11,8 +11,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+add_definitions(-DQT_AGENT_APP)
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
 link_directories("../../ws_client/cmake-build-debug")
 include_directories("../../chared")
@@ -31,6 +33,8 @@ set(PROJECT_SOURCES
         ../../chared/serveresponse.cpp
         ../../chared/serveresponse.h
         ../../chared/clientsettings.h
+        ../../chared/qwebdav.cpp
+        ../../chared/qwebdav.h
         include/clientapp.h
         src/clientapp.cpp)
 
@@ -60,6 +64,7 @@ endif()
 
 target_link_libraries(ws_agent PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Network
         ws_client)
 
 set_target_properties(ws_agent PROPERTIES

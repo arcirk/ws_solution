@@ -17,7 +17,7 @@ SOURCES += \
         ../../chared/clientsettings.cpp \
         ../../chared/serveresponse.cpp \
         ../../chared/qmlwebsocket.cpp \
-        ../../chared/bwebdav.cpp \
+        ../../chared/qwebdav.cpp \
         userinfo.cpp
 
 RESOURCES += qml.qrc
@@ -43,7 +43,7 @@ HEADERS += \
     ../../chared/clientsettings.h \
     ../../chared/serveresponse.h \
     ../../chared/qmlwebsocket.h \
-    ../../chared/bwebdav.h \
+    ../../chared/qwebdav.h \
     userinfo.h
 
 #pch.h /

@@ -17,7 +17,7 @@ Pane{
         return btnSmail.checked
     }
 
-    signal stateChanged(string newState)
+    signal stateChanged(string newStae)
     signal sendMessage(string msg)
     signal messageChanged(string source)
 
@@ -123,9 +123,9 @@ Pane{
         }
     }
 
-    Image {
-        id: emptyImg
-        visible: false
+//    Image {
+//        id: emptyImg
+//        visible: false
 
-    }
+//    }
 }

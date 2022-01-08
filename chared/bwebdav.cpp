@@ -169,7 +169,7 @@ QNetworkReply* bWebDav::put(const QString& filePath, const QByteArray& data)
     return reply;
 }
 
-
+//синхронный вызов
 bool bWebDav::exists(const QString &roomToken) {
 
     QEventLoop loop;
@@ -259,3 +259,117 @@ void bWebDav::uploadProgress(qint64 bytesSent, qint64 bytesTotal)
     qDebug() << "QWebdav::uploadProgress() = " << bytesSent << " in " << bytesTotal;
 
 }
+
+void bWebDav::downloadFile(const QString &roomToken, const QString &fileName, const QString &ref, const QString& outputPath) {
+
+    if(!exists(roomToken))
+        return;
+
+    if(fileName.isEmpty())
+        return;
+
+    if(outputPath.isEmpty())
+        return;
+
+    QString _fileName = roomToken;
+    _fileName.append("/");
+    _fileName.append(fileName);
+
+    if((!ref.isEmpty())){
+        _fileName.append(".");
+        _fileName.append(ref);
+    }
+
+
+
+    auto file = new QFile(_fileName, this);
+
+    if (!file->open(QIODevice::WriteOnly)){
+        qDebug() << "error open file for write";
+        return;
+    }
+
+    auto reply = get(_fileName, file, 0);
+
+    QObject::connect(reply, &QNetworkReply::uploadProgress, this, &bWebDav::uploadProgress);
+    QObject::connect(reply, &QNetworkReply::finished, [=]() {
+
+        if(reply->error() == QNetworkReply::NoError){
+            qDebug() << "bWebDav::uploadFile: finished ";
+            emit uploadFinished();
+        }
+        else
+            davError(reply->error());
+    });
+}
+QNetworkReply* bWebDav::get(const QString& path)
+{
+//    QNetworkRequest req = buildRequest();
+//
+//    QUrl reqUrl(m_baseUrl);
+//    reqUrl.setPath(absolutePath(path));
+//
+//    req.setUrl(reqUrl);
+//
+//    return QNetworkAccessManager::get(req);
+}
+
+QNetworkReply* bWebDav::get(const QString& path, QIODevice* data)
+{
+    return get(path, data, 0);
+}
+
+QNetworkReply* bWebDav::get(const QString& path, QIODevice* data, quint64 fromRangeInBytes) {
+
+//    auto gRequest = getRequest(path);
+//
+//    //QNetworkRequest req = buildRequest();
+//
+//    //QUrl reqUrl(m_baseUrl);
+//    //reqUrl.setPath(absolutePath(path));
+//
+//    //req.setUrl(reqUrl);
+//
+//    if (fromRangeInBytes>0) {
+//        // RFC2616 http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+//        QByteArray fromRange = "bytes=" + QByteArray::number(fromRangeInBytes) + "-";   // byte-ranges-specifier
+//        gRequest.setRawHeader("Range",fromRange);
+//    }
+//
+//    QNetworkReply* reply = gManager->get(gRequest);//QNetworkAccessManager::get(req);
+//    m_inDataDevices.insert(reply, data);
+//    connect(reply, &QNetworkReply::readyRead, this, &bWebDav::replyReadyRead);
+//    connect(reply, &QNetworkReply::errorOccurred, this, &bWebDav::replyError);
+//    connect(reply, &QNetworkReply::downloadProgress, this, &bWebDav::downloadProgress);
+//
+//    return reply;
+}
+
+//void QWebdav::replyReadyRead()
+//{
+//    auto reply = qobject_cast<QNetworkReply*>(QObject::sender());
+//    if (reply->bytesAvailable() < 256000)
+//        return;
+//
+//    QIODevice* dataIO = m_inDataDevices.value(reply, 0);
+//    if(dataIO == nullptr)
+//        return;
+//    dataIO->write(reply->readAll());
+//}
+//
+//void QWebdav::replyFinished(QNetworkReply* reply)
+//{
+//    disconnect(reply, &QNetworkReply::redirectAllowed, this, &bWebDav::replyReadyRead);
+//    disconnect(reply, &QNetworkReply::errorOccurred, this, &bWebDav::replyError);
+//
+//    QIODevice* dataIO = m_inDataDevices.value(reply, 0);
+//    if (dataIO != 0) {
+//        dataIO->write(reply->readAll());
+//        static_cast<QFile*>(dataIO)->flush();
+//        dataIO->close();
+//        delete dataIO;
+//    }
+//    m_inDataDevices.remove(reply);
+//
+//    QMetaObject::invokeMethod(this,"replyDeleteLater", Qt::QueuedConnection, Q_ARG(QNetworkReply*, reply));
+//}

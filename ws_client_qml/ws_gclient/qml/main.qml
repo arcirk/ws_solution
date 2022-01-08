@@ -57,6 +57,7 @@ ApplicationWindow {
             if(agentUsed){
                 wsClient.setUuidSessAgent(uuidAgent);
             }
+            mainChatBox.setProgressValue(0);
         }
         onQmlError: function(what, err){
 
@@ -126,6 +127,10 @@ ApplicationWindow {
 
         onClientShow: {
             mainForm.show();
+        }
+
+        onSetProgress: function(value){
+            mainChatBox.setProgressValue(value);
         }
     }
 
@@ -280,6 +285,7 @@ ApplicationWindow {
             id: mainChatBox
             theme: myTheme
 
+
             onActiveChatsSelected: function(name, uuid){
                 mainChatBox.enabled = uuid.length > 0
                 chatName.text = "Чат : " + name
@@ -330,6 +336,7 @@ ApplicationWindow {
             mainStack.pop()
             authForm.enabledForm = true
         }
+
 
     }
 

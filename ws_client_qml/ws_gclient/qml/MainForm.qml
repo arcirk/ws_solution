@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls.Material.impl 2.15
 import QtQuick.Layouts 1.12
-
+import Qt.labs.platform
 
     SplitView{
         id: mainSplit
@@ -86,16 +86,46 @@ import QtQuick.Layouts 1.12
             activeChats.setToken(token)
         }
 
+        function setProgressValue(value){
+            progress.value = value
+            if(value !== 1 && value !== 0)
+                progress.visible = true;
+            else
+                progress.visible = false;
+        }
+
+        MessageDialog {
+            property string ref: ""
+            property string token: ""
+            property string fileName: ""
+            property string folder: ""
+            id: msgDialog
+            text: "Файл уже существует в выбранном каталоге!"
+            informativeText: "Файл будет перезаписан, продолжить?"
+            buttons: (MessageDialog.Ok | MessageDialog.Cancel)
+
+            onAccepted: {
+                wsClient.downloadFile(msgDialog.token, msgDialog.fileName, msgDialog.ref, msgDialog.folder)
+            }
+
+        }
         SelectFolderDialog{
             id: saveDlg
-            //saveDialog: true
 
             onSelectFolder: function(fpath){
 
-                console.debug("saveDialog" + ":" + fpath + " " + saveDlg.ref + " " + saveDlg.token + " " + saveDlg.fileName)
-
+                if(wsClient.fileExists(fpath + wsClient.separator() + fileName)){
+                    msgDialog.fileName = saveDlg.fileName;
+                    msgDialog.token = saveDlg.token;
+                    msgDialog.ref = saveDlg.ref;
+                    msgDialog.folder = fpath;
+                    msgDialog.open();
+                }else
+                    wsClient.downloadFile(saveDlg.token, saveDlg.fileName, saveDlg.ref, fpath)
             }
         }
+
+
 
         Page{
             SplitView.fillWidth: true
@@ -130,9 +160,12 @@ import QtQuick.Layouts 1.12
                             saveDlg.token = token;
                             saveDlg.ref = msg_ref;
                             saveDlg.title = "Выберете директорию";
-                            //saveDlg.currentFile = "file:///" + object_name
                             saveDlg.open();
                         }
+                    }
+                    ProgressBar{
+                        id: progress
+                        value: 0.5
                     }
                     MessageBox{
                         id: msgBox

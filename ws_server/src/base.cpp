@@ -5,9 +5,6 @@
 #include <arcirk.h>
 #include "../include/base.h"
 
-//ToDo: исправить код получения типа данных колонки col_count
-//ToDo: убрать аргумент в execute table_name, более не нужен
-//ToDo: удалить код и таблицы подписчиков, таблица не нужна
 namespace arc_sqlite {
 
     static int callback(void* data, int argc, char** argv, char** azColName)
@@ -119,52 +116,12 @@ namespace arc_sqlite {
                 result.append(",\n date     INTEGER");
                 result.append(",\n contentType TEXT      DEFAULT HTML");
                 result.append(",\n unreadMessages  INTEGER   DEFAULT (0)"); //не прочитанные сообщения всегда у получателя
-                result.append(",\n objectName TEXT");
+                //result.append(",\n objectName TEXT");
                 break;
             case tables::eSubscribers:
                 result =		   ",\n channel    TEXT (36) NOT NULL";
                 result.append(	",\n user_uuid  TEXT (36)");
                 break;
-//            case lttables::eBarcodes:
-//                result =		",\n Barcode            TEXT (128) UNIQUE";
-//                result.append(	",\n SeriaRef           TEXT (36)");
-//                result.append(	",\n OwnerRef           TEXT (36)");
-//                result.append(	",\n CharacteristicsRef TEXT (36)");
-//                break;
-//            case lttables::eCharacteristics:
-//                result =		",\n OwnerRef    TEXT (36)";
-//                break;
-//            case lttables::eSeries:
-//                result =		",\n OwnerRef    TEXT (36)";
-//                break;
-//            case lttables::eStorage:
-//                result =		",\n AddressStorage INTEGER";
-//                break;
-//            case lttables::eStorageCells:
-//                result =		",\n Barcode     TEXT (165) UNIQUE";
-//                result.append(	",\n OwnerRef    TEXT (36)");
-//                break;
-//            case lttables::eDocuments:
-//                result =		",\n NumberDoc		TEXT (50)";
-//                result.append(	",\n DataDoc		INTEGER");
-//                result.append(	",\n TypeDoc		INTEGER");
-//                result.append(	",\n Device			TEXT (50)");
-//                result.append(	",\n DeletionMark	INTEGER   DEFAULT (0)");
-//                result.append(	",\n Blocking		INTEGER   DEFAULT (0)");
-//                break;
-//            case lttables::eDocumentTablePart:
-//                result =		",\n Barcode			TEXT"; //При условиии SeriaRef=null and CharacteristicsRef=null хранится в формате 2012221122,554566655,455546554
-//                result.append(	",\n OwnerRef			TEXT (36)");
-//                result.append(	",\n Quantity			REAL (10, 3) DEFAULT (0)");
-//                result.append(	",\n SourceQuantity		REAL (10, 3) DEFAULT (0)");
-//                result.append(	",\n Coefficient		REAL (10, 3) DEFAULT (0)");
-//                result.append(	",\n GoodRef			TEXT (36)");
-//                result.append(	",\n SeriaRef			TEXT (36)");
-//                result.append(	",\n CharacteristicsRef	TEXT (36)");
-//                break;
-//            case lttables::eDevices:
-//                result =		",\n Device      TEXT";
-//                break;
             default:
                 break;
         }
@@ -187,24 +144,6 @@ namespace arc_sqlite {
             case tables::eSubscribers:
                 return "Subscribers";
                 break;
-//            case tables::eSeries:
-//                return "Series";
-//                break;
-//            case tables::eStorage:
-//                return "Storage";
-//                break;
-//            case tables::eStorageCells:
-//                return "StorageCells";
-//                break;
-//            case tables::eDocuments:
-//                return "Documents";
-//                break;
-//            case tables::eDocumentTablePart:
-//                return "DocumentTablePart";
-//                break;
-//            case tables::eDevices:
-//                return "Devices";
-//                break;
             default:
                 return "";
                 break;
@@ -721,19 +660,22 @@ namespace arc_sqlite {
                                 std::string err = "";
                                 exec(cache_query, err);
                                 if(!err.empty())
-                                    std::cerr << "error update user cache: " << err << std::endl;
+                                    std::cerr << "sqlite3_db::save_message: " << "error update user cache: " << err << std::endl;
                             }
                         }
                     }
                 }catch (std::exception& e){
-                    std::cerr << "save_message error: " <<  e.what() << std::endl;
+                    std::cerr << "sqlite3_db::save_message: " << "save_message error: " <<  e.what() << std::endl;
                 }
             }
             return result;
 
-        } else
+        } else{
+            std::cerr << "sqlite3_db::save_message: " << "ошибка получения хеша чата!" << std::endl;
+            return false;
+        }
 
-        return false;
+
     }
 
     int sqlite3_db::get_save_messages(std::string &json, const std::string &token, std::string& err, int top

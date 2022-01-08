@@ -1,4 +1,5 @@
-#include <QGuiApplication>
+//#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include "include/messagelistmodel.h"
 #include "include/selectedusersmodel.h"
@@ -76,7 +77,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    QGuiApplication app(argc, argv);
+//    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     qmlRegisterType<bWebSocket>("arcirk.bWebSocket", 1, 0, "WebSocket");
 

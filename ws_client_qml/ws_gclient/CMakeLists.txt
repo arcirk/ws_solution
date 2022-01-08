@@ -36,8 +36,10 @@ add_executable(ws_gclient
         userinfo.cpp
         userinfo.h
         qml/UserInfoDialog.qml
-        ../../chared/bwebdav.h
-        ../../chared/bwebdav.cpp)
+#[[        ../../chared/bwebdav.h
+        ../../chared/bwebdav.cpp]]
+        ../../chared/qwebdav.h
+        ../../chared/qwebdav.cpp)
 
 
 

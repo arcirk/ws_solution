@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <clientsettings.h>
-#include <bwebdav.h>
+#include <qwebdav.h>
 
 namespace Ui {
 class OptionsDialog;
@@ -16,8 +16,6 @@ class OptionsDialog : public QDialog
 public:
     explicit OptionsDialog(QWidget *parent);
     ~OptionsDialog() override;
-
-    //[[nodiscard]] ClientSettings& getSettings() const;
 
 private slots:
     void on_chkSrvLocalInstall_toggled(bool checked);
@@ -64,14 +62,12 @@ private slots:
 
     void on_btnVerifyWebDav_clicked();
 
-    void onVerifyRootDirResult(bool result, bool isConnection);
-    void onCreateWbDavDirectory(bool result, const QString& name);
+    void onWebDavError(QNetworkReply::NetworkError type, const QString& error);
 
 private:
     Ui::OptionsDialog *ui;
-    ClientSettings settings;
-    bWebDav * pWebDav;
-
+    ClientSettings settings;;
+    QWebdav * qWebdav;
 };
 
 #endif // OPTIONSDIALOG_H
