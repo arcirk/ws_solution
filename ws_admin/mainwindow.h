@@ -94,7 +94,7 @@ private:
     void fillTree(bool started);
     void fillList(const QString &nodeName);
     QString serverView();
-    void visibilityСontrol(bool visible, bool isSessions);
+    void visibilityControl(bool visible, bool isSessions); //
     void resizeColumns();
     void setHeaderAliases(QTableWidget* table);
     void treeGroupCreateColumns(QMap<QString, int> header, QTreeWidget* tree);

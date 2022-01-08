@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->toolBtnGroupBox->addStretch();
     ui->toolBottonsUsers->addStretch();
-    visibilityСontrol(false, false);
+    visibilityControl(false, false);
 
     view_mode_hierarchy = true;
 
@@ -113,10 +113,10 @@ void MainWindow::fillTree(bool started){
        0,                          // column
        QItemSelectionModel::Select // command
    );
-    visibilityСontrol(false, false);
+    visibilityControl(false, false);
 }
 
-void MainWindow::visibilityСontrol(bool visible, bool isSessions) {
+void MainWindow::visibilityControl(bool visible, bool isSessions) {
     ui->panelGroupUsers->setVisible(visible);
     ui->btnAddUser->setVisible(visible);
     ui->btnDeleteUser->setVisible(visible);
@@ -465,12 +465,12 @@ void MainWindow::fillList(const QString &nodeName) {
     if (nodeName == "ServerName"){
         ServeResponse::loadTableFromJson(listChildServerObjects, settings.getJsonObject());
         resizeColumns();
-        visibilityСontrol(false, false);
+        visibilityControl(false, false);
     }else if (nodeName == "ActiveUsers"){
-        visibilityСontrol(false, true);
+        visibilityControl(false, true);
         client->sendCommand("get_active_users");
     }else if (nodeName == "Users"){
-        visibilityСontrol(true, false);
+        visibilityControl(true, false);
         client->sendCommand("get_group_list");
     }
 }
