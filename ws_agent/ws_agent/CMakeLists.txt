@@ -13,13 +13,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DQT_AGENT_APP)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
-
 link_directories("../../ws_client/cmake-build-debug")
 include_directories("../../chared")
 include_directories("../../ws_client/include")
 
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -60,7 +59,6 @@ else()
         )
     endif()
 endif()
-
 
 target_link_libraries(ws_agent PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets

@@ -5,6 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(TARGET ws_client)
 
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/cmake_debug/)
+else()
+    SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/cmake_release/)
+endif()
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
 #SHARED
 add_library(ws_client SHARED
         include/beast.h

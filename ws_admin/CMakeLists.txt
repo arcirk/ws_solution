@@ -8,6 +8,7 @@ set(CMAKE_AUTOUIC ON)
 
 #set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/lib/cmake")
 
+
 SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
@@ -20,8 +21,15 @@ link_directories(
 #find_library(
 #    ws_client
 #    qjsonmodel)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS
+        Core
+        Gui
+        Widgets
+        Network
+        REQUIRED)
+#find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
-find_package(Qt6 COMPONENTS
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS
         Core
         Gui
         Widgets
@@ -69,10 +77,10 @@ include_directories("../chared")
 #link_directories(${CMAKE_BINARY_DIR}/lib)
 
 target_link_libraries(ws_admin
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
-        Qt::Network
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Network
         ws_client
         )
 

@@ -81,7 +81,8 @@ namespace arcirk{
         } else if (val.value.is_bool()) {
             doc->AddMember(key, val.value.get_bool(), doc->GetAllocator());
         } else if (val.value.is_int()) {
-            doc->AddMember(key, val.value.get_int(), doc->GetAllocator());
+            int v = val.value.get_int();
+            doc->AddMember(key, v, doc->GetAllocator());
         }else if (val.value.is_uuid()) {
             _Value value(val.value.to_string().c_str(), doc->GetAllocator());
             doc->AddMember(key, value, doc->GetAllocator());
@@ -119,7 +120,8 @@ namespace arcirk{
         } else if (val.value.is_bool()) {
             doc->AddMember(key, val.value.get_bool(), doc->GetAllocator());
         } else if (val.value.is_int()) {
-            doc->AddMember(key, val.value.get_int(), doc->GetAllocator());
+            int v = val.value.get_int();
+            doc->AddMember(key, v, doc->GetAllocator());
         }else if (val.value.is_uuid()) {
             _Value value(val.value.to_string().c_str(), doc->GetAllocator());
             doc->AddMember(key, value, doc->GetAllocator());
@@ -146,7 +148,8 @@ namespace arcirk{
         } else if (val.value.is_bool()) {
             object->AddMember(key, val.value.get_bool(), this->GetAllocator());
         } else if (val.value.is_int()) {
-            object->AddMember(key, val.value.get_int(), this->GetAllocator());
+            int v = val.value.get_int();
+            object->AddMember(key, v, this->GetAllocator());
         }else if (val.value.is_uuid()) {
             _Value value(val.value.to_string().c_str(), this->GetAllocator());
             object->AddMember(key, value, this->GetAllocator());
@@ -161,7 +164,8 @@ namespace arcirk{
         } else if (value.is_bool()) {
             this->AddMember(key, value.get_bool(), this->GetAllocator());
         } else if (value.is_int()) {
-            this->AddMember(key, value.get_int(), this->GetAllocator());
+            int v = value.get_int();
+            this->AddMember(key, v, this->GetAllocator());
         }else if (value.is_uuid()) {
             _Value val(value.to_string().c_str(), this->GetAllocator());
             this->AddMember(key, val, this->GetAllocator());
@@ -233,9 +237,11 @@ namespace arcirk{
             _Value value(val.get_string().c_str(), this->GetAllocator());
             arr.PushBack(value, this->GetAllocator());
         } else if (val.is_bool()) {
-            arr.PushBack( val.get_bool(), this->GetAllocator());
+            bool v = val.get_bool();
+            arr.PushBack( v, this->GetAllocator());
         } else if (val.is_int()) {
-            arr.PushBack( val.get_int(), this->GetAllocator());
+            int v = val.get_int();
+            arr.PushBack( v, this->GetAllocator());
         }else if (val.is_uuid()) {
             _Value value(val.get_string().c_str(), this->GetAllocator());
             arr.PushBack( value, this->GetAllocator());

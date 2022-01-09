@@ -93,3 +93,5 @@ ws_server/CMakeFiles
 arcirk/CMakeFiles
 
 tests/
+**/cmake_debug
+**/cmake_release
