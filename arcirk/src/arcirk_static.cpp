@@ -4,13 +4,21 @@
 
 #include "../include/arcirk.h"
 #include <boost/format.hpp>
+#ifdef _WINDOWS
+#include <filesystem>
+#else
 #include <boost/filesystem.hpp>
+#endif
 
 #define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
 const std::string base64_padding[] = {"", "==", "="};
 typedef boost::variant<std::string, long int, bool, double, boost::uuids::uuid> _Variant;
 
+#ifdef _WINDOWS
+using namespace std::filesystem;
+#else
 using namespace boost::filesystem;
+#endif
 
 namespace arcirk{
 
@@ -198,7 +206,11 @@ namespace arcirk{
         path p(dir_path);
 
         if (!exists(p)) {
+#ifdef _WINDOWS
+            return std::filesystem::create_directories(p);
+#else
             return boost::filesystem::create_directories(p);
+#endif
         }
 
         return true;
@@ -213,7 +225,11 @@ namespace arcirk{
     }
 
     std::string get_conf_directory(){
+#ifdef _WINDOWS
+        return get_home() + "\n" + get_conf_dirname();
+#else
         return get_home() + path::separator + get_conf_dirname();
+#endif
     }
 
     bool verify_conf_directory(){
@@ -242,15 +258,20 @@ namespace arcirk{
     std::string _crypt(const std::string &source, const std::string& key) {
 
         int n = (int)source.length();
-        char text[n + 1];
+        char * text = new char[n + 1];
         std::strcpy(text, source.c_str());
         int n1 = (int)key.length();
-        char pass[n1 + 1];
+        char * pass = new char[n1 + 1];
         std::strcpy(pass, key.c_str());
 
         crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
 
-        return text;
+        std::string result(std::move(text));
+
+        delete[] text;
+        delete[] pass;
+
+        return result;
     }
 
 }

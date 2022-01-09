@@ -11,6 +11,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_library(arcirk src/arcirk.cpp src/arcirk_static.cpp src/arcirk_json.cpp src/arcirk_ip.cpp src/arcirk_message.cpp src/arcirk_settings.cpp)
 
-find_package(Boost REQUIRED COMPONENTS regex filesystem)
+if (UNIX)
+    find_package(Boost REQUIRED COMPONENTS regex filesystem)
+else()
+    find_package(Boost REQUIRED COMPONENTS regex)
+endif()
+
+
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(arcirk ${Boost_LIBRARIES})
+target_link_libraries(arcirk PRIVATE ${Boost_LIBRARIES})

@@ -3,10 +3,20 @@
 //
 
 #include "../include/arcirk.h"
+#ifdef _WINDOWS
+#include <filesystem>
+#include <tchar.h>
+#else
 #include <boost/filesystem.hpp>
 #include <boost/dll.hpp>
+#endif
 
+
+#ifdef _WINDOWS
+using namespace std::filesystem;
+#else
 using namespace boost::filesystem;
+#endif
 
 const std::string bFieldsStr[] = {
         "ServerHost",
@@ -34,10 +44,17 @@ namespace arcirk{
 
         init(public_settings);
 
+        std::string separator;
+#ifdef _WINDOWS
+        separator = '\\';
+#else
+        separator = boost::filesystem::path::separator;
+#endif
+
         if(!public_settings){
-            output_directory = get_conf_directory() + boost::filesystem::path::separator + "config";
+            output_directory = get_conf_directory() + separator + "config";
         }else
-            output_directory = boost::dll::program_location().parent_path().string() + boost::filesystem::path::separator + "config";
+            output_directory = parent_path() + separator + "config"; //boost::dll::program_location().parent_path().string() + separator + "config";
 
         bool result = verify_directory(output_directory);
 
@@ -49,7 +66,7 @@ namespace arcirk{
         if(!file_name.empty())
             output_filename = file_name;
 
-        std::string fileName = output_directory + boost::filesystem::path::separator + output_filename;
+        std::string fileName = output_directory + separator + output_filename;
 
         if (!exists(path(fileName))){
             if(public_settings)
@@ -113,31 +130,41 @@ namespace arcirk{
         m_vec[bConfFields::ServerName] = "NoName";
         m_vec[bConfFields::AppName] = "unknown application";
         if(server)
-            m_vec[bConfFields::ServerWorkingDirectory] = boost::dll::program_location().parent_path().string();
+            m_vec[bConfFields::ServerWorkingDirectory] = parent_path(); //boost::dll::program_location().parent_path().string();
         else
-            m_vec[bConfFields::ClientWorkingDirectory] = boost::dll::program_location().parent_path().string();
+            m_vec[bConfFields::ClientWorkingDirectory] = parent_path(); //boost::dll::program_location().parent_path().string();
     }
 
     void bConf::save() {
 
         bJson m_doc{};
         m_doc.set_object();
-
+        std::string separator;
+#ifdef _WINDOWS
+        separator = '\\';
+#else
+        separator = boost::filesystem::path::separator;
+#endif
         int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
 
         for (int i = 0; i < fCount; ++i) {
             std::string key = bFieldsStr[i];
             m_doc.addMember(content_value(key, m_vec[i]));
         }
-        std::string fileName = output_directory + boost::filesystem::path::separator + output_filename;
+        std::string fileName = output_directory + separator + output_filename;
 
         m_doc.to_file(fileName);
     }
 
     bool bConf::parse() {
-
+        std::string separator;
+#ifdef _WINDOWS
+        separator = '\\';
+#else
+        separator = boost::filesystem::path::separator;
+#endif
         bJson m_doc{};
-        std::string fileName = output_directory + boost::filesystem::path::separator + output_filename;
+        std::string fileName = output_directory + separator + output_filename;
 
         if (exists(path(fileName)))
             m_doc.from_file(fileName);
@@ -160,4 +187,31 @@ namespace arcirk{
     std::string bConf::get_field_alias(bConfFields val){
         return bFieldsStr[val];
     }
+
+#ifdef _WINDOWS
+    LPTSTR bConf::ExtractFilePath(LPCTSTR FileName, LPTSTR buf)
+    {
+        int i, len = lstrlen(FileName);
+        for(i=len-1; i>=0; i--)
+        {
+            if(FileName[i] == _T('\\'))
+                break;
+        }
+        lstrcpyn(buf, FileName, i+2);
+        return buf;
+    }
+#endif
+
+    std::string bConf::parent_path() const {
+#ifdef _WINDOWS
+        TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
+        GetModuleFileName(0, szFileName, MAX_PATH);
+        ExtractFilePath(szFileName, szPath);
+        return std::string(szPath);
+#else
+        return boost::dll::program_location().parent_path().string();
+#endif
+    }
+
 }
+

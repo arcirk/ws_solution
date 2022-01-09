@@ -295,6 +295,10 @@ namespace arcirk{
         void set(bConfFields index, const bVariant& value);
 
         static std::string get_field_alias(bConfFields val);
+#ifdef _WINDOWS
+        static LPTSTR ExtractFilePath(LPCTSTR FileName, LPTSTR buf);
+#endif
+        std::string parent_path() const;
 
     private:
         std::string output_directory;

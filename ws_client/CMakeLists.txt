@@ -36,28 +36,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
     set (NMOS_CPP_SYSTEM_LIBS )
 endif()
-
+if (UNIX)
 find_package(Boost REQUIRED COMPONENTS thread regex filesystem)
-#find_package(Boost REQUIRED COMPONENTS regex)
-#find_package(Boost REQUIRED COMPONENTS locale)
+else()
+find_package(Boost REQUIRED COMPONENTS regex)
+endif()
+
 include_directories(
         "../arcirk/include"
         ${Boost_INCLUDE_DIRS})
 
-#if (UNIX)
+if (UNIX)
 target_link_libraries(ws_client
         ${Boost_LIBRARIES}
         Boost::thread
         Boost::filesystem
         ${NMOS_CPP_SYSTEM_LIBS}
         )
-#else()
-#    target_link_libraries(ws_client
-#        ${Boost_LIBRARIES}
-#        ${NMOS_CPP_SYSTEM_LIBS}
-#        arcirk
-#        )
-#endif()
+else()
+    target_link_libraries(ws_client  PRIVATE
+        ${Boost_LIBRARIES}
+        ${NMOS_CPP_SYSTEM_LIBS}
+        )
+endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
     target_compile_options(ws_client PRIVATE -Wall -Wextra -Wunreachable-code -Wpedantic)

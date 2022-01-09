@@ -56,7 +56,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setWindowFlags(Qt::Dialog);
 
-    QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + "ws_gclient";
+    QString exeName = "ws_client";
+
+#ifdef _WINDOWS
+    exeName = "ws_client.exe";
+#endif
+
+    QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + exeName;
 
     if(QFileInfo::exists(clientFileName)){
         m_client_app.setAppPath(clientFileName);
@@ -334,8 +340,11 @@ void MainWindow::openChatApp()
 {
     //qDebug() << m_client->get_settings()->pathToClient;
     if (m_client->isStarted()){
-
-        QString pathToClient = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + "/ws_gclient";
+        QString exeName = "ws_client";
+#ifdef _WINDOWS
+        exeName = "ws_client.exe";
+#endif
+        QString pathToClient = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + exeName;
         if(fileExists(pathToClient)){
             if(!m_client_app.isStarted()){
                 QStringList m_arg;

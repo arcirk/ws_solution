@@ -19,7 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
     lblStatusSocket = new QLabel(this);
     statusBar()->addWidget(lblStatusSocket);
 
+#ifndef _WINDOWS
     isServiceStarted = settings.statusService();
+#else
+    isServiceStarted = false;
+#endif
     if(isServiceStarted)
         lblStatusService->setText("Сервис запущен на локальном комьютере.");
     else

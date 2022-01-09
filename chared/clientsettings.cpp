@@ -516,15 +516,20 @@ void* ClientSettings::_crypt(void* data, unsigned data_size, void* key, unsigned
 std::string ClientSettings::crypt(const std::string &source, const std::string& key) {
 
     int n = (int)source.length();
-    char text[n + 1];
+    char * text = new char[n + 1];
     std::strcpy(text, source.c_str());
     int n1 = (int)key.length();
-    char pass[n1 + 1];
+    char * pass = new char[n1 + 1];
     std::strcpy(pass, key.c_str());
 
     _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
 
-    return text;
+    std::string result(std::move(text));
+
+    delete[] text;
+    delete[] pass;
+
+    return result;
 }
 
 QString ClientSettings::to_string() const {
