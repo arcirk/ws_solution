@@ -34,19 +34,19 @@ add_executable(ws_gclient
         qml/SmaileBox.qml
         qml/UsersBox.qml
         qml/UsersGroup.qml
-        ../../chared/clientsettings.h
-        ../../chared/serveresponse.h
-        ../../chared/qmlwebsocket.h
-        ../../chared/clientsettings.cpp
-        ../../chared/serveresponse.cpp
-        ../../chared/qmlwebsocket.cpp
-        userinfo.cpp
-        userinfo.h
+        ../chared/clientsettings.h
+        ../chared/serveresponse.h
+        ../chared/qmlwebsocket.h
+        ../chared/clientsettings.cpp
+        ../chared/serveresponse.cpp
+        ../chared/qmlwebsocket.cpp
+        src/userinfo.cpp
+        include/userinfo.h
         qml/UserInfoDialog.qml
 #[[        ../../chared/bwebdav.h
         ../../chared/bwebdav.cpp]]
-        ../../chared/qwebdav.h
-        ../../chared/qwebdav.cpp)
+        ../chared/qwebdav.h
+        ../chared/qwebdav.cpp)
 
 
 
@@ -61,13 +61,13 @@ find_package(Qt6 COMPONENTS
         REQUIRED)
 
 
-include_directories("../../ws_client/include")
-include_directories("../../qt_models/project/include")
-include_directories("../../chared")
+include_directories("../ws_client/include")
+include_directories("../qt_models/project/include")
+include_directories("../chared")
 
 link_directories(
-        "../../ws_client/cmake-build-debug"
-        "../../qt_models/project/cmake-build-debug"
+        "../ws_client/cmake-build-debug"
+        "../qt_models/project/cmake-build-debug"
 )
 
 target_link_libraries(ws_gclient

@@ -28,8 +28,8 @@ unix {
 
 windows:INCLUDEPATH += C:/lib/vcpkg/vcpkg/installed/x64-windows/include
 
-DEFINES += _WINDOWS
-DEFINES += _CRT_SECURE_NO_WARNINGS
+windows:DEFINES += _WINDOWS
+windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 
 windows:LIBS += -LC:/lib/vcpkg/vcpkg/installed/x64-windows/lib
 Boost_USE_STATIC_LIBS = ON

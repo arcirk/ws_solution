@@ -1,7 +1,7 @@
 #include "../include/messagelistmodel.h"
 #include <QJsonObject>
 #include <QString>
-#include <iws_client.h>
+#include "iws_client.h"
 
 MessageListModel::MessageListModel(QObject * parent )
     : QAbstractTableModel( parent )

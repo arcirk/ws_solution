@@ -7,12 +7,12 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-#include <qmlwebsocket.h>
-#include <qproxymodel.h>
-#include <qjsontablemodel.h>
-#include "userinfo.h"
+#include "qmlwebsocket.h"
+#include "qproxymodel.h"
+#include "qjsontablemodel.h"
+#include "include/userinfo.h"
 
-#include <clientsettings.h>
+#include "clientsettings.h"
 
 #include <QFileInfo>
 

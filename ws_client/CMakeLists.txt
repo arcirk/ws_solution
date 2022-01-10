@@ -27,7 +27,8 @@ add_library(ws_client SHARED
         ../arcirk/src/arcirk_json.cpp
         ../arcirk/src/arcirk_ip.cpp
         ../arcirk/src/arcirk_message.cpp
-        ../arcirk/src/arcirk_settings.cpp)
+        ../arcirk/src/arcirk_settings.cpp
+        include/stdafx.h)
 
 set_target_properties(ws_client PROPERTIES
         VERSION ${PROJECT_VERSION}
