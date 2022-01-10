@@ -42,10 +42,9 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk/debug/arcirk.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../arcirk/libarcirk.a
 
-windows:INCLUDEPATH += C:/lib/vcpkg/vcpkg/installed/x64-windows/include
-
+windows:INCLUDEPATH += $(BOOST_INCLUE) #C:/lib/vcpkg/vcpkg/installed/x64-windows/include
+windows:LIBS += -L$(BOOST_LIB) #-LC:/lib/vcpkg/vcpkg/installed/x64-windows/lib
+Boost_USE_STATIC_LIBS = ON
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
-
-windows:LIBS += -LC:/lib/vcpkg/vcpkg/installed/x64-windows/lib
 windows:LIBS += -lbcrypt
