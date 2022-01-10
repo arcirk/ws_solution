@@ -7,13 +7,15 @@
 #include <string>
 #include <functional>
 
-class ws_client;
+#include "iws_client_global.h"
+
+class  ws_client;
 
 //typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
 
-class  IClient{
+class  WS_CLIENT_EXPORT IClient{
 
 public:
     std::string app_uuid;
