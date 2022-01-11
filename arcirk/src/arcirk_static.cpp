@@ -148,7 +148,7 @@ namespace arcirk{
 
         split_str_to_vec(line, sep, v);
 
-        v.begin();
+        //v.begin();
 
         return v;
     }
@@ -167,7 +167,7 @@ namespace arcirk{
         std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(mktime(&current));
 
         return
-                std::chrono::duration_cast<std::chrono::seconds>(
+                (long int)std::chrono::duration_cast<std::chrono::seconds>(
                         tp.time_since_epoch()).count();
 
     }

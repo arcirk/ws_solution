@@ -32,7 +32,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client/release/ -lws_client
-else:win32:CONFIG(debug, debug|release): LIBS += -LC:/src/ws_solution/build-qt/debug/ws_client/debug#-L$$OUT_PWD/../ws_client/debug/ -lws_client
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client/debug/ -lws_client
 else:unix: LIBS += -L$$OUT_PWD/../ws_client/ -lws_client
 
 unix:LIBS += -lboost_thread
@@ -42,7 +42,7 @@ INCLUDEPATH += $$PWD/../ws_client/include
 DEPENDPATH += $$PWD/../ws_client
 INCLUDEPATH += $$PWD/../chared
 #windows:INCLUDEPATH += C:/lib/vcpkg/vcpkg/installed/x64-windows/include
-windows:INCLUDEPATH += $(BOOST_INCLUE)
+windows:INCLUDEPATH += $(BOOST_INCLDUE)
 
 DEFINES += QT_QML_CLIENT_APP
 

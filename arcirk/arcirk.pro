@@ -26,7 +26,7 @@ unix {
 }
 !isEmpty(target.path): INSTALLS += target
 
-windows:INCLUDEPATH += $(BOOST_INCLUE) #C:/lib/vcpkg/vcpkg/installed/x64-windows/include
+windows:INCLUDEPATH += $(BOOST_INCLDUE) #C:/lib/vcpkg/vcpkg/installed/x64-windows/include
 windows:LIBS += -L$(BOOST_LIB) #-LC:/lib/vcpkg/vcpkg/installed/x64-windows/lib
 Boost_USE_STATIC_LIBS = ON
 windows:DEFINES += _WINDOWS
