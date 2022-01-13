@@ -1,8 +1,6 @@
 #ifndef IWS_CLIENT_H
 #define IWS_CLIENT_H
 
-//#define __IWS_CLIENT_ __declspec(dllexport)
-
 #include <iostream>
 #include <string>
 #include <functional>

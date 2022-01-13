@@ -48,3 +48,5 @@ Boost_USE_STATIC_LIBS = ON
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:LIBS += -lbcrypt
+
+DEFINES += USE_QT_CREATOR

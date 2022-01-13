@@ -3,6 +3,8 @@ project(ws_client VERSION 1.0.1 DESCRIPTION "websocket client")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+#set(CMAKE_AUTOMOC ON)
+
 set(TARGET ws_client)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
@@ -11,6 +13,8 @@ else()
     SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/cmake_release/)
 endif()
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
+add_definitions(-DWS_CLIENT_LIBRARY)
 
 #SHARED
 add_library(ws_client SHARED
