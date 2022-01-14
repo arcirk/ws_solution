@@ -127,6 +127,8 @@ public:
     bool isAgent();
     void setIsAgent(bool val);
 
+    static std::string get_std_parent_path();
+
 private:
     IClient * client;
     ClientSettings settings;

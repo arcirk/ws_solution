@@ -79,6 +79,8 @@ public:
     std::string get_webdav_host() const;
     bool get_webdav_ssl();
 
+    //std::string get_parent_path() const;
+
 private:
 
     boost::asio::io_context &ioc;

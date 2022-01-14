@@ -87,6 +87,8 @@ public:
 
     static std::string get_string_random_uuid();
 
+    static std::string get_parent_path();
+
 private:
     ws_client * client;
     std::string _client_param;

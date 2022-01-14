@@ -202,7 +202,7 @@ namespace arcirk{
     }
 #endif
 
-    std::string bConf::parent_path() const {
+    std::string bConf::parent_path() {
 #ifdef _WINDOWS
         TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
         GetModuleFileName(0, szFileName, MAX_PATH);

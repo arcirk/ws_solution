@@ -8,6 +8,10 @@ set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
 #set(CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
+if(WIN32)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+endif()
 
 add_library(arcirk src/arcirk.cpp src/arcirk_static.cpp src/arcirk_json.cpp src/arcirk_ip.cpp src/arcirk_message.cpp src/arcirk_settings.cpp)
 

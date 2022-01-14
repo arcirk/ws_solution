@@ -291,14 +291,14 @@ namespace arcirk{
 
         void save();
         bool parse();
-        bVariant get(bConfFields index) const;
+        [[nodiscard]] bVariant get(bConfFields index) const;
         void set(bConfFields index, const bVariant& value);
 
         static std::string get_field_alias(bConfFields val);
 #ifdef _WINDOWS
         static LPTSTR ExtractFilePath(LPCTSTR FileName, LPTSTR buf);
 #endif
-        std::string parent_path() const;
+        static std::string parent_path();
 
     private:
         std::string output_directory;

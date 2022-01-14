@@ -527,3 +527,7 @@ std::string ws_client::get_webdav_host() const {
 bool ws_client::get_webdav_ssl() {
     return _webdav_ssl;
 }
+
+//std::string ws_client::get_parent_path() const {
+//    return bConf::parent_path();
+//}

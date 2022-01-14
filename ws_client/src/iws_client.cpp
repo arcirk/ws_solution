@@ -636,3 +636,7 @@ void IClient::get_channel_token(const std::string &user_sender, const std::strin
 std::string IClient::get_string_random_uuid() {
     return arcirk::random_uuid();
 }
+
+std::string IClient::get_parent_path() {
+    return arcirk::bConf::parent_path();
+}

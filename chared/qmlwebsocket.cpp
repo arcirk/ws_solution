@@ -878,3 +878,7 @@ void bWebSocket::uploadError()
     //qDebug() << "ошибка загрузки файла на сервера!";
     emit webDavError("ошибка загрузки файла на сервер!");
 }
+
+std::string bWebSocket::get_std_parent_path() {
+    return IClient::get_parent_path();
+}
