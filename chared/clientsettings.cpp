@@ -515,43 +515,46 @@ void* ClientSettings::_crypt(void* data, unsigned data_size, void* key, unsigned
 
 std::string ClientSettings::crypt(const std::string &source, const std::string& key) {
 
-//    int n = (int)source.length();
-//    char * text = new char[n + 1];
-//    std::strcpy(text, source.c_str());
-//    int n1 = (int)key.length();
-//    char * pass = new char[n1 + 1];
-//    std::strcpy(pass, key.c_str());
-//
-//    _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
-//
-//    std::string result(std::move(text));
-//
+    //int n = (int)source.length();
+    std::string s = source;
+    char * text = s.data();//new char[n + 1];
+    //std::strcpy(text, source.c_str());
+    //int n1 = (int)key.length();
+    std::string _key = key;
+    char * pass = _key.data(); //new char[n1 + 1];
+    std::strcpy(pass, key.c_str());
+
+    _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
+
+    std::string result(text);
+
 //    delete[] text;
 //    delete[] pass;
-//
-//    return result;
-
-    const char * input = source.c_str();
-
-    int inputLength = (int)source.length();
-
-    const char *_key = key.c_str();
-
-    int keyLength = (int)key.length();
-
-    char output[inputLength];
-
-    for (int i = 0; i < inputLength + 1; ++i)
-
-    {
-
-        output[i] = input[i] ^ key[i % keyLength + 1];
-
-    }
-
-    std::string result = output;
 
     return result;
+
+
+//    const char * input = source.c_str();
+//
+//    int inputLength = (int)source.length();
+//
+//    const char *_key = key.c_str();
+//
+//    int keyLength = (int)key.length();
+//
+//    char output[inputLength];
+//
+//    for (int i = 0; i < inputLength + 1; ++i)
+//
+//    {
+//
+//        output[i] = input[i] ^ key[i % keyLength + 1];
+//
+//    }
+//
+//    std::string result = output;
+//
+//    return result;
 }
 
 QString ClientSettings::to_string() const {
