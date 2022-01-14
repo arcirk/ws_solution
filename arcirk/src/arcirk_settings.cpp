@@ -11,6 +11,7 @@
 #include <boost/dll.hpp>
 #endif
 
+#define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 #ifdef _WINDOWS
 using namespace std::filesystem;
@@ -207,10 +208,40 @@ namespace arcirk{
         TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
         GetModuleFileName(0, szFileName, MAX_PATH);
         ExtractFilePath(szFileName, szPath);
-        return std::string(szPath);//();
+        return std::string(szPath);//set _MBCS;
 #else
         return boost::dll::program_location().parent_path().string();
 #endif
+    }
+
+    void* bConf::_crypt(void* data, unsigned data_size, void* key, unsigned key_size)
+    {
+        assert(data && data_size);
+        if (!key || !key_size) return data;
+
+        auto* kptr = (uint8_t*)key; // начало ключа
+        uint8_t* eptr = kptr + key_size; // конец ключа
+
+        for (auto* dptr = (uint8_t*)data; data_size--; dptr++)
+        {
+            *dptr ^= *kptr++;
+            if (kptr == eptr) kptr = (uint8_t*)key; // переход на начало ключа
+        }
+        return data;
+    }
+
+    std::string bConf::crypt(const std::string &source, const std::string& key) {
+
+        std::string s = source;
+        char * text = s.data();
+        std::string _key = key;
+        char * pass = _key.data();
+
+        _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
+
+        std::string result(text);
+
+        return result;
     }
 
 }

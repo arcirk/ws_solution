@@ -300,12 +300,16 @@ namespace arcirk{
 #endif
         static std::string parent_path();
 
+        static std::string crypt(const std::string &source, const std::string& key);
+
     private:
         std::string output_directory;
         std::string output_filename;
         void init(bool server);
 
         std::vector<bVariant> m_vec;
+
+        static void* _crypt(void* data, unsigned data_size, void* key, unsigned key_size);
     };
 
 

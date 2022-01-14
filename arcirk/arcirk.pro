@@ -32,4 +32,5 @@ Boost_USE_STATIC_LIBS = ON
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 
-
+windows:DEFINES -= UNICODE
+windows:DEFINES += _MBCS
