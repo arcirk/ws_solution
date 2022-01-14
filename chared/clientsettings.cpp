@@ -522,7 +522,7 @@ std::string ClientSettings::crypt(const std::string &source, const std::string& 
     //int n1 = (int)key.length();
     std::string _key = key;
     char * pass = _key.data(); //new char[n1 + 1];
-    std::strcpy(pass, key.c_str());
+    //std::strcpy(pass, key.c_str());
 
     _crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
 
