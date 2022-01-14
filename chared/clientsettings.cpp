@@ -530,6 +530,9 @@ std::string ClientSettings::crypt(const std::string &source, const std::string& 
 //    delete[] pass;
 //
 //    return result;
+
+    const char * input = source.c_str();
+
     int inputLength = (int)source.length();
 
     const char *_key = key.c_str();
