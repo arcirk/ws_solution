@@ -70,6 +70,8 @@ private slots:
 
     void on_btnSelDavFolder_clicked();
 
+    void on_btnExit_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *trayIcon;
@@ -77,6 +79,7 @@ private:
     QAction *openQmlClient;
     QAction *restoreAction;
     QAction *quitAction;
+    bool exitEvent;
 
     QAction *closeConnect;
     QAction *openConnect;

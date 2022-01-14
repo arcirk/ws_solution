@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    arcirk \  
+    arcirk \
+    ws_agent/ws_agent \
     ws_client \
     ws_client_qml
 

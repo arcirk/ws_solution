@@ -11,15 +11,19 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    src/clientsettings.cpp \
-    src/qmlwebsocket.cpp \
-    src/serveresponse.cpp
+    ../../chared/clientsettings.cpp \
+    ../../chared/qmlwebsocket.cpp \
+    ../../chared/serveresponse.cpp \
+    ../../chared/qwebdav.cpp \
+    src/clientapp.cpp
 
 HEADERS += \
+    include/clientapp.h \
     mainwindow.h \
-    include/clientsettings.h \
-    include/qmlwebsocket.h \
-    include/serveresponse.h
+    ../../chared/clientsettings.h \
+    ../../chared/qmlwebsocket.h \
+    ../../chared/qwebdav.h \
+    ../../chared/serveresponse.h
 
 FORMS +=  \
     mainwindow.ui
@@ -34,18 +38,32 @@ DISTFILES += \
 
 unix:LIBS += -L"/usr/local/lib"
 
-LIBS += -L"../../ws_client/cmake-build-debug"
-windows:LIBS += -L"C:\src\ws_solution\ws_client\cmake-build-debug"
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
+else:unix: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
 
-INCLUDEPATH += ../../ws_client/include
+INCLUDEPATH += $$PWD/../../ws_client/include
+DEPENDPATH += $$PWD/../../ws_client
+INCLUDEPATH += $$PWD/../../chared
+
+unix:LIBS += -lboost_thread
+unix:LIBS += -lboost_filesystem
+
+#LIBS += -L"../../ws_client/cmake-build-debug"
+#windows:LIBS += -L"C:\src\ws_solution\ws_client\cmake-build-debug"
+
+#INCLUDEPATH += ../../ws_client/include
 
 #windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
 #windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
 
-unix:LIBS += -lboost_thread
-LIBS += -lws_client
+#unix:LIBS += -lboost_thread
+#LIBS += -lws_client
 
 #PRECOMPILED_HEADER = stdfx.h
 
 RESOURCES += \
     ws_agent.qrc
+
+
+DEFINES += USE_QT_CREATOR

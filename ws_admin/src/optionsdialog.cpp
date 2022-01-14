@@ -212,7 +212,7 @@ void OptionsDialog::on_btnVerifyWebDav_clicked()
                                      tr("Успешное подключение!"));
         }else{
             auto result =  QMessageBox::question(this, "Каталог на сервере", "Доступ есть, но основной каталог программы не найден.\n"
-                                                                             "Создать каталог!");
+                                                                             "Создать каталог?");
             if(result == QMessageBox::Yes){
                 bool mkdir = qWebdav->mkdirSynch("");
                 if(mkdir)

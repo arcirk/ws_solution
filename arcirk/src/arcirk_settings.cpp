@@ -207,7 +207,7 @@ namespace arcirk{
         TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
         GetModuleFileName(0, szFileName, MAX_PATH);
         ExtractFilePath(szFileName, szPath);
-        return std::string();//(szPath);
+        return std::string(szPath);//();
 #else
         return boost::dll::program_location().parent_path().string();
 #endif

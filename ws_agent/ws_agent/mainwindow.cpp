@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    exitEvent = false;
+
     createActions();
     createTrayIcon();
 
@@ -56,10 +58,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setWindowFlags(Qt::Dialog);
 
-    QString exeName = "ws_client";
+    QString exeName = "ws_client_qml";
 
 #ifdef _WINDOWS
-    exeName = "ws_client.exe";
+    exeName = "ws_client_qml.exe";
 #endif
 
     QString clientFileName = m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + exeName;
@@ -68,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
         m_client_app.setAppPath(clientFileName);
     }
     else{
-        qDebug() << "ws_gclient не найден";
+        qDebug() << "ws_client_qml не найден";
     }
 
     m_client->setIsAgent(true);
@@ -115,7 +117,7 @@ void MainWindow::setIcon()
 
 void MainWindow::setVisible(bool visible)
 {
-    openQmlClient->setEnabled(true);
+    openQmlClient->setEnabled(m_client->isStarted());
     openConnect->setEnabled(!m_client->isStarted());
     closeConnect->setEnabled(m_client->isStarted());
     restoreAction->setEnabled(isMaximized() || !visible);
@@ -129,7 +131,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 #endif
-    if (trayIcon->isVisible()) {
+    qDebug() << exitEvent;
+
+    if (trayIcon->isVisible() && !exitEvent) {
         QMessageBox::information(this, tr("Чат"),
                                  tr("Программа продолжит работу в фоновом режиме "
                                     "Выберете <b>Выход</b> в контекстном меню системного трея"
@@ -460,5 +464,21 @@ void MainWindow::on_btnSelDavFolder_clicked()
     if(dir != ""){
         ui->lineDavDirectory->setText(dir);
     }
+}
+
+
+void MainWindow::on_btnExit_clicked()
+{
+    auto result = QMessageBox::question(this, tr("Выход"), tr("Выйти из программы?"));
+
+    if(result == QMessageBox::Yes){
+        if(m_client_app.isStarted())
+            m_client_app.stop();
+
+        exitEvent = true;
+
+        QCoreApplication::quit();
+    }
+
 }
 
