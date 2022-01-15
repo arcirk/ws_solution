@@ -2,13 +2,10 @@
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
-//    QApplication a(argc, argv);
-//    QPushButton button("Hello world!", nullptr);
-//    button.resize(200, 100);
-//    button.show();
-//    return QApplication::exec();
 
     QApplication a(argc, argv);
+    QIcon appIcon(":/img/ws_admin.ico");
+    QApplication::setWindowIcon(appIcon);
     qApp->setStyle(QStyleFactory::create("Fusion"));
     MainWindow w;
     w.show();

@@ -69,3 +69,6 @@ CONFIG(debug, debug|release): DEFINES +=  DEBUG_MODE
 
 INCLUDEPATH += $$PWD/../ws_client
 DEPENDPATH += $$PWD/../ws_client
+
+DEFINES += USE_QT_CREATOR
+windows:DEFINES += _WINDOWS

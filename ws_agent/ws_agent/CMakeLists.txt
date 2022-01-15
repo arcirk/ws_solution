@@ -27,7 +27,7 @@ include_directories("../../ws_client/include")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
-#set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_agent.rc")
 
 set(PROJECT_SOURCES
         main.cpp
@@ -58,11 +58,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         if(CMAKE_BUILD_TYPE MATCHES DEBUG)
             qt_add_executable(ws_agent
                     MANUAL_FINALIZATION
-                    ${PROJECT_SOURCES})
+                    ${PROJECT_SOURCES}
+                    ${APP_ICON_RESOURCE_WINDOWS})
         else()
             qt_add_executable(ws_agent WIN32
                     MANUAL_FINALIZATION
-                    ${PROJECT_SOURCES})
+                    ${PROJECT_SOURCES}
+                    ${APP_ICON_RESOURCE_WINDOWS})
         endif()
     else()
         qt_add_executable(ws_agent

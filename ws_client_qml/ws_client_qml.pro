@@ -62,3 +62,5 @@ HEADERS += \
 
 INCLUDEPATH += $$PWD/../ws_client
 DEPENDPATH += $$PWD/../ws_client
+
+windows:DEFINES += _WINDOWS

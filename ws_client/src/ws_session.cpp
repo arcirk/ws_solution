@@ -5,8 +5,6 @@
 #include "../include/ws_session.h"
 #include "../include/ws_client.h"
 
-//#include <boost/locale.hpp>
-//#include <locale>
 
 struct report
 {
@@ -96,7 +94,6 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 #ifdef _WINDOWS
     err = "В соединении отказано";
 #endif
-        //stopped_ = true;
         client_->error("connect", err);
         return;
     }
@@ -174,6 +171,9 @@ session::on_read(
         std::size_t bytes_transferred){
 
     boost::ignore_unused(bytes_transferred);
+
+    if(ec)
+        deadline_.cancel();
 
     if(ec == websocket::error::closed){
         //client_->error("read","Server is not available");

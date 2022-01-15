@@ -49,16 +49,6 @@ INCLUDEPATH += $$PWD/../../chared
 unix:LIBS += -lboost_thread
 unix:LIBS += -lboost_filesystem
 
-#LIBS += -L"../../ws_client/cmake-build-debug"
-#windows:LIBS += -L"C:\src\ws_solution\ws_client\cmake-build-debug"
-
-#INCLUDEPATH += ../../ws_client/include
-
-#windows:LIBS += -L"F:/lib/vcpkg/installed/x64-windows/lib"
-#windows:INCLUDEPATH += F:/lib/vcpkg/installed/x64-windows/include
-
-#unix:LIBS += -lboost_thread
-#LIBS += -lws_client
 
 #PRECOMPILED_HEADER = stdfx.h
 

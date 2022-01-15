@@ -1,5 +1,10 @@
 #include "../include/directoryinfobasedialog.h"
-#include "../form/ui_directoryinfobasedialog.h"
+
+//#ifndef USE_QT_CREATOR
+#include "ui_directoryinfobasedialog.h"
+//#else
+//#include "ui_directoryinfobasedialog.h"
+//#endif
 
 DirectoryInfoBaseDialog::DirectoryInfoBaseDialog(QWidget *parent) :
     QDialog(parent),

@@ -19,5 +19,8 @@
         <file>img/KillSession.png</file>
         <file>img/getData.png</file>
         <file>img/delete.png</file>
+        <file>img/ws_admin.ico</file>
+        <file>img/connect.svg</file>
+        <file>img/disconnect.svg</file>
     </qresource>
 </RCC>

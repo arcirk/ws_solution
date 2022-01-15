@@ -1,6 +1,10 @@
 #include "../include/optionsdialog.h"
-#include "../form/ui_optionsdialog.h"
 
+//#ifndef USE_QT_CREATOR
+#include "ui_optionsdialog.h"
+//#else
+//#include "ui_optionsdialog.h"
+//#endif
 #include <iws_client.h>
 #include <QFileDialog>
 #include <QMessageBox>

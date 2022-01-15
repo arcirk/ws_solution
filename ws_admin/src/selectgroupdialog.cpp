@@ -1,5 +1,10 @@
 #include "../include/selectgroupdialog.h"
-#include "../form/ui_selectgroupdialog.h"
+
+//#ifndef USE_QT_CREATOR
+#include "ui_selectgroupdialog.h"
+//#else
+//#include "ui_selectgroupdialog.h"
+//#endif
 #include <QTreeWidget>
 #include <QStandardItemModel>
 #include <QMessageBox>

@@ -272,7 +272,7 @@
      <x>0</x>
      <y>0</y>
      <width>911</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_A">
@@ -360,13 +360,24 @@
    </property>
   </action>
   <action name="mnuConnect">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/images/img/connect.svg</normaloff>:/images/img/connect.svg</iconset>
+   </property>
    <property name="text">
     <string>Подключиться</string>
    </property>
   </action>
   <action name="mnuDisconnect">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/images/img/disconnect.svg</normaloff>:/images/img/disconnect.svg</iconset>
+   </property>
    <property name="text">
     <string>Отключится</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="mnuStart">

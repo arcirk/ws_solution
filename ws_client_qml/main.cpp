@@ -15,6 +15,7 @@
 #include "clientsettings.h"
 
 #include <QFileInfo>
+#include <QIcon>
 
 [[maybe_unused]] void testSaveArgs(QStringList& arg){
 
@@ -79,6 +80,9 @@ int main(int argc, char *argv[])
 
 //    QGuiApplication app(argc, argv);
     QApplication app(argc, argv);
+
+    QIcon appIcon(":/images/app_icon.png");
+    QApplication::setWindowIcon(appIcon);
 
     qmlRegisterType<bWebSocket>("arcirk.bWebSocket", 1, 0, "WebSocket");
 

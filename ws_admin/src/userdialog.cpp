@@ -1,5 +1,11 @@
 #include "../include/userdialog.h"
-#include "../form/ui_userdialog.h"
+
+//#ifndef USE_QT_CREATOR
+#include "ui_userdialog.h"
+//#else
+//#include "ui_userdialog.h"
+//#endif
+
 #include "../include/directoryinfobasedialog.h"
 
 UserDialog::UserDialog(QWidget *parent, Ui::user_info * usr_info) :

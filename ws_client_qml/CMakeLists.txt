@@ -18,6 +18,8 @@ add_definitions(-DQT_QML_CLIENT_APP)
 #find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
 #find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_client.rc")
+
 set(PROJECT_SOURCES
     qml/ChatBox.qml
     qml/IconPane.qml
@@ -54,10 +56,12 @@ set(PROJECT_SOURCES
 if(WIN32)
     if(CMAKE_BUILD_TYPE MATCHES DEBUG)
         add_executable(ws_client_qml
-                ${PROJECT_SOURCES})
+                ${PROJECT_SOURCES}
+                ${APP_ICON_RESOURCE_WINDOWS})
     else()
         add_executable(ws_client_qml WIN32
-                ${PROJECT_SOURCES})
+                ${PROJECT_SOURCES}
+                ${APP_ICON_RESOURCE_WINDOWS})
     endif()
 else()
     add_executable(ws_client_qml

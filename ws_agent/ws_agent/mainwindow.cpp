@@ -84,9 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-//    if(wsProc->state() == QProcess::Running){
-//        wsProc->close();
-//    }
     delete m_client;
     delete ui;
 }
@@ -120,9 +117,6 @@ void MainWindow::setIcon()
 
 void MainWindow::setVisible(bool visible)
 {
-    openQmlClient->setEnabled(m_client->isStarted());
-    openConnect->setEnabled(!m_client->isStarted());
-    closeConnect->setEnabled(m_client->isStarted());
     restoreAction->setEnabled(isMaximized() || !visible);
     QMainWindow::setVisible(visible);
 }
@@ -151,6 +145,7 @@ void MainWindow::createActions()
     openQmlClient = new QAction(tr("Открыть &чат"), this);
     connect(openQmlClient, &QAction::triggered, this, &MainWindow::openChatApp);
     openQmlClient->setIcon(QIcon(":/img/images/app_icon.png"));
+    openQmlClient->setEnabled(false);
 
     restoreAction = new QAction(tr("&Открыть настройки"), this);
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
@@ -160,6 +155,7 @@ void MainWindow::createActions()
 
     closeConnect = new QAction(tr("Отключится"), this);
     connect(closeConnect, &QAction::triggered, this, &MainWindow::onCloseConnect);
+    closeConnect->setEnabled(false);
 
     openConnect = new QAction(tr("Подключиться"), this);
     connect(openConnect, &QAction::triggered, this, &MainWindow::onOpenConnect);
@@ -172,6 +168,7 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
     case QSystemTrayIcon::Trigger:
     case QSystemTrayIcon::DoubleClick:
         //iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
+        openChatApp();
         break;
     case QSystemTrayIcon::MiddleClick:
         showMessage();
@@ -242,14 +239,6 @@ void MainWindow::on_chAutiConnect_toggled(bool checked)
 
 void MainWindow::on_btnConnect_clicked()
 {
-//    if(m_client->isStarted()){
-//        return;
-//    }
-//
-//    bool pwd_edit = ui->btnEditPwd->isChecked();
-//    m_client->setPwdEdit(pwd_edit);
-//
-//    m_client->open(ui->txtUserName->text(), ui->txtPassword->text());
 
     onOpenConnect();
 }
@@ -258,12 +247,6 @@ void MainWindow::on_btnConnect_clicked()
 void MainWindow::on_btnDisconnect_clicked()
 {
 
-//    if(m_client->isStarted()){
-//        m_client->close();
-//    }
-////    if(wsProc->state() == QProcess::Running){
-////       wsProc->close();
-////    }
     onCloseConnect();
 }
 
@@ -310,12 +293,14 @@ void MainWindow::onConnectionSuccess()
     ui->btnViewPwd->setEnabled(false);
     openConnect->setEnabled(false);
     closeConnect->setEnabled(true);
+    openQmlClient->setEnabled(true);
 }
 
 void MainWindow::onCloseConnection()
 {
     openConnect->setEnabled(true);
     closeConnect->setEnabled(false);
+    openQmlClient->setEnabled(false);
 }
 
 void MainWindow::onQmlError(const QString &what, const QString &err)
@@ -333,12 +318,12 @@ void MainWindow::onConnectedStatusChanged(bool status)
 
 void MainWindow::onClientJoin(const QString &resp)
 {
-    qDebug() << "MainWindow::onClientJoin";
+    qDebug() << "MainWindow::onClientJoin" << resp;
 }
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    qDebug() << "MainWindow::onClientLeave";
+    qDebug() << "MainWindow::onClientLeave" << resp;
 }
 
 void MainWindow::openChatApp()

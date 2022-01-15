@@ -39,6 +39,8 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS
         Network
         REQUIRED)
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_admin.rc")
+
 set(PROJECT_SOURCES
    main.cpp
    resources.qrc
@@ -75,7 +77,8 @@ set(PROJECT_SOURCES
 
 if(WIN32)
      add_executable(ws_admin WIN32
-             ${PROJECT_SOURCES})
+             ${PROJECT_SOURCES}
+             ${APP_ICON_RESOURCE_WINDOWS})
 else()
      add_executable(ws_admin
              ${PROJECT_SOURCES})

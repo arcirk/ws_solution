@@ -1,6 +1,10 @@
 //
 // Created by arcady on 08.01.2022.
 //
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+#endif
+
 #include "qwebdav.h"
 #include <QNetworkRequest>
 #include <QUrl>

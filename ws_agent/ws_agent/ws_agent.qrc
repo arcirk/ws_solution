@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/img">
-        <file>icons8-connected-people-48.png</file>
         <file>images/edit.svg</file>
         <file>images/view_hide_icon_124813.svg</file>
         <file>images/view_show_icon_124811.svg</file>

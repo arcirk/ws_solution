@@ -173,5 +173,6 @@
         <file>images/lan_disconnect_icon_138437.svg</file>
         <file>qml/UserItemDelegate.qml</file>
         <file>qml/SelectFolderDialog.qml</file>
+        <file>images/app_icon.png</file>
     </qresource>
 </RCC>
