@@ -27,6 +27,8 @@ include_directories("../../ws_client/include")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
+#set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
