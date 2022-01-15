@@ -77,8 +77,8 @@ void IClient::close() {
             client->close();
         }
 
-        delete client;
-        client = nullptr;
+        //delete client;
+        //client = nullptr;
     }
 
 
@@ -91,11 +91,19 @@ void IClient::start() {
     close();
 
     client = new ws_client(ioc, _client_param);
-    client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
+
+    try {
+        client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
+    }
+    catch (std::exception& e){
+        std::cerr << "IClient::start::exception: " << e.what() <<std::endl;
+    }
+
+    std::cout << "IClient::start: exit client thread" << std::endl;
+
     delete client;
     client = nullptr;
 
-    std::cout << "exit client thread" << std::endl;
 }
 
 bool IClient::started() {

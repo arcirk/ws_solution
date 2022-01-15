@@ -11,6 +11,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
+#SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+if(WIN32)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+endif()
+
 add_definitions(-DQT_AGENT_APP)
 
 link_directories("../../ws_client/cmake-build-debug")

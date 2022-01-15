@@ -236,6 +236,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }
         else if(resp->command == "command_to_qt_client"){
 #ifdef QT_QML_CLIENT_APP
+            qDebug() << resp->message;
             if(resp->message == "clientShow")
                 emit clientShow();
 #endif

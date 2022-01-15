@@ -173,11 +173,20 @@ session::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred){
 
-    //std::cerr << ec.value() << std::endl;
-    //std::cout << "on_read stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
+    boost::ignore_unused(bytes_transferred);
 
-//    if(stopped_ == ws_.is_open() )
-//        stopped_ = !ws_.is_open();
+    if(ec == websocket::error::closed){
+        client_->error("read","Server is not available");
+                       //"Сервер не доступен!");
+        return;
+    }
+
+    if(ec.value() == 995){
+        std::string err = "Операция ввода-вывода была прервана";
+        std::cerr << err << std::endl;
+        //client_->error("read", err);
+        return;
+    }
 
     if(ec.value() == 2){
         std::string err = ec.message();
@@ -190,16 +199,12 @@ session::on_read(
 
     boost::ignore_unused(bytes_transferred);
 
-    if(ec == websocket::error::closed){
-        //stop();
-        client_->error("read", "Сервер не доступен!");
-        //return;
-    }
+
     //125 : Операция отменена
     if(ec.value() == 109 || ec.value() == 125){
         std::string err = ec.message();
 #ifdef _WINDOWS
-        err = "Соединение разровано другой стороной!";
+        err = "Соединение разорвано другой стороной!";
 #endif
 
         if (!ws_.is_open())
@@ -209,8 +214,6 @@ session::on_read(
 
         return;
     }
-
-
 
     if(ec){
         return fail(ec, "read");
@@ -287,7 +290,7 @@ session::stop(bool eraseObjOnly)
     //stopped_ = true;
     deadline_.cancel();
     heartbeat_timer_.cancel();
-    client_->on_stop();
+    //client_->on_stop();
     if(!eraseObjOnly)
         ws_.async_close(websocket::close_code::normal,
             beast::bind_front_handler(
@@ -315,6 +318,7 @@ session::on_close(beast::error_code ec)
     if(ec)
         return fail(ec, "close");
 
+    client_->on_stop();
     //stopped_ = true;
 
     // If we get here then the connection is closed gracefully

@@ -163,6 +163,8 @@ on_connect(session * sess){
 void
 ws_client::on_stop() {
 
+    //sessions_.clear();
+
     if (_callback_msg)
     {
         //_started = false;
@@ -179,7 +181,7 @@ ws_client::on_stop() {
     if(status_changed)
         status_changed(false);
 
-    console_log("log: client on_stop");
+    console_log("ws_client::on_stop: client on_stop");
 }
 
 void
@@ -261,12 +263,12 @@ set_user_uuid(const std::string& uuid) {
     is_valid_uuid(uuid, _user_uuid);
 }
 
-std::string &ws_client::get_name() {
+std::string ws_client::get_name() const{
     return name_;
 }
 
-void ws_client::set_name(std::string name) {
-    name_ = std::move(name);
+void ws_client::set_name(const std::string& name) {
+    name_ = name;
 }
 
 void ws_client::set_param(ptree &pt) {
@@ -364,8 +366,10 @@ void ws_client::error(const std::string &what, const std::string &err) {
         auto _msg = ws_message();
         _msg.message().uuid = get_uuid();
         _msg.message().message = err;
-        _msg.message().name = get_name();
-        _msg.message().app_name = get_app_name();
+        if(started()){
+            _msg.message().name = get_name();
+            _msg.message().app_name = get_app_name();
+        }
         _msg.message().command = what;
         _msg.message().result = "error";
 

@@ -319,7 +319,7 @@ void MainWindow::onCloseConnection()
 
 void MainWindow::onQmlError(const QString &what, const QString &err)
 {
-    //qDebug() << "onQmlError" << what << ": " << err;
+    qDebug() << "onQmlError" << what << ": " << err;
     onDisplayError(what, err);
 }
 
@@ -332,17 +332,16 @@ void MainWindow::onConnectedStatusChanged(bool status)
 
 void MainWindow::onClientJoin(const QString &resp)
 {
-    //qDebug() << "onClientJoin" << resp;
+    qDebug() << "MainWindow::onClientJoin";
 }
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    //qDebug() << "onClientLeave" << resp;
+    qDebug() << "MainWindow::onClientLeave";
 }
 
 void MainWindow::openChatApp()
 {
-    //qDebug() << m_client->get_settings()->pathToClient;
     if (m_client->isStarted()){
         QString exeName = "ws_client_qml";
 #ifdef _WINDOWS

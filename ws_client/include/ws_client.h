@@ -46,8 +46,8 @@ public:
     bool started();
     boost::uuids::uuid& get_uuid();
     boost::uuids::uuid& get_user_uuid();
-    std::string& get_name();
-    void set_name(std::string name);
+    std::string get_name() const;
+    void set_name(const std::string& name);
     std::string& get_app_name();
     void set_uuid(const std::string& uuid);
     void set_user_uuid(const std::string& uuid);

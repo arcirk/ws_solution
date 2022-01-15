@@ -2,6 +2,8 @@
 #include <QJsonObject>
 #include <QString>
 
+#pragma warning(disable:4100)
+
 SelectedUsersModel::SelectedUsersModel(QObject * parent )
     : QAbstractTableModel( parent )
 {
@@ -111,12 +113,12 @@ QVariant SelectedUsersModel::headerData(int section, Qt::Orientation orientation
 
 int SelectedUsersModel::rowCount(const QModelIndex &parent ) const
 {
-    return m_json.size();
+    return (int)m_json.size();
 }
 
 int SelectedUsersModel::columnCount(const QModelIndex &parent ) const
 {
-    return m_header.size();
+    return (int)m_header.size();
 }
 
 QJsonObject SelectedUsersModel::getJsonObject( const QModelIndex &index ) const

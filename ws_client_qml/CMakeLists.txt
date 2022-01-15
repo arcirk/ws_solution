@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ws_gclient)
+project(ws_client_qml)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -15,7 +15,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 add_definitions(-DQT_QML_CLIENT_APP)
 
-add_executable(ws_gclient
+add_executable(ws_client_qml
         qml/ChatBox.qml
         qml/IconPane.qml
         qml/ItemGroupPage.qml
@@ -43,8 +43,6 @@ add_executable(ws_gclient
         src/userinfo.cpp
         include/userinfo.h
         qml/UserInfoDialog.qml
-#[[        ../../chared/bwebdav.h
-        ../../chared/bwebdav.cpp]]
         ../chared/qwebdav.h
         ../chared/qwebdav.cpp)
 
@@ -70,7 +68,7 @@ link_directories(
         "../qt_models/project/cmake-build-debug"
 )
 
-target_link_libraries(ws_gclient
+target_link_libraries(ws_client_qml
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
