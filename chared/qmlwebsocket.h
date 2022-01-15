@@ -27,6 +27,7 @@ class bWebSocket : public QObject
     Q_PROPERTY(QString settingsFileName READ getSettingsFileName WRITE setSettingsFileName NOTIFY settingsFileNameChanged);
     Q_PROPERTY(bool isAgentUse READ isAgentUse)
     Q_PROPERTY(bool isAgent READ isAgent);
+    Q_PROPERTY(bool hidden READ isHidden WRITE setHidden NOTIFY hiddenChanged);
 
 public:
     explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "");
@@ -126,6 +127,8 @@ public:
     bool isAgentUse();
     bool isAgent();
     void setIsAgent(bool val);
+    bool isHidden();
+    void setHidden(bool val);
 
     static std::string get_std_parent_path();
 
@@ -145,9 +148,10 @@ private:
     QWebdav * qWebdav;
 
     bool m_is_agent;
+    bool m_hidden;
     QString uuidSessionAgent;
 
-    void responceCommand(ServeResponse * resp);
+    void responseCommand(ServeResponse * resp);
 
 signals:
     void displayError(const QString& what, const QString& err);
@@ -201,6 +205,7 @@ signals:
     void setProgress(double value);
     void webDavError(const QString& err);
 
+    void hiddenChanged(bool value);
 
 private slots:
     void onWebDavError(QNetworkReply::NetworkError type, const QString& error);
@@ -212,6 +217,7 @@ public slots:
     void uploadFinished();
     void downloadError();
     void uploadError();
+
 };
 
 #endif // QMLWEBSOCKET_H

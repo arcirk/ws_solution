@@ -14,39 +14,55 @@ endif()
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 add_definitions(-DQT_QML_CLIENT_APP)
+#
+#find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Network REQUIRED)
+#find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
-add_executable(ws_client_qml
-        qml/ChatBox.qml
-        qml/IconPane.qml
-        qml/ItemGroupPage.qml
-        main.cpp
-        qml/main.qml
-        qml/MainForm.qml
-        qml/MessageBox.qml
-        qml/MessageDialog.qml
-        src/messagelistmodel.cpp
-        include/messagelistmodel.h
-        qml.qrc
-        qml/RoundPane.qml
-        scripts/scripts.js
-        src/selectedusersmodel.cpp
-        include/selectedusersmodel.h
-        qml/SmaileBox.qml
-        qml/UsersBox.qml
-        qml/UsersGroup.qml
-        ../chared/clientsettings.h
-        ../chared/serveresponse.h
-        ../chared/qmlwebsocket.h
-        ../chared/clientsettings.cpp
-        ../chared/serveresponse.cpp
-        ../chared/qmlwebsocket.cpp
-        src/userinfo.cpp
-        include/userinfo.h
-        qml/UserInfoDialog.qml
-        ../chared/qwebdav.h
-        ../chared/qwebdav.cpp)
+set(PROJECT_SOURCES
+    qml/ChatBox.qml
+    qml/IconPane.qml
+    qml/ItemGroupPage.qml
+    main.cpp
+    qml/main.qml
+    qml/MainForm.qml
+    qml/MessageBox.qml
+    qml/MessageDialog.qml
+    src/messagelistmodel.cpp
+    include/messagelistmodel.h
+    qml.qrc
+    qml/RoundPane.qml
+    scripts/scripts.js
+    src/selectedusersmodel.cpp
+    include/selectedusersmodel.h
+    qml/SmaileBox.qml
+    qml/UsersBox.qml
+    qml/UsersGroup.qml
+    ../chared/clientsettings.h
+    ../chared/serveresponse.h
+    ../chared/qmlwebsocket.h
+    ../chared/clientsettings.cpp
+    ../chared/serveresponse.cpp
+    ../chared/qmlwebsocket.cpp
+    src/userinfo.cpp
+    include/userinfo.h
+    qml/UserInfoDialog.qml
+    ../chared/qwebdav.h
+    ../chared/qwebdav.cpp)
 
 
+
+if(WIN32)
+    if(CMAKE_BUILD_TYPE MATCHES DEBUG)
+        add_executable(ws_client_qml
+                ${PROJECT_SOURCES})
+    else()
+        add_executable(ws_client_qml WIN32
+                ${PROJECT_SOURCES})
+    endif()
+else()
+    add_executable(ws_client_qml
+        ${PROJECT_SOURCES})
+endif()
 
 find_package(Qt6 COMPONENTS
         Core
@@ -68,7 +84,7 @@ link_directories(
         "../qt_models/project/cmake-build-debug"
 )
 
-target_link_libraries(ws_client_qml
+target_link_libraries(ws_client_qml PRIVATE
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
@@ -84,20 +100,11 @@ target_link_libraries(ws_client_qml
 
 
 
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    message("debug mode")
-ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+#IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+#    message("debug mode")
+#ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#add_custom_command(
-#        TARGET ws_gclient POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#        $<TARGET_FILE:Qt6::Widgets>
-#        $<TARGET_FILE:Qt6::Core>
-#        $<TARGET_FILE:Qt6::Gui>
-#        $<TARGET_FILE:Qt6::Qml>
-#        $<TARGET_FILE:Qt6::Quick>
-#        $<TARGET_FILE:Qt6::QmlModels>
-#        $<TARGET_FILE:Qt6::QuickWidgets>
-#        $<TARGET_FILE:Qt6::QuickControls2>)
+#if(QT_VERSION_MAJOR EQUAL 6)
+#    qt_finalize_executable(ws_client_qml)
 #endif()
+

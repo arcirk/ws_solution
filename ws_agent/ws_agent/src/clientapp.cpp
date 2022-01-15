@@ -24,6 +24,7 @@ ClientApp::ClientApp(QObject *parent) :
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &ClientApp::finished);
 
     m_listening = false;
+    m_hidden = true;
 
 }
 
@@ -134,4 +135,12 @@ bool ClientApp::isStarted() {
 ClientSettings &ClientApp::options()
 {
     return settings;
+}
+
+bool ClientApp::isHidden() {
+    return m_hidden;
+}
+
+void ClientApp::setClientHidden(bool value) {
+    m_hidden = value;
 }

@@ -127,10 +127,19 @@ ApplicationWindow {
 
         onClientShow: {
             mainForm.show();
+            //wsClient.setHidden(false)
+            wsClient.hidden = false;
         }
 
         onSetProgress: function(value){
             mainChatBox.setProgressValue(value);
+        }
+
+        onHiddenChanged: function(value){
+            if(agentUsed){
+                var result = value ? "true":"false"
+                wsClient.sendCommand("command_to_qt_agent", "", "{\"command\":\"hiddenChanged\", \"message\"" + result + "\"}")
+            }
         }
     }
 
@@ -156,6 +165,8 @@ ApplicationWindow {
     onClosing: {
         if(agentUsed){
             mainForm.hide();
+            //wsClient.setHidden(true)
+            wsClient.hidden = true;
         }else{
             if(wsClient.started){
                 var cache = mainChatBox.getActiveUsersJsonText()

@@ -49,9 +49,10 @@ private slots:
     void onConnectedStatusChanged(bool status);
     void onClientJoin(const QString& resp);
     void onClientLeave(const QString& resp);
+    void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
 
     void openChatApp();
-
+    void onHiddenChanged(bool value);
     void on_pathToClient_editingFinished();
 
     void onDisplayError(const QString& what, const QString& err);

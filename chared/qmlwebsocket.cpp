@@ -41,6 +41,7 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
     connect(qWebdav, &QWebdav::uploadProgress, this, &bWebSocket::onUploadProgress);
 
     m_is_agent = false;
+    m_hidden = false;
 }
 
 bWebSocket::~bWebSocket()
@@ -238,7 +239,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #ifdef QT_QML_CLIENT_APP
             qDebug() << resp->message;
             if(resp->message == "clientShow")
+                //m_hidden = true;
                 emit clientShow();
+                //emit hiddenChanged(m_hidden);
 #endif
         }
         else if(resp->command == "get_group_list"){
@@ -275,7 +278,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
 #ifdef QT_AGENT_APP
-            responceCommand(resp);
+            responseCommand(resp);
 #endif
         }
         else
@@ -587,7 +590,7 @@ QStringList bWebSocket::getImageMimeType()
     return result;
 }
 
-void bWebSocket::responceCommand(ServeResponse * resp)
+void bWebSocket::responseCommand(ServeResponse * resp)
 {
     QJsonDocument doc = QJsonDocument::fromJson(resp->message.toUtf8());
     if(!doc.isObject())
@@ -600,6 +603,15 @@ void bWebSocket::responceCommand(ServeResponse * resp)
         joinClientToAgent(resp);
     else if(command== "displayError")
         emit displayError("Ошибка", message);
+    else if(command == "hiddenChanged"){
+        if (message == "true")
+            m_hidden = true;
+        else
+            m_hidden = false;
+        if(m_is_agent){
+            emit hiddenChanged(m_hidden);
+        }
+    }
 }
 
 void bWebSocket::registerToAgent(const QString &uuid) {
@@ -882,4 +894,12 @@ void bWebSocket::uploadError()
 
 std::string bWebSocket::get_std_parent_path() {
     return IClient::get_parent_path();
+}
+
+void bWebSocket::setHidden(bool val) {
+    m_hidden = val;
+}
+
+bool bWebSocket::isHidden() {
+    return m_hidden;
 }

@@ -20,7 +20,8 @@ public:
     void setParams(QStringList& param);
     void setAppPath(const QString& appPath);
     bool isStarted();
-
+    bool isHidden();
+    void setClientHidden(bool value);
     ClientSettings & options();
 
 public slots:
@@ -44,7 +45,7 @@ private:
     QStringList params;
     QString app_path;
     ClientSettings settings;
-
+    bool m_hidden;
 //    //bool running;
 //    QString m_address;
     bool m_listening;

@@ -116,7 +116,7 @@ void OptionsDialog::on_ServerHost_editingFinished()
 
 void OptionsDialog::on_ServerPort_valueChanged(double arg1)
 {
-    settings[bConfFieldsWrapper::ServerPort] = arg1;
+    settings[bConfFieldsWrapper::ServerPort] = (int)arg1;
 }
 
 void OptionsDialog::on_RootUser_editingFinished()

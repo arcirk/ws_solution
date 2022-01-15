@@ -39,39 +39,47 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS
         Network
         REQUIRED)
 
-add_executable(ws_admin
-        main.cpp
-        resources.qrc
-        ../chared/clientsettings.h
-        ../chared/qmlwebsocket.h
-        ../chared/serveresponse.h
-        ../chared/clientsettings.cpp
-        ../chared/qmlwebsocket.cpp
-        ../chared/serveresponse.cpp
-        ../chared/qwebdav.h
-        ../chared/qwebdav.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        include/optionsdialog.h
-        src/optionsdialog.cpp
-        form/optionsdialog.ui
-        include/groupdialog.h
-        src/groupdialog.cpp
-        form/groupdialog.ui
-        include/userdialog.h
-        src/userdialog.cpp
-        form/userdialog.ui
-        include/directoryinfobasedialog.h
-        src/directoryinfobasedialog.cpp
-        form/directoryinfobasedialog.ui
-        include/aboutdialog.h
-        src/aboutdialog.cpp
-        form/aboutdialog.ui
-        include/selectgroupdialog.h
-        src/selectgroupdialog.cpp
-        form/selectgroupdialog.ui
-        )
+set(PROJECT_SOURCES
+   main.cpp
+   resources.qrc
+   ../chared/clientsettings.h
+   ../chared/qmlwebsocket.h
+   ../chared/serveresponse.h
+   ../chared/clientsettings.cpp
+   ../chared/qmlwebsocket.cpp
+   ../chared/serveresponse.cpp
+   ../chared/qwebdav.h
+   ../chared/qwebdav.cpp
+   mainwindow.cpp
+   mainwindow.h
+   mainwindow.ui
+   include/optionsdialog.h
+   src/optionsdialog.cpp
+   form/optionsdialog.ui
+   include/groupdialog.h
+   src/groupdialog.cpp
+   form/groupdialog.ui
+   include/userdialog.h
+   src/userdialog.cpp
+   form/userdialog.ui
+   include/directoryinfobasedialog.h
+   src/directoryinfobasedialog.cpp
+   form/directoryinfobasedialog.ui
+   include/aboutdialog.h
+   src/aboutdialog.cpp
+   form/aboutdialog.ui
+   include/selectgroupdialog.h
+   src/selectgroupdialog.cpp
+   form/selectgroupdialog.ui
+   )
+
+if(WIN32)
+     add_executable(ws_admin WIN32
+             ${PROJECT_SOURCES})
+else()
+     add_executable(ws_admin
+             ${PROJECT_SOURCES})
+endif()
 
 include_directories("../ws_client/include")
 #include_directories("../qt_models/project/include")

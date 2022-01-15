@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     isServiceStarted = false;
 #endif
     if(isServiceStarted)
-        lblStatusService->setText("Сервис запущен на локальном комьютере.");
+        lblStatusService->setText("Сервис запущен на локальном компьютере.");
     else
         lblStatusService->setText("Сервис не запущен.");
 
@@ -155,6 +155,7 @@ void MainWindow::on_mnuOptions_triggered()
         if(client->isStarted()){
             client->setWebDavSettingsToServer();
         }
+        fillTree(client->isStarted());
     }
 
     delete optDlg;
