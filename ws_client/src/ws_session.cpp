@@ -176,8 +176,9 @@ session::on_read(
     boost::ignore_unused(bytes_transferred);
 
     if(ec == websocket::error::closed){
-        client_->error("read","Server is not available");
+        //client_->error("read","Server is not available");
                        //"Сервер не доступен!");
+        client_->error("read","Сервер не доступен!");
         return;
     }
 
@@ -196,9 +197,6 @@ session::on_read(
         client_->error("read", err);
         return;
     }
-
-    boost::ignore_unused(bytes_transferred);
-
 
     //125 : Операция отменена
     if(ec.value() == 109 || ec.value() == 125){

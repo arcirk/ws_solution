@@ -50,6 +50,7 @@ public:
     Q_INVOKABLE void removeGroup(const QString& uuid);
 
     Q_INVOKABLE void sendCommand(const QString& cmd, const QString& uuidForm = "", const QString& param = "");
+    Q_INVOKABLE void sendCommandToAgent(const QString& cmd, const QString& msg);
 
     //agent
     Q_INVOKABLE void agentClientShow();

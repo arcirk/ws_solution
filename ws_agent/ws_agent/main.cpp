@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
         return 1;
     }
     QApplication::setQuitOnLastWindowClosed(false);
-
+    QIcon appIcon(":/img/images/app_icon.png");
+    QApplication::setWindowIcon(appIcon);
     MainWindow w;
     w.show();
     return a.exec();

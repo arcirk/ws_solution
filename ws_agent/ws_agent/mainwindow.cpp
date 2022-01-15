@@ -111,11 +111,11 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::setIcon()
 {
-    QIcon icon = QIcon(":/img/icons8-connected-people-48.png"); //iconComboBox->itemIcon(index);
+    QIcon icon = QIcon(":/img/images/conn_people.svg"); //iconComboBox->itemIcon(index);
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
 
-    trayIcon->setToolTip("Чат стартер");
+    trayIcon->setToolTip("Чат агент");
 }
 
 void MainWindow::setVisible(bool visible)
@@ -150,15 +150,12 @@ void MainWindow::createActions()
 {
     openQmlClient = new QAction(tr("Открыть &чат"), this);
     connect(openQmlClient, &QAction::triggered, this, &MainWindow::openChatApp);
-
-//    maximizeAction = new QAction(tr("Ma&ximize"), this);
-//    connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
+    openQmlClient->setIcon(QIcon(":/img/images/app_icon.png"));
 
     restoreAction = new QAction(tr("&Открыть настройки"), this);
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
 
     quitAction = new QAction(tr("&Выйти"), this);
-    //connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
     connect(quitAction, &QAction::triggered, this, &MainWindow::appExit);
 
     closeConnect = new QAction(tr("Отключится"), this);
@@ -202,9 +199,10 @@ void MainWindow::showMessage()
 
 void MainWindow::messageClicked()
 {
-    QMessageBox::information(nullptr, tr("Чат"),
-                             tr("Sorry, I already gave what help I could.\n"
-                                "Maybe you should try asking a human?"));
+//    QMessageBox::information(nullptr, tr("Чат"),
+//                             tr("Sorry, I already gave what help I could.\n"
+//                                "Maybe you should try asking a human?"));
+    openChatApp();
 }
 
 
@@ -351,7 +349,7 @@ void MainWindow::openChatApp()
         exeName = "ws_client_qml.exe";
 #endif
         QString pathToClient = QDir::fromNativeSeparators(m_client_app.options()[bConfFieldsWrapper::ClientWorkingDirectory].toString() + QDir::separator() + exeName);
-        qDebug() << pathToClient;
+        //qDebug() << pathToClient;
         if(fileExists(pathToClient)){
             if(!m_client_app.isStarted()){
                 QStringList m_arg;
@@ -488,29 +486,26 @@ void MainWindow::on_btnExit_clicked()
 void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient,
                                    const QString &recipientName) {
 
-    QString message = QString::fromStdString(IClient::base64_decode(msg.toStdString()));
+    if(!m_client_app.isStarted() || m_client_app.isHidden()){
+        QString message = QString::fromStdString(IClient::base64_decode(msg.toStdString()));
 
-    QJsonObject _msg = QJsonDocument::fromJson(message.toUtf8()).object();
+        QJsonObject _msg = QJsonDocument::fromJson(message.toUtf8()).object();
 
-    QJsonArray rows = _msg.value("rows").toArray();
+        QJsonArray rows = _msg.value("rows").toArray();
 
-    if(rows.size() > 0){
-        QJsonObject obj = rows[0].toObject();
-        QString _base64 = obj.value("message").toString();
-        QString _message = QString::fromStdString(IClient::base64_decode(_base64.toStdString()));
-        QJsonObject objMsg = QJsonDocument::fromJson(_message.toUtf8()).object();
-        QString r = QString::fromStdString(IClient::base64_decode(objMsg.value("message").toString().toStdString()));
+        if(rows.size() > 0){
+            QJsonObject obj = rows[0].toObject();
+            QString _base64 = obj.value("message").toString();
+            QString _message = QString::fromStdString(IClient::base64_decode(_base64.toStdString()));
+            QJsonObject objMsg = QJsonDocument::fromJson(_message.toUtf8()).object();
+            QString r = QString::fromStdString(IClient::base64_decode(objMsg.value("message").toString().toStdString()));
 
-        QTextEdit * edt = new QTextEdit(this);
-        edt->setHtml(r);
-        QIcon msgIcon(":/img/images/message.png");
-        trayIcon->showMessage(recipientName, edt->toPlainText(), msgIcon,
-                              3 * 1000);
-//        qDebug()<< qPrintable(r);
-//        QTextEdit * edt = new QTextEdit(this);
-//        edt->setHtml(r);
-//        qDebug()<< qPrintable(edt->toPlainText());
-        //std::cout << r.toStdString() <<std::endl;
+            QTextEdit * edt = new QTextEdit(this);
+            edt->setHtml(r);
+            QIcon msgIcon(":/img/images/message.png");
+            trayIcon->showMessage(recipientName, edt->toPlainText(), msgIcon,
+                                  3 * 1000);
+        }
     }
 
 }

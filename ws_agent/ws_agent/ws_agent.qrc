@@ -6,5 +6,11 @@
         <file>images/view_show_icon_124811.svg</file>
         <file>images/381599_error_icon.svg</file>
         <file>images/message.png</file>
+        <file>images/app_icon.png</file>
+        <file>images/transfer.svg</file>
+        <file>images/link.svg</file>
+        <file>images/conn_people.svg</file>
+        <file>images/network.svg</file>
+        <file>images/linkpeople.svg</file>
     </qresource>
 </RCC>

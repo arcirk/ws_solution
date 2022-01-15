@@ -238,10 +238,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         else if(resp->command == "command_to_qt_client"){
 #ifdef QT_QML_CLIENT_APP
             qDebug() << resp->message;
-            if(resp->message == "clientShow")
-                //m_hidden = true;
+            if(resp->message == "clientShow"){
                 emit clientShow();
-                //emit hiddenChanged(m_hidden);
+            }
 #endif
         }
         else if(resp->command == "get_group_list"){
@@ -886,6 +885,26 @@ void bWebSocket::downloadError()
     }
 }
 
+void bWebSocket::sendCommandToAgent(const QString &cmd, const QString &msg) {
+
+    qDebug() << "bWebSocket::sendCommandToAgent";
+
+    if(isAgentUse()){
+        QJsonObject obj = QJsonObject();
+        obj.insert("uuid_agent", uuidSessionAgent);
+        obj.insert("uuid_client", getUuidSession());
+        obj.insert("command", cmd);
+        obj.insert("message", QString("{\"command\":\"%1\", \"message\":\"%2\"}").arg(cmd, msg));
+
+
+        QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+        if(client->started()){
+            client->send_command("command_to_qt_agent", "", param.toStdString());
+        }
+
+    }
+}
+
 void bWebSocket::uploadError()
 {
     //qDebug() << "ошибка загрузки файла на сервера!";
@@ -898,6 +917,7 @@ std::string bWebSocket::get_std_parent_path() {
 
 void bWebSocket::setHidden(bool val) {
     m_hidden = val;
+    emit hiddenChanged(m_hidden);
 }
 
 bool bWebSocket::isHidden() {

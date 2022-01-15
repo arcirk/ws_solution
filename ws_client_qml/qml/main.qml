@@ -136,10 +136,11 @@ ApplicationWindow {
         }
 
         onHiddenChanged: function(value){
-            if(agentUsed){
+            //if(agentUsed){
                 var result = value ? "true":"false"
-                wsClient.sendCommand("command_to_qt_agent", "", "{\"command\":\"hiddenChanged\", \"message\"" + result + "\"}")
-            }
+                //wsClient.sendCommand("command_to_qt_agent", "", "{\"command\":\"hiddenChanged\", \"message\":\"" + result + "\"}")
+                wsClient.sendCommandToAgent("hiddenChanged", result)
+            //}
         }
     }
 
