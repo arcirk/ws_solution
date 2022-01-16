@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.10)
-project(ws_drv)
+cmake_minimum_required(VERSION 3.19)
+project(ws_drv VERSION 1.0.1 DESCRIPTION "websocket client for 1C")
 
 set(CMAKE_CXX_STANDARD 17)
 set(TARGET ws_drv)
@@ -7,6 +7,11 @@ set(TARGET ws_drv)
 option(CASE_INSENSITIVE "Case insensitive method names" OFF)
 option(STATIC_CRT "Static CRT linkage" OFF)
 option(OUT_PARAMS "Support output parameters" OFF)
+
+if(WIN32)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+endif()
 
 list(APPEND SOURCES
         src/addin.def
@@ -23,6 +28,14 @@ list(APPEND SOURCES
         ../ws_client/include/ws_client.h
         ../ws_client/src/ws_session.cpp
         ../ws_client/src/ws_client.cpp
+        ../ws_client/src/iws_client.cpp
+        ../ws_client/include/iws_client.h
+        ../arcirk/src/arcirk.cpp
+        ../arcirk/src/arcirk_static.cpp
+        ../arcirk/src/arcirk_json.cpp
+        ../arcirk/src/arcirk_ip.cpp
+        ../arcirk/src/arcirk_message.cpp
+        ../arcirk/src/arcirk_settings.cpp
         )
 
 if (ANDROID)
@@ -34,9 +47,9 @@ endif ()
 add_library(${TARGET} SHARED
         ${SOURCES})
 
-target_compile_definitions(${TARGET} PRIVATE
-        UNICODE
-        _UNICODE)
+#target_compile_definitions(${TARGET} PRIVATE
+#        UNICODE
+#        _UNICODE)
 
 if (CASE_INSENSITIVE)
     target_compile_definitions(${TARGET} PRIVATE CASE_INSENSITIVE)
@@ -108,17 +121,46 @@ else()
     set (NMOS_CPP_SYSTEM_LIBS )
 endif()
 
-find_package(Boost REQUIRED COMPONENTS regex)
-find_package(Boost COMPONENTS thread REQUIRED)
+if (UNIX)
+    find_package(Boost REQUIRED COMPONENTS thread regex filesystem)
+else()
+    find_package(Boost REQUIRED COMPONENTS regex)
+endif()
+
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries( ${TARGET}
+include_directories("../ws_client/include")
+include_directories("../arcirk/include")
+
+if (UNIX)
+    target_link_libraries(${TARGET}
+            ${Boost_LIBRARIES}
+            Boost::thread
+            Boost::filesystem
+            ${NMOS_CPP_SYSTEM_LIBS}
+            )
+else()
+    target_link_libraries(${TARGET}  PRIVATE
+            ${Boost_LIBRARIES}
+            ${NMOS_CPP_SYSTEM_LIBS}
+            )
+endif()
+
+
+if (UNIX)
+target_link_libraries( ${TARGET} PRIVATE
         ${Boost_LIBRARIES}
         Boost::thread
         ${NMOS_CPP_SYSTEM_LIBS}
 )
+else()
+    target_link_libraries( ${TARGET} PRIVATE
+            ${Boost_LIBRARIES}
+            ${NMOS_CPP_SYSTEM_LIBS}
+            )
+endif()
 
 
-include_directories("../ws_client/include")
+
 
 ADD_CUSTOM_COMMAND(TARGET ${TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv)
 
@@ -129,26 +171,26 @@ ADD_CUSTOM_COMMAND(
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX} ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv
 )
 
-ADD_CUSTOM_COMMAND(
-        TARGET ${TARGET}
-        POST_BUILD
-        COMMENT "Copying resources..."
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/res/* ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv
-)
+#ADD_CUSTOM_COMMAND(
+#        TARGET ${TARGET}
+#        POST_BUILD
+#        COMMENT "Copying resources..."
+#        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/res/* ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv
+#)
 
-if (UNIX)
-    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
-            POST_BUILD
-            COMMENT "Archive layout..."
-            COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/install.sh
-            )
-else()
-    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
-            POST_BUILD
-            COMMENT "Archive layout..."
-            COMMAND 7z a -tzip -mx5 -r0  ../bin/layout.zip ../bin/ws_drv/*
-            )
-endif ()
+#if (UNIX)
+#    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
+#            POST_BUILD
+#            COMMENT "Archive layout..."
+#            COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/install.sh
+#            )
+#else()
+#    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
+#            POST_BUILD
+#            COMMENT "Archive layout..."
+#            COMMAND 7z a -tzip -mx5 -r0  ../bin/layout.zip ../bin/ws_drv/*
+#            )
+#endif ()
 
 #if (UNIX)
 #add_custom_command(

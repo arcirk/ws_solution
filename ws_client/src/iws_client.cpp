@@ -362,7 +362,7 @@ std::string IClient::get_hash(const std::string &usr, const std::string &pwd) {
 }
 
 std::string IClient::get_app_uuid() const {
-    if (client->started())
+    if (client)
         return arcirk::uuid_to_string(client->get_uuid());
     else
         return app_uuid;
@@ -412,7 +412,10 @@ void IClient::get_users_catalog(const std::string &uuid_form) {
 
 std::string IClient::get_user_uuid() const {
 
-    return uuid_to_string(client->get_user_uuid());
+    if(client)
+        return uuid_to_string(client->get_user_uuid());
+    else
+        return IClient::nil_string_uuid();
 }
 
 void IClient::get_user_cache(const std::string &uuid_form) {

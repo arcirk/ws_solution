@@ -23,12 +23,11 @@
 #include "Component.h"
 
 #ifdef _WINDOWS
-    #include "../../ws_client/include/net.h"
-    #include "../../ws_client/include/ws_client.h"
-#else
-    #include "./ws_client.h"
+    #include <net.h>
 #endif // _WINDOWS
 
+#include <iws_client.h>
+#include <arcirk.h>
 
 class ws_drv final : public Component {
 public:
@@ -42,8 +41,12 @@ public:
     ws_drv();
 
     void ext_message(const std::string& msg);
+    void status_changed(bool status);
 
 private:
+
+    bool _pwdEdit;
+
     std::string extensionName() override;
 
     void message(const variant_t &msg);
@@ -58,12 +61,12 @@ private:
 
     void send(const variant_t& msg, const variant_t& sub_user_uuid, const variant_t& uuid_form);
 
-    void start();
+    //void start();
 
 //    void start(const std::string &uuid, const std::string &name, const std::string &pwd,
 //               const std::string &s_user_uuid);
 
-    void start_();
+   // void start_();
 
     bool started();
 
@@ -71,17 +74,17 @@ private:
 
     std::string get_current_name();
 
-    void join_channel(const variant_t &uuid, const variant_t &uuid_form);
-
-    void close_channel(const variant_t &uuid, const variant_t &uuid_form);
+//    void join_channel(const variant_t &uuid, const variant_t &uuid_form);
+//
+//    void close_channel(const variant_t &uuid, const variant_t &uuid_form);
 
     void set_log(const std::string &msg, const std::string &filename);
 
-    void to_channel(const variant_t& msg, const variant_t& uuid_sub, const variant_t& uuid_form);
+//    void to_channel(const variant_t& msg, const variant_t& uuid_sub, const variant_t& uuid_form);
 
     //Команда серверу
     void send_command(const variant_t& cmd, const variant_t& uuid_form, const variant_t& param);
-    void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
+    //void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
 
     std::string get_hash(const variant_t &usr, const variant_t &pwd);
     variant_t currentDate();
@@ -97,7 +100,9 @@ private:
     void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
     void remove_user(const variant_t &user_uuid, const variant_t &uuid_form);
 
-    ws_client* client;
+    IClient* client;
+    arcirk::bConf settings;
+
     variant_t _client_param;
 
 };
