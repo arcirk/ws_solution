@@ -1,10 +1,10 @@
 #include "../include/userdialog.h"
 
-//#ifndef USE_QT_CREATOR
+#ifndef USE_QT_CREATOR
+#include "../form/ui_userdialog.h"
+#else
 #include "ui_userdialog.h"
-//#else
-//#include "ui_userdialog.h"
-//#endif
+#endif
 
 #include "../include/directoryinfobasedialog.h"
 

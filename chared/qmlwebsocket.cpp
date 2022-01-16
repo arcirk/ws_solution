@@ -426,7 +426,8 @@ void bWebSocket::updateSettings()
 {
     QString confFileName = settings.confFileName();
     settings = ClientSettings(confFileName, false);
-    client->set_webdav_settings_on_client(settings.to_string().toStdString());
+    if(client->started())
+        client->set_webdav_settings_on_client(settings.to_string().toStdString());
 }
 
 const QString bWebSocket::nilUuid()
@@ -441,17 +442,20 @@ const QString bWebSocket::randomUuid()
 
 void bWebSocket::removeUser(const QString &uuid)
 {
-    client->remove_user(uuid.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->remove_user(uuid.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::setParent(const QString &uuid, const QString &parent)
 {
-    client->set_parent(uuid.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->set_parent(uuid.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::killSession(const QString &uuid)
 {
-    client->kill_session(uuid.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->kill_session(uuid.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::setWebDavSettingsToClient(const QString &resp)
@@ -469,7 +473,8 @@ void bWebSocket::setWebDavSettingsToClient(const QString &resp)
 void bWebSocket::setWebDavSettingsToServer()
 {
     updateSettings();
-    client->set_webdav_settings_on_server();
+    if(client->started())
+        client->set_webdav_settings_on_server();
 }
 
 bool bWebSocket::isAgentUse()
@@ -508,22 +513,26 @@ void bWebSocket::setUuidSessAgent(const QString &uuid)
 
 void bWebSocket::getUsers(const QString &parent)
 {
-    client->get_users(parent.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->get_users(parent.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::addGroup(const QString &name, const QString &presentation, const QString &parent)
 {
-    client->add_group(name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->add_group(name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::editGroup(const QString &uuid, const QString &name, const QString &presentation, const QString &parent)
 {
-    client->edit_group(uuid.toStdString(), name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->edit_group(uuid.toStdString(), name.toStdString(), presentation.toStdString(), parent.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::removeGroup(const QString &uuid)
 {
-    client->remove_group(uuid.toStdString(), IClient::nil_string_uuid());
+    if(client->started())
+        client->remove_group(uuid.toStdString(), IClient::nil_string_uuid());
 }
 
 void bWebSocket::sendCommand(const QString &cmd, const QString &uuidForm, const QString &param)
@@ -532,7 +541,8 @@ void bWebSocket::sendCommand(const QString &cmd, const QString &uuidForm, const 
     if(form.empty())
         form = IClient::nil_string_uuid();
 
-    client->send_command(cmd.toStdString(), form, param.toStdString());
+    if(client->started())
+        client->send_command(cmd.toStdString(), form, param.toStdString());
 }
 
 ClientSettings &bWebSocket::options() {

@@ -134,6 +134,9 @@ void MainWindow::visibilityControl(bool visible, bool isSessions) {
 
 MainWindow::~MainWindow()
 {
+    if(client->isStarted()){
+        client->close();
+    }
     delete ui;
 }
 

@@ -1,10 +1,10 @@
 #include "../include/groupdialog.h"
 
-//#ifndef USE_QT_CREATOR
+#ifndef USE_QT_CREATOR
+#include "../form/ui_groupdialog.h"
+#else
 #include "ui_groupdialog.h"
-//#else
-//#include "ui_groupdialog.h"
-//#endif
+#endif
 
 #include <qmlwebsocket.h>
 

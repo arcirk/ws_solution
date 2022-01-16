@@ -300,8 +300,6 @@ void ws_drv::send_command_(const std::string &cmd, const std::string &uuid_form,
 
 void ws_drv::to_channel(const variant_t &msg, const variant_t &uuid_sub, const variant_t &uuid_form) {
 
-    //отправка сообщения в канал
-
     std::string _msg = std::get<std::string>(msg);
     std::string _uuid_form = std::get<std::string>(uuid_form);
     std::string _uuid_sub = std::get<std::string>(uuid_sub);
@@ -356,20 +354,6 @@ void ws_drv::join_channel(const variant_t &uuid_sub, const variant_t &uuid_form)
 
 void ws_drv::close_channel(const variant_t &uuid_sub, const variant_t &uuid_form) {
     if (client){
-        //        std::string uuid_channel = std::get<std::string>(uuid_sub);
-        //        std::string  msg = client->create_message(
-        //                arc_json::uuid_to_string(client->get_uuid()),
-        //                "subscribe_close_channel",
-        //                client->get_name(),
-        //                uuid_channel,
-        //                "1cv8",
-        //                std::get<std::string>(uuid_form),
-        //                "",
-        //                "subscribe_close_channel");
-        //
-        //        set_log(arc_json::base64_decode(msg), "/command.log");
-        //
-        //        client->send("cmd " + msg, false);
         try {
             std::string uuid_channel(std::get<std::string>(uuid_sub));
             std::string _uuid_form(std::get<std::string>(uuid_form));
