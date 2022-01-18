@@ -70,7 +70,7 @@ namespace arcirk{
 
         if (!exists(path(fileName))){
             if(public_settings)
-                m_vec[AppName] = "server";
+                m_vec[bConfFields::AppName] = "server";
             if(!no_save_def)
             save();
         }
