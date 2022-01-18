@@ -80,13 +80,13 @@ namespace arcirk{
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     class bVariant{
         public:
-            bVariant(const std::string& val):value(std::move(val)){}
-            bVariant(const char* val):value(std::string(std::move(val))){}
-            bVariant(long int val):value((long int)val){}
-            bVariant(double val):value((double)val){}
-            bVariant(int val):value((long int)val){}
-            bVariant(bool val):value((bool)val){}
-            bVariant(boost::uuids::uuid val):value(val){}
+            explicit bVariant(const std::string& val):value(std::move(val)){}
+            explicit bVariant(const char* val):value(std::string(std::move(val))){}
+            explicit bVariant(long int val):value((long int)val){}
+            explicit bVariant(double val):value((double)val){}
+            explicit bVariant(int val):value((long int)val){}
+            explicit bVariant(bool val):value((bool)val){}
+            explicit bVariant(boost::uuids::uuid val):value(val){}
             bVariant() = default;
 
             std::string get_string();
@@ -111,7 +111,7 @@ namespace arcirk{
         bVariant value;
 
         content_value(const std::string& key_, const bVariant& val)
-                : key(std::move(key_)) { value = val; }
+                : key(key_) { value = val; }
 
         content_value() = default;
 
@@ -123,27 +123,18 @@ namespace arcirk{
 
         bool from_file(const std::string& filename);
         bool to_file(const std::string& filename);
-        //
-        //        bool getMember(const std::string &member, std::string &result);
-        //        bool getMember(const std::string &member, int &result);
         bool getMember(const std::string &member, bVariant &value);
         bVariant get_member(const std::string &member);
-        //        std::string getStringMember(const std::string &member);
         static bool getMembers(_Document *doc, const std::string &member, std::vector<content_value> &value);
         bool getMembers(const std::string &member, std::vector<content_value> &value);
-        //        bool getMembers(const std::string &member, std::vector <std::vector<content_value>> &value);
-        //
         static void addMember(_Document * doc, content_value& value);
         static void addMember(_Document *doc, content_value &val, bool updateIsExists);
-
         void addMember(content_value value) { addMember(this, value); };
         void addMember(content_value value, bool updateIsExists) { addMember(this, value, updateIsExists); };
         void addMember(_Value* object, content_value val);
         void addMember(const std::string& key, _Value& value);
         void addMember(const std::string &member, bVariant value);
-        //void addMember(const std::string &member, bVariant &value);
 
-        //        void addObjectMember(_Value * object, content_value val);
         void addObject(_Document * doc, std::vector<content_value> &values);
         void addObject(std::vector<content_value> &values);
         //
@@ -158,13 +149,7 @@ namespace arcirk{
 
         static bool parse_pt(const std::string& json, ptree& pt);
         static std::string get_pt_member(ptree& pt, const std::string& key);
-        //
-        //        _Value::ConstMemberIterator MemberBegin_(){return this->MemberBegin();};
-        //        _Value::ConstMemberIterator MemberEnd_(){return this->MemberEnd();};
-        //
-        //        bool is_object(){return this->IsObject();};
-        //        bool is_array(){return this->IsArray();};
-        //
+
         void push_back(_Value &value);
         void push_back(_Value &arr, bVariant& val);
         void push_back(_Value &arr, _Value& val);
@@ -175,7 +160,7 @@ namespace arcirk{
         unsigned int get_member_count();
 
     private:
-        bool is_parse_;
+        bool is_parse_ = false;
 
     };
 
@@ -186,79 +171,77 @@ namespace arcirk{
             static std::string get_default_host(const std::string& def_host);
     };
 
-    //namespace websockets{
+    typedef std::function<void(bVariant&)> setFun;
 
-        typedef std::function<void(bVariant&)> setFun;
+    typedef struct _ws_message{
+    public:
+        boost::uuids::uuid  uuid;
+        std::string         name;
+        boost::uuids::uuid  uuid_channel;
+        std::string         message;
+        boost::uuids::uuid  uuid_form;
+        std::string         command;
+        std::string         hash;
+        std::string         app_name;
+        std::string         result;
+        std::string         role;
+        std::string         presentation;
+        boost::uuids::uuid  uuid_user;
+        std::string         contentType;
+        std::string         channel_name;
+        std::string         object_name;
+        std::string         msg_ref;
 
-        typedef struct _ws_message{
+        _ws_message();
+
+        static std::vector<std::string> get_fields();
+        void set_value(const std::string& nameField, bVariant& val);
+
+    private:
+        void set_uuid(bVariant& val);
+        void set_uuid_user(bVariant& val);
+        void set_uuid_form(bVariant& val);
+        void set_uuid_channel(bVariant& val);
+        void set_name(bVariant& val);
+        void set_message(bVariant& val);
+        void set_command(bVariant& val);
+        void set_hash(bVariant& val);
+        void set_app_name(bVariant& val);
+        void set_result(bVariant& val);
+        void set_role(bVariant& val);
+        void set_presentation(bVariant& val);
+        void set_contentType(bVariant& val);
+        void set_channel_name(bVariant& val);
+        void set_object_name(bVariant& val);
+        void set_msg_ref(bVariant& val);
+
+        setFun get_set_function(const std::string& nameField);
+
+    }_ws_message;
+
+    class ws_message{
         public:
-            boost::uuids::uuid  uuid;
-            std::string         name;
-            boost::uuids::uuid  uuid_channel;
-            std::string         message;
-            boost::uuids::uuid  uuid_form;
-            std::string         command;
-            std::string         hash;
-            std::string         app_name;
-            std::string         result;
-            std::string         role;
-            std::string         presentation;
-            boost::uuids::uuid  uuid_user;
-            std::string         contentType;
-            std::string         channel_name;
-            std::string         object_name;
-            std::string         msg_ref;
+            explicit
+            ws_message(_ws_message &defMessage);
 
-            _ws_message();
+            explicit
+            ws_message(const std::string &jsonText);
 
-            static std::vector<std::string> get_fields();
-            void set_value(const std::string& nameField, bVariant& val);
+            explicit
+            ws_message();
+
+            std::string get_json(bool to_base64_);
+
+            bool is_parse();
+
+            std::string to_string();
+
+            _ws_message& message();
 
         private:
-            void set_uuid(bVariant& val);
-            void set_uuid_user(bVariant& val);
-            void set_uuid_form(bVariant& val);
-            void set_uuid_channel(bVariant& val);
-            void set_name(bVariant& val);
-            void set_message(bVariant& val);
-            void set_command(bVariant& val);
-            void set_hash(bVariant& val);
-            void set_app_name(bVariant& val);
-            void set_result(bVariant& val);
-            void set_role(bVariant& val);
-            void set_presentation(bVariant& val);
-            void set_contentType(bVariant& val);
-            void set_channel_name(bVariant& val);
-            void set_object_name(bVariant& val);
-            void set_msg_ref(bVariant& val);
-
-            setFun get_set_function(const std::string& nameField);
-
-        }_ws_message;
-
-        class ws_message{
-            public:
-                explicit
-                ws_message(_ws_message &defMessage);
-
-                explicit
-                ws_message(const std::string &jsonText);
-
-                explicit
-                ws_message();
-
-                std::string get_json(bool to_base64_);
-
-                bool is_parse();
-
-                std::string to_string();
-
-                _ws_message& message();
-
-            private:
-                _ws_message m_message;
-                bJson m_doc{};
-        };
+            _ws_message m_message;
+            bJson m_doc{};
+    };
 
     enum bConfFields{
         ServerHost = 0,
@@ -302,18 +285,18 @@ namespace arcirk{
 
         static std::string crypt(const std::string &source, const std::string& key);
 
+        std::string to_string() const;
+
     private:
         std::string output_directory;
         std::string output_filename;
         void init(bool server);
-
+        std::string separator;
         std::vector<bVariant> m_vec;
 
         static void* _crypt(void* data, unsigned data_size, void* key, unsigned key_size);
     };
 
-
-   // } //websockets
 }
 
 

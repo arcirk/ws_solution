@@ -36,14 +36,14 @@
 
 const WCHAR_T *GetClassNames() {
     // Might contain multiple class names seperated by |
-    static char16_t cls_names[] = u"Sample";
+    static char16_t cls_names[] = u"WebSocketClient";
     return reinterpret_cast<WCHAR_T *>(cls_names);
 }
 
 long GetClassObject(const WCHAR_T *clsName, IComponentBase **pInterface) {
     if (!*pInterface) {
         auto cls_name = std::u16string(reinterpret_cast<const char16_t *>(clsName));
-        if (cls_name == u"Sample") {
+        if (cls_name == u"WebSocketClient") {
             *pInterface = new ws_drv;
         }
         return (long) *pInterface;

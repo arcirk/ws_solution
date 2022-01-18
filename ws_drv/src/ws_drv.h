@@ -26,40 +26,114 @@
     #include <net.h>
 #endif // _WINDOWS
 
-#include <iws_client.h>
 #include <arcirk.h>
+
+class  ws_client;
+
+typedef std::function<void(std::string)> _callback_message;
+typedef std::function<void(bool)> _callback_status;
 
 class ws_drv final : public Component {
 public:
     const char *Version = u8"1.0.0";
-    std::shared_ptr<variant_t> port;
-    std::shared_ptr<variant_t> server;
-    std::shared_ptr<variant_t> user_uuid;
-    std::shared_ptr<variant_t> client_uuid;
-    std::shared_ptr<variant_t> log_path;
+    std::string app_uuid;
+    std::string user_uuid;
+    std::string host;
+    int port;
+    std::string admin_name;
+    std::string app_name;
+    std::string hash;
 
     ws_drv();
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
 
-private:
-
-    bool _pwdEdit;
-
-    std::string extensionName() override;
-
-    void message(const variant_t &msg);
-
-    int open();
-
-    int open_as(const variant_t &param);
-
-    //int open_as(const std::string& param);
-
     void close();
 
-    void send(const variant_t& msg, const variant_t& sub_user_uuid, const variant_t& uuid_form);
+    void open_as(const std::string &_host, const int &_port, const std::string &_user, const std::string &_pwd,
+                 bool save_conf);
+
+private:
+    std::string extensionName() override;
+    void processServeResponse(const std::string &jsonResp);
+    void open(bool new_thread = true);
+    std::string  get_client_conf();
+    void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
+    void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
+    void get_group_list(const std::string &uuid_form);
+    void add_group(const std::string &name, const std::string &presentation, const std::string &uuid_parent, const std::string &uuid_form);
+    void edit_group(const std::string &uuid_group, const std::string &name, const std::string &presentation, const std::string &uuid_parent, const std::string &uuid_form);
+    void remove_group(const std::string &uuid_group, const std::string &uuid_form);
+    void get_users(const std::string &uuid_group, const std::string &uuid_form);
+    void set_parent(const std::string &_user_uuid, const std::string &uuid_group, const std::string &uuid_form);
+    void remove_user(const std::string &_user_uuid, const std::string &uuid_form);
+    void kill_session(const std::string &_user_uuid, const std::string &uuid_form);
+    void send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param);
+    bool started();
+    void set_app_name(const std::string &session_uuid, const std::string& new_app_name);
+    void get_users_catalog(const std::string &uuid_form);
+    void get_user_cache(const std::string &uuid_form);
+    void set_user_cache(const std::string &cache, const std::string &uuid_form);
+    void get_user_status(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
+    void get_user_data(const std::string &_user_uuid, const std::string &uuid_form, const std::string &param);
+    void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form, const std::string& objectName = "", const std::string& msg_ref = "");
+    void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
+    void get_channel_token(const std::string &user_sender, const std::string &uuid_form);
+    void message(const variant_t &msg);
+    static variant_t get_currentDate();
+    static variant_t get_current_date_in_seconds();
+    static variant_t get_tz_offset();
+    [[nodiscard]] std::string get_app_uuid() const;
+    [[nodiscard]] std::string get_user_uuid() const;
+
+    void set_webdav_settings_on_client(const std::string& param);
+    void set_webdav_settings_on_server();
+
+    std::string get_webdav_user() const;
+    std::string get_webdav_pwd() const;
+    std::string get_webdav_host() const;
+    bool get_webdav_ssl();
+
+    static std::string get_string_random_uuid();
+    static std::string get_parent_path();
+
+    //сообщения
+    void displayError(const std::string& what, const std::string& err);
+    void connectionSuccess();
+    void closeConnection();
+    void connectedStatusChanged(bool status);
+    void userInfo(const std::string& uuid);
+    void clientJoin(const std::string& resp);
+    void getActiveUsers(const std::string& resp);
+    void clientLeave(const std::string& resp);
+    void setMessages(const std::string& resp);
+    void messageReceived(const std::string& msg, const std::string& uuid, const std::string& recipient, const std::string& recipientName);
+    void requestUserStatus(const std::string& resp);
+    void unreadMessages(const std::string& resp);
+    void getGroupList(const std::string& resp);
+    void getListUsers(const std::string& resp);
+    void addGroupUsers(const std::string& resp);
+    void editGroupUsers(const std::string& resp);
+    void removeGroupUsers(const std::string& resp);
+
+    void addUser(const std::string& resp);
+    void updateUser(const std::string& resp);
+    void deleteUser(const std::string& resp);
+    void setUserParent(const std::string& resp);
+
+    void start();
+    std::string get_hash(const variant_t &usr, const variant_t &pwd);
+//
+//    int open();
+//
+//    int open_as(const variant_t &param);
+//
+//    //int open_as(const std::string& param);
+//
+//    void close();
+//
+//    void send(const variant_t& msg, const variant_t& sub_user_uuid, const variant_t& uuid_form);
 
     //void start();
 
@@ -68,42 +142,45 @@ private:
 
    // void start_();
 
-    bool started();
+   // bool started();
 
-    variant_t get_client_info();
-
-    std::string get_current_name();
+//    variant_t get_client_info();
+//
+//    std::string get_current_name();
 
 //    void join_channel(const variant_t &uuid, const variant_t &uuid_form);
 //
 //    void close_channel(const variant_t &uuid, const variant_t &uuid_form);
 
-    void set_log(const std::string &msg, const std::string &filename);
+//    void set_log(const std::string &msg, const std::string &filename);
+//
+////    void to_channel(const variant_t& msg, const variant_t& uuid_sub, const variant_t& uuid_form);
+//
+//    //Команда серверу
+//    void send_command(const variant_t& cmd, const variant_t& uuid_form, const variant_t& param);
+//    //void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
+//
+//    std::string get_hash(const variant_t &usr, const variant_t &pwd);
+//    variant_t currentDate();
+//    variant_t current_date_in_seconds();
+//    variant_t get_tz_offset();
+//    void get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form);
+//    void get_user_info(const variant_t &user_uuid, const variant_t &uuid_form);
+//    void get_group_list(const variant_t &uuid_form);
+//    void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
+//    void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
+//    void remove_group(const variant_t &uuid_group, const variant_t &uuid_form);
+//    void get_users(const variant_t &uuid_group, const variant_t &uuid_form);
+//    void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
+//    void remove_user(const variant_t &user_uuid, const variant_t &uuid_form);
 
-//    void to_channel(const variant_t& msg, const variant_t& uuid_sub, const variant_t& uuid_form);
-
-    //Команда серверу
-    void send_command(const variant_t& cmd, const variant_t& uuid_form, const variant_t& param);
-    //void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
-
-    std::string get_hash(const variant_t &usr, const variant_t &pwd);
-    variant_t currentDate();
-    variant_t current_date_in_seconds();
-    variant_t get_tz_offset();
-    void get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form);
-    void get_user_info(const variant_t &user_uuid, const variant_t &uuid_form);
-    void get_group_list(const variant_t &uuid_form);
-    void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
-    void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
-    void remove_group(const variant_t &uuid_group, const variant_t &uuid_form);
-    void get_users(const variant_t &uuid_group, const variant_t &uuid_form);
-    void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
-    void remove_user(const variant_t &user_uuid, const variant_t &uuid_form);
-
-    IClient* client;
+    ws_client * client;
+    std::string _client_param;
     arcirk::bConf settings;
 
-    variant_t _client_param;
+    _callback_message callback_msg;
+    _callback_status _status_changed;
+
 
 };
 

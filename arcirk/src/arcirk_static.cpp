@@ -226,7 +226,7 @@ namespace arcirk{
 
     std::string get_conf_directory(){
 #ifdef _WINDOWS
-        return get_home() + "\n" + get_conf_dirname();
+        return get_home() + '\\' + get_conf_dirname();
 #else
         return get_home() + path::separator + get_conf_dirname();
 #endif

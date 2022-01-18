@@ -575,24 +575,36 @@ long int IClient::add_day(const long selDate, const int dayCount) {
 }
 
 void IClient::set_webdav_settings_on_client(const std::string& param) {
-
-    client->set_webdav_settings_on_client(param);
+    if(client)
+        client->set_webdav_settings_on_client(param);
 
 }
 
 std::string IClient::get_webdav_user() const {
-    return client->get_webdav_user();
+    if(client)
+        return client->get_webdav_user();
+    else
+        return "";
 }
 
 std::string IClient::get_webdav_pwd() const {
-    return client->get_webdav_pwd();
+    if(client)
+        return client->get_webdav_pwd();
+    else
+        return "";
 }
 
 std::string IClient::get_webdav_host() const {
-    return client->get_webdav_host();
+    if(client)
+        return client->get_webdav_host();
+    else
+        return "";
 }
 bool IClient::get_webdav_ssl() {
-    return client->get_webdav_ssl();
+    if(client)
+        return client->get_webdav_ssl();
+    else
+        return false;
 }
 
 void IClient::set_webdav_settings_on_server() {

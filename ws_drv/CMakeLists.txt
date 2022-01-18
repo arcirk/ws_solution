@@ -1,17 +1,19 @@
-cmake_minimum_required(VERSION 3.19)
-project(ws_drv VERSION 1.0.1 DESCRIPTION "websocket client for 1C")
+cmake_minimum_required(VERSION 3.21)
+project(ws_drv)
 
 set(CMAKE_CXX_STANDARD 17)
 set(TARGET ws_drv)
-
-option(CASE_INSENSITIVE "Case insensitive method names" OFF)
-option(STATIC_CRT "Static CRT linkage" OFF)
-option(OUT_PARAMS "Support output parameters" OFF)
 
 if(WIN32)
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
     add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 endif()
+
+option(CASE_INSENSITIVE "Case insensitive method names" OFF)
+option(STATIC_CRT "Static CRT linkage" OFF)
+option(OUT_PARAMS "Support output parameters" OFF)
+
+#target_precompile_headers(${TARGET} PRIVATE F:/qt_sr/infactum/ws_client/include/stdafx.h)
 
 list(APPEND SOURCES
         src/addin.def
@@ -22,20 +24,22 @@ list(APPEND SOURCES
         src/Component.h
         src/ws_drv.cpp
         src/ws_drv.h
-        ../ws_client/include/beast.h
         ../ws_client/include/net.h
+        ../ws_client/include/beast.h
         ../ws_client/include/ws_session.h
         ../ws_client/include/ws_client.h
+        ../ws_client/src/iws_client.cpp
         ../ws_client/src/ws_session.cpp
         ../ws_client/src/ws_client.cpp
-        ../ws_client/src/iws_client.cpp
-        ../ws_client/include/iws_client.h
+        ../arcirk/include/arcirk.h
         ../arcirk/src/arcirk.cpp
-        ../arcirk/src/arcirk_static.cpp
-        ../arcirk/src/arcirk_json.cpp
         ../arcirk/src/arcirk_ip.cpp
+        ../arcirk/src/arcirk_json.cpp
         ../arcirk/src/arcirk_message.cpp
         ../arcirk/src/arcirk_settings.cpp
+        ../arcirk/src/arcirk_static.cpp
+        include/server_response.h
+        src/server_response.cpp
         )
 
 if (ANDROID)
@@ -60,11 +64,13 @@ if (OUT_PARAMS)
 endif ()
 
 target_include_directories(${TARGET} PRIVATE
-        include)
+        include
+        ../arcirk/include
+        ../ws_client/include)
 
-#if (WIN32 AND NOT MSVC)
-#    message(FATAL_ERROR "Must be compiled with MSVC on Windows")
-#endif ()
+if (WIN32 AND NOT MSVC)
+    message(FATAL_ERROR "Must be compiled with MSVC on Windows")
+endif ()
 
 if (WIN32)
     if (STATIC_CRT)
@@ -89,112 +95,25 @@ if (ANDROID)
         add_custom_command(TARGET ${TARGET} POST_BUILD
                 COMMAND ${CMAKE_STRIP} ${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif ()
-endif ()
+endif (
 
-set_target_properties( ${TARGET} PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-        CXX_STANDARD_REQUIRED ON
-        CXX_STANDARD 17
-        )
+)
 
 if (UNIX)
-    if (TARGET_PLATFORM_32)
-        set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
-    else(TARGET_PLATFORM_32)
-        set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
-    endif ()
-    target_link_libraries(${TARGET} -static-libstdc++)
-else(UNIX)
-    add_definitions(/MT)
-    set(CMAKE_SUPPRESS_REGENERATION 1)
-    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
-    target_compile_definitions(${TARGET} PRIVATE _WINDOWS
-            _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-    target_compile_options(${TARGET} PRIVATE /utf-8)
-endif(UNIX)
-
+    find_package(Boost REQUIRED COMPONENTS regex filesystem)
+else()
+    find_package(Boost REQUIRED COMPONENTS regex)
+endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set (NMOS_CPP_SYSTEM_LIBS bcrypt.lib)
 else()
     set (NMOS_CPP_SYSTEM_LIBS )
 endif()
 
-if (UNIX)
-    find_package(Boost REQUIRED COMPONENTS thread regex filesystem)
-else()
-    find_package(Boost REQUIRED COMPONENTS regex)
-endif()
-
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories("../ws_client/include")
-include_directories("../arcirk/include")
-
-if (UNIX)
-    target_link_libraries(${TARGET}
-            ${Boost_LIBRARIES}
-            Boost::thread
-            Boost::filesystem
-            ${NMOS_CPP_SYSTEM_LIBS}
-            )
-else()
-    target_link_libraries(${TARGET}  PRIVATE
-            ${Boost_LIBRARIES}
-            ${NMOS_CPP_SYSTEM_LIBS}
-            )
-endif()
-
-
-if (UNIX)
-target_link_libraries( ${TARGET} PRIVATE
+target_link_libraries(ws_drv PRIVATE
         ${Boost_LIBRARIES}
-        Boost::thread
-        ${NMOS_CPP_SYSTEM_LIBS}
-)
-else()
-    target_link_libraries( ${TARGET} PRIVATE
-            ${Boost_LIBRARIES}
-            ${NMOS_CPP_SYSTEM_LIBS}
-            )
-endif()
-
-
-
-
-ADD_CUSTOM_COMMAND(TARGET ${TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv)
-
-ADD_CUSTOM_COMMAND(
-        TARGET ${TARGET}
-        POST_BUILD
-        COMMENT "Copying lib..."
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX} ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv
-)
-
-#ADD_CUSTOM_COMMAND(
-#        TARGET ${TARGET}
-#        POST_BUILD
-#        COMMENT "Copying resources..."
-#        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/res/* ${CMAKE_CURRENT_SOURCE_DIR}/bin/ws_drv
-#)
-
-#if (UNIX)
-#    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
-#            POST_BUILD
-#            COMMENT "Archive layout..."
-#            COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/install.sh
-#            )
-#else()
-#    ADD_CUSTOM_COMMAND(TARGET ${TARGET}
-#            POST_BUILD
-#            COMMENT "Archive layout..."
-#            COMMAND 7z a -tzip -mx5 -r0  ../bin/layout.zip ../bin/ws_drv/*
-#            )
-#endif ()
-
-#if (UNIX)
-#add_custom_command(
-#        TARGET ${TARGET} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#        $<TARGET_FILE:Boost::thread>)
-#endif ()
+        ${NMOS_CPP_SYSTEM_LIBS})
+#        arcirk
+#        ws_client)
+#        #ws_client)

@@ -45,7 +45,6 @@ namespace arcirk{
 
         init(public_settings);
 
-        std::string separator;
 #ifdef _WINDOWS
         separator = '\\';
 #else
@@ -96,6 +95,19 @@ namespace arcirk{
         m_vec[index] = value;
     }
 
+    std::string bConf::to_string() const{
+        bJson m_doc{};
+        m_doc.set_object();
+        int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+
+        for (int i = 0; i < fCount; ++i) {
+            std::string key = bFieldsStr[i];
+            m_doc.addMember(content_value(key, m_vec[i]));
+        }
+
+        return m_doc.to_string();
+    }
+
     void bConf::init(bool server) {
 
         m_vec.clear();
@@ -140,12 +152,12 @@ namespace arcirk{
 
         bJson m_doc{};
         m_doc.set_object();
-        std::string separator;
-#ifdef _WINDOWS
-        separator = '\\';
-#else
-        separator = boost::filesystem::path::separator;
-#endif
+//        std::string separator;
+//#ifdef _WINDOWS
+//        separator = '\\';
+//#else
+//        separator = boost::filesystem::path::separator;
+//#endif
         int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
 
         for (int i = 0; i < fCount; ++i) {
@@ -158,12 +170,12 @@ namespace arcirk{
     }
 
     bool bConf::parse() {
-        std::string separator;
-#ifdef _WINDOWS
-        separator = '\\';
-#else
-        separator = boost::filesystem::path::separator;
-#endif
+//        std::string separator;
+//#ifdef _WINDOWS
+//        separator = '\\';
+//#else
+//        separator = boost::filesystem::path::separator;
+//#endif
         bJson m_doc{};
         std::string fileName = output_directory + separator + output_filename;
 
