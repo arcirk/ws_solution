@@ -7,7 +7,7 @@
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
+ *  This program is distributed in the hope that it will аbe useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Affero General Public License for more details.
@@ -30,8 +30,8 @@
 
 class  ws_client;
 
-typedef std::function<void(std::string)> _callback_message;
-typedef std::function<void(bool)> _callback_status;
+//typedef std::function<void(std::string)> _callback_message;
+//typedef std::function<void(bool)> _callback_status;
 
 class ws_drv final : public Component {
 public:
@@ -51,13 +51,14 @@ public:
 
     void close();
 
-    void open_as(const std::string &_host, const int &_port, const std::string &_user, const std::string &_pwd,
-                 bool save_conf);
+    void open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
+                 variant_t save_conf);
 
 private:
     std::string extensionName() override;
     void processServeResponse(const std::string &jsonResp);
-    void open(bool new_thread = true);
+    void _open(bool new_thread = true);
+    void open();
     std::string  get_client_conf();
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
@@ -123,7 +124,12 @@ private:
     void setUserParent(const std::string& resp);
 
     void start();
+
     std::string get_hash(const variant_t &usr, const variant_t &pwd);
+
+    void save_conf(const variant_t &conf);
+
+    void emit(const std::string& command, const std::string &resp);
 //
 //    int open();
 //
@@ -178,8 +184,8 @@ private:
     std::string _client_param;
     arcirk::bConf settings;
 
-    _callback_message callback_msg;
-    _callback_status _status_changed;
+//    _callback_message callback_msg;
+//    _callback_status _status_changed;
 
 
 };

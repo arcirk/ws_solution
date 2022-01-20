@@ -274,6 +274,8 @@ namespace arcirk{
 
         void save();
         bool parse();
+        bool parse(const std::string& conf);
+
         [[nodiscard]] bVariant get(bConfFields index) const;
         void set(bConfFields index, const bVariant& value);
 

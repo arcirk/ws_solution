@@ -254,8 +254,8 @@ session::on_write(
 //        return;
 //    std::cout << "on_write stopped_: " << stopped_ << " ws_.is_open():" << ws_.is_open() << std::endl;
 
-    if(!ws_.is_open())
-        return;
+//    if(!ws_.is_open())
+//        return;
 
     boost::ignore_unused(bytes_transferred);
 

@@ -51,6 +51,8 @@ std::string ws_drv::extensionName() {
 ws_drv::ws_drv()
 {
 
+    client = nullptr;
+
     settings = bConf("conf_1c_client.json");
     port = (int)settings[bConfFields::ServerPort].get_int();
     host = settings[bConfFields::ServerHost].get_string();
@@ -84,18 +86,18 @@ ws_drv::ws_drv()
     });
 
     AddMethod(L"getClientConf", L"ПолучитьКонфигурациюКлиента", this, &ws_drv::get_client_conf);
-
-//    AddMethod(L"Open", L"Открыть", this, &ws_drv::open);
-//    AddMethod(L"Close", L"Закрыть", this, &ws_drv::close);
+    AddMethod(L"saveClientConf", L"СохранитьКонфигурациюКлиента", this, &ws_drv::save_conf);
+    AddMethod(L"Open", L"Открыть", this, &ws_drv::open);
+    AddMethod(L"Close", L"Закрыть", this, &ws_drv::close);
 //    AddMethod(L"Deliver", L"Сообщить", this, &ws_drv::send);
-//    AddMethod(L"Started", L"Запущен", this, &ws_drv::started);
-//    AddMethod(L"OpenAs", L"ОткрытьКак", this, &ws_drv::open_as);
+    AddMethod(L"Started", L"Запущен", this, &ws_drv::started);
+    AddMethod(L"OpenAs", L"ОткрытьКак", this, &ws_drv::open_as);
 //    AddMethod(L"GetClientInfo", L"ПолучитьИнформациюОТекущемКлиенте", this, &ws_drv::get_client_info);
 //    AddMethod(L"CurrentName", L"ТекущееИмя", this, &ws_drv::get_current_name);
 //    //AddMethod(L"CloseChannel", L"ОтключитсяОтКанала", this, &ws_drv::close_channel);
 //    //AddMethod(L"JoinChannel", L"ПрисоединитсяККаналу", this, &ws_drv::join_channel);
 //    AddMethod(L"SendCommand", L"КомандаСерверу", this, &ws_drv::send_command);
-//    AddMethod(L"GetHash", L"ПолучитьХеш", this, &ws_drv::get_hash);
+    AddMethod(L"GetHash", L"ПолучитьХеш", this, &ws_drv::get_hash);
 //    AddMethod(L"CurrentDate", L"ТекущаяДата", this, &ws_drv::currentDate);
 //    AddMethod(L"CurrentDateSeconds", L"ТекущаяДатаВСекундах", this, &ws_drv::current_date_in_seconds);
 //    AddMethod(L"GetTZOffset", L"ПолучитьСмещениеВременнойЗоны", this, &ws_drv::get_tz_offset);
@@ -617,13 +619,15 @@ std::string ws_drv::get_app_uuid() const {
         return arcirk::nil_string_uuid();
 }
 
-void ws_drv::open_as(const std::string &_host, const int &_port, const std::string &_user, const std::string &_pwd,
-                     bool save_conf) {
+void ws_drv::open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
+                     variant_t _save_conf) {
 
-    host = _host;
-    port = _port;
-    admin_name = _user;
-    hash = arcirk::get_hash(_user, _pwd);
+    host = std::get<std::string>(_host);
+    port = std::get<int>(_port);
+    admin_name = std::get<std::string>(_user);
+    std::string  pwd = std::get<std::string>(_pwd);
+    hash = arcirk::get_hash(admin_name, pwd);
+    bool save_conf = std::get<bool>(_save_conf);
 
     settings[bConfFields::User] = admin_name;
     settings[bConfFields::ServerHost] = host;
@@ -635,8 +639,11 @@ void ws_drv::open_as(const std::string &_host, const int &_port, const std::stri
     open();
 
 }
+void ws_drv::open(){
+    _open();
+}
 
-void ws_drv::open(bool new_thread) {
+void ws_drv::_open(bool new_thread) {
 
     app_uuid = random_uuid();
     user_uuid = random_uuid();
@@ -677,7 +684,7 @@ void ws_drv::start() {
     client = new ws_client(ioc, _client_param);
 
     try {
-        client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
+        client->open(host.c_str(), std::to_string(port).c_str(), callback, callback_status);
     }
     catch (std::exception& e){
         std::cerr << "IClient::start::exception: " << e.what() <<std::endl;
@@ -685,7 +692,7 @@ void ws_drv::start() {
 
     std::cout << "IClient::start: exit client thread" << std::endl;
 
-    if(client && !client->started()){
+    if(client){
         delete client;
         client = nullptr;
     }
@@ -694,7 +701,7 @@ void ws_drv::start() {
 
 void ws_drv::ext_message(const std::string &msg)
 {
-    std::string resp = arcirk::base64_decode(msg);
+    std::string resp = ServeResponse::base64_decode(msg); arcirk::base64_decode(msg);
 
     if(!resp.empty()){
        processServeResponse(resp);
@@ -707,12 +714,12 @@ void ws_drv::ext_message(const std::string &msg)
     //this->ExternalEvent("WebSocketAddIn", "message", msg);
     //#endif // _WINDOWS
 
-    this->ExternalEvent("WebSocketAddIn", "message", msg);
+    //this->ExternalEvent("WebSocketAddIn", "message", msg);
 }
 
 void ws_drv::status_changed(bool status)
 {
-    //emit connectedStatusChanged(status);
+    connectedStatusChanged(status);
 }
 
 void ws_drv::processServeResponse(const std::string &jsonResp)
@@ -814,7 +821,8 @@ void ws_drv::closeConnection() {
 }
 
 void ws_drv::connectedStatusChanged(bool status) {
-
+    std::string _status = status ? "true" : "false";
+    emit("connectedStatusChanged", _status);
 }
 
 void ws_drv::userInfo(const std::string &uuid) {
@@ -1021,7 +1029,7 @@ void ws_drv::kill_session(const std::string &_user_uuid, const std::string &uuid
 void ws_drv::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
     if (client){
 
-        if (!started())
+        if (!client->started())
             return;
 
         const std::string& _cmd = cmd;
@@ -1041,16 +1049,12 @@ void ws_drv::send_command(const std::string &cmd, const std::string &uuid_form, 
 }
 
 bool ws_drv::started() {
+
     bool result = false;
 
-//    try {
     if (client){
         result = client->started();
     }
-//    }  catch(std::exception&) {
-//        return false;
-//    }
-
     return result;
 }
 
@@ -1342,4 +1346,25 @@ void ws_drv::deleteUser(const std::string &resp) {
 
 void ws_drv::setUserParent(const std::string &resp) {
 
+}
+
+void ws_drv::save_conf(const variant_t &conf) {
+    std::string _conf(std::get<std::string>(conf));
+    if(!settings.parse(_conf))
+        return;
+    port = (int)settings[bConfFields::ServerPort].get_int();
+    host = settings[bConfFields::ServerHost].get_string();
+    admin_name = settings[bConfFields::User].get_string();
+    app_name = settings[bConfFields::AppName].get_string();
+    hash = settings[bConfFields::Hash].get_string();
+
+    if(app_name != "client_1C"){
+        app_name = "client_1C";
+        settings[bConfFields::AppName] = app_name;
+    }
+    settings.save();
+}
+
+void ws_drv::emit(const std::string& command, const std::string &resp) {
+    this->ExternalEvent("WebSocketClient", command, resp);
 }
