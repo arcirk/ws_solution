@@ -45,11 +45,12 @@ public:
     std::string hash;
 
     ws_drv();
+    //~ws_drv() override;
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
 
-    void close();
+    void close(const variant_t& exit_base = false);
 
     void open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
                  variant_t save_conf);
@@ -130,6 +131,7 @@ private:
     void save_conf(const variant_t &conf);
 
     void emit(const std::string& command, const std::string &resp);
+
 //
 //    int open();
 //

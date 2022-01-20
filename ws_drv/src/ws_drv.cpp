@@ -1232,13 +1232,13 @@ void ws_drv::get_channel_token(const std::string &user_sender, const std::string
 
 }
 
-void ws_drv::close() {
+void ws_drv::close(const variant_t& exit_base) {
 
     if (client)
     {
         if (client->started())
         {
-            client->close();
+            client->close(std::get<bool>(exit_base));
         }
 
         //delete client;
@@ -1366,5 +1366,6 @@ void ws_drv::save_conf(const variant_t &conf) {
 }
 
 void ws_drv::emit(const std::string& command, const std::string &resp) {
-    this->ExternalEvent("WebSocketClient", command, resp);
+        this->ExternalEvent("WebSocketClient", command, resp);
 }
+

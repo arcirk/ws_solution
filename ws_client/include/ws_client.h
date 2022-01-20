@@ -21,7 +21,7 @@ typedef std::function<void(bool)> _callback_status;
 
 using namespace arcirk;
 
-class ws_client{
+class ws_client final{
 
     std::unordered_set<session*> sessions_;
     std::mutex mutex_;
@@ -42,7 +42,7 @@ public:
     void on_connect(session * sess);
     void on_read(const std::string& message);
     void on_stop();
-    void close();
+    void close(bool exit_base = false);
     bool started();
     boost::uuids::uuid& get_uuid();
     boost::uuids::uuid& get_user_uuid();
@@ -99,6 +99,8 @@ private:
     bool _webdav_use_local;
     std::string _webdav_local_dir;
     bool _webdav_ssl;
+
+    bool _exit_parent = false;
 
     static void console_log(const std::string logText){
         std::cout << logText << std::endl;

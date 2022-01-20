@@ -77,14 +77,14 @@ class session : public boost::enable_shared_from_this<session>
             on_close(beast::error_code ec);
 
 
-            bool is_open() const noexcept;
+            bool is_open() const;
 
         private:
             std::deque<std::string> output_queue_;
             steady_timer deadline_;
             steady_timer heartbeat_timer_;
             //std::string input_buffer_;
-            bool stopped_ = false;
+            bool started_ = false;
 
             void
             fail(beast::error_code ec, char const* what);

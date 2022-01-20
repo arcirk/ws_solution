@@ -163,11 +163,11 @@ on_connect(session * sess){
 void
 ws_client::on_stop() {
 
-    //sessions_.clear();
+    if(_exit_parent)
+        return;
 
     if (_callback_msg)
     {
-        //_started = false;
         auto _msg = ws_message();
         _msg.message().uuid = get_uuid();
         _msg.message().message = "client leave";
@@ -186,9 +186,10 @@ ws_client::on_stop() {
 
 void
 ws_client::
-close() {
+close(bool exit_base) {
 
-    //_started = false;
+    //exit_base - это выход из приложения, блокируем сообщения
+    _exit_parent = exit_base;
 
     std::vector<boost::weak_ptr<session>> v;
     {

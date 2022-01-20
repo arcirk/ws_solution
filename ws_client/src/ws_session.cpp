@@ -144,6 +144,8 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 
     client_->on_connect(this);
 
+    started_ = true;
+
     start_write();
 
     start_read();
@@ -235,9 +237,11 @@ session::start_write()
 {
 //    if (stopped_)
 //        return;
+    if ( !started_) return;
 
     if(!ws_.is_open())
         return;
+
     ws_.async_write(
             net::buffer(output_queue_.front()),
             beast::bind_front_handler(
@@ -256,10 +260,12 @@ session::on_write(
 
 //    if(!ws_.is_open())
 //        return;
+    //if ( !started_) return;
 
     boost::ignore_unused(bytes_transferred);
 
-    if(ec == websocket::error::closed){
+    if(ec == websocket::error::closed){\
+        //heartbeat_timer_.cancel();
         return;
     }
 
@@ -285,7 +291,8 @@ session::on_write(
 void
 session::stop(bool eraseObjOnly)
 {
-    //stopped_ = true;
+    if ( !started_) return;
+    started_ = false;
     deadline_.cancel();
     heartbeat_timer_.cancel();
     //client_->on_stop();
@@ -299,6 +306,7 @@ session::stop(bool eraseObjOnly)
 void
 session::send(boost::shared_ptr<std::string const> const& ss) {
 
+    //if ( !started_) return;
 
     if (!ws_.is_open())
         return;
@@ -313,6 +321,7 @@ session::send(boost::shared_ptr<std::string const> const& ss) {
 void
 session::on_close(beast::error_code ec)
 {
+
     if(ec)
         return fail(ec, "close");
 
@@ -321,8 +330,8 @@ session::on_close(beast::error_code ec)
 
     // If we get here then the connection is closed gracefully
 
-    // The make_printable() function helps print a ConstBufferSequence
-    std::cout << beast::make_printable(buffer_.data()) << std::endl;
+//    // The make_printable() function helps print a ConstBufferSequence
+//    std::cout << beast::make_printable(buffer_.data()) << std::endl;
 }
 
 void
@@ -374,6 +383,8 @@ session::check_deadline()
 //    if (stopped_)
 //        return;
 
+    //if ( !started_) return;
+
     if(!ws_.is_open())
         return;
 
@@ -391,6 +402,6 @@ session::check_deadline()
 
 }
 
-bool session::is_open() const noexcept{
+bool session::is_open() const{
     return ws_.is_open();
 }
