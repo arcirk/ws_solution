@@ -174,13 +174,29 @@ session::on_read(
 
     boost::ignore_unused(bytes_transferred);
 
-    if(ec)
+    if(ec){
         deadline_.cancel();
+    }
+
+    //auto self(shared_from_this()); //!self->ws_.next_layer().is_open() ||ec==boost::asio::error::eof ||
+    if (ec == boost::asio::error::connection_reset){
+        return;
+    }else if( ec==boost::asio::error::eof){
+        client_->error("session::on_read", "boost::asio::error::eof");
+//        if(!ws_.is_open())
+            started_ = false;
+//        deadline_.cancel();
+        heartbeat_timer_.cancel();
+        return;
+    }else if( ec==websocket::error::no_connection){
+        return;
+    }
 
     if(ec == websocket::error::closed){
         //client_->error("read","Server is not available");
                        //"Сервер не доступен!");
         client_->error("read","Сервер не доступен!");
+        started_ = false;
         return;
     }
 
@@ -237,10 +253,11 @@ session::start_write()
 {
 //    if (stopped_)
 //        return;
-    if ( !started_) return;
 
-    if(!ws_.is_open())
-        return;
+    if ( !get_started()) return;
+
+//    if(!ws_.is_open())
+//        return;
 
     ws_.async_write(
             net::buffer(output_queue_.front()),
@@ -262,9 +279,14 @@ session::on_write(
 //        return;
     //if ( !started_) return;
 
+    //auto self(shared_from_this()); !self->ws_.next_layer().is_open() ||ec==boost::asio::error::eof ||
+    if (ec == boost::asio::error::connection_reset){
+        return;
+    }
+
     boost::ignore_unused(bytes_transferred);
 
-    if(ec == websocket::error::closed){\
+    if(ec == websocket::error::closed){
         //heartbeat_timer_.cancel();
         return;
     }
@@ -404,4 +426,8 @@ session::check_deadline()
 
 bool session::is_open() const{
     return ws_.is_open();
+}
+
+bool session::get_started() const{
+    return started_;
 }

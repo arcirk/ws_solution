@@ -86,6 +86,8 @@ class session : public boost::enable_shared_from_this<session>
             //std::string input_buffer_;
             bool started_ = false;
 
+            bool get_started() const;
+
             void
             fail(beast::error_code ec, char const* what);
 
