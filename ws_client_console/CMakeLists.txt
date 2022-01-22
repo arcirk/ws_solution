@@ -3,7 +3,7 @@ project(ws_client_console)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ws_client_console src/main.cpp)
+add_executable(ws_client_console src/main.cpp ../chared/server_response.cpp)
 
 if (UNIX)
     SET(CMAKE_CXX_FLAGS -pthread)
@@ -33,4 +33,5 @@ endif()
 
 
 include_directories("../ws_client/include")
+include_directories("../chared")
 target_link_libraries(ws_client_console ws_client)

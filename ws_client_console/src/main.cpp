@@ -1,7 +1,8 @@
 
 //#include <format>
 #include <iostream>
-#include "../include/iws_client.h"
+#include <iws_client.h>
+#include <server_response.h>
 #include <string>
 
 #include <boost/format.hpp>
@@ -13,18 +14,118 @@
 
 IClient * client;
 
+void displayError(const std::string &wh, const std::string &err){
+    std::cerr << wh << ":" << err << std::endl;
+}
+
+void connectionSuccess(){
+    std::cout << "connectionSuccess" << std::endl;
+}
+
+void processServeResponse(const std::string &jsonResp)
+{
+    auto resp = new ServeResponse(jsonResp);
+
+    if(!resp->isParse){
+        delete resp;
+        return;
+    }
+    if(resp->result == "error"){
+
+        displayError(resp->command, resp->message);
+
+        if(resp->command == "set_client_param")
+            client->close();
+
+    }else
+    {
+        if(resp->command == "set_client_param"){
+            connectionSuccess();
+            client->send_command("set_content_type", "", "{\"content_type\":\"HTML\"}");
+        }else if (resp->command == "set_content_type"){
+            client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
+        }else if (resp->command == "set_message_struct_type"){
+            client->send_command("get_webdav_settings", "", "");
+        }else if (resp->command == "get_users_catalog"){
+            //
+        }else if (resp->command == "get_user_cache"){
+            //
+        }else if(resp->command == "get_active_users"){
+            //getActiveUsers(resp->message);
+        }else if (resp->command == "get_messages"){
+            //setMessages(resp->message);
+        }else if (resp->command == "close_connections"){
+            //closeConnection();
+        }else if (resp->command == "message"){
+            //messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
+        }else if (resp->command == "set_user_cache"){
+            //
+        }else if (resp->command == "get_user_info"){
+            //userInfo(resp->message);
+        }else if (resp->command == "client_join"){
+            //clientJoin(resp->message);
+        }else if(resp->command == "client_leave"){
+            //clientLeave(resp->message);
+        }else if(resp->command == "get_user_status"){
+            //requestUserStatus(resp->message);
+        }else if(resp->command == "reset_unread_messages"){
+            //
+        }else if(resp->command == "get_unread_messages"){
+            //unreadMessages(resp->message);
+        }else if(resp->command == "command_to_qt_client"){
+            //
+        }else if(resp->command == "get_group_list"){
+            //getGroupList(resp->message);
+        }else if(resp->command == "get_users"){
+            //getListUsers(resp->message);
+        }else if(resp->command == "add_group"){
+            //addGroupUsers(resp->message);
+        }else if(resp->command == "edit_group"){
+            //editGroupUsers(resp->message);
+        }else if(resp->command == "remove_group"){
+            //removeGroupUsers(resp->message);
+        }else if (resp->command == "add_user"){
+            //addUser(resp->message);
+        }else if (resp->command == "remove_user"){
+            //deleteUser(resp->message);
+        }else if (resp->command == "update_user"){
+            //updateUser(resp->message);
+        }else if (resp->command == "set_parent"){
+            //setUserParent(resp->message);
+        }else if(resp->command == "get_channel_token"){
+            //
+        }else if (resp->command == "get_webdav_settings"){
+            //
+        }else if (resp->command == "set_webdav_settings"){
+            //обновились настройки webdav на сервере
+        }else if (resp->command == "command_to_qt_agent"){
+            //
+        }
+        else
+            std::cout << "Не известная команда: " << resp->command << std::endl;
+    }
+
+    delete resp;
+}
+
 void status_changed(bool connected){
     std::cout << "connected: " << connected << std::endl;
 }
 
 void ext_message(const std::string& msg) {
 
-    try {
-            std::cout << IClient::base64_decode(msg) << std::endl;
+    std::string resp = ServeResponse::base64_decode(msg); arcirk::base64_decode(msg);
 
-    }catch (std::exception &e){
-        std::cout << msg << std::endl;
+    if(!resp.empty()){
+        processServeResponse(resp);
     }
+
+//    try {
+//            std::cout << IClient::base64_decode(msg) << std::endl;
+//
+//    }catch (std::exception &e){
+//        std::cout << msg << std::endl;
+//    }
 
 
     // auto success = this->ExternalEvent("WebSocketAddIn", "message", msg);

@@ -180,6 +180,7 @@ session::on_read(
 
     //auto self(shared_from_this()); //!self->ws_.next_layer().is_open() ||ec==boost::asio::error::eof ||
     if (ec == boost::asio::error::connection_reset){
+        std::cout << "session::on_read: " << "boost::asio::error::connection_reset" << std::endl;
         return;
     }else if( ec==boost::asio::error::eof){
         client_->error("session::on_read", "boost::asio::error::eof");
@@ -189,6 +190,7 @@ session::on_read(
         heartbeat_timer_.cancel();
         return;
     }else if( ec==websocket::error::no_connection){
+        std::cout << "session::on_read: " << "websocket::error::no_connection" << std::endl;
         return;
     }
 
@@ -326,21 +328,6 @@ session::stop(bool eraseObjOnly)
 }
 
 void
-session::send(boost::shared_ptr<std::string const> const& ss) {
-
-    //if ( !started_) return;
-
-    if (!ws_.is_open())
-        return;
-
-    deliver(ss->c_str());
-
-    //сбрасываем таймер для отправки следующего сообщения через секунду
-    heartbeat_timer_.expires_after(std::chrono::seconds(1));
-
-}
-
-void
 session::on_close(beast::error_code ec)
 {
 
@@ -354,6 +341,21 @@ session::on_close(beast::error_code ec)
 
 //    // The make_printable() function helps print a ConstBufferSequence
 //    std::cout << beast::make_printable(buffer_.data()) << std::endl;
+}
+
+void
+session::send(boost::shared_ptr<std::string const> const& ss) {
+
+    //if ( !started_) return;
+
+    if (!ws_.is_open())
+        return;
+
+    deliver(ss->c_str());
+
+    //сбрасываем таймер для отправки следующего сообщения через секунду
+    heartbeat_timer_.expires_after(std::chrono::seconds(1));
+
 }
 
 void
