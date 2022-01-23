@@ -25,7 +25,7 @@ void ServeResponse::parse(const std::string& resp){
 
     arcirk::bJson _doc = arcirk::bJson();
     _doc.parse(resp);
-    if(!_doc.is_parse())
+    if(_doc.is_parse())
     {
         if(_doc.IsObject())
         {

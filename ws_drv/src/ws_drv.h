@@ -26,6 +26,12 @@
     #include <net.h>
 #endif // _WINDOWS
 
+#include <boost/filesystem.hpp>
+#include <boost/dll.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/dll/import.hpp>
+#include <bwebdav_api.h>
+
 #include <arcirk.h>
 
 class  ws_client;
@@ -91,6 +97,7 @@ private:
 
     void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
+    bool webdav_check();
 
     std::string get_webdav_user() const;
     std::string get_webdav_pwd() const;
@@ -99,6 +106,8 @@ private:
 
     static std::string get_string_random_uuid();
     static std::string get_parent_path();
+
+    std::string crypt(const variant_t &source, const variant_t& key);
 
     //сообщения
     void displayError(const std::string& what, const std::string& err);
@@ -132,6 +141,7 @@ private:
 
     void emit(const std::string& command, const std::string &resp);
 
+    void setWebDavSettingsToClient(const std::string &resp);
 //
 //    int open();
 //

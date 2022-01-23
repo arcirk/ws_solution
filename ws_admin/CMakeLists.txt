@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.20)
 project(ws_admin)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,27 +17,14 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-link_directories(
-        "../ws_client/cmake-build-debug"
-)
-
-#find_library(
-#    ws_client
-#    qjsonmodel)
-find_package(QT NAMES Qt6 Qt5 COMPONENTS
-        Core
-        Gui
-        Widgets
-        Network
-        REQUIRED)
+#find_package(QT NAMES Qt6 Qt5 COMPONENTS
+#        Core
+#        Gui
+#        Widgets
+#        Network
+#        REQUIRED)
 #find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS
-        Core
-        Gui
-        Widgets
-        Network
-        REQUIRED)
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_admin.rc")
 
@@ -84,20 +71,32 @@ else()
              ${PROJECT_SOURCES})
 endif()
 
+find_package(Qt6 COMPONENTS
+        Core
+        Gui
+        Widgets
+        Network
+        REQUIRED)
+
+link_directories(
+        "../ws_client/cmake-build-debug"
+)
 include_directories("../ws_client/include")
 #include_directories("../qt_models/project/include")
 include_directories("../chared")
 
 #link_directories(${CMAKE_BINARY_DIR}/lib)
 
-target_link_libraries(ws_admin
-        Qt${QT_VERSION_MAJOR}::Core
-        Qt${QT_VERSION_MAJOR}::Gui
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::Network
+
+
+target_link_libraries(ws_admin PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Network
         ws_client
         )
 
-if(QT_VERSION_MAJOR EQUAL 6)
-     qt_finalize_executable(ws_admin)
-endif()
+#if(QT_VERSION_MAJOR EQUAL 6)
+#     qt_finalize_executable(ws_admin)
+#endif()

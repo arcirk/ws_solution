@@ -146,7 +146,7 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 
     started_ = true;
 
-    start_write();
+    //start_write();
 
     start_read();
 
@@ -155,6 +155,8 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 void
 session::start_read()
 {
+    std::cout << "start_read" << std::endl;
+
     if(!ws_.is_open())
         return;
     //Установка крайнего срока для операции чтения.
@@ -174,6 +176,8 @@ session::on_read(
 
     boost::ignore_unused(bytes_transferred);
 
+    std::cout << "on_read" << std::endl;
+
     if(ec){
         deadline_.cancel();
     }
@@ -187,7 +191,8 @@ session::on_read(
 //        if(!ws_.is_open())
             started_ = false;
 //        deadline_.cancel();
-        heartbeat_timer_.cancel();
+
+//        heartbeat_timer_.cancel();
         return;
     }else if( ec==websocket::error::no_connection){
         std::cout << "session::on_read: " << "websocket::error::no_connection" << std::endl;
@@ -204,7 +209,7 @@ session::on_read(
 
     if(ec.value() == 995){
         std::string err = "Операция ввода-вывода была прервана";
-        std::cerr << err << std::endl;
+        std::cerr << "session::on_read: " << err << std::endl;
         //client_->error("read", err);
         return;
     }
@@ -261,6 +266,8 @@ session::start_write()
 //    if(!ws_.is_open())
 //        return;
 
+    std::cout << "start_write" << std::endl;
+
     ws_.async_write(
             net::buffer(output_queue_.front()),
             beast::bind_front_handler(
@@ -282,6 +289,13 @@ session::on_write(
     //if ( !started_) return;
 
     //auto self(shared_from_this()); !self->ws_.next_layer().is_open() ||ec==boost::asio::error::eof ||
+
+
+
+    if(ec){
+        std::cerr << ec.value() << std::endl;
+    }
+
     if (ec == boost::asio::error::connection_reset){
         return;
     }
@@ -305,11 +319,18 @@ session::on_write(
         output_queue_.emplace_back("\n");
     }
 
-    // Запускаем пинг с периодичностью в 30 секунд
+    std::cout << "on_write" << std::endl;
 
-    heartbeat_timer_.expires_after(std::chrono::seconds(30));
+//    // Запускаем пинг с периодичностью в 30 секунд
+//
+//    heartbeat_timer_.expires_after(std::chrono::seconds(30));
+//
+//    heartbeat_timer_.async_wait(std::bind(&session::start_write, this));
+//
+//    //start_write();
 
-    heartbeat_timer_.async_wait(std::bind(&session::start_write, this));
+    //start_read();
+
 }
 
 void
@@ -354,7 +375,9 @@ session::send(boost::shared_ptr<std::string const> const& ss) {
     deliver(ss->c_str());
 
     //сбрасываем таймер для отправки следующего сообщения через секунду
-    heartbeat_timer_.expires_after(std::chrono::seconds(1));
+    heartbeat_timer_.expires_after(std::chrono::seconds(0));
+    heartbeat_timer_.async_wait(std::bind(&session::start_write, this));
+    //start_write();
 
 }
 

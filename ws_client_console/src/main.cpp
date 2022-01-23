@@ -40,65 +40,94 @@ void processServeResponse(const std::string &jsonResp)
     }else
     {
         if(resp->command == "set_client_param"){
+            std::cout << resp->message << std::endl;
             connectionSuccess();
             client->send_command("set_content_type", "", "{\"content_type\":\"HTML\"}");
         }else if (resp->command == "set_content_type"){
+            std::cout << resp->message << std::endl;
             client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
         }else if (resp->command == "set_message_struct_type"){
+            std::cout << resp->message << std::endl;
             client->send_command("get_webdav_settings", "", "");
         }else if (resp->command == "get_users_catalog"){
-            //
+            std::cout << resp->message << std::endl;
         }else if (resp->command == "get_user_cache"){
             //
+            std::cout << resp->message << std::endl;
         }else if(resp->command == "get_active_users"){
             //getActiveUsers(resp->message);
+            std::cout << resp->message << std::endl;
         }else if (resp->command == "get_messages"){
+            std::cout << resp->message << std::endl;
             //setMessages(resp->message);
         }else if (resp->command == "close_connections"){
+            std::cout << resp->message << std::endl;
             //closeConnection();
         }else if (resp->command == "message"){
+            std::cout << resp->message << std::endl;
             //messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
         }else if (resp->command == "set_user_cache"){
+            std::cout << resp->message << std::endl;
             //
         }else if (resp->command == "get_user_info"){
+            std::cout << resp->message << std::endl;
             //userInfo(resp->message);
         }else if (resp->command == "client_join"){
+            std::cout << resp->message << std::endl;
             //clientJoin(resp->message);
         }else if(resp->command == "client_leave"){
+            std::cout << resp->message << std::endl;
             //clientLeave(resp->message);
         }else if(resp->command == "get_user_status"){
+            std::cout << resp->message << std::endl;
             //requestUserStatus(resp->message);
         }else if(resp->command == "reset_unread_messages"){
+            std::cout << resp->message << std::endl;
             //
         }else if(resp->command == "get_unread_messages"){
+            std::cout << resp->message << std::endl;
             //unreadMessages(resp->message);
         }else if(resp->command == "command_to_qt_client"){
+            std::cout << resp->message << std::endl;
             //
         }else if(resp->command == "get_group_list"){
+            std::cout << resp->message << std::endl;
             //getGroupList(resp->message);
         }else if(resp->command == "get_users"){
+            std::cout << resp->message << std::endl;
             //getListUsers(resp->message);
         }else if(resp->command == "add_group"){
+            std::cout << resp->message << std::endl;
             //addGroupUsers(resp->message);
         }else if(resp->command == "edit_group"){
+            std::cout << resp->message << std::endl;
             //editGroupUsers(resp->message);
         }else if(resp->command == "remove_group"){
+            std::cout << resp->message << std::endl;
             //removeGroupUsers(resp->message);
         }else if (resp->command == "add_user"){
+            std::cout << resp->message << std::endl;
             //addUser(resp->message);
         }else if (resp->command == "remove_user"){
+            std::cout << resp->message << std::endl;
             //deleteUser(resp->message);
         }else if (resp->command == "update_user"){
+            std::cout << resp->message << std::endl;
             //updateUser(resp->message);
         }else if (resp->command == "set_parent"){
+            std::cout << resp->message << std::endl;
             //setUserParent(resp->message);
         }else if(resp->command == "get_channel_token"){
+            std::cout << resp->message << std::endl;
             //
         }else if (resp->command == "get_webdav_settings"){
+            std::cout << resp->message << std::endl;
             //
         }else if (resp->command == "set_webdav_settings"){
+            std::cout << resp->message << std::endl;
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
+            std::cout << resp->message << std::endl;
             //
         }
         else
@@ -207,6 +236,11 @@ int main(int argc, char** argv)
             if (client->started())
                 client->get_user_data("d7cca261-aecc-4708-872c-6cb6a664a6d7", "", "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
             continue;
+        }else
+        {
+//            if (client->started()){
+//                client->se
+//            }
         }
 
     }

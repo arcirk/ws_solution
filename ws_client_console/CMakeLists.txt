@@ -3,7 +3,24 @@ project(ws_client_console)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ws_client_console src/main.cpp ../chared/server_response.cpp)
+add_executable(ws_client_console src/main.cpp
+        ../chared/server_response.cpp
+        ../chared/server_response.h
+        ../ws_client/include/net.h
+        ../ws_client/include/beast.h
+        ../ws_client/include/ws_session.h
+        ../ws_client/include/ws_client.h
+        ../ws_client/src/iws_client.cpp
+        ../ws_client/src/ws_session.cpp
+        ../ws_client/src/ws_client.cpp
+        ../arcirk/include/arcirk.h
+        ../arcirk/src/arcirk.cpp
+        ../arcirk/src/arcirk_ip.cpp
+        ../arcirk/src/arcirk_json.cpp
+        ../arcirk/src/arcirk_message.cpp
+        ../arcirk/src/arcirk_settings.cpp
+        ../arcirk/src/arcirk_static.cpp
+        )
 
 if (UNIX)
     SET(CMAKE_CXX_FLAGS -pthread)
@@ -17,8 +34,6 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(${Boost_INCLUDE_DIRS})
-
-target_link_libraries(ws_client_console ${Boost_LIBRARIES})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
     target_compile_options(ws_client_console PRIVATE -Wall -Wextra -Wunreachable-code -Wpedantic)
@@ -34,4 +49,8 @@ endif()
 
 include_directories("../ws_client/include")
 include_directories("../chared")
-target_link_libraries(ws_client_console ws_client)
+#link_directories(../ws_client/cmake-build-debug)
+
+target_link_libraries(ws_client_console
+        ${Boost_LIBRARIES}
+        ${NMOS_CPP_SYSTEM_LIBS})

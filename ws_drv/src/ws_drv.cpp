@@ -34,15 +34,16 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-
-
 #include "ws_drv.h"
 #include <ws_client.h>
 #include "server_response.h"
 
+//#include <webdav/client.hpp>
+
 typedef std::function<void()> _start_func;
 
 using namespace arcirk;
+namespace dll = boost::dll;
 
 std::string ws_drv::extensionName() {
     return "WebSocketClient";
@@ -92,6 +93,9 @@ ws_drv::ws_drv()
 //    AddMethod(L"Deliver", L"Сообщить", this, &ws_drv::send);
     AddMethod(L"Started", L"Запущен", this, &ws_drv::started);
     AddMethod(L"OpenAs", L"ОткрытьКак", this, &ws_drv::open_as);
+    AddMethod(L"crypt", L"crypt", this, &ws_drv::crypt);
+    AddMethod(L"CheckWebDav", L"ПроверитьWebDavПодключение", this, &ws_drv::webdav_check);
+
 //    AddMethod(L"GetClientInfo", L"ПолучитьИнформациюОТекущемКлиенте", this, &ws_drv::get_client_info);
 //    AddMethod(L"CurrentName", L"ТекущееИмя", this, &ws_drv::get_current_name);
 //    //AddMethod(L"CloseChannel", L"ОтключитсяОтКанала", this, &ws_drv::close_channel);
@@ -110,6 +114,7 @@ ws_drv::ws_drv()
 //    AddMethod(L"GetUsers", L"ПолучитьПользователей", this, &ws_drv::get_users);
 //    AddMethod(L"SetParent", L"УстановитьГруппу", this, &ws_drv::set_parent);
 //    AddMethod(L"RemoveUser", L"УдалитьПользователя", this, &ws_drv::remove_user);
+
 
 }
 
@@ -741,11 +746,11 @@ void ws_drv::processServeResponse(const std::string &jsonResp)
     {
         if(resp->command == "set_client_param"){
             connectionSuccess();
-            client->send_command("set_content_type", "", "{\"content_type\":\"HTML\"}");
+            send_command("set_content_type", "", "{\"content_type\":\"HTML\"}");
         }else if (resp->command == "set_content_type"){
-            client->send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
+            send_command("set_message_struct_type", "", "{\"struct_type\":\"DB\"}");
         }else if (resp->command == "set_message_struct_type"){
-            client->send_command("get_webdav_settings", "", "");
+            send_command("get_webdav_settings", "", "");
         }else if (resp->command == "get_users_catalog"){
             //
         }else if (resp->command == "get_user_cache"){
@@ -795,7 +800,8 @@ void ws_drv::processServeResponse(const std::string &jsonResp)
         }else if(resp->command == "get_channel_token"){
             //
         }else if (resp->command == "get_webdav_settings"){
-            //
+            setWebDavSettingsToClient(resp->message);
+            emit("get_webdav_settings", resp->message);
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
@@ -809,7 +815,7 @@ void ws_drv::processServeResponse(const std::string &jsonResp)
 }
 
 void ws_drv::displayError(const std::string &what, const std::string &err) {
-
+    emit("Error", what + ": " + err);
 }
 
 void ws_drv::connectionSuccess() {
@@ -1367,5 +1373,67 @@ void ws_drv::save_conf(const variant_t &conf) {
 
 void ws_drv::emit(const std::string& command, const std::string &resp) {
         this->ExternalEvent("WebSocketClient", command, resp);
+}
+
+void ws_drv::setWebDavSettingsToClient(const std::string &resp) {
+
+    set_webdav_settings_on_client(resp);
+
+    settings[bConfFields::WebDavHost] = client->get_webdav_host();
+    settings[bConfFields::WebDavUser] = client->get_webdav_user();
+    settings[bConfFields::WebDavPwd] = client->get_webdav_pwd();
+    settings[bConfFields::WebDavSSL] = client->get_webdav_ssl();
+
+    settings.save();
+}
+
+std::string ws_drv::crypt(const variant_t &source, const variant_t &key) {
+
+    std::string _source = std::get<std::string>(source);
+    std::string _key = std::get<std::string>(key);
+    return bConf::crypt(_source, _key);
+}
+
+bool ws_drv::webdav_check() {
+//    std::map<std::string, std::string> options =
+//    {
+//            {"webdav_hostname", "https://arcirk.ru"},
+//            {"webdav_username", "arcady"},
+//            {"webdav_password", ""}
+//    };
+//
+//    std::unique_ptr<WebDAV::Client> wd_client{ new WebDAV::Client{ options } };
+//    auto remote_resources =
+//    {
+//            "existing_file.dat",
+//            "not_existing_file.dat",
+//            "existing_directory",
+//            "existing_directory/",
+//            "not_existing_directory",
+//            "not_existing_directory/"
+//    };
+//
+//    for (const auto& remote_resource : remote_resources)
+//    {
+//        bool is_existed = wd_client->check(remote_resource);
+//        std::cout << "Resource: " << remote_resource
+//                  << " is " << (is_existed ? "" : "not ") << "existed" << std::endl;
+//    }
+
+    boost::dll::fs::path lib_path("C:/src/ws_solution/webdav_plugin/cmake-build-debug");             // argv[1] contains path to directory with our plugin library
+//   boost::filesystem::path p = boost::filesystem::current_path();
+//    boost::shared_ptr<bwebdav_api> plugin;            // variable to hold a pointer to plugin variable
+//    std::cout << "Loading the plugin" << std::endl;
+//
+//    plugin = dll::import_symbol<bwebdav_api>(         // type of imported symbol is located between `<` and `>`
+//            lib_path / "bwebdav",                     // path to the library and library name
+//            "plugin",                                       // name of the symbol to import
+//            dll::load_mode::append_decorations              // makes `libmy_plugin_sum.so` or `my_plugin_sum.dll` from `my_plugin_sum`
+//    );
+//    bool result = plugin->check_connection();
+//    //std::cout << "plugin-check_connection() call:  " << plugin->check_connection() << std::endl;
+//    return result;
+//
+    return true;
 }
 
