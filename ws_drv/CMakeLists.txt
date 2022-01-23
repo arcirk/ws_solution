@@ -37,7 +37,7 @@ set(Boost_USE_STATIC_RUNTIME    ON)
 #    #set (Boost_USE_MULTITHREADED OFF)
 #    set (Boost_USE_STATIC_RUNTIME ON)
 
-    #if (MSVC)
+    if (MSVC)
 
 #        set (Boost_USE_MULTITHREADED ON)
 #
@@ -55,7 +55,7 @@ set(Boost_USE_STATIC_RUNTIME    ON)
         set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
         set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:MSVCRTD")
 #
-#    #endif()
+    endif()
 #
 #    if (CMAKE_COMPILER_IS_GNUCXX)
 #        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
