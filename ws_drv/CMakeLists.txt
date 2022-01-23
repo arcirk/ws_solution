@@ -25,11 +25,6 @@ endif()
 
 
 #add_definitions (-DBOOST_ALL_NO_LIB)
-set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
-set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
-set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    ON)
 
 #if (NOGUI)
 
@@ -39,6 +34,11 @@ set(Boost_USE_STATIC_RUNTIME    ON)
 
     if (MSVC)
 
+        set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+        set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
+        set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
+        set(Boost_USE_MULTITHREADED      ON)
+        set(Boost_USE_STATIC_RUNTIME    ON)
 #        set (Boost_USE_MULTITHREADED ON)
 #
         foreach (flag_var
