@@ -21,6 +21,5 @@ else()
     find_package(Boost REQUIRED COMPONENTS regex)
 endif()
 
-
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(arcirk PRIVATE ${Boost_LIBRARIES})

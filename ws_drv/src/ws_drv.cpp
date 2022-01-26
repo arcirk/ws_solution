@@ -54,12 +54,7 @@ ws_drv::ws_drv()
 
     client = nullptr;
 
-    settings = bConf("conf_1c_client.json");
-    port = (int)settings[bConfFields::ServerPort].get_int();
-    host = settings[bConfFields::ServerHost].get_string();
-    admin_name = settings[bConfFields::User].get_string();
-    app_name = settings[bConfFields::AppName].get_string();
-    hash = settings[bConfFields::Hash].get_string();
+
 
     if(app_name != "client_1C"){
         app_name = "client_1C";

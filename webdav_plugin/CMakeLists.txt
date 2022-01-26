@@ -4,7 +4,13 @@ project(bwebdav VERSION 1.0.1 DESCRIPTION "webdav client")
 set(CMAKE_CXX_STANDARD 17)
 set(TARGET bwebdav)
 set(ignoreMe "${FOO}${BAZ}${BAR}")
-list(APPEND CMAKE_PREFIX_PATH C:/lib/webdav/webdav-client-cpp/_install/default/lib/cmake/WDC)
+
+if (WIN32)
+    list(APPEND CMAKE_PREFIX_PATH C:/lib/webdav/webdav-client-cpp/_install/default/lib/cmake/WDC)
+else()
+    list(APPEND CMAKE_PREFIX_PATH /home/arcady/lib/webdav/webdav-client-cpp/_install/default/lib/cmake/WDC)
+endif ()
+
 
 add_library(bwebdav SHARED bwebdav.cpp bwebdav_api.h)
 
