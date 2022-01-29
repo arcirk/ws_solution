@@ -5,20 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(TARGET ws_drv)
 
 option(CASE_INSENSITIVE "Case insensitive method names" OFF)
-option(STATIC_CRT "Static CRT linkage" ON)
+if (WIN32)
+    option(STATIC_CRT "Static CRT linkage" ON)
+else()
+    option(STATIC_CRT "Static CRT linkage" OFF)
+endif ()
+
 option(OUT_PARAMS "Support output parameters" OFF)
 
-#if(WIN32)
-#    add_definitions("-DCURL_STATICLIB")
-#endif()
-#set(CURL_LIBRARY "-lcurl")
-
 if (WIN32)
-#    target_compile_definitions(${TARGET} PRIVATE
-#            _WINDOWS
-#            _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-#    target_compile_options(${TARGET} PRIVATE /utf-8)
-
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
@@ -57,23 +52,28 @@ list(APPEND SOURCES
         src/ws_drv.cpp
         src/ws_drv.h)
 
-#file(GLOB ARCIRK_SOURCES ../arcirk/src/*.cpp)
-#file(GLOB WDC_SOURCES ../wdc/src/*.cpp ../wdc/src/*.hpp)
-#file(GLOB PUGI_SOURCES ../pugixml/*.cpp)
 
-add_library(${TARGET} SHARED
-        ${SOURCES})
-#        ${ARCIRK_SOURCES})
-#        ${WDC_SOURCES}
-#        ${PUGI_SOURCES})
+
+if (WIN32)
+    add_library(${TARGET} SHARED
+            ${SOURCES})
+else()
+    file(GLOB ARCIRK_SOURCES ../arcirk/src/*.cpp)
+    file(GLOB WDC_SOURCES ../wdc/src/*.cpp ../wdc/src/*.hpp)
+    file(GLOB PUGI_SOURCES ../pugixml/*.cpp)
+    add_library(${TARGET} SHARED
+            ${SOURCES}
+            ${ARCIRK_SOURCES}
+            ${WDC_SOURCES}
+            ${PUGI_SOURCES})
+endif ()
+
 
 set(ARCIRK_INCLUDE ../arcirk/include)
 set(ARCIRK_LIB ../arcirk/cmake-build-debug)
 set(WDC_LIB ../wdc/cmake-build-debug)
 set(WDC_INCLUDE ../wdc/include)
-
-#set(PUGI_INCLUDE ../pugixml)
-#set(WDC_INCLUDE ../wdc/include)
+set(PUGI_INCLUDE ../pugixml)
 
 #target_compile_definitions(${TARGET} PRIVATE UNICODE _UNICODE)
 
@@ -105,61 +105,59 @@ set_target_properties( ${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 17
         )
 
-if (UNIX)
-    if (TARGET_PLATFORM_32)
-        set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
-    else(TARGET_PLATFORM_32)
-        set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
-    endif ()
-    target_link_libraries(${PROJECT_NAME} -static-libstdc++)
-else(UNIX)
-    add_definitions(/MT)
-    set(CMAKE_SUPPRESS_REGENERATION 1)
-    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
-    target_compile_definitions(${TARGET} PRIVATE _WINDOWS
-            _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-    target_compile_options(${TARGET} PRIVATE /utf-8)
-endif(UNIX)
+#if (UNIX)
+#    if (TARGET_PLATFORM_32)
+#        set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+#        set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+#    else(TARGET_PLATFORM_32)
+#        set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
+#        set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+#    endif ()
+#    target_link_libraries(${PROJECT_NAME} -static-libstdc++)
+#else(UNIX)
+#    add_definitions(/MT)
+#    set(CMAKE_SUPPRESS_REGENERATION 1)
+#    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+#    target_compile_definitions(${TARGET} PRIVATE _WINDOWS
+#            _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+#    target_compile_options(${TARGET} PRIVATE /utf-8)
+#endif(UNIX)
 
+if (WIN32)
+    link_directories(
+            ${ARCIRK_LIB}
+            ${WDC_LIB})
+endif ()
 
-link_directories(
-        ${ARCIRK_LIB}
-        ${WDC_LIB})
-
-#link_directories(../wdc/cmake-build-debug)
-#find_package(Boost REQUIRED COMPONENTS regex)
-
-#find_package(OpenSSL REQUIRED)
-#find_package(CURL CONFIG REQUIRED)
-#include_directories(${CURL_INCLUDE_DIR})
 
 if (WIN32)
     find_package(Boost REQUIRED COMPONENTS regex)
     target_link_libraries(${TARGET} PRIVATE
             bcrypt.lib libwdc arcirk)
-#            OpenSSL::SSL
-#            OpenSSL::Crypto
-#            ${CURL_LIBRARIES}
-#            )
 
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
             ${WDC_INCLUDE}
     )
-#            ../wdc/include
-#    )
+
 else()
+    find_package(OpenSSL REQUIRED)
+    find_package(CURL REQUIRED)
     find_package(Boost COMPONENTS regex filesystem system thread REQUIRED)
     include_directories (
             ${Boost_INCLUDE_DIRS}
-            ${ARCIRK_INCLUDE})
-#            ../wdc/include
-#    )
+            ${ARCIRK_INCLUDE}
+            ${PUGI_INCLUDE}
+            ${WDC_INCLUDE})
 
-    link_libraries(Boost::filesystem Boost::system Boost::thread)
-    #link_libraries(libwdc)
+    target_link_libraries(${TARGET} PRIVATE
+            Boost::filesystem
+            Boost::system
+            Boost::thread
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            ${CURL_LIBRARIES}
+            -static-libstdc++)
 endif()
 

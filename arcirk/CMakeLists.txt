@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 #set (EXECUTABLE_OUTPUT_PATH ${LIBRARY_OUTPUT_PATH})
 #set (CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 
-add_definitions(/MT)
+
 
 if(WIN32)
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -21,11 +21,7 @@ if(WIN32)
 endif()
 
 if (WIN32)
-    #    target_compile_definitions(${TARGET} PRIVATE
-    #            _WINDOWS
-    #            _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-    #    target_compile_options(${TARGET} PRIVATE /utf-8)
-
+    add_definitions(/MT)
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
