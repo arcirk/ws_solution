@@ -10,5 +10,6 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/arcirk" "${PROJECT_SOURCE_DIR}/arcirk/cm
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client_qml" "${PROJECT_SOURCE_DIR}/ws_client_qml/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_agent/ws_agent" "${PROJECT_SOURCE_DIR}/ws_agent/ws_agent/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qt_models/project" "${PROJECT_SOURCE_DIR}/qt_models/project/cmake-build-debug")
-add_subdirectory("${PROJECT_SOURCE_DIR}/webdav_plugin" "${PROJECT_SOURCE_DIR}/webdav_plugin/cmake-build-debug")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/webdav_plugin" "${PROJECT_SOURCE_DIR}/webdav_plugin/cmake-build-debug")
 #add_subdirectory("tests/bconf" "${PROJECT_SOURCE_DIR}bconf/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/wdc" "${PROJECT_SOURCE_DIR}/wdc/cmake-build-debug")

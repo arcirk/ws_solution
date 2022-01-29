@@ -26,11 +26,13 @@
     #include <net.h>
 #endif // _WINDOWS
 
-#include <boost/filesystem.hpp>
-#include <boost/dll.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/dll/import.hpp>
-#include <bwebdav_api.h>
+//#include <boost/filesystem.hpp>
+//#include <boost/dll.hpp>
+//#include <boost/filesystem/path.hpp>
+//#include <boost/dll/import.hpp>
+
+//#include <bwebdav_api.h>
+//#include <wdclient.hpp>
 
 #include <arcirk.h>
 
@@ -192,8 +194,10 @@ private:
 //    void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
 //    void remove_user(const variant_t &user_uuid, const variant_t &uuid_form);
 
-    ws_client * client;
-    std::string _client_param;
+
+
+//    ws_client * client;
+//    std::string _client_param;
     arcirk::bConf settings;
 
 //    _callback_message callback_msg;
