@@ -23,7 +23,7 @@
 #include "Component.h"
 
 #ifdef _WINDOWS
-    #include <net.h>
+//    #include <net.h>
 #endif // _WINDOWS
 
 //#include <boost/filesystem.hpp>
@@ -32,11 +32,12 @@
 //#include <boost/dll/import.hpp>
 
 //#include <bwebdav_api.h>
-//#include <wdclient.hpp>
+
+#include <wdclient.hpp>
 
 #include <arcirk.h>
 
-class  ws_client;
+//class  ws_client;
 
 //typedef std::function<void(std::string)> _callback_message;
 //typedef std::function<void(bool)> _callback_status;

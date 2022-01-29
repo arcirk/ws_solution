@@ -1406,21 +1406,21 @@ std::string ws_drv::crypt(const variant_t &source, const variant_t &key) {
 
 bool ws_drv::webdav_check() {
 
-//    std::map<std::string, std::string> options =
-//    {
-//            {"webdav_hostname", "https://arcirk.ru"},
-//            {"webdav_username", "webDavUser"},
-//            {"webdav_password", "@LbyFvj1"},
-//            {"webdav_root", "remote.php/dav/files/webDavUser"}
-//    };
-//    std::unique_ptr<WebDAV::Client> webdav_client{ new WebDAV::Client{ options } };
-//    bool check_connection = webdav_client->check();
-//    std::cout << "test connection with WebDAV drive is "
-//              << (check_connection ? "" : "not ")
-//              << "successful"<< std::endl;
-//
-//    return check_connection;
-    return false;
+    std::map<std::string, std::string> options =
+    {
+            {"webdav_hostname", "https://arcirk.ru"},
+            {"webdav_username", "webDavUser"},
+            {"webdav_password", "@LbyFvj1"},
+            {"webdav_root", "remote.php/dav/files/webDavUser"}
+    };
+    std::unique_ptr<WebDAV::Client> webdav_client{ new WebDAV::Client{ options } };
+    bool check_connection = webdav_client->check();
+    std::cout << "test connection with WebDAV drive is "
+              << (check_connection ? "" : "not ")
+              << "successful"<< std::endl;
+
+    return check_connection;
+//    return false;
 //    std::map<std::string, std::string> options =
 //    {
 //            {"webdav_hostname", "https://arcirk.ru"},
