@@ -14,6 +14,30 @@ set(TARGET ws_client)
 #endif()
 #SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+if (WIN32)
+    set(WS_CLIENT_STATIC ON)
+    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+    set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
+    set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
+    set(Boost_USE_MULTITHREADED      ON)
+    set(Boost_USE_STATIC_RUNTIME    ON)
+    #        set (Boost_USE_MULTITHREADED ON)
+    #
+    foreach (flag_var
+            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+
+        if (${flag_var} MATCHES "/MD")
+            string (REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endif (${flag_var} MATCHES "/MD")
+
+    endforeach(flag_var)
+
+    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+    set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:MSVCRTD")
+endif ()
+
 add_definitions(-DWS_CLIENT_LIBRARY)
 
 list(APPEND SOURCES
@@ -74,14 +98,13 @@ endif ()
             #        PUBLIC_HEADER include/iws_client.h)
 if (WIN32)
     link_directories(
-            ${ARCIRK_LIB}
-            ${WDC_LIB})
+            ${ARCIRK_LIB})
 endif ()
 
 if (WIN32)
     find_package(Boost REQUIRED COMPONENTS regex)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib libwdc arcirk)
+            bcrypt.lib arcirk)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}

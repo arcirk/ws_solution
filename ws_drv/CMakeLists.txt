@@ -14,6 +14,7 @@ endif ()
 option(OUT_PARAMS "Support output parameters" OFF)
 
 if (WIN32)
+
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
@@ -83,7 +84,7 @@ set(WS_CLIENT_LIB ../ws_client/cmake-build-debug)
 set(CHARED_INCLUDE ../chared)
 
 #target_compile_definitions(${TARGET} PRIVATE UNICODE _UNICODE)
-add_definitions(-DWS_CLIENT_STATIC)
+#add_definitions(-DWS_CLIENT_STATIC)
 
 target_include_directories(${TARGET} PRIVATE
         include
