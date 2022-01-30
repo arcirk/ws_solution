@@ -17,12 +17,13 @@ public:
     std::string contentType;
     std::string recipientName;
     std::string app_name;
+    std::string uuid_form;
 
     static arcirk::bJson parseResp(const std::string& resp);
 
     static std::string base64_decode(const std::string& resp);
 
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const;
 
 private:
     void parse(const std::string& resp);

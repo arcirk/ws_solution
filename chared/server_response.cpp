@@ -38,6 +38,7 @@ void ServeResponse::parse(const std::string& resp){
             auto _contentType = _doc.get_member("contentType");
             auto _recipientName = _doc.get_member("channel_name");
             auto _app_name = _doc.get_member("app_name");
+            auto _uuid_form = _doc.get_member("uuid_form");
 
             if(_message.is_string()){
                 message = _message.get_string();
@@ -66,6 +67,9 @@ void ServeResponse::parse(const std::string& resp){
             if(_uuid_session.is_string()){
                 uuid_session = _uuid_session.get_string();
             }
+            if(_uuid_form.is_string()){
+                uuid_form = _uuid_form.get_string();
+            }
             isParse = true;
         }
     }
@@ -86,6 +90,7 @@ std::string ServeResponse::to_string() const
     msg.addMember(arcirk::content_value("recipientName", recipientName));
     msg.addMember(arcirk::content_value("app_name", app_name));
     msg.addMember(arcirk::content_value("uuid_session", uuid_session));
+    msg.addMember(arcirk::content_value("uuid_form", uuid_form));
     return msg.to_string();
 }
 

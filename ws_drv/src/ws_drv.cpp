@@ -94,6 +94,7 @@ ws_drv::ws_drv()
     AddMethod(L"OpenAs", L"ОткрытьКак", this, &ws_drv::open_as);
     AddMethod(L"crypt", L"crypt", this, &ws_drv::crypt);
     AddMethod(L"CheckWebDav", L"ПроверитьWebDavПодключение", this, &ws_drv::webdav_check);
+    AddMethod(L"GetWebDavSettings", L"ПолучитьНастройкиWebDav", this, &ws_drv::get_webdav_settings);
 
 //    AddMethod(L"GetClientInfo", L"ПолучитьИнформациюОТекущемКлиенте", this, &ws_drv::get_client_info);
 //    AddMethod(L"CurrentName", L"ТекущееИмя", this, &ws_drv::get_current_name);
@@ -767,7 +768,7 @@ void ws_drv::processServeResponse(const std::string &jsonResp)
         }else if (resp->command == "close_connections"){
             closeConnection();
         }else if (resp->command == "message"){
-            messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
+            messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName, resp->uuid_form);
         }else if (resp->command == "set_user_cache"){
             //
         }else if (resp->command == "get_user_info"){
@@ -806,7 +807,7 @@ void ws_drv::processServeResponse(const std::string &jsonResp)
             //
         }else if (resp->command == "get_webdav_settings"){
             setWebDavSettingsToClient(resp->message);
-            emit("get_webdav_settings", resp->message);
+            emit("get_webdav_settings", resp->to_string());
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
@@ -824,11 +825,11 @@ void ws_drv::displayError(const std::string &what, const std::string &err) {
 }
 
 void ws_drv::connectionSuccess() {
-
+    emit("connectionSuccess", "");
 }
 
 void ws_drv::closeConnection() {
-
+    emit("closeConnection", "");
 }
 
 void ws_drv::connectedStatusChanged(bool status) {
@@ -845,7 +846,23 @@ void ws_drv::setMessages(const std::string &resp) {
 }
 
 void ws_drv::messageReceived(const std::string &msg, const std::string &uuid, const std::string &recipient,
-                             const std::string &recipientName) {
+                             const std::string &recipientName, const std::string& uuid_form) {
+
+    bJson json = bJson();
+    json.set_object();
+    json.addMember(content_value("msg", msg));
+    json.addMember(content_value("uuid", uuid));
+    json.addMember(content_value("recipient", recipient));
+    json.addMember(content_value("recipientName", recipientName));
+    json.addMember(content_value("uuid_form", uuid_form));
+
+    std::string data = json.to_string();
+
+    emit("messageReceived", data);
+
+    //std::string data = ServeResponse::base64_decode(msg);
+    //emit("messageReceived", data);
+
 
 }
 
@@ -1401,12 +1418,20 @@ std::string ws_drv::crypt(const variant_t &source, const variant_t &key) {
 
 bool ws_drv::webdav_check() {
 
+    bool ssl = settings[bConfFields::WebDavSSL].get_bool();
+
+    std::string webdav_hostname = ssl ? "https://" : "http://";
+    webdav_hostname.append(settings[bConfFields::WebDavHost].get_string());
+    std::string webdav_password = bConf::crypt(settings[bConfFields::WebDavPwd].get_string(), "my_key");
+    std::string webdav_root = "remote.php/dav/files/" + settings[bConfFields::WebDavUser].get_string();
+
+
     std::map<std::string, std::string> options =
     {
-            {"webdav_hostname", "https://arcirk.ru"},
-            {"webdav_username", "webDavUser"},
-            {"webdav_password", "@LbyFvj1"},
-            {"webdav_root", "remote.php/dav/files/webDavUser"}
+            {"webdav_hostname", webdav_hostname},
+            {"webdav_username", settings[bConfFields::WebDavUser].get_string()},
+            {"webdav_password", webdav_password},
+            {"webdav_root", webdav_root}
     };
     std::unique_ptr<WebDAV::Client> webdav_client{ new WebDAV::Client{ options } };
     bool check_connection = webdav_client->check();
@@ -1456,5 +1481,20 @@ bool ws_drv::webdav_check() {
 //    return result;
 //
   //  return true;
+}
+
+void ws_drv::get_webdav_settings(const variant_t& uuid_form) {
+
+    if (client){
+        if (client->started()){
+            std::string _uuid_form = std::get<std::string>(uuid_form);
+            if (_uuid_form.empty())
+                _uuid_form = arcirk::nil_string_uuid();
+
+            send_command("get_webdav_settings", _uuid_form, "");
+
+        }
+    }
+
 }
 

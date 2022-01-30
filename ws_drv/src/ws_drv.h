@@ -100,6 +100,7 @@ private:
     void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
     bool webdav_check();
+    void get_webdav_settings(const variant_t& uuid_form);
 
     std::string get_webdav_user() const;
     std::string get_webdav_pwd() const;
@@ -121,7 +122,7 @@ private:
     void getActiveUsers(const std::string& resp);
     void clientLeave(const std::string& resp);
     void setMessages(const std::string& resp);
-    void messageReceived(const std::string& msg, const std::string& uuid, const std::string& recipient, const std::string& recipientName);
+    void messageReceived(const std::string& msg, const std::string& uuid, const std::string& recipient, const std::string& recipientName, const std::string& uuid_form);
     void requestUserStatus(const std::string& resp);
     void unreadMessages(const std::string& resp);
     void getGroupList(const std::string& resp);
