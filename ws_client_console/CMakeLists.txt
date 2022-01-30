@@ -32,7 +32,7 @@ else()
     set (NMOS_CPP_SYSTEM_LIBS )
 endif()
 
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS thread filesystem system)
 include_directories(${Boost_INCLUDE_DIRS})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")

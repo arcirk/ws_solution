@@ -37,10 +37,10 @@
 
 #include <arcirk.h>
 
-//class  ws_client;
+class  ws_client;
 
-//typedef std::function<void(std::string)> _callback_message;
-//typedef std::function<void(bool)> _callback_status;
+typedef std::function<void(std::string)> _callback_message;
+typedef std::function<void(bool)> _callback_status;
 
 class ws_drv final : public Component {
 public:
@@ -54,7 +54,6 @@ public:
     std::string hash;
 
     ws_drv();
-    //~ws_drv() override;
 
     void ext_message(const std::string& msg);
     void status_changed(bool status);
@@ -197,8 +196,8 @@ private:
 
 
 
-//    ws_client * client;
-//    std::string _client_param;
+    ws_client * client;
+    std::string _client_param;
     arcirk::bConf settings;
 
 //    _callback_message callback_msg;

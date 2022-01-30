@@ -96,40 +96,52 @@ namespace arcirk{
     std::string base64_encode(const std::string &s) {
         namespace bai = boost::archive::iterators;
 
-        std::stringstream os;
+        try {
+            std::stringstream os;
 
-        // convert binary values to base64 characters
-        typedef bai::base64_from_binary
-        // retrieve 6 bit integers from a sequence of 8 bit bytes
-                <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
+            // convert binary values to base64 characters
+            typedef bai::base64_from_binary
+            // retrieve 6 bit integers from a sequence of 8 bit bytes
+                    <bai::transform_width<const char *, 6, 8>> base64_enc; // compose all the above operations in to a new iterator
 
-        std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
-                  std::ostream_iterator<char>(os));
+            std::copy(base64_enc(s.c_str()), base64_enc(s.c_str() + s.size()),
+                      std::ostream_iterator<char>(os));
 
-        os << base64_padding[s.size() % 3];
-        return os.str();
+            os << base64_padding[s.size() % 3];
+            return os.str();
+        }catch (std::exception& e){
+            std::cerr << "error: " << e.what() << std::endl;
+            return "";
+        }
+
     }
 
     std::string base64_decode(const std::string &s) {
         namespace bai = boost::archive::iterators;
 
-        std::stringstream os;
+        try {
+            std::stringstream os;
 
-        typedef bai::transform_width<bai::binary_from_base64<const char *>, 8, 6> base64_dec;
+            typedef bai::transform_width<bai::binary_from_base64<const char *>, 8, 6> base64_dec;
 
-        unsigned int size = s.size();
+            unsigned int size = s.size();
 
-        // Remove the padding characters, cf. https://svn.boost.org/trac/boost/ticket/5629
-        if (size && s[size - 1] == '=') {
-            --size;
-            if (size && s[size - 1] == '=') --size;
+            // Remove the padding characters, cf. https://svn.boost.org/trac/boost/ticket/5629
+            if (size && s[size - 1] == '=') {
+                --size;
+                if (size && s[size - 1] == '=') --size;
+            }
+            if (size == 0) return std::string();
+
+            std::copy(base64_dec(s.data()), base64_dec(s.data() + size),
+                      std::ostream_iterator<char>(os));
+
+            return os.str();
+
+        }catch (std::exception& e){
+            std::cerr << "error: " << e.what() << std::endl;
+            return "";
         }
-        if (size == 0) return std::string();
-
-        std::copy(base64_dec(s.data()), base64_dec(s.data() + size),
-                  std::ostream_iterator<char>(os));
-
-        return os.str();
     }
 
     int split_str_to_vec(const T_str s, const T_str DELIM, T_vec& v)

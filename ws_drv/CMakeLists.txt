@@ -50,7 +50,9 @@ list(APPEND SOURCES
         src/Component.cpp
         src/Component.h
         src/ws_drv.cpp
-        src/ws_drv.h)
+        src/ws_drv.h
+        ../chared/server_response.h
+        ../chared/server_response.cpp)
 
 
 
@@ -61,11 +63,13 @@ else()
     file(GLOB ARCIRK_SOURCES ../arcirk/src/*.cpp)
     file(GLOB WDC_SOURCES ../wdc/src/*.cpp ../wdc/src/*.hpp)
     file(GLOB PUGI_SOURCES ../pugixml/*.cpp)
+    file(GLOB WS_CLIENT_SOURCES ../ws_client/src/*.cpp)
     add_library(${TARGET} SHARED
             ${SOURCES}
             ${ARCIRK_SOURCES}
             ${WDC_SOURCES}
-            ${PUGI_SOURCES})
+            ${PUGI_SOURCES}
+            ${WS_CLIENT_SOURCES})
 endif ()
 
 
@@ -74,14 +78,20 @@ set(ARCIRK_LIB ../arcirk/cmake-build-debug)
 set(WDC_LIB ../wdc/cmake-build-debug)
 set(WDC_INCLUDE ../wdc/include)
 set(PUGI_INCLUDE ../pugixml)
+set(WS_CLIENT_INCLUDE ../ws_client/include)
+set(WS_CLIENT_LIB ../ws_client/cmake-build-debug)
+set(CHARED_INCLUDE ../chared)
 
 #target_compile_definitions(${TARGET} PRIVATE UNICODE _UNICODE)
+add_definitions(-DWS_CLIENT_STATIC)
 
 target_include_directories(${TARGET} PRIVATE
         include
         ${ARCIRK_INCLUDE}
         ${PUGI_INCLUDE}
-        ${WDC_INCLUDE})
+        ${WDC_INCLUDE}
+        ${WS_CLIENT_INCLUDE}
+        ${CHARED_INCLUDE})
 
 set (LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 set (EXECUTABLE_OUTPUT_PATH ${LIBRARY_OUTPUT_PATH})
@@ -126,19 +136,22 @@ endif(UNIX)
 if (WIN32)
     link_directories(
             ${ARCIRK_LIB}
-            ${WDC_LIB})
+            ${WDC_LIB}
+            ${WS_CLIENT_LIB})
 endif ()
 
 
 if (WIN32)
     find_package(Boost REQUIRED COMPONENTS regex)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib libwdc arcirk)
+            bcrypt.lib libwdc arcirk ws_client)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
             ${WDC_INCLUDE}
+            ${WS_CLIENT_INCLUDE}
+            ${CHARED_INCLUDE}
     )
 
 else()
@@ -149,7 +162,10 @@ else()
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
             ${PUGI_INCLUDE}
-            ${WDC_INCLUDE})
+            ${WDC_INCLUDE}
+            ${WS_CLIENT_INCLUDE}
+            ${CHARED_INCLUDE}
+    )
 
     target_link_libraries(${TARGET} PRIVATE
             Boost::filesystem
