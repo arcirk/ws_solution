@@ -42,7 +42,14 @@ namespace arcirk{
                 value = intVal;
             } else if (itr->value.IsString()) {
                 std::string strVal = itr->value.GetString();
-                value = strVal;
+                if(member == "uuid_form"){
+                    boost::uuids::uuid uuid_form{};
+                    if (is_valid_uuid(strVal, uuid_form))
+                        value = uuid_form;
+                    else
+                        value = strVal;
+                }else
+                    value = strVal;
             } else if (itr->value.IsBool()) {
                 bool boolVal = itr->value.GetBool();
                 value = boolVal;
