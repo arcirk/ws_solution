@@ -60,7 +60,7 @@ set(PROJECT_SOURCES
    include/selectgroupdialog.h
    src/selectgroupdialog.cpp
    form/selectgroupdialog.ui
-   )
+        ../ws_webdav/main.cpp ../ws_webdav/lib/include/bwebdav.h ../ws_webdav/lib/src/bwebdav.cpp)
 
 if(WIN32)
      add_executable(ws_admin WIN32

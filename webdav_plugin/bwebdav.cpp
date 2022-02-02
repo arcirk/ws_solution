@@ -1,4 +1,6 @@
 #include "bwebdav.h"
+#include "../ws_webdav/lib/include/bwebdav.h"
+
 
 #include <webdav/client.hpp>
 #include <map>

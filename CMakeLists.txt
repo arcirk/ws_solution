@@ -13,3 +13,4 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/qt_models/project" "${PROJECT_SOURCE_DIR
 #add_subdirectory("${PROJECT_SOURCE_DIR}/webdav_plugin" "${PROJECT_SOURCE_DIR}/webdav_plugin/cmake-build-debug")
 #add_subdirectory("tests/bconf" "${PROJECT_SOURCE_DIR}bconf/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/wdc" "${PROJECT_SOURCE_DIR}/wdc/cmake-build-debug")
+add_subdirectory("${PROJECT_SOURCE_DIR}/tests/client_synch" "${PROJECT_SOURCE_DIR}/tests/client_synch/cmake-build-debug")
