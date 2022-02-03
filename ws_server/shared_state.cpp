@@ -705,7 +705,10 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                                                boost::to_string(session->get_user_uuid()),
                                                "true");
 
-            send(m_, "client_join");
+            //используется синхронное подключение, не оповещаем
+            if(app_name != "client_synch")
+                send(m_, "client_join");
+
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;
 
             //Добавляем в список собственных сессий пользователя

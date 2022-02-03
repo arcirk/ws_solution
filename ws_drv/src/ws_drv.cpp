@@ -629,6 +629,11 @@ std::string ws_drv::get_app_uuid() const {
 void ws_drv::open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
                      variant_t _save_conf) {
 
+    if(synch_session_is_open()){
+        emit("error", "Открыто синхронное соединение!");
+        return;
+    }
+
     host = std::get<std::string>(_host);
     port = std::get<int>(_port);
     admin_name = std::get<std::string>(_user);
@@ -651,6 +656,11 @@ void ws_drv::open(){
 }
 
 void ws_drv::_open(bool new_thread) {
+
+    if(synch_session_is_open()){
+        emit("error", "Открыто синхронное соединение!");
+        return;
+    }
 
     app_uuid = random_uuid();
     user_uuid = random_uuid();

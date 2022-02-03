@@ -40,6 +40,10 @@ endif ()
 
 add_definitions(-DWS_CLIENT_LIBRARY)
 
+set(ARCIRK_LIB ../arcirk/cmake-build-debug)
+set(ARCIRK_INCLUDE ../arcirk/include)
+set(CHARED_INCLUDE ../chared)
+
 list(APPEND SOURCES
         include/beast.h
         include/net.h
@@ -50,6 +54,10 @@ list(APPEND SOURCES
         src/iws_client.cpp
         include/iws_client.h
         include/stdafx.h
+        include/synch_session.h
+        src/synch_session.cpp
+        ../chared/server_response.h
+        ../chared/server_response.cpp
         )
 if (WS_CLIENT_STATIC)
     add_library(${TARGET}
@@ -109,6 +117,7 @@ if (WIN32)
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${CHARED_INCLUDE}
     )
 
 else()
@@ -117,6 +126,7 @@ else()
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${CHARED_INCLUDE}
     )
 
     target_link_libraries(${TARGET} PRIVATE

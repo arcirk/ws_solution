@@ -96,7 +96,8 @@ else()
     target_link_libraries(${TARGET} PRIVATE
             Boost::filesystem
             Boost::system
-            Boost::thread)
+            Boost::thread
+            arcirk)
 
 endif()
 

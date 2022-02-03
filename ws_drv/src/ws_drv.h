@@ -26,16 +26,9 @@
 //    #include <net.h>
 #endif // _WINDOWS
 
-//#include <boost/filesystem.hpp>
-//#include <boost/dll.hpp>
-//#include <boost/filesystem/path.hpp>
-//#include <boost/dll/import.hpp>
-
-//#include <bwebdav_api.h>
-
 #include <wdclient.hpp>
-
 #include <arcirk.h>
+#include <synch_session.h>
 
 class  ws_client;
 
@@ -145,6 +138,15 @@ private:
     void emit(const std::string& command, const std::string &resp);
 
     void setWebDavSettingsToClient(const std::string &resp);
+
+    bool synch_session_open(const variant_t &host, const variant_t &port);
+    bool synch_session_set_param(const variant_t &usr, const variant_t &pwd);
+    void synch_session_read();
+    void synch_session_write(const variant_t &msg);
+    void synch_session_close();
+    std::string synch_session_get_buffer();
+    bool synch_session_is_open();
+
 //
 //    int open();
 //
@@ -200,6 +202,8 @@ private:
     ws_client * client;
     std::string _client_param;
     arcirk::bConf settings;
+
+    synch_session synchSession;
 
 //    _callback_message callback_msg;
 //    _callback_status _status_changed;
