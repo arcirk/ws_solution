@@ -1,0 +1,1 @@
+windeployqt --qmldir f:\myApp\sources f:\build-myApp\myApp.exe

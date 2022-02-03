@@ -2,27 +2,52 @@ cmake_minimum_required(VERSION 3.21)
 project(ws_server)
 
 set(CMAKE_CXX_STANDARD 17)
+set(TARGET ws_server)
 
 if (UNIX)
     SET(CMAKE_CXX_FLAGS -pthread)
 endif()
 
-#SET(CMAKE_CXX_FLAGS -lsqlite3)
-#add_compile_options(-l sqlite3)
-#add_compile_options(-l ldl)
+if (WIN32)
 
-#if(CMAKE_DL_LIBS)
-#    target_link_libraries(ws_server ${CMAKE_DL_LIBS})
-#endif()
+    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+    set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
+    set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
+    set(Boost_USE_MULTITHREADED      ON)
+    set(Boost_USE_STATIC_RUNTIME    ON)
+    #        set (Boost_USE_MULTITHREADED ON)
+    #
+    foreach (flag_var
+            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+
+        if (${flag_var} MATCHES "/MD")
+            string (REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endif (${flag_var} MATCHES "/MD")
+
+    endforeach(flag_var)
+
+    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+    set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:MSVCRTD")
+
+endif()
+
+if(WIN32)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    add_definitions(/MT)
+endif()
 
 SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-#[[SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-        CACHE PATH "Output directory for executables and DLL's.")]]
 
-link_directories(../arcirk/)
+set(ARCIRK_LIB ../arcirk/cmake-build-debug)
+set(ARCIRK_INCLUDE ../arcirk/include)
 
-add_executable(ws_server
+link_directories(${ARCIRK_LIB})
+
+add_executable(${TARGET}
         main.cpp
         include/websocket_session.hpp
         include/shared_state.hpp
@@ -42,29 +67,38 @@ add_executable(ws_server
         include/base.h
         src/base.cpp)
 
-find_package(Boost REQUIRED COMPONENTS regex)
+find_package(Boost REQUIRED COMPONENTS regex filesystem system)
 #find_package (SQLite3 REQUIRED CONFIG)
 
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories("../arcirk/include")
-#include_directories(${SQLITE3_INCLUDE_DIRS})
+target_include_directories(${TARGET} PRIVATE
+            ${Boost_INCLUDE_DIRS}
+            ${ARCIRK_INCLUDE}
+        )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set (NMOS_CPP_SYSTEM_LIBS bcrypt.lib)
+if (WIN32)
+    find_package(Boost REQUIRED COMPONENTS regex)
+    target_link_libraries(${TARGET} PRIVATE
+            bcrypt.lib arcirk)
+
+    include_directories (
+            ${Boost_INCLUDE_DIRS}
+            ${ARCIRK_INCLUDE}
+    )
+
 else()
-    set (NMOS_CPP_SYSTEM_LIBS )
+
+    find_package(Boost COMPONENTS regex filesystem system thread REQUIRED)
+    include_directories (
+            ${Boost_INCLUDE_DIRS}
+            ${ARCIRK_INCLUDE}
+    )
+
+    target_link_libraries(${TARGET} PRIVATE
+            Boost::filesystem
+            Boost::system
+            Boost::thread)
+
 endif()
-
-target_link_libraries(ws_server PRIVATE
-        ${Boost_LIBRARIES}
-        ${CMAKE_DL_LIBS}
-        ${NMOS_CPP_SYSTEM_LIBS}
-        arcirk)
-        #${SQLITE3_LIBRARIES}
-
-#add_custom_command(TARGET ws_server PRE_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory
-#        ${CMAKE_SOURCE_DIR}/ws_server/app/base/ $<TARGET_FILE_DIR:ws_server>)
 
 add_custom_command(TARGET ws_server PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
