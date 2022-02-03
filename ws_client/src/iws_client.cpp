@@ -16,7 +16,6 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
-
 IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
     host = _host;
@@ -331,7 +330,6 @@ void IClient::open(bool new_thread){
 
     app_uuid = random_uuid();
     user_uuid = random_uuid();
-    //client_uuid = arc_json::random_uuid();
 
     boost::property_tree::ptree pt;
 

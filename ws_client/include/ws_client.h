@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_set>
 #include <boost/asio/io_context.hpp>
+#include "../include/synch_session.h"
 
 using boost::property_tree::ptree;
 
@@ -79,7 +80,13 @@ public:
     std::string get_webdav_host() const;
     bool get_webdav_ssl();
 
-    //std::string get_parent_path() const;
+    bool synch_open(const char *host, const char *port);
+    bool synch_set_param(const std::string &usr, const std::string &pwd);
+    void synch_read();
+    void synch_write(const std::string &msg);
+    void synch_close();
+    std::string synch_get_buffer() const;
+    bool synch_is_open();
 
 private:
 
@@ -92,6 +99,9 @@ private:
     std::string _app_name;
     boost::uuids::uuid  _user_uuid{};
     bool _is_login;
+    bool _is_synch;
+    synch_session _ws_synh;
+
 
     std::string _webdav_host;
     std::string _webdav_user;

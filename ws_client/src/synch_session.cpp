@@ -155,4 +155,8 @@ bool synch_session::set_param(const std::string &usr, const std::string &pwd) {
     return false;
 }
 
+bool synch_session::is_open() {
+    return ws_.is_open();
+}
+
 synch_session::~synch_session() = default;

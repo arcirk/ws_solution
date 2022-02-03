@@ -50,6 +50,8 @@ public:
 
     bool set_param(const std::string& usr, const std::string& pwd);
 
+    bool is_open();
+
 };
 
 

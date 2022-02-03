@@ -38,7 +38,6 @@ public:
     void close();
     void open(bool new_thread = true);
 
-
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
     void get_group_list(const std::string &uuid_form);
@@ -61,8 +60,8 @@ public:
     void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
     void get_channel_token(const std::string &user_sender, const std::string &uuid_form);
 
-    std::string get_app_uuid() const;
-    std::string get_user_uuid() const;
+    [[nodiscard]] std::string get_app_uuid() const;
+    [[nodiscard]] std::string get_user_uuid() const;
 
     static tm currentDate();
     static long int current_date_in_seconds();
@@ -80,13 +79,12 @@ public:
     void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
 
-    std::string get_webdav_user() const;
-    std::string get_webdav_pwd() const;
-    std::string get_webdav_host() const;
+    [[nodiscard]] std::string get_webdav_user() const;
+    [[nodiscard]] std::string get_webdav_pwd() const;
+    [[nodiscard]] std::string get_webdav_host() const;
     bool get_webdav_ssl();
 
     static std::string get_string_random_uuid();
-
     static std::string get_parent_path();
 
 private:
@@ -94,8 +92,7 @@ private:
     std::string _client_param;
     _callback_message callback_msg;
     _callback_status _status_changed;
-    //int open_as(const std::string &param);
-    //void send(const std::string& msg, const std::string& sub_user_uuid, const std::string& uuid_form);
+
     void start();
 
 };
