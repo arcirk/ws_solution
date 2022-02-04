@@ -26,6 +26,8 @@ public:
     std::string hash;
 
     explicit
+    IClient();
+    explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback);
     explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_status& _status_changed_fun);
@@ -67,7 +69,6 @@ public:
     static long int current_date_in_seconds();
     long int get_tz_offset();
 
-    //bool is_open();
     static std::string base64_encode(const std::string &s);
     static std::string base64_decode(const std::string &s);
     static std::string nil_string_uuid();
@@ -87,11 +88,21 @@ public:
     static std::string get_string_random_uuid();
     static std::string get_parent_path();
 
+    //synch client
+    bool synch_session_open(const std::string  &host, const std::string  &port);
+    bool synch_session_set_param(const std::string  &usr, const std::string  &pwd);
+    void synch_session_read();
+    void synch_session_write(const std::string  &msg);
+    void synch_session_close();
+    std::string synch_session_get_buffer();
+    bool synch_session_is_open();
+
 private:
     ws_client * client;
     std::string _client_param;
     _callback_message callback_msg;
     _callback_status _status_changed;
+    bool _m_synch;
 
     void start();
 

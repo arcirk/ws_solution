@@ -181,13 +181,18 @@ void start(){
 
 int main(int argc, char** argv)
 {
+    bool synch = true;
+
     setlocale(LC_ALL, "Russian");
 
-    _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-    _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
+    if (!synch){
+        _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
+        _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
 
-    client = new IClient("192.168.43.18", 8080, callback, callback_status);
-    //client->set_callback_status_changed(_callback_status_changed);
+        client = new IClient("192.168.43.18", 8080, callback, callback_status);
+    }else
+        client = new IClient();
+
 
     std::string line;
 
@@ -203,24 +208,42 @@ int main(int argc, char** argv)
         }
         else if (line == "start")
         {
-            start();
+            if (!synch)
+                start();
+            else{
+                bool result = client->synch_session_open("192.168.43.28", "8080");
+                std::cout << "synch_session_open: " << result << std::endl;
+            }
 
             continue;
         }
         else if (line == "stop")
         {
-            client->close();
+            if (!synch)
+                client->close();
+            else
+                client->synch_session_close();
             continue;
         }
         else if (line == "exit")
         {
-            if (client->started())
-                client->close();
+            if (!synch){
+                if (client->started())
+                    client->close();
+            }else
+            {
+                if(client->synch_session_is_open())
+                    client->synch_session_close();
+            }
+
             break;
         }
         else if (line == "started")
         {
-            std::cout << "started: " << client->started() << std::endl;
+            if (!synch)
+                std::cout << "started: " << client->started() << std::endl;
+            else
+                std::cout << "started: " << client->synch_session_is_open() << std::endl;
             continue;
         }
         else if (line == "get_catalog")
@@ -236,8 +259,35 @@ int main(int argc, char** argv)
             if (client->started())
                 client->get_user_data("d7cca261-aecc-4708-872c-6cb6a664a6d7", "", "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
             continue;
-        }else
+        }else if(line == "set_param"){
+            if (synch){
+                bool res = client->synch_session_set_param("admin", "admin");
+                std::cout << "set_param: " << res << std::endl;
+            }
+
+            continue;
+        }else if(line == "get_buffer"){
+            if (synch){
+                std::string resp = client->synch_session_get_buffer();
+                if (!resp.empty()){
+                    std::cout << arcirk::base64_decode(client->synch_session_get_buffer()) << std::endl;
+                }else
+                    std::cout << client->synch_session_get_buffer() << std::endl;
+            }
+
+            continue;
+        }else if(line == "read"){
+            if (synch){
+                client->synch_session_read();
+                std::cout << client->synch_session_get_buffer() << std::endl;
+            }
+            continue;
+        }
+
+        else
         {
+            if (synch)
+                client->synch_session_write(line);
 //            if (client->started()){
 //                client->se
 //            }

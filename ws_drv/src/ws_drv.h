@@ -56,7 +56,13 @@ public:
     void open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
                  variant_t save_conf);
 
+
 private:
+    bool _m_synch;
+    ws_client * client;
+    std::string _client_param;
+    arcirk::bConf settings;
+
     std::string extensionName() override;
     void processServeResponse(const std::string &jsonResp);
     void _open(bool new_thread = true);
@@ -199,11 +205,7 @@ private:
 
 
 
-    ws_client * client;
-    std::string _client_param;
-    arcirk::bConf settings;
 
-    synch_session synchSession;
 
 //    _callback_message callback_msg;
 //    _callback_status _status_changed;

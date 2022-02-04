@@ -16,6 +16,17 @@
 #include <boost/thread/thread.hpp>
 #endif // _WINDOWS
 
+IClient::IClient()
+{
+    host = "localhost";
+    port = 8080;
+    callback_msg = nullptr;
+    client = nullptr;
+    app_name = "admin_console";
+    user_uuid = nil_string_uuid();
+    _m_synch = false;
+}
+
 IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
 {
     host = _host;
@@ -24,6 +35,7 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     client = nullptr;
     app_name = "admin_console";
     user_uuid = nil_string_uuid();
+    _m_synch = false;
 }
 IClient::IClient(const std::string &_host, const int &_port, _callback_message &callback,
                  _callback_status &_status_changed_fun) {
@@ -34,6 +46,7 @@ IClient::IClient(const std::string &_host, const int &_port, _callback_message &
     app_name = "admin_console";
     user_uuid = nil_string_uuid();
     _status_changed = _status_changed_fun;
+    _m_synch = false;
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -662,4 +675,59 @@ std::string IClient::get_string_random_uuid() {
 
 std::string IClient::get_parent_path() {
     return arcirk::bConf::parent_path();
+}
+
+bool IClient::synch_session_open(const std::string &host, const std::string &port) {
+
+    if (client)
+        return false;
+
+    boost::asio::io_context ioc;
+    client = new ws_client(ioc);
+
+    bool result = client->synch_open(host.c_str(), port.c_str());
+
+    if (result)
+        _m_synch = true;
+
+    return result;
+
+}
+
+bool IClient::synch_session_set_param(const std::string &usr, const std::string &pwd) {
+    if (!_m_synch)
+        return false;
+    bool result = client->synch_set_param(usr, pwd);
+    return result;
+}
+
+void IClient::synch_session_read() {
+    if (!_m_synch)
+        return;
+    client->synch_read();
+}
+
+void IClient::synch_session_write(const std::string &msg) {
+    if (!_m_synch)
+        return;
+    client->synch_write(msg);
+}
+
+void IClient::synch_session_close() {
+    if (!_m_synch)
+        return;
+    client->synch_close();
+    _m_synch = false;
+}
+
+std::string IClient::synch_session_get_buffer() {
+    if (!_m_synch)
+        return {};
+    return client->synch_get_buffer();
+}
+
+bool IClient::synch_session_is_open() {
+    if (!_m_synch)
+        return false;
+    return client->synch_is_open();
 }

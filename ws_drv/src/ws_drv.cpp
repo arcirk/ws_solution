@@ -52,6 +52,8 @@ ws_drv::ws_drv()
 
     client = nullptr;
 
+    _m_synch = false;
+
     settings = arcirk::bConf("conf_1c_client.json");
 
     if(app_name != "client_1C"){
@@ -95,13 +97,21 @@ ws_drv::ws_drv()
     AddMethod(L"crypt", L"crypt", this, &ws_drv::crypt);
     AddMethod(L"CheckWebDav", L"ПроверитьWebDavПодключение", this, &ws_drv::webdav_check);
     AddMethod(L"GetWebDavSettings", L"ПолучитьНастройкиWebDav", this, &ws_drv::get_webdav_settings);
+    AddMethod(L"GetHash", L"ПолучитьХеш", this, &ws_drv::get_hash);
+    AddMethod(L"SynchOpen", L"ОткрытьСинхронноеСоединение", this, &ws_drv::synch_session_open);
+    AddMethod(L"SynchClose", L"ЗакрытьСинхронноеСоединение", this, &ws_drv::synch_session_close);
+    AddMethod(L"SynchStarted", L"СинхронноеСоединениеЗапущено", this, &ws_drv::synch_session_is_open);
+    AddMethod(L"SynchRead", L"СинхронноеСоединениеПрочитать", this, &ws_drv::synch_session_read);
+    AddMethod(L"SynchWrite", L"СинхронноеСоединениеЗаписать", this, &ws_drv::synch_session_write);
+    AddMethod(L"SynchGetBuffer", L"СинхронноеСоединениеПолучитьБуфер", this, &ws_drv::synch_session_get_buffer);
+    AddMethod(L"SynchGetSetParam", L"СинхронноеСоединениеУстановитьПараметры", this, &ws_drv::synch_session_set_param);
 
 //    AddMethod(L"GetClientInfo", L"ПолучитьИнформациюОТекущемКлиенте", this, &ws_drv::get_client_info);
 //    AddMethod(L"CurrentName", L"ТекущееИмя", this, &ws_drv::get_current_name);
 //    //AddMethod(L"CloseChannel", L"ОтключитсяОтКанала", this, &ws_drv::close_channel);
 //    //AddMethod(L"JoinChannel", L"ПрисоединитсяККаналу", this, &ws_drv::join_channel);
 //    AddMethod(L"SendCommand", L"КомандаСерверу", this, &ws_drv::send_command);
-    AddMethod(L"GetHash", L"ПолучитьХеш", this, &ws_drv::get_hash);
+
 //    AddMethod(L"CurrentDate", L"ТекущаяДата", this, &ws_drv::currentDate);
 //    AddMethod(L"CurrentDateSeconds", L"ТекущаяДатаВСекундах", this, &ws_drv::current_date_in_seconds);
 //    AddMethod(L"GetTZOffset", L"ПолучитьСмещениеВременнойЗоны", this, &ws_drv::get_tz_offset);
@@ -1508,3 +1518,65 @@ void ws_drv::get_webdav_settings(const variant_t& uuid_form) {
 
 }
 
+bool ws_drv::synch_session_open(const variant_t &host, const variant_t &port) {
+
+    if (client)
+        return false;
+
+    boost::asio::io_context ioc;
+    client = new ws_client(ioc);
+
+    std::string _host = std::get<std::string>(host);
+    std::string _port = std::get<std::string>(port);
+
+    bool result = client->synch_open(_host.c_str(), _port.c_str());
+
+    if (result)
+        _m_synch = true;
+
+    return result;
+
+}
+
+bool ws_drv::synch_session_set_param(const variant_t &usr, const variant_t &pwd) {
+    if (!_m_synch)
+        return false;
+    std::string _usr = std::get<std::string>(usr);
+    std::string _pwd = std::get<std::string>(pwd);
+    bool result = client->synch_set_param(_usr, _pwd);
+    return result;
+}
+
+void ws_drv::synch_session_read() {
+    if (!_m_synch)
+        return;
+    client->synch_read();
+}
+
+void ws_drv::synch_session_write(const variant_t &msg) {
+    if (!_m_synch)
+        return;
+    std::string _msg = std::get<std::string>(msg);
+    client->synch_write(_msg);
+}
+
+void ws_drv::synch_session_close() {
+    if (!_m_synch)
+        return;
+    client->synch_close();
+    delete client;
+    client = nullptr;
+    _m_synch = false;
+}
+
+std::string ws_drv::synch_session_get_buffer() {
+    if (!_m_synch)
+        return {};
+    return client->synch_get_buffer();
+}
+
+bool ws_drv::synch_session_is_open() {
+    if (!_m_synch || !client)
+        return false;
+    return client->synch_is_open();
+}

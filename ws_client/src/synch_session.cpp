@@ -139,6 +139,7 @@ bool synch_session::set_param(const std::string &usr, const std::string &pwd) {
                     }
                 }else{
                     std::cerr << "Ошибка чтения сообщения!";
+                    return false;
                 }
 
             }else{
