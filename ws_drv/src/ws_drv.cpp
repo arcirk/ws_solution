@@ -98,13 +98,13 @@ ws_drv::ws_drv()
     AddMethod(L"CheckWebDav", L"ПроверитьWebDavПодключение", this, &ws_drv::webdav_check);
     AddMethod(L"GetWebDavSettings", L"ПолучитьНастройкиWebDav", this, &ws_drv::get_webdav_settings);
     AddMethod(L"GetHash", L"ПолучитьХеш", this, &ws_drv::get_hash);
-    AddMethod(L"SynchOpen", L"ОткрытьСинхронноеСоединение", this, &ws_drv::synch_session_open);
-    AddMethod(L"SynchClose", L"ЗакрытьСинхронноеСоединение", this, &ws_drv::synch_session_close);
-    AddMethod(L"SynchStarted", L"СинхронноеСоединениеЗапущено", this, &ws_drv::synch_session_is_open);
-    AddMethod(L"SynchRead", L"СинхронноеСоединениеПрочитать", this, &ws_drv::synch_session_read);
-    AddMethod(L"SynchWrite", L"СинхронноеСоединениеЗаписать", this, &ws_drv::synch_session_write);
-    AddMethod(L"SynchGetBuffer", L"СинхронноеСоединениеПолучитьБуфер", this, &ws_drv::synch_session_get_buffer);
-    AddMethod(L"SynchGetSetParam", L"СинхронноеСоединениеУстановитьПараметры", this, &ws_drv::synch_session_set_param);
+//    AddMethod(L"SynchOpen", L"ОткрытьСинхронноеСоединение", this, &ws_drv::synch_session_open);
+//    AddMethod(L"SynchClose", L"ЗакрытьСинхронноеСоединение", this, &ws_drv::synch_session_close);
+//    AddMethod(L"SynchStarted", L"СинхронноеСоединениеЗапущено", this, &ws_drv::synch_session_is_open);
+//    AddMethod(L"SynchRead", L"СинхронноеСоединениеПрочитать", this, &ws_drv::synch_session_read);
+//    AddMethod(L"SynchWrite", L"СинхронноеСоединениеЗаписать", this, &ws_drv::synch_session_write);
+//    AddMethod(L"SynchGetBuffer", L"СинхронноеСоединениеПолучитьБуфер", this, &ws_drv::synch_session_get_buffer);
+//    AddMethod(L"SynchGetSetParam", L"СинхронноеСоединениеУстановитьПараметры", this, &ws_drv::synch_session_set_param);
 
 //    AddMethod(L"GetClientInfo", L"ПолучитьИнформациюОТекущемКлиенте", this, &ws_drv::get_client_info);
 //    AddMethod(L"CurrentName", L"ТекущееИмя", this, &ws_drv::get_current_name);
@@ -639,11 +639,6 @@ std::string ws_drv::get_app_uuid() const {
 void ws_drv::open_as(const variant_t &_host, const variant_t &_port, const variant_t &_user, const variant_t &_pwd,
                      variant_t _save_conf) {
 
-    if(synch_session_is_open()){
-        emit("error", "Открыто синхронное соединение!");
-        return;
-    }
-
     host = std::get<std::string>(_host);
     port = std::get<int>(_port);
     admin_name = std::get<std::string>(_user);
@@ -666,11 +661,6 @@ void ws_drv::open(){
 }
 
 void ws_drv::_open(bool new_thread) {
-
-    if(synch_session_is_open()){
-        emit("error", "Открыто синхронное соединение!");
-        return;
-    }
 
     app_uuid = random_uuid();
     user_uuid = random_uuid();
@@ -729,7 +719,21 @@ void ws_drv::start() {
 void ws_drv::ext_message(const std::string &msg)
 {
     std::string resp = ServeResponse::base64_decode(msg);
-    //std::string resp = arcirk::base64_decode(msg);;
+    //std::string resp = arcirk::base64_decode(msg);
+
+    if(_m_synch){
+        boost::unique_lock <boost::mutex> lck(mtx);
+        cv.notify_one();
+        //ToDo: добавить обработчики выборочных сообщений
+//        if(callback_msg){
+//            callback_msg(msg);
+//        }
+    }else
+    {
+//        if(callback_msg){
+//            callback_msg(msg);
+//        }
+    }
 
     if(!resp.empty()){
        processServeResponse(resp);
@@ -1518,65 +1522,94 @@ void ws_drv::get_webdav_settings(const variant_t& uuid_form) {
 
 }
 
-bool ws_drv::synch_session_open(const variant_t &host, const variant_t &port) {
+bool ws_drv::synch_open(const variant_t &host, const variant_t &port) {
 
-    if (client)
+//    if (client)
+//        return false;
+//
+//    boost::asio::io_context ioc;
+//    client = new ws_client(ioc);
+//
+//    std::string _host = std::get<std::string>(host);
+//    std::string _port = std::get<std::string>(port);
+//
+//    bool result = client->synch_open(_host.c_str(), _port.c_str());
+//
+//    if (result)
+//        _m_synch = true;
+//
+//    return result;
+    app_uuid = random_uuid();
+    user_uuid = random_uuid();
+
+    boost::property_tree::ptree pt;
+
+    pt.add("uuid", app_uuid);
+    pt.add("name", admin_name);
+    pt.add("hash", hash);
+    pt.add("app_name", app_name);
+    pt.add("user_uuid", user_uuid);
+
+    std::stringstream _ss;
+    boost::property_tree::json_parser::write_json(_ss, pt);
+
+    _client_param = _ss.str();
+
+    _m_synch = true;
+
+#ifdef _WINDOWS
+    std::thread(std::bind(&ws_drv::start, this)).detach();
+#else
+    boost::thread(boost::bind(&IClient::start, this)).detach();
+#endif
+
+    boost::unique_lock <boost::mutex> lck(mtx);
+    cv.wait(lck);
+    if (resultSynch == result_synch::ok)
+        return true;
+    else
         return false;
-
-    boost::asio::io_context ioc;
-    client = new ws_client(ioc);
-
-    std::string _host = std::get<std::string>(host);
-    std::string _port = std::get<std::string>(port);
-
-    bool result = client->synch_open(_host.c_str(), _port.c_str());
-
-    if (result)
-        _m_synch = true;
-
-    return result;
-
 }
 
-bool ws_drv::synch_session_set_param(const variant_t &usr, const variant_t &pwd) {
-    if (!_m_synch)
-        return false;
-    std::string _usr = std::get<std::string>(usr);
-    std::string _pwd = std::get<std::string>(pwd);
-    bool result = client->synch_set_param(_usr, _pwd);
-    return result;
+//bool ws_drv::synch_session_set_param(const variant_t &usr, const variant_t &pwd) {
+//    if (!_m_synch)
+//        return false;
+//    std::string _usr = std::get<std::string>(usr);
+//    std::string _pwd = std::get<std::string>(pwd);
+//    bool result = client->synch_set_param(_usr, _pwd);
+//    return result;
+//}
+
+//void ws_drv::synch_session_read() {
+//    if (!_m_synch)
+//        return;
+//    client->synch_read();
+//}
+
+void ws_drv::synch_write(const variant_t &msg) {
+//    if (!_m_synch)
+//        return;
+//    std::string _msg = std::get<std::string>(msg);
+//    client->synch_write(_msg);
 }
 
-void ws_drv::synch_session_read() {
-    if (!_m_synch)
-        return;
-    client->synch_read();
-}
+//void ws_drv::synch_session_close() {
+//    if (!_m_synch)
+//        return;
+//    client->synch_close();
+//    delete client;
+//    client = nullptr;
+//    _m_synch = false;
+//}
 
-void ws_drv::synch_session_write(const variant_t &msg) {
-    if (!_m_synch)
-        return;
-    std::string _msg = std::get<std::string>(msg);
-    client->synch_write(_msg);
-}
-
-void ws_drv::synch_session_close() {
-    if (!_m_synch)
-        return;
-    client->synch_close();
-    delete client;
-    client = nullptr;
-    _m_synch = false;
-}
-
-std::string ws_drv::synch_session_get_buffer() {
-    if (!_m_synch)
+std::string ws_drv::synch_get_buffer() {
+    //if (!_m_synch)
         return {};
-    return client->synch_get_buffer();
+    //return client->synch_get_buffer();
 }
 
-bool ws_drv::synch_session_is_open() {
-    if (!_m_synch || !client)
-        return false;
-    return client->synch_is_open();
-}
+//bool ws_drv::synch_session_is_open() {
+//    if (!_m_synch || !client)
+//        return false;
+//    return client->synch_is_open();
+//}

@@ -16,9 +16,9 @@
 using namespace arcirk;
 
 ws_client::ws_client(net::io_context &io_context, const std::string& client_param)
-: ioc(io_context),
-  _ws_synh(io_context)
+: ioc(io_context)
 {
+    //_ws_synh(io_context)
     //_started = false;
     decode_message = false;
     _client_param = client_param;
@@ -27,7 +27,7 @@ ws_client::ws_client(net::io_context &io_context, const std::string& client_para
     set_name("anonymous");
     _app_name = "unknown";
     _is_login = false;
-    _is_synch = false;
+    //_is_synch = false;
 }
 //void
 //ws_client::
@@ -534,49 +534,49 @@ std::string ws_client::get_webdav_host() const {
 bool ws_client::get_webdav_ssl() {
     return _webdav_ssl;
 }
-
-bool ws_client::synch_set_param(const std::string &usr, const std::string &pwd) {
-    if(!_is_synch)
-        return false;
-    return _ws_synh.set_param(usr, pwd);;
-}
 //
-bool ws_client::synch_open(const char *host, const char *port) {
-    if (started())
-        return false;
-    _is_synch = true;
-    _ws_synh.run(host, port);
-    _is_login = false;
-    ioc.run();
-    return true;
-}
-
-void ws_client::synch_close() {
-    if(!_is_synch)
-        return;
-    _ws_synh.close();
-}
-
-void ws_client::synch_read() {
-    if(!_is_synch)
-        return;
-    _ws_synh.read();
-}
-
-void ws_client::synch_write(const std::string &msg) {
-    if(!_is_synch)
-        return;
-    _ws_synh.write(msg);
-}
-
-std::string ws_client::synch_get_buffer() const{
-    if(!_is_synch)
-        return {};
-    return _ws_synh.get_buffer();
-}
-
-bool ws_client::synch_is_open() {
-    if(!_is_synch)
-        return false;
-    return _ws_synh.is_open();
-}
+//bool ws_client::synch_set_param(const std::string &usr, const std::string &pwd) {
+//    if(!_is_synch)
+//        return false;
+//    return _ws_synh.set_param(usr, pwd);;
+//}
+////
+//bool ws_client::synch_open(const char *host, const char *port) {
+//    if (started())
+//        return false;
+//    _is_synch = true;
+//   // _ws_synh.run(host, port);
+//    _is_login = false;
+//   // ioc.run();
+//    return true;
+//}
+//
+//void ws_client::synch_close() {
+//    if(!_is_synch)
+//        return;
+//    _ws_synh.close();
+//}
+//
+//void ws_client::synch_read() {
+//    if(!_is_synch)
+//        return;
+//    _ws_synh.read();
+//}
+//
+//void ws_client::synch_write(const std::string &msg) {
+//    if(!_is_synch)
+//        return;
+//    _ws_synh.write(msg);
+//}
+//
+//std::string ws_client::synch_get_buffer() const{
+//    if(!_is_synch)
+//        return {};
+//    return _ws_synh.get_buffer();
+//}
+//
+//bool ws_client::synch_is_open() {
+//    if(!_is_synch)
+//        return false;
+//    return _ws_synh.is_open();
+//}

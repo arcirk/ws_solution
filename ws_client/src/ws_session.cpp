@@ -138,7 +138,7 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
     if(ec)
         return fail(ec, "handshake");
 
-    std::cout << "successful connection!" << std::endl;
+    std::cout << "session::on_connect: successful connection!" << std::endl;
 
     //stopped_ = false;
 
@@ -155,7 +155,7 @@ session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_
 void
 session::start_read()
 {
-    std::cout << "start_read" << std::endl;
+    //std::cout << "start_read" << std::endl;
 
     if(!ws_.is_open())
         return;
@@ -176,7 +176,7 @@ session::on_read(
 
     boost::ignore_unused(bytes_transferred);
 
-    std::cout << "on_read" << std::endl;
+    //std::cout << "on_read" << std::endl;
 
     if(ec){
         deadline_.cancel();
@@ -266,7 +266,7 @@ session::start_write()
 //    if(!ws_.is_open())
 //        return;
 
-    std::cout << "start_write" << std::endl;
+    //std::cout << "start_write" << std::endl;
 
     ws_.async_write(
             net::buffer(output_queue_.front()),
@@ -319,7 +319,7 @@ session::on_write(
         output_queue_.emplace_back("\n");
     }
 
-    std::cout << "on_write" << std::endl;
+    //std::cout << "on_write" << std::endl;
 
 //    // Запускаем пинг с периодичностью в 30 секунд
 //

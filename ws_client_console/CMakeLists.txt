@@ -83,9 +83,9 @@ endif ()
 #link_directories(../ws_client/cmake-build-debug)
 
 if (WIN32)
-    find_package(Boost REQUIRED COMPONENTS regex)
+    find_package(Boost REQUIRED COMPONENTS regex thread)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib arcirk ws_client)
+            bcrypt.lib arcirk ws_client Boost::thread)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}

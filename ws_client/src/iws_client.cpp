@@ -36,6 +36,7 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     app_name = "admin_console";
     user_uuid = nil_string_uuid();
     _m_synch = false;
+    resultSynch = result_synch::ok;
 }
 IClient::IClient(const std::string &_host, const int &_port, _callback_message &callback,
                  _callback_status &_status_changed_fun) {
@@ -47,6 +48,7 @@ IClient::IClient(const std::string &_host, const int &_port, _callback_message &
     user_uuid = nil_string_uuid();
     _status_changed = _status_changed_fun;
     _m_synch = false;
+    resultSynch = result_synch::ok;
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -75,8 +77,21 @@ void IClient::send_command(const std::string &cmd, const std::string &uuid_form,
 
 void IClient::ext_message(const std::string& msg) {
     //std::cout << msg << std::endl;
-    if(callback_msg){
-        callback_msg(msg);
+//    if(callback_msg){
+//        callback_msg(msg);
+//    }
+    if(_m_synch){
+        boost::unique_lock <boost::mutex> lck(mtx);
+        cv.notify_one();
+        //ToDo: добавить обработчики выборочных сообщений
+        if(callback_msg){
+            callback_msg(msg);
+        }
+    }else
+    {
+        if(callback_msg){
+            callback_msg(msg);
+        }
     }
 }
 
@@ -620,21 +635,7 @@ bool IClient::get_webdav_ssl() {
 
 void IClient::set_webdav_settings_on_server() {
 
-    //ptree не понимает тип bool, очень жаль
-    //boost::property_tree::ptree pt;
-
     try {
-//        pt.add("uuid_form", arcirk::nil_string_uuid());
-//        pt.add(bConf::get_field_alias(bConfFields::WebDavHost), get_webdav_host());
-//        pt.add(bConf::get_field_alias(bConfFields::WebDavUser), get_webdav_user());
-//        pt.add(bConf::get_field_alias(bConfFields::WebDavPwd), get_webdav_pwd());
-//        bool val = get_webdav_ssl();
-//        pt.add(bConf::get_field_alias(bConfFields::WebDavSSL), val);
-//
-//        std::stringstream _ss;
-//        boost::property_tree::json_parser::write_json(_ss, pt);
-
-
         arcirk::bJson json{};
         json.set_object();
         json.addMember(arcirk::content_value("uuid_form", arcirk::nil_string_uuid()));
@@ -677,57 +678,74 @@ std::string IClient::get_parent_path() {
     return arcirk::bConf::parent_path();
 }
 
-bool IClient::synch_session_open(const std::string &host, const std::string &port) {
+bool IClient::synch_open() {
 
-    if (client)
+    app_uuid = random_uuid();
+    user_uuid = random_uuid();
+
+    boost::property_tree::ptree pt;
+
+    pt.add("uuid", app_uuid);
+    pt.add("name", admin_name);
+    pt.add("hash", hash);
+    pt.add("app_name", app_name);
+    pt.add("user_uuid", user_uuid);
+
+    std::stringstream _ss;
+    boost::property_tree::json_parser::write_json(_ss, pt);
+
+    _client_param = _ss.str();
+
+    _m_synch = true;
+
+#ifdef _WINDOWS
+        std::thread(std::bind(&IClient::start, this)).detach();
+#else
+        boost::thread(boost::bind(&IClient::start, this)).detach();
+#endif
+
+    boost::unique_lock <boost::mutex> lck(mtx);
+    cv.wait(lck);
+    if (resultSynch == result_synch::ok)
+        return true;
+    else
         return false;
-
-    boost::asio::io_context ioc;
-    client = new ws_client(ioc);
-
-    bool result = client->synch_open(host.c_str(), port.c_str());
-
-    if (result)
-        _m_synch = true;
-
-    return result;
-
 }
 
-bool IClient::synch_session_set_param(const std::string &usr, const std::string &pwd) {
-    if (!_m_synch)
-        return false;
-    bool result = client->synch_set_param(usr, pwd);
-    return result;
-}
+//bool IClient::synch_session_set_param(const std::string &usr, const std::string &pwd) {
+////    if (!_m_synch)
+////        return false;
+////    bool result = client->synch_set_param(usr, pwd);
+////    return result;
+//}
 
 void IClient::synch_session_read() {
-    if (!_m_synch)
-        return;
-    client->synch_read();
+//    if (!_m_synch)
+//        return;
+//    client->synch_read();
 }
 
 void IClient::synch_session_write(const std::string &msg) {
-    if (!_m_synch)
-        return;
-    client->synch_write(msg);
+//    if (!_m_synch)
+//        return;
+//    client->synch_write(msg);
 }
 
-void IClient::synch_session_close() {
-    if (!_m_synch)
-        return;
-    client->synch_close();
-    _m_synch = false;
-}
+//void IClient::synch_session_close() {
+//    if (!_m_synch)
+//        return;
+//    client->synch_close();
+//    _m_synch = false;
+//}
 
 std::string IClient::synch_session_get_buffer() {
-    if (!_m_synch)
+    //if (!_m_synch)
         return {};
-    return client->synch_get_buffer();
+    //return client->synch_get_buffer();
 }
 
-bool IClient::synch_session_is_open() {
-    if (!_m_synch)
-        return false;
-    return client->synch_is_open();
-}
+//bool IClient::synch_session_is_open() {
+//    if (!_m_synch)
+//        return false;
+//    return client->synch_is_open();
+//}

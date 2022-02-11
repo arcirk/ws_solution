@@ -14,14 +14,13 @@ endif ()
 option(OUT_PARAMS "Support output parameters" OFF)
 
 if (WIN32)
-
+    #add_definitions(-DBOOST_ALL_NO_LIB)
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
     set(Boost_USE_MULTITHREADED      ON)
     set(Boost_USE_STATIC_RUNTIME    ON)
-    #        set (Boost_USE_MULTITHREADED ON)
-    #
+
     foreach (flag_var
             CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
             CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
@@ -141,11 +140,23 @@ if (WIN32)
             ${WS_CLIENT_LIB})
 endif ()
 
+#if (WIN32 AND __COMPILER_GNU)
+    # mingw-gcc fails to link boost::thread
+#    add_definitions(-DBOOST_THREAD_USE_LIB)
+#endif (WIN32 AND __COMPILER_GNU)
+#find_package(Threads REQUIRED)
 
 if (WIN32)
-    find_package(Boost REQUIRED COMPONENTS regex)
+    find_package(Boost REQUIRED COMPONENTS regex thread)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib libwdc arcirk ws_client)
+            bcrypt.lib
+            libwdc
+            arcirk
+            ws_client
+            Boost::thread
+            )
+
+    #boost_thread-vc140-mt.lib)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}

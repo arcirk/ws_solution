@@ -110,9 +110,11 @@ if (WIN32)
 endif ()
 
 if (WIN32)
-    find_package(Boost REQUIRED COMPONENTS regex)
+    find_package(Boost REQUIRED COMPONENTS regex thread)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib arcirk)
+            bcrypt.lib
+            arcirk
+            Boost::thread)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}
@@ -196,3 +198,6 @@ if(WIN32)
             ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
     )]]
 endif ()
+
+#install(TARGETS ${TARGET} EXPORT ${TARGET}_export)
+#export(EXPORT ${TARGET}_export FILE cmake/${TARGET}-targets.cmake)

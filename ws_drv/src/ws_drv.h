@@ -28,12 +28,21 @@
 
 #include <wdclient.hpp>
 #include <arcirk.h>
-#include <synch_session.h>
+//#include <synch_session.h>
+
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 class  ws_client;
 
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
+
+enum result_synch{
+    ok = 0,
+    error
+};
 
 class ws_drv final : public Component {
 public:
@@ -58,10 +67,15 @@ public:
 
 
 private:
-    bool _m_synch;
+
     ws_client * client;
     std::string _client_param;
     arcirk::bConf settings;
+
+    boost::mutex mtx;
+    boost::condition_variable cv;
+    bool _m_synch;
+    result_synch resultSynch;
 
     std::string extensionName() override;
     void processServeResponse(const std::string &jsonResp);
@@ -101,9 +115,9 @@ private:
     bool webdav_check();
     void get_webdav_settings(const variant_t& uuid_form);
 
-    std::string get_webdav_user() const;
-    std::string get_webdav_pwd() const;
-    std::string get_webdav_host() const;
+    [[nodiscard]] std::string get_webdav_user() const;
+    [[nodiscard]] std::string get_webdav_pwd() const;
+    [[nodiscard]] std::string get_webdav_host() const;
     bool get_webdav_ssl();
 
     static std::string get_string_random_uuid();
@@ -145,71 +159,13 @@ private:
 
     void setWebDavSettingsToClient(const std::string &resp);
 
-    bool synch_session_open(const variant_t &host, const variant_t &port);
-    bool synch_session_set_param(const variant_t &usr, const variant_t &pwd);
-    void synch_session_read();
-    void synch_session_write(const variant_t &msg);
-    void synch_session_close();
-    std::string synch_session_get_buffer();
-    bool synch_session_is_open();
-
-//
-//    int open();
-//
-//    int open_as(const variant_t &param);
-//
-//    //int open_as(const std::string& param);
-//
-//    void close();
-//
-//    void send(const variant_t& msg, const variant_t& sub_user_uuid, const variant_t& uuid_form);
-
-    //void start();
-
-//    void start(const std::string &uuid, const std::string &name, const std::string &pwd,
-//               const std::string &s_user_uuid);
-
-   // void start_();
-
-   // bool started();
-
-//    variant_t get_client_info();
-//
-//    std::string get_current_name();
-
-//    void join_channel(const variant_t &uuid, const variant_t &uuid_form);
-//
-//    void close_channel(const variant_t &uuid, const variant_t &uuid_form);
-
-//    void set_log(const std::string &msg, const std::string &filename);
-//
-////    void to_channel(const variant_t& msg, const variant_t& uuid_sub, const variant_t& uuid_form);
-//
-//    //Команда серверу
-//    void send_command(const variant_t& cmd, const variant_t& uuid_form, const variant_t& param);
-//    //void send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param);
-//
-//    std::string get_hash(const variant_t &usr, const variant_t &pwd);
-//    variant_t currentDate();
-//    variant_t current_date_in_seconds();
-//    variant_t get_tz_offset();
-//    void get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form);
-//    void get_user_info(const variant_t &user_uuid, const variant_t &uuid_form);
-//    void get_group_list(const variant_t &uuid_form);
-//    void add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
-//    void edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form);
-//    void remove_group(const variant_t &uuid_group, const variant_t &uuid_form);
-//    void get_users(const variant_t &uuid_group, const variant_t &uuid_form);
-//    void set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form);
-//    void remove_user(const variant_t &user_uuid, const variant_t &uuid_form);
-
-
-
-
-
-//    _callback_message callback_msg;
-//    _callback_status _status_changed;
-
+    bool synch_open(const variant_t &host, const variant_t &port);
+    //bool synch_session_set_param(const variant_t &usr, const variant_t &pwd);
+    //void synch_session_read();
+    void synch_write(const variant_t &msg);
+    //void synch_session_close();
+    std::string synch_get_buffer();
+    //bool synch_session_is_open();
 
 };
 

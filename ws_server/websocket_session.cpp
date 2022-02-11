@@ -72,8 +72,6 @@ on_accept(beast::error_code ec)
     deadline_.expires_after(std::chrono::seconds(60));
     deadline_.async_wait(std::bind(&websocket_session::check_deadline, this));
 
-    //channel_->join(shared_from_this());
-
     // Read a message
     ws_.async_read(
             buffer_,
@@ -86,11 +84,14 @@ void
 websocket_session::
 on_read(beast::error_code ec, std::size_t)
 {
-
-    if (ec.value() == 2){
-        std::cerr << "read: " << "End of file" << std::endl;
+    if (ec == boost::asio::error::eof){
+        std::cerr << "websocket_session::on_read: " << "boost::asio::error::eof" << std::endl;
         return;
     }
+//    if (ec.value() == 2){
+//        std::cerr << "websocket_session::on_read: " << "End of file" << std::endl;
+//        return;
+//    }
 
 //    if( ec == net::error::operation_aborted ||
 //        ec == websocket::error::closed)

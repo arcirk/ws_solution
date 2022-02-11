@@ -7,11 +7,20 @@
 
 #include "iws_client_global.h"
 
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+
 class  ws_client;
 
 //typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
+
+enum result_synch{
+    ok = 0,
+    error
+};
 
 class  WS_CLIENT_EXPORT IClient{
 
@@ -39,6 +48,7 @@ public:
 
     void close();
     void open(bool new_thread = true);
+    bool synch_open();
 
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
@@ -89,20 +99,24 @@ public:
     static std::string get_parent_path();
 
     //synch client
-    bool synch_session_open(const std::string  &host, const std::string  &port);
-    bool synch_session_set_param(const std::string  &usr, const std::string  &pwd);
+
+    //bool synch_session_set_param(const std::string  &usr, const std::string  &pwd);
     void synch_session_read();
     void synch_session_write(const std::string  &msg);
-    void synch_session_close();
+    //void synch_session_close();
     std::string synch_session_get_buffer();
-    bool synch_session_is_open();
+    //bool synch_session_is_open();
 
 private:
     ws_client * client;
     std::string _client_param;
     _callback_message callback_msg;
     _callback_status _status_changed;
+
+    boost::mutex mtx;
+    boost::condition_variable cv;
     bool _m_synch;
+    result_synch resultSynch;
 
     void start();
 
