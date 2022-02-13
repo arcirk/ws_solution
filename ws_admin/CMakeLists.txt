@@ -5,8 +5,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/lib/cmake")
+#set(CMAKE_PREFIX_PATH C:/Qt/6.2.3/msvc2019_64/lib/cmake)
+
 if(WIN32)
      add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
      add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
@@ -15,7 +18,7 @@ endif()
 SET(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/x64/)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 #find_package(QT NAMES Qt6 Qt5 COMPONENTS
 #        Core
@@ -71,7 +74,14 @@ else()
              ${PROJECT_SOURCES})
 endif()
 
-find_package(Qt6 COMPONENTS
+find_package(QT NAMES Qt6 Qt5 COMPONENTS
+        Core
+        Gui
+        Widgets
+        Network
+        REQUIRED)
+
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS
         Core
         Gui
         Widgets
@@ -90,10 +100,10 @@ include_directories("../chared")
 
 
 target_link_libraries(ws_admin PRIVATE
-        Qt6::Core
-        Qt6::Gui
-        Qt6::Widgets
-        Qt6::Network
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Network
         ws_client
         )
 

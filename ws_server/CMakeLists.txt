@@ -67,15 +67,17 @@ add_executable(${TARGET}
         include/base.h
         src/base.cpp)
 
-find_package(Boost REQUIRED COMPONENTS regex filesystem system)
+#find_package(Boost REQUIRED COMPONENTS regex filesystem system CONFIG)
 #find_package (SQLite3 REQUIRED CONFIG)
 
 target_include_directories(${TARGET} PRIVATE
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
         )
-
+#set(Boost_INCLUDE_DIR ${_VCPKG_INSTALLED_DIR}/x64-windows-static/include)
 if (WIN32)
+    #set(Boost_INCLUDE_DIR "C:/lib/vcpkg/installed/x64-windows-static/include")
+    
     find_package(Boost REQUIRED COMPONENTS regex)
     target_link_libraries(${TARGET} PRIVATE
             bcrypt.lib arcirk)
