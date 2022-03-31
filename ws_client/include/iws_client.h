@@ -7,9 +7,9 @@
 
 #include "iws_client_global.h"
 
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+//#include <boost/thread.hpp>
+//#include <boost/thread/mutex.hpp>
+//#include <boost/thread/condition_variable.hpp>
 
 class  ws_client;
 
@@ -113,8 +113,8 @@ private:
     _callback_message callback_msg;
     _callback_status _status_changed;
 
-    boost::mutex mtx;
-    boost::condition_variable cv;
+//    boost::mutex mtx;
+//    boost::condition_variable cv;
     bool _m_synch;
     result_synch resultSynch;
 

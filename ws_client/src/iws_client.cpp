@@ -81,8 +81,8 @@ void IClient::ext_message(const std::string& msg) {
 //        callback_msg(msg);
 //    }
     if(_m_synch){
-        boost::unique_lock <boost::mutex> lck(mtx);
-        cv.notify_one();
+//        boost::unique_lock <boost::mutex> lck(mtx);
+//        cv.notify_one();
         //ToDo: добавить обработчики выборочных сообщений
         if(callback_msg){
             callback_msg(msg);
@@ -704,11 +704,11 @@ bool IClient::synch_open() {
         boost::thread(boost::bind(&IClient::start, this)).detach();
 #endif
 
-    boost::unique_lock <boost::mutex> lck(mtx);
-    cv.wait(lck);
-    if (resultSynch == result_synch::ok)
-        return true;
-    else
+//    boost::unique_lock <boost::mutex> lck(mtx);
+//    cv.wait(lck);
+//    if (resultSynch == result_synch::ok)
+//        return true;
+//    else
         return false;
 }
 

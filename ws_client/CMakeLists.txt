@@ -15,7 +15,7 @@ set(TARGET ws_client)
 #SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 if (WIN32)
-    set(WS_CLIENT_STATIC ON)
+    set(WS_CLIENT_STATIC OFF)
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
