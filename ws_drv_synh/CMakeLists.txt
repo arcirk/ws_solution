@@ -50,13 +50,17 @@ list(APPEND SOURCES
         src/Component.cpp
         src/Component.h
         src/ws_drv_synh.cpp
-        src/ws_drv_synh.h)
+        src/ws_drv_synh.h
+        src/synch_session.cpp
+        ../chared/server_response.cpp
+        )
 
 add_library(${TARGET} SHARED
         ${SOURCES})
 
 set(ARCIRK_INCLUDE ../arcirk/include)
 set(ARCIRK_LIB ../arcirk/cmake-build-debug)
+set(CHARED_INCLUDE ../chared)
 
 #target_compile_definitions(${TARGET} PRIVATE
 #        UNICODE
@@ -79,6 +83,9 @@ if (WIN32)
             ${ARCIRK_LIB}
     )
 endif ()
+
+find_package(Boost COMPONENTS regex filesystem system thread REQUIRED)
+
 if (WIN32)
     add_definitions(/MT)
     set(CMAKE_SUPPRESS_REGENERATION 1)
@@ -87,27 +94,30 @@ if (WIN32)
             _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
     target_compile_options(${TARGET} PRIVATE /utf-8)
 
-    #find_package(Boost REQUIRED COMPONENTS regex thread)
     target_link_libraries(${TARGET} PRIVATE
+            Boost::filesystem
+            Boost::system
+            Boost::thread
             bcrypt.lib
             arcirk
             )
     include_directories (
-            #${Boost_INCLUDE_DIRS}
+            ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${CHARED_INCLUDE}
     )
 
 else()
-    #find_package(Boost COMPONENTS regex filesystem system thread REQUIRED)
     include_directories (
-            #${Boost_INCLUDE_DIRS}
+            ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${CHARED_INCLUDE}
     )
 
     target_link_libraries(${TARGET} PRIVATE
-#            Boost::filesystem
-#            Boost::system
-#            Boost::thread
+            Boost::filesystem
+            Boost::system
+            Boost::thread
 #            OpenSSL::SSL
 #            OpenSSL::Crypto
 #            ${CURL_LIBRARIES}
