@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_set>
 #include <boost/asio/io_context.hpp>
-//#include "../include/synch_session.h"
+//#include "../include/sync_session.h"
 
 using boost::property_tree::ptree;
 
@@ -100,7 +100,7 @@ private:
     boost::uuids::uuid  _user_uuid{};
     bool _is_login;
 //    bool _is_synch;
-//    synch_session _ws_synh;
+//    sync_session _ws_synh;
 
 
     std::string _webdav_host;

@@ -706,7 +706,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                                                "true");
 
             //используется синхронное подключение, не оповещаем
-            if(app_name != "client_synch")
+            if(app_name != "client_sync")
                 send(m_, "client_join");
 
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;

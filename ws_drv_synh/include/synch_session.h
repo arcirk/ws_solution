@@ -2,7 +2,7 @@
 // Created by arcady on 03.02.2022.
 //
 
-#ifndef WS_SOLUTION_SYNCH_SESSION_H
+#ifndef WS_SOLUTION_SYNC_SESSION_H
 #define WS_SOLUTION_SYNCH_SESSION_H
 
 #include <boost/beast/core.hpp>
@@ -21,7 +21,7 @@ namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-class synch_session : public boost::enable_shared_from_this<synch_session>
+class sync_session : public boost::enable_shared_from_this<sync_session>
 {
     tcp::resolver resolver_;
     websocket::stream<tcp::socket> ws_;
@@ -29,11 +29,11 @@ class synch_session : public boost::enable_shared_from_this<synch_session>
     std::string host_;
 public:
     explicit
-    synch_session(net::io_context& ioc);
+    sync_session(net::io_context& ioc);
 
-    ~synch_session();
+    ~sync_session();
 
-    void
+    bool
     run(char const* host, char const* port);
 
     void
@@ -55,4 +55,4 @@ public:
 };
 
 
-#endif //WS_SOLUTION_SYNCH_SESSION_H
+#endif //WS_SOLUTION_SYNC_SESSION_H

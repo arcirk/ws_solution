@@ -38,10 +38,6 @@
 #include <ws_client.h>
 #include <server_response.h>
 
-//typedef std::function<void()> _start_func;
-
-//using namespace arcirk;
-//namespace dll = boost::dll;
 
 std::string ws_drv::extensionName() {
     return "WebSocketClient";
@@ -51,8 +47,6 @@ ws_drv::ws_drv()
 {
 
     client = nullptr;
-
-    _m_synch = false;
 
     settings = arcirk::bConf("conf_1c_client.json");
 
@@ -149,245 +143,6 @@ void ws_drv::message(const variant_t &msg) {
             }, msg);
 }
 
-//void ws_drv::start(){
-//
-//    _callback_message callback = std::bind(&ws_drv::ext_message, this, std::placeholders::_1);
-//
-//    std::string _port = std::to_string(std::get<int32_t>(*port));
-//    std::string _host = std::get<std::string>(*server);
-//
-//    auto const host = _host.c_str();
-//    auto const port = _port.c_str();
-//
-//    boost::asio::io_context ioc;
-//
-//    close();
-//
-//    client = new ws_client(ioc);
-//    client->open(host, port, callback);
-//
-//}
-//
-//void ws_drv::start_() {
-//
-//    _callback_message callback = std::bind(&ws_drv::ext_message, this, std::placeholders::_1);
-//
-//    std::string _port = std::to_string(std::get<int32_t>(*port));
-//    std::string _host = std::get<std::string>(*server);
-//
-//    auto const host = _host.c_str();
-//    auto const port = _port.c_str();
-//
-//    boost::asio::io_context ioc;
-//
-//    close();
-//
-//    std::string _param = std::get<std::string>(_client_param);
-//
-//    client = new ws_client(ioc, _param);
-//
-//    client->open(host, port, callback);
-//
-//}
-//
-//void ws_drv::close() {
-//
-////    if (client)
-////    {
-////        if (client->started())
-////        {
-////            client->close();
-////        }
-////
-////        delete client;
-////        client = nullptr;
-////    }
-//
-//}
-//
-//int ws_drv::open()
-//{
-////#ifdef _WINDOWS
-////    std::thread(std::bind(&ws_drv::start, this)).detach();
-////#else
-////    boost::thread(boost::bind(&ws_drv::start, this)).detach();
-////#endif
-////
-//    return EXIT_SUCCESS;
-//
-//}
-//
-//int ws_drv::open_as(const variant_t &param) {
-//
-////    _client_param = param;
-////
-////#ifdef _WINDOWS
-////    std::thread(std::bind(&ws_drv::start_, this)).detach();
-////#else
-////    boost::thread(boost::bind(&ws_drv::start_, this)).detach();
-////#endif
-////
-//    return EXIT_SUCCESS;
-//
-//}
-//
-//void ws_drv::send(const variant_t& msg, const variant_t& sub_user_uuid, const variant_t& uuid_form)
-//{
-////    std::string _msg = std::get<std::string>(msg);
-////    std::string _uuid_form = std::get<std::string>(uuid_form);
-////    std::string _sub_user_uuid = std::get<std::string>(sub_user_uuid);
-////
-////    if (_msg.empty())
-////        return;
-////    if (_uuid_form.empty())
-////        _uuid_form = arcirk::nil_string_uuid();
-////    if (_sub_user_uuid.empty())
-////        _sub_user_uuid = arcirk::nil_string_uuid(;
-////
-////    if (client)
-////    {
-////        if (client->started())
-////        {
-////            client->send(_msg, false, _sub_user_uuid);
-////        }
-////    }
-//}
-//
-//void ws_drv::send_command(const variant_t &cmd, const variant_t &uuid_form, const variant_t &param) {
-//
-////    if (client){
-////
-////        if (!started())
-////            return;
-////
-////        std::string _cmd = std::get<std::string>(cmd);
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////        std::string _param = std::get<std::string>(param);
-////
-////        if (_cmd.empty())
-////            return;
-////        if (_uuid_form.empty())
-////            _uuid_form = "00000000-0000-0000-0000-000000000000";
-////
-////        if (_param.empty())
-////            _param = "{\"command\":\"" + _cmd + "\"}";
-////
-////        client->send(_param, true, "00000000-0000-0000-0000-000000000000", _uuid_form, _cmd);
-////
-////    }
-//
-//}
-
-//void ws_drv::send_command_(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
-
-//    if (client){
-//
-//        if (!started())
-//            return;
-//
-//        std::string _cmd = cmd;
-//        std::string _uuid_form = uuid_form;
-//        std::string _param = param;
-//
-//        if (_cmd.empty())
-//            return;
-//        if (_uuid_form.empty())
-//            _uuid_form = "00000000-0000-0000-0000-000000000000";
-//
-//        if (_param.empty())
-//            _param = "{\"command\":\"" + _cmd + "\"}";
-//
-//        client->send(_param, true, "00000000-0000-0000-0000-000000000000", _uuid_form, _cmd);
-//    }
-
-//}
-
-//void ws_drv::to_channel(const variant_t &msg, const variant_t &uuid_sub, const variant_t &uuid_form) {
-//
-//    std::string _msg = std::get<std::string>(msg);
-//    std::string _uuid_form = std::get<std::string>(uuid_form);
-//    std::string _uuid_sub = std::get<std::string>(uuid_sub);
-//
-//    if (_msg.empty())
-//        return;
-//    if (_uuid_form.empty())
-//        _uuid_form = "00000000-0000-0000-0000-000000000000";
-//    if (_uuid_sub.empty())
-//        _uuid_sub = "00000000-0000-0000-0000-000000000000";
-//
-//
-//}
-
-//bool ws_drv::started() {
-////    bool result = false;
-////    if (client){
-////        result = client->started();
-////    }
-////    return result;
-//    return false;
-//}
-//
-//variant_t ws_drv::get_client_info() {
-////    if (client){
-////        return client->get_client_info();
-////
-////    }else
-//        return "";
-//}
-//
-//std::string ws_drv::get_current_name() {
-////    if (client)
-////        return client->get_name();
-////    else
-//        return "unknown";
-//}
-//
-////void ws_drv::join_channel(const variant_t &uuid_sub, const variant_t &uuid_form) {
-////    if (client){
-////        try {
-////            std::string uuid_channel(std::get<std::string>(uuid_sub));
-////            std::string _uuid_form(std::get<std::string>(uuid_form));
-////
-////            client->subscribe_to_channel(uuid_channel.c_str(), _uuid_form.c_str());
-////
-////        }catch (std::exception & e){
-////            set_log(std::string ("error: ") + e.what(), "/errors.log");
-////        }
-////
-////    }
-////}
-//
-////void ws_drv::close_channel(const variant_t &uuid_sub, const variant_t &uuid_form) {
-////    if (client){
-////        try {
-////            std::string uuid_channel(std::get<std::string>(uuid_sub));
-////            std::string _uuid_form(std::get<std::string>(uuid_form));
-////
-////            client->subscribe_exit_channel(uuid_channel, _uuid_form);
-////
-////        }catch (std::exception & e){
-////            set_log(std::string ("error: ") + e.what(), "/errors.log");
-////        }
-////    }
-////}
-//
-//void ws_drv::set_log(const std::string &msg, const std::string &filename) {
-//    //    try {
-//    //        std::string _log_path = std::get<std::string>(*log_path);
-//    //        if (_log_path.empty())
-//    //            return;
-//    //        if (msg.empty())
-//    //            return;
-//    //
-//    ////        std::ofstream f;
-//    ////        f.open(_log_path + filename, std::ios::app);
-//    ////        f << msg << "\n";
-//    ////        f.close();
-//    //    }catch (std::exception & e){
-//    //        //
-//    //    }
-//}
-//
 std::string ws_drv::get_hash(const variant_t &usr, const variant_t &pwd) {
 
     std::string _usr(std::get<std::string>(usr));
@@ -416,204 +171,6 @@ variant_t ws_drv::get_current_date_in_seconds() {
 variant_t ws_drv::get_tz_offset() {
     return (int)arcirk::tz_offset();
 }
-
-//void ws_drv::get_messages(const variant_t &uuid_sub, const variant_t &start_date, const variant_t &end_date, const variant_t &limit, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_sub = std::get<std::string>(uuid_sub);
-////
-////        tm _start_date = std::get<tm>(start_date);
-////        std::chrono::system_clock::time_point tp_start = std::chrono::system_clock::from_time_t(mktime(&_start_date));
-////        long int int_start_date = std::chrono::duration_cast<std::chrono::seconds>(tp_start.time_since_epoch()).count();
-////
-////        tm _end_date = std::get<tm>(end_date);
-////        std::chrono::system_clock::time_point tp_end = std::chrono::system_clock::from_time_t(mktime(&_end_date));
-////        long int int_end_date = std::chrono::duration_cast<std::chrono::seconds>(tp_end.time_since_epoch()).count();
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("recipient", _uuid_sub);
-////        pt.add("start_date", int_start_date);
-////        pt.add("end_date", int_end_date);
-////        pt.add("limit", std::get<int>(limit));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("get_messages", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//
-//}
-//
-//void ws_drv::get_user_info(const variant_t &user_uuid, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_sub = std::get<std::string>(user_uuid);
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("user_uuid", _uuid_sub);
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("get_user_info", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void ws_drv::get_group_list(const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        send_command_("get_group_list", _uuid_form, "");
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void
-//ws_drv::add_group(const variant_t &name, const variant_t &presentation, const variant_t &uuid_parent, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("name", std::get<std::string>(name));
-////        pt.add("presentation", std::get<std::string>(presentation));
-////        pt.add("parent", std::get<std::string>(uuid_parent));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("add_group", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void ws_drv::edit_group(const variant_t &uuid_group, const variant_t &name, const variant_t &presentation,
-//                        const variant_t &uuid_parent, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("name", std::get<std::string>(name));
-////        pt.add("presentation", std::get<std::string>(presentation));
-////        pt.add("parent", std::get<std::string>(uuid_parent));
-////        pt.add("ref", std::get<std::string>(uuid_group));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("edit_group", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void ws_drv::remove_group(const variant_t &uuid_group, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("ref", std::get<std::string>(uuid_group));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("remove_group", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//
-//}
-//
-//void ws_drv::get_users(const variant_t &uuid_group, const variant_t &uuid_form) {
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("channel", std::get<std::string>(uuid_group));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("get_users", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void ws_drv::set_parent(const variant_t &user_uuid, const variant_t &uuid_group, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("parent", std::get<std::string>(uuid_group));
-////        pt.add("user", std::get<std::string>(user_uuid));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("set_parent", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
-//
-//void ws_drv::remove_user(const variant_t &user_uuid, const variant_t &uuid_form) {
-//
-////    boost::property_tree::ptree pt;
-////
-////    try {
-////
-////        std::string _uuid_form = std::get<std::string>(uuid_form);
-////
-////        pt.add("ref", std::get<std::string>(user_uuid));
-////
-////        std::stringstream _ss;
-////        boost::property_tree::json_parser::write_json(_ss, pt);
-////
-////        send_command_("remove_user", _uuid_form, _ss.str());
-////
-////    }catch (std::exception& e){
-////        message("error: " + std::string (e.what()));
-////    }
-//}
 
 std::string  ws_drv::get_client_conf() {
 
@@ -688,7 +245,6 @@ void ws_drv::_open(bool new_thread) {
         start();
 }
 
-
 void ws_drv::start() {
 
     boost::asio::io_context ioc;
@@ -719,36 +275,10 @@ void ws_drv::start() {
 void ws_drv::ext_message(const std::string &msg)
 {
     std::string resp = ServeResponse::base64_decode(msg);
-    //std::string resp = arcirk::base64_decode(msg);
-
-    if(_m_synch){
-        boost::unique_lock <boost::mutex> lck(mtx);
-        cv.notify_one();
-        //ToDo: добавить обработчики выборочных сообщений
-//        if(callback_msg){
-//            callback_msg(msg);
-//        }
-    }else
-    {
-//        if(callback_msg){
-//            callback_msg(msg);
-//        }
-    }
 
     if(!resp.empty()){
        processServeResponse(resp);
     }
-
-//    this->ExternalEvent("WebSocketAddIn", "message", msg);
-
-//    #ifdef _WINDOWS
-//        using namespace boost::locale::conv;
-//        std::string _msg = utf_to_utf<char>(msg);
-//        this->ExternalEvent("WebSocketAddIn", "message", _msg);
-//    #else
-//    this->ExternalEvent("WebSocketAddIn", "message", msg);
-//    #endif // _WINDOWS
-
 
 }
 
@@ -883,10 +413,6 @@ void ws_drv::messageReceived(const std::string &msg, const std::string &uuid, co
     std::string data = json.to_string();
 
     emit("messageReceived", data);
-
-    //std::string data = ServeResponse::base64_decode(msg);
-    //emit("messageReceived", data);
-
 
 }
 
@@ -1464,47 +990,6 @@ bool ws_drv::webdav_check() {
               << "successful"<< std::endl;
 
     return check_connection;
-//    return false;
-//    std::map<std::string, std::string> options =
-//    {
-//            {"webdav_hostname", "https://arcirk.ru"},
-//            {"webdav_username", "arcady"},
-//            {"webdav_password", ""}
-//    };
-//
-//    std::unique_ptr<WebDAV::Client> wd_client{ new WebDAV::Client{ options } };
-//    auto remote_resources =
-//    {
-//            "existing_file.dat",
-//            "not_existing_file.dat",
-//            "existing_directory",
-//            "existing_directory/",
-//            "not_existing_directory",
-//            "not_existing_directory/"
-//    };
-//
-//    for (const auto& remote_resource : remote_resources)
-//    {
-//        bool is_existed = wd_client->check(remote_resource);
-//        std::cout << "Resource: " << remote_resource
-//                  << " is " << (is_existed ? "" : "not ") << "existed" << std::endl;
-//    }
-
-//    boost::dll::fs::path lib_path("C:/src/ws_solution/webdav_plugin/cmake-build-debug");             // argv[1] contains path to directory with our plugin library
-//   boost::filesystem::path p = boost::filesystem::current_path();
-//    boost::shared_ptr<bwebdav_api> plugin;            // variable to hold a pointer to plugin variable
-//    std::cout << "Loading the plugin" << std::endl;
-//
-//    plugin = dll::import_symbol<bwebdav_api>(         // type of imported symbol is located between `<` and `>`
-//            lib_path / "bwebdav",                     // path to the library and library name
-//            "plugin",                                       // name of the symbol to import
-//            dll::load_mode::append_decorations              // makes `libmy_plugin_sum.so` or `my_plugin_sum.dll` from `my_plugin_sum`
-//    );
-//    bool result = plugin->check_connection();
-//    //std::cout << "plugin-check_connection() call:  " << plugin->check_connection() << std::endl;
-//    return result;
-//
-  //  return true;
 }
 
 void ws_drv::get_webdav_settings(const variant_t& uuid_form) {
@@ -1555,61 +1040,40 @@ bool ws_drv::synch_open(const variant_t &host, const variant_t &port) {
 
     _client_param = _ss.str();
 
-    _m_synch = true;
-
 #ifdef _WINDOWS
     std::thread(std::bind(&ws_drv::start, this)).detach();
 #else
-    boost::thread(boost::bind(&IClient::start, this)).detach();
+    boost::thread(boost::bind(&ws_drv::start, this)).detach();
 #endif
 
-    boost::unique_lock <boost::mutex> lck(mtx);
-    cv.wait(lck);
-    if (resultSynch == result_synch::ok)
-        return true;
-    else
-        return false;
 }
 
-//bool ws_drv::synch_session_set_param(const variant_t &usr, const variant_t &pwd) {
-//    if (!_m_synch)
-//        return false;
-//    std::string _usr = std::get<std::string>(usr);
-//    std::string _pwd = std::get<std::string>(pwd);
-//    bool result = client->synch_set_param(_usr, _pwd);
-//    return result;
-//}
+void ws_drv::send_info_base_error_sync(const variant_t &host, const variant_t &port, const variant_t &usr,
+                                       const variant_t &pwd, const variant_t &admin_ref, const variant_t &error_text) {
+    //отправляет сообщение админу синхронно
+    if(client){
+        return; //выполняется только на сервере
+    }
 
-//void ws_drv::synch_session_read() {
-//    if (!_m_synch)
-//        return;
-//    client->synch_read();
-//}
+    try {
+        std::string host = "192.168.43.28";
+        auto const port = "8080";
+        //auto const text = "TEST";
 
-void ws_drv::synch_write(const variant_t &msg) {
-//    if (!_m_synch)
-//        return;
-//    std::string _msg = std::get<std::string>(msg);
-//    client->synch_write(_msg);
+        net::io_context ioc;
+
+        auto session = synch_session(ioc);
+        if (session.run(host.c_str(), port)){
+            bool result = session.set_param("admin", "admin");
+
+            if (result){
+                std::cout << "ok!" << std::endl;
+                session.close();
+            }else
+                std::cerr << "error connection" << std::endl;
+        }else
+            std::cerr << "error connection" << std::endl;
+
+    }
+
 }
-
-//void ws_drv::synch_session_close() {
-//    if (!_m_synch)
-//        return;
-//    client->synch_close();
-//    delete client;
-//    client = nullptr;
-//    _m_synch = false;
-//}
-
-std::string ws_drv::synch_get_buffer() {
-    //if (!_m_synch)
-        return {};
-    //return client->synch_get_buffer();
-}
-
-//bool ws_drv::synch_session_is_open() {
-//    if (!_m_synch || !client)
-//        return false;
-//    return client->synch_is_open();
-//}

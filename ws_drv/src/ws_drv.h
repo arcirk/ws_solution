@@ -28,7 +28,7 @@
 
 #include <wdclient.hpp>
 #include <arcirk.h>
-//#include <synch_session.h>
+//#include <sync_session.h>
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -39,10 +39,10 @@ class  ws_client;
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
 
-enum result_synch{
-    ok = 0,
-    error
-};
+//enum result_synch{
+//    ok = 0,
+//    error
+//};
 
 class ws_drv final : public Component {
 public:
@@ -72,10 +72,10 @@ private:
     std::string _client_param;
     arcirk::bConf settings;
 
-    boost::mutex mtx;
-    boost::condition_variable cv;
-    bool _m_synch;
-    result_synch resultSynch;
+//    boost::mutex mtx;
+//    boost::condition_variable cv;
+//    bool _m_synch;
+//    result_synch resultSynch;
 
     std::string extensionName() override;
     void processServeResponse(const std::string &jsonResp);
@@ -162,10 +162,13 @@ private:
     bool synch_open(const variant_t &host, const variant_t &port);
     //bool synch_session_set_param(const variant_t &usr, const variant_t &pwd);
     //void synch_session_read();
-    void synch_write(const variant_t &msg);
+    //void synch_write(const variant_t &msg);
     //void synch_session_close();
-    std::string synch_get_buffer();
+    //std::string synch_get_buffer();
     //bool synch_session_is_open();
+
+    void send_info_base_error_sync(const variant_t &host, const variant_t &port, const variant_t &usr, const variant_t &pwd,
+                               const variant_t &admin_ref, const variant_t &error_text);
 
 };
 

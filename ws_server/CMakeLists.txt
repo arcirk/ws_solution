@@ -89,7 +89,7 @@ if (WIN32)
 
 else()
 
-    find_package(Boost COMPONENTS regex filesystem system thread REQUIRED)
+    find_package(Boost COMPONENTS thread regex filesystem system REQUIRED)
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
