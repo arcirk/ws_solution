@@ -22,14 +22,17 @@ enum bConfFieldsWrapper{
     WebDavHost,
     WebDavUser,
     WebDavPwd,
-    WebDavSSL
+    WebDavSSL,
+    SQLFormat,
+    SQLHost,
+    SQLUser,
+    SQLPassword
 };
 
 class ClientSettings{
 
 public:
-//    explicit
-//    ClientSettings();
+
     explicit
     ClientSettings(const QString& file_name = "", bool public_settings = false, bool no_save_def = false);
 
@@ -39,35 +42,7 @@ public:
     void save();
     bool parse();
     QString to_string() const;
-
-//    QVariant & operator[] (bConfFieldsWrapper index);
-//
-//    QVariant const& operator[] (bConfFieldsWrapper index) const;
-
-//    ClientSettings &operator=(const ClientSettings& from);
-//
-//    bool init();
-//    void save_settings();
-//    QString getJson();
     QJsonObject getJsonObject();
-//
-//    QString ServerHost;
-//    int ServerPort;
-//    QString RootUser;
-//    QString Hash;
-//    QString ServerName;
-//    QString AppName;
-//    bool AutoConnect;
-//    bool SaveHash;
-//    QString ServerWorkingDirectory;
-//    bool isLocalInstallation;
-//    bool RunAsService;
-//    bool UseLocalWebDAvDirectory;
-//    QString LocalWebDavDirectory;
-//    QString WebdavHost;
-//    QString WebdavUser;
-//    QString WebdavPwd;
-//    bool WebdavSSL;
 
     QString password;
     bool pwdEdit;

@@ -95,3 +95,6 @@ arcirk/CMakeFiles
 tests/
 **/cmake_debug
 **/cmake_release
+/sqlwrapper/x64-static/
+/cmake-build-releaseqtstatic/
+/cmake-build-debugqtstatic/

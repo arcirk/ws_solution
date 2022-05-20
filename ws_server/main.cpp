@@ -19,13 +19,6 @@ main(int argc, char* argv[])
 {
     setlocale(LC_ALL, "Russian");
 
-//    settings st;
-//    if (!st.get_settings("config/conf.json")){
-//        std::cerr <<
-//                  "Error: Ошибка чтения настроек сервера!\n";
-//        return EXIT_FAILURE;
-//    }
-
     arcirk::bConf st = arcirk::bConf("conf.json", true);
 
     std::string host = arcirk::bIp::get_default_host(st[arcirk::bConfFields::ServerHost].get_string());

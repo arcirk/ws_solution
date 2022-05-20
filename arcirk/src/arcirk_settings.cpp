@@ -37,7 +37,11 @@ const std::string bFieldsStr[] = {
         "WebDavHost",
         "WebDavUser",
         "WebDavPwd",
-        "WebDavSSL"};
+        "WebDavSSL",
+        "SQLFormat",
+        "SQLHost",
+        "SQLUser",
+        "SQLPassword"};
 
 namespace arcirk{
 
@@ -126,7 +130,6 @@ namespace arcirk{
             //std::string key = bFieldsStr[i];
 
             if (ind == bConfFields::ServerPort){
-                //m_doc.addMember(content_value(key, 0));
                 m_vec.push_back(0);
             }
             else{
@@ -146,6 +149,11 @@ namespace arcirk{
             m_vec[bConfFields::ServerWorkingDirectory] = parent_path(); //boost::dll::program_location().parent_path().string();
         else
             m_vec[bConfFields::ClientWorkingDirectory] = parent_path(); //boost::dll::program_location().parent_path().string();
+
+        m_vec[bConfFields::SQLFormat] = "SQLITE";
+        m_vec[bConfFields::SQLUser] = "sa";
+        m_vec[bConfFields::SQLPassword] = "";
+        m_vec[bConfFields::SQLHost] = "";
     }
 
     void bConf::save() {

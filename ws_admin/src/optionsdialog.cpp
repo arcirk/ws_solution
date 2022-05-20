@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <bwebdav.h>
+#include <QStringListModel>
 
 OptionsDialog::OptionsDialog(QWidget *parent) :
     QDialog(parent),
@@ -16,6 +17,8 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     settings("conf_admin_console.json", false)
 {
     ui->setupUi(this);
+
+    qDebug() << settings[bConfFieldsWrapper::SQLFormat].toString();
 
     ui->chkSrvLocalInstall->setChecked(settings[bConfFieldsWrapper::isLocalInstallation].toBool());
     ui->chkRunAsService->setChecked(settings[bConfFieldsWrapper::RunAsService].toBool());
@@ -41,14 +44,34 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     ui->lineEdtWebDavPassword->setText(pass);
     ui->chSSL->setChecked(settings[bConfFieldsWrapper::WebDavSSL].toBool());
 
+    QStringList lstFormat = {"SQLITE", "SQLSERVER"};
+    QStringListModel * lst = new QStringListModel(lstFormat);
+    ui->cmbFormatDb->setModel(lst);
+
+    QString sqlFormat = settings[bConfFieldsWrapper::SQLFormat].toString();
+    if(sqlFormat.isEmpty())
+        sqlFormat = "SQLITE";
+
+    int index = (sqlFormat == "SQLITE") ? 0 : 1;
+    ui->cmbFormatDb->setCurrentIndex(index);
+
+    ui->lineSqlHost->setText(settings[bConfFieldsWrapper::SQLHost].toString());
+    ui->lineSqlUser->setText(settings[bConfFieldsWrapper::SQLUser].toString());
+    if(ui->lineSqlUser->text().isEmpty())
+       ui->lineSqlUser->setText("sa");
+    dPwd = settings[bConfFieldsWrapper::SQLPassword].toString().toStdString();
+    pass = "";
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    ui->lineSqlPassword->setText(pass);
+
     settings.password = "***";
 
-    //pWebDav= new bWebDav(this, settings.confFileName());
+
     qWebdav= new QWebdav(this, settings.confFileName());
     QObject::connect(qWebdav, SIGNAL(errorChanged(QNetworkReply::NetworkError, QString)), this, SLOT(onWebDavError(QNetworkReply::NetworkError, QString)));
 
-    //QObject::connect(pWebDav, SIGNAL(verifyRootDirResult(bool, bool)), this, SLOT(onVerifyRootDirResult(bool, bool )));
-    //QObject::connect(pWebDav, SIGNAL(createDir(bool, QString)), this, SLOT(onCreateWbDavDirectory(bool, QString )));
 
 }
 
@@ -80,12 +103,6 @@ void OptionsDialog::on_OptionsDialog_accepted()
     settings.pwdEdit = false;
     settings.password = "";
 
-//    std::string dPwd = settings[bConfFieldsWrapper::WebDavPwd].toString().toStdString();
-//    QString pass;
-//    if (!dPwd.empty()){
-//        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
-//    }
-
     QString pass;
     std::string dPwd = ui->lineEdtWebDavPassword->text().toStdString();
     if (!dPwd.empty()){
@@ -93,6 +110,13 @@ void OptionsDialog::on_OptionsDialog_accepted()
     }
     settings[bConfFieldsWrapper::WebDavPwd] = pass;
 
+    pass = "";
+     dPwd = ui->lineSqlPassword->text().toStdString();
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    settings[bConfFieldsWrapper::SQLPassword] = pass;
+    settings[bConfFieldsWrapper::SQLFormat] = ui->cmbFormatDb->currentText();
     settings.save();
 }
 
@@ -194,7 +218,6 @@ void OptionsDialog::on_btnViewDavPwd_toggled(bool checked)
 
 void OptionsDialog::on_btnVerifyWebDav_clicked()
 {
-    //pWebDav->verify();
 
     //меняем на текущие
     qWebdav->setUser(ui->lineEdtWebDAvUser->text());
@@ -236,7 +259,42 @@ void OptionsDialog::on_btnVerifyWebDav_clicked()
 
 void OptionsDialog::onWebDavError(QNetworkReply::NetworkError type, const QString& error) {
 
-    qDebug() << type << ":" << error;
+    qDebug() << __FUNCTION__ << type << ":" << error;
 
+}
+
+
+void OptionsDialog::on_cmbFormatDb_currentTextChanged(const QString &arg1)
+{
+    //qDebug() << __FUNCTION__ << arg1;
+
+    bool enable = arg1 == "SQLSERVER";
+    ui->lineSqlHost->setEnabled(enable);
+    ui->lineSqlUser->setEnabled(enable);
+    ui->lineSqlPassword->setEnabled(enable);
+    ui->toolButton->setEnabled(enable);
+
+    qDebug() << settings[bConfFieldsWrapper::SQLFormat].toString();
+}
+
+
+void OptionsDialog::on_lineSqlHost_editingFinished()
+{
+    settings[bConfFieldsWrapper::SQLHost] = ui->lineSqlHost->text();
+}
+
+
+void OptionsDialog::on_lineSqlUser_editingFinished()
+{
+    settings[bConfFieldsWrapper::SQLUser] = ui->lineSqlUser->text();
+}
+
+
+void OptionsDialog::on_toolButton_toggled(bool checked)
+{
+    auto echoMode = checked ? QLineEdit::Normal : QLineEdit::Password;
+    QString iconPath = checked ? ":/images/img/viewPwd.svg" : ":/images/img/viewPwd1.svg";
+    ui->toolButton->setIcon(QIcon(iconPath));
+    ui->lineSqlPassword->setEchoMode(echoMode);
 }
 

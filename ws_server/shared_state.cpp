@@ -10,6 +10,10 @@ shared_state::
 shared_state(std::string doc_root)
         : doc_root_(std::move(doc_root))
 {
+    arcirk::bConf conf("conf.json", true);
+    std::string sql_format = conf[SQLFormat].get_string();
+    std::cout << "shared_state::shared_state " << sql_format << std::endl;
+
     sqlite3Db = new arc_sqlite::sqlite3_db();
     bool res = sqlite3Db->open("base/db.sqlite");
     if(!res)
@@ -502,6 +506,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 5;
     else if (command == "get_channel_token")
         return params == 3;
+    else if (command == "set_sql_format")
+        return params == 1;
     else
         return false;
 }
@@ -543,6 +549,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_webdav_settings");
     commands.emplace_back("set_webdav_settings");
     commands.emplace_back("get_channel_token");
+    commands.emplace_back("set_sql_format");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -614,6 +621,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
        return  std::bind(&shared_state::set_webdav_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else if (command == "get_channel_token")
        return  std::bind(&shared_state::get_channel_token, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "set_sql_format")
+        return  std::bind(&shared_state::set_sql_format, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else
        return nullptr;
 }
@@ -2158,6 +2167,35 @@ bool shared_state::get_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *
     return true;
 
 }
+
+bool shared_state::set_sql_format(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                       std::string &err, std::string &custom_result){
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    std::string sql_format = params->get_member(bConf::get_field_alias(arcirk::SQLFormat)).get_string();
+    arcirk::bConf conf("conf.json", true);
+    conf[SQLFormat] = sql_format;
+    conf.save();
+
+    custom_result = "Изменился формат базы данных. Требуется перезапустить сервер.";
+
+    return true;
+
+}
+
 bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                         std::string &err, std::string &custom_result){
 
@@ -2241,4 +2279,9 @@ bool shared_state::get_channel_token(boost::uuids::uuid &uuid, arcirk::bJson *pa
     custom_result = result;
 
     return true;
+}
+
+bool shared_state::send_technical_information(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                              std::string &err, std::string &custom_result) {
+    return false;
 }

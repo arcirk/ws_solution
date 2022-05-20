@@ -44,6 +44,9 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set(ARCIRK_LIB ../arcirk/cmake-build-debug)
 set(ARCIRK_INCLUDE ../arcirk/include)
+set(SHARED_INCLUDE ../chared)
+set(SQLWRAPPER_INCLUDE ../sqlwrapper/include)
+set(SQLWRAPPER_LIB ../sqlwrapper/x64-static)
 
 link_directories(${ARCIRK_LIB})
 
@@ -71,8 +74,9 @@ add_executable(${TARGET}
 #find_package (SQLite3 REQUIRED CONFIG)
 
 target_include_directories(${TARGET} PRIVATE
-            ${Boost_INCLUDE_DIRS}
-            ${ARCIRK_INCLUDE}
+        ${Boost_INCLUDE_DIRS}
+        ${ARCIRK_INCLUDE}
+        ${SQLWRAPPER_INCLUDE}
         )
 #set(Boost_INCLUDE_DIR ${_VCPKG_INSTALLED_DIR}/x64-windows-static/include)
 if (WIN32)
@@ -80,11 +84,12 @@ if (WIN32)
     
     find_package(Boost REQUIRED COMPONENTS regex)
     target_link_libraries(${TARGET} PRIVATE
-            bcrypt.lib arcirk)
+            bcrypt.lib arcirk sqlwrapper)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${SQLWRAPPER_INCLUDE}
     )
 
 else()
@@ -93,13 +98,15 @@ else()
     include_directories (
             ${Boost_INCLUDE_DIRS}
             ${ARCIRK_INCLUDE}
+            ${SQLWRAPPER_INCLUDE}
     )
 
     target_link_libraries(${TARGET} PRIVATE
             Boost::filesystem
             Boost::system
             Boost::thread
-            arcirk)
+            arcirk
+            sqlwrapper)
 
 endif()
 

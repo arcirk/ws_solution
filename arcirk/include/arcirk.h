@@ -261,7 +261,11 @@ namespace arcirk{
         WebDavHost,
         WebDavUser,
         WebDavPwd,
-        WebDavSSL
+        WebDavSSL,
+        SQLFormat,
+        SQLHost,
+        SQLUser,
+        SQLPassword
     };
 
     class bConf{

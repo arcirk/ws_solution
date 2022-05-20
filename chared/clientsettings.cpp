@@ -11,7 +11,7 @@
 
 #define ARR_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-const QString bFieldsStr[] = {
+QStringList bFieldsStr = {
         "ServerHost",
         "ServerPort",
         "User",
@@ -29,7 +29,11 @@ const QString bFieldsStr[] = {
         "WebDavHost",
         "WebDavUser",
         "WebDavPwd",
-        "WebDavSSL"};
+        "WebDavSSL",
+        "SQLFormat",
+        "SQLHost",
+        "SQLUser",
+        "SQLPassword"};
 
 
 QString ClientSettings::confFileName() const {
@@ -67,34 +71,6 @@ bool ClientSettings::verify_directory(const QString& dir_path) {
 
     return true;
 }
-
-//ClientSettings::ClientSettings()
-//{
-//    pwdEdit = false;
-//
-//    QString file_name = "conf.json";
-//
-//    init(false);
-//
-//    output_directory = QCoreApplication::applicationDirPath() + QDir::separator() + "config";
-//
-//    bool result = verify_directory(output_directory);
-//
-//    if(!result){
-//        qDebug() << "Error verify config directory!";
-//        return;
-//    }
-//
-//    if(!file_name.isEmpty())
-//        output_filename = file_name;
-//
-//    QString fileName = output_directory + QDir::separator() + output_filename;
-//
-//    if (!QFile(fileName).exists())
-//        save();
-//    else
-//        parse();
-//}
 
 ClientSettings::ClientSettings(const QString &file_name, bool public_settings, bool no_save_def) {
 
@@ -146,7 +122,8 @@ void ClientSettings::init(bool server) {
     m_bool.push_back(bConfFieldsWrapper::WebDavSSL);
     m_bool.push_back(bConfFieldsWrapper::isLocalInstallation);
 
-    int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    //int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    int fCount = bFieldsStr.size();
 
     for (int i = 0; i < fCount; ++i) {
         auto ind = (bConfFieldsWrapper)i;
@@ -173,6 +150,11 @@ void ClientSettings::init(bool server) {
         m_vec[bConfFieldsWrapper::ServerWorkingDirectory] = QCoreApplication::applicationDirPath();
     else
         m_vec[bConfFieldsWrapper::ClientWorkingDirectory] = QCoreApplication::applicationDirPath();
+
+    m_vec[bConfFieldsWrapper::SQLFormat] = "SQLITE";
+    m_vec[bConfFieldsWrapper::SQLUser] = "sa";
+    m_vec[bConfFieldsWrapper::SQLPassword] = "";
+    m_vec[bConfFieldsWrapper::SQLHost] = "";
 }
 
 void ClientSettings::save() {
@@ -180,7 +162,8 @@ void ClientSettings::save() {
     QJsonDocument m_doc{};
     QJsonObject obj = QJsonObject();
 
-    int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    //int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    int fCount = bFieldsStr.size();
 
     for (int i = 0; i < fCount; ++i) {
         QString key = bFieldsStr[i];
@@ -224,7 +207,9 @@ bool ClientSettings::parse() {
 
     QJsonObject obj = m_doc.object();
 
-    int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    //int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    int fCount = bFieldsStr.size();
+
     for (int i = 0; i < fCount; ++i) {
         QString key = bFieldsStr[i];
         QJsonValue value = obj.value(key);
@@ -531,7 +516,8 @@ QString ClientSettings::to_string() const {
     QJsonDocument m_doc{};
     QJsonObject obj = QJsonObject();
 
-    int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    //int fCount = sizeof(bFieldsStr) / sizeof(bFieldsStr[0]);
+    int fCount = bFieldsStr.size();
 
     for (int i = 0; i < fCount; ++i) {
         QString key = bFieldsStr[i];

@@ -125,6 +125,8 @@ public:
     void setWebDavSettingsToClient(const QString& resp);
     void setWebDavSettingsToServer();
 
+    void setSqlFormat();
+
     bool isAgentUse();
     bool isAgent();
     void setIsAgent(bool val);

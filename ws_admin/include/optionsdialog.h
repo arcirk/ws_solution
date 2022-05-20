@@ -64,6 +64,14 @@ private slots:
 
     void onWebDavError(QNetworkReply::NetworkError type, const QString& error);
 
+    void on_cmbFormatDb_currentTextChanged(const QString &arg1);
+
+    void on_lineSqlHost_editingFinished();
+
+    void on_lineSqlUser_editingFinished();
+
+    void on_toolButton_toggled(bool checked);
+
 private:
     Ui::OptionsDialog *ui;
     ClientSettings settings;;

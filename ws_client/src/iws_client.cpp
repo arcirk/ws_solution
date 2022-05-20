@@ -626,6 +626,7 @@ std::string IClient::get_webdav_host() const {
     else
         return "";
 }
+
 bool IClient::get_webdav_ssl() {
     if(client)
         return client->get_webdav_ssl();
@@ -651,6 +652,22 @@ void IClient::set_webdav_settings_on_server() {
     }
 
 }
+
+//void IClient::set_sql_format_server(const std::string& sql_format)
+//{
+//    try {
+//        arcirk::bJson json{};
+//        json.set_object();
+//        json.addMember(arcirk::content_value("uuid_form", arcirk::nil_string_uuid()));
+//        json.addMember(arcirk::content_value(bConf::get_field_alias(bConfFields::SQLFormat), sql_format));
+
+
+//        send_command("set_sql_format", nil_string_uuid(), json.to_string());
+
+//    }catch (std::exception& e){
+//        //message("error: " + std::string (e.what()));
+//    }
+//}
 
 void IClient::get_channel_token(const std::string &user_sender, const std::string &uuid_form) {
     boost::property_tree::ptree pt;

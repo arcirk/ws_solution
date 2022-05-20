@@ -531,6 +531,7 @@ std::string ws_client::get_webdav_pwd() const {
 std::string ws_client::get_webdav_host() const {
     return _webdav_host;
 }
+
 bool ws_client::get_webdav_ssl() {
     return _webdav_ssl;
 }

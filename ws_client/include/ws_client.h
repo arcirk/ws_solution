@@ -102,7 +102,6 @@ private:
 //    bool _is_synch;
 //    sync_session _ws_synh;
 
-
     std::string _webdav_host;
     std::string _webdav_user;
     std::string _webdav_pwd;

@@ -89,6 +89,7 @@ public:
 
     void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
+   // void set_sql_format_server(const std::string& sql_format);
 
     [[nodiscard]] std::string get_webdav_user() const;
     [[nodiscard]] std::string get_webdav_pwd() const;

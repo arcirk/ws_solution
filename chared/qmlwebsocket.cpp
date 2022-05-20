@@ -477,6 +477,19 @@ void bWebSocket::setWebDavSettingsToServer()
         client->set_webdav_settings_on_server();
 }
 
+void bWebSocket::setSqlFormat()
+{
+    updateSettings();
+    QJsonObject obj = QJsonObject();
+    obj.insert("SQLFormat", settings[bConfFieldsWrapper::SQLFormat].toString());
+
+    QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+    if(client->started()){
+         client->send_command("set_sql_format", "", param.toStdString());
+    }
+
+}
+
 bool bWebSocket::isAgentUse()
 {
     return !uuidSessionAgent.isEmpty();

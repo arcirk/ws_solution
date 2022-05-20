@@ -157,6 +157,7 @@ void MainWindow::on_mnuOptions_triggered()
         settings = ClientSettings(confFile, false);
         if(client->isStarted()){
             client->setWebDavSettingsToServer();
+            client->setSqlFormat();
         }
         fillTree(client->isStarted());
     }
