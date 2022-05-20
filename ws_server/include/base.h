@@ -18,6 +18,7 @@ namespace arc_sqlite {
         eMessages,
         eChannels,
         eSubscribers,
+        eTechnicalInformation,
         eUnknown
     };
 

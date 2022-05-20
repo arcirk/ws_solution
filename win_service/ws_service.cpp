@@ -1,30 +1,12 @@
-#ifdef _WINDOWS
-#include <SDKDDKVer.h>
-#endif
-
-#include "./include/listener.hpp"
-#include "./include/shared_state.hpp"
-
-#include <boost/asio/signal_set.hpp>
-#include <boost/smart_ptr.hpp>
-#include <iostream>
-#include <vector>
-
-#include <arcirk.h>
-
-#include <string>
+//
+// Created by admin on 20.05.2022.
+//
+#include "ws_service.h"
 
 int
-main(int argc, char* argv[])
+ws_service::RunServer()
 {
     setlocale(LC_ALL, "Russian");
-
-//    settings st;
-//    if (!st.get_settings("config/conf.json")){
-//        std::cerr <<
-//                  "Error: Ошибка чтения настроек сервера!\n";
-//        return EXIT_FAILURE;
-//    }
 
     arcirk::bConf st = arcirk::bConf("conf.json", true);
 
