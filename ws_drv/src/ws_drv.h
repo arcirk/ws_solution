@@ -28,7 +28,7 @@
 
 #include <wdclient.hpp>
 #include <arcirk.h>
-//#include <sync_session.h>
+#include "sync_session.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -104,9 +104,9 @@ private:
     void reset_unread_messages(const std::string &user_sender, const std::string &uuid_form);
     void get_channel_token(const std::string &user_sender, const std::string &uuid_form);
     void message(const variant_t &msg);
-    static variant_t get_currentDate();
-    static variant_t get_current_date_in_seconds();
-    static variant_t get_tz_offset();
+    variant_t get_currentDate();
+    variant_t get_current_date_in_seconds();
+    variant_t get_tz_offset();
     [[nodiscard]] std::string get_app_uuid() const;
     [[nodiscard]] std::string get_user_uuid() const;
 
@@ -159,7 +159,11 @@ private:
 
     void setWebDavSettingsToClient(const std::string &resp);
 
-    bool synch_open(const variant_t &host, const variant_t &port);
+    //bool synch_open(const variant_t &host, const variant_t &port);
+
+    bool send_technical_information(const variant_t &host, const variant_t &port, const variant_t &usr,
+                                    const variant_t &pwd, const variant_t &param);
+
     //bool synch_session_set_param(const variant_t &usr, const variant_t &pwd);
     //void synch_session_read();
     //void synch_write(const variant_t &msg);
@@ -167,8 +171,8 @@ private:
     //std::string synch_get_buffer();
     //bool synch_session_is_open();
 
-    void send_info_base_error_sync(const variant_t &host, const variant_t &port, const variant_t &usr, const variant_t &pwd,
-                               const variant_t &admin_ref, const variant_t &error_text);
+//    void send_info_base_error_sync(const variant_t &host, const variant_t &port, const variant_t &usr, const variant_t &pwd,
+//                               const variant_t &admin_ref, const variant_t &error_text);
 
 };
 

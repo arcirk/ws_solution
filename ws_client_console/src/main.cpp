@@ -191,140 +191,140 @@ void start(){
 
 int main(int argc, char** argv)
 {
-    bool synch = false;
-
-    setlocale(LC_ALL, "Russian");
-
-    if (!synch){
-        _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
-        _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
-
-        client = new IClient("192.168.43.18", 8080, callback, callback_status);
-    }else
-        client = new IClient();
-
-
-    std::string line;
-
-    while (getline(std::cin, line))
-    {
-        if (line.empty())
-            break;
-
-        // Reconnect the client
-        if (line == "!")
-        {
-            continue;
-        }
-        else if (line == "start")
-        {
-            if (!synch){
-                start();
-                boost::unique_lock <boost::mutex> lck(mtx);
-                cv.wait(lck);
-                std::cout << "end lock" << std::endl;
-            }
-            else{
-                bool result = client->synch_session_open("192.168.43.4", "8080");
-                client->synch_session_write("ping");
-                std::cout << "synch_session_open: " << result << std::endl;
-            }
-
-            continue;
-        }
-        else if (line == "stop")
-        {
-            if (!synch)
-                client->close();
-            else
-                client->synch_session_close();
-            continue;
-        }
-        else if (line == "exit")
-        {
-            if (!synch){
-                if (client->started())
-                    client->close();
-            }else
-            {
-                if(client->synch_session_is_open())
-                    client->synch_session_close();
-            }
-
-            break;
-        }
-        else if (line == "started")
-        {
-            if (!synch)
-                std::cout << "started: " << client->started() << std::endl;
-            else
-                std::cout << "started: " << client->synch_session_is_open() << std::endl;
-            continue;
-        }
-        else if (line == "get_catalog")
-        {
-            if (client->started())
-                client->get_users_catalog("0");
-            continue;
-        }else if(line == "get_user_info"){
-            if (client->started())
-                client->get_user_info(client->get_user_uuid(), "");
-            continue;
-        }else if(line == "get_user_data"){
-            if (client->started())
-                client->get_user_data("d7cca261-aecc-4708-872c-6cb6a664a6d7", "", "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
-            continue;
-        }else if(line == "set_param"){
-            if (synch){
-                bool res = client->synch_session_set_param("admin", "admin");
-                std::cout << "set_param: " << res << std::endl;
-            }
-
-            continue;
-        }else if(line == "get_buffer"){
-            if (synch){
-                std::string resp = client->synch_session_get_buffer();
-                if (!resp.empty()){
-                    std::cout << arcirk::base64_decode(client->synch_session_get_buffer()) << std::endl;
-                }else
-                    std::cout << client->synch_session_get_buffer() << std::endl;
-            }
-
-            continue;
-        }else if(line == "read"){
-            if (synch){
-                client->synch_session_read();
-                std::cout << client->synch_session_get_buffer() << std::endl;
-            }
-            continue;
-        }
-
-        else
-        {
-            if (synch)
-                client->synch_session_write(line);
-//            if (client->started()){
-//                client->se
+//    bool synch = false;
+//
+//    setlocale(LC_ALL, "Russian");
+//
+//    if (!synch){
+//        _callback_message callback = [](auto && PH1) { return ext_message(std::forward<decltype(PH1)>(PH1)); };
+//        _callback_status callback_status = [](auto && PH1) { return status_changed(std::forward<decltype(PH1)>(PH1)); };
+//
+//        client = new IClient("192.168.43.18", 8080, callback, callback_status);
+//    }else
+//        client = new IClient();
+//
+//
+//    std::string line;
+//
+//    while (getline(std::cin, line))
+//    {
+//        if (line.empty())
+//            break;
+//
+//        // Reconnect the client
+//        if (line == "!")
+//        {
+//            continue;
+//        }
+//        else if (line == "start")
+//        {
+//            if (!synch){
+//                start();
+//                boost::unique_lock <boost::mutex> lck(mtx);
+//                cv.wait(lck);
+//                std::cout << "end lock" << std::endl;
 //            }
-        }
-
-    }
-
-
-
-
-    //    boost::asio::thread_pool pool(4);
-    //    boost::asio::post(pool, start);
-    //    boost::asio::post(pool,
-    //                      []()
-    //                      {
-    //        //
-    //                      });
-
-    // Wait for all tasks in the pool to complete.
-    //   pool.join();
-
-    delete client;
+//            else{
+//                bool result = client->synch_session_open("192.168.43.4", "8080");
+//                client->synch_session_write("ping");
+//                std::cout << "synch_session_open: " << result << std::endl;
+//            }
+//
+//            continue;
+//        }
+//        else if (line == "stop")
+//        {
+//            if (!synch)
+//                client->close();
+//            else
+//                client->synch_session_close();
+//            continue;
+//        }
+//        else if (line == "exit")
+//        {
+//            if (!synch){
+//                if (client->started())
+//                    client->close();
+//            }else
+//            {
+//                if(client->synch_session_is_open())
+//                    client->synch_session_close();
+//            }
+//
+//            break;
+//        }
+//        else if (line == "started")
+//        {
+//            if (!synch)
+//                std::cout << "started: " << client->started() << std::endl;
+//            else
+//                std::cout << "started: " << client->synch_session_is_open() << std::endl;
+//            continue;
+//        }
+//        else if (line == "get_catalog")
+//        {
+//            if (client->started())
+//                client->get_users_catalog("0");
+//            continue;
+//        }else if(line == "get_user_info"){
+//            if (client->started())
+//                client->get_user_info(client->get_user_uuid(), "");
+//            continue;
+//        }else if(line == "get_user_data"){
+//            if (client->started())
+//                client->get_user_data("d7cca261-aecc-4708-872c-6cb6a664a6d7", "", "{\"draft\":true, \"unreadMessages\":true, \"status\":true}");
+//            continue;
+//        }else if(line == "set_param"){
+//            if (synch){
+//                bool res = client->synch_session_set_param("admin", "admin");
+//                std::cout << "set_param: " << res << std::endl;
+//            }
+//
+//            continue;
+//        }else if(line == "get_buffer"){
+//            if (synch){
+//                std::string resp = client->synch_session_get_buffer();
+//                if (!resp.empty()){
+//                    std::cout << arcirk::base64_decode(client->synch_session_get_buffer()) << std::endl;
+//                }else
+//                    std::cout << client->synch_session_get_buffer() << std::endl;
+//            }
+//
+//            continue;
+//        }else if(line == "read"){
+//            if (synch){
+//                client->synch_session_read();
+//                std::cout << client->synch_session_get_buffer() << std::endl;
+//            }
+//            continue;
+//        }
+//
+//        else
+//        {
+//            if (synch)
+//                client->synch_session_write(line);
+////            if (client->started()){
+////                client->se
+////            }
+//        }
+//
+//    }
+//
+//
+//
+//
+//    //    boost::asio::thread_pool pool(4);
+//    //    boost::asio::post(pool, start);
+//    //    boost::asio::post(pool,
+//    //                      []()
+//    //                      {
+//    //        //
+//    //                      });
+//
+//    // Wait for all tasks in the pool to complete.
+//    //   pool.join();
+//
+//    delete client;
 
     return EXIT_SUCCESS;
 }

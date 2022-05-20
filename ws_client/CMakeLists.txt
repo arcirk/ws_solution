@@ -15,7 +15,12 @@ set(TARGET ws_client)
 #SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 if (WIN32)
-    set(WS_CLIENT_STATIC OFF)
+#    if(QT_AGENT_APP)
+#        set(WS_CLIENT_STATIC OFF)
+#    else()
+#        set(WS_CLIENT_STATIC ON)
+#    endif()
+
     set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
     set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
@@ -54,8 +59,6 @@ list(APPEND SOURCES
         src/iws_client.cpp
         include/iws_client.h
         include/stdafx.h
-        include/synch_session.h
-        src/synch_session.cpp
         ../chared/server_response.h
         ../chared/server_response.cpp
         )

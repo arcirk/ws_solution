@@ -116,11 +116,17 @@ namespace arc_sqlite {
                 result.append(",\n date     INTEGER");
                 result.append(",\n contentType TEXT      DEFAULT HTML");
                 result.append(",\n unreadMessages  INTEGER   DEFAULT (0)"); //не прочитанные сообщения всегда у получателя
-                //result.append(",\n objectName TEXT");
                 break;
             case tables::eSubscribers:
                 result =		   ",\n channel    TEXT (36) NOT NULL";
                 result.append(	",\n user_uuid  TEXT (36)");
+                break;
+            case tables::eTechnicalInformation:
+                result =          ",\n infobase     TEXT (100)";
+                result.append(",\n date         INTEGER");
+                result.append(",\n status       INTEGER");
+                result.append(",\n message      TEXT");
+                result.append(",\n userName     TEXT (250)");
                 break;
             default:
                 break;
@@ -143,6 +149,9 @@ namespace arc_sqlite {
                 break;
             case tables::eSubscribers:
                 return "Subscribers";
+                break;
+            case tables::eTechnicalInformation:
+                return "TechnicalInformation";
                 break;
             default:
                 return "";
