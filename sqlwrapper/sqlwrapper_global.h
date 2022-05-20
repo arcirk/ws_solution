@@ -1,0 +1,12 @@
+#ifndef SQLWRAPPER_GLOBAL_H
+#define SQLWRAPPER_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(SQLWRAPPER_LIBRARY)
+#  define SQLWRAPPER_EXPORT Q_DECL_EXPORT
+#else
+#  define SQLWRAPPER_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // SQLWRAPPER_GLOBAL_H
