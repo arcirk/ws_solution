@@ -9,6 +9,10 @@
 #include <QStandardItemModel>
 #include <QMessageBox>
 
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+#endif
+
 SelectGroupDialog::SelectGroupDialog(QWidget *parent, QAbstractItemModel* model) :
     QDialog(parent),
     ui(new Ui::SelectGroupDialog)

@@ -212,6 +212,155 @@ namespace arcirk{
                 }
 
             }
+        }
+
+        return true;
+    }
+    bool bJson::getArray(std::vector<std::map<std::string, std::string>> &values) {
+        return getArray(this, values);
+    }
+
+    bool bJson::getArray(_Document *doc, std::vector<std::map<std::string, std::string>> &values) {
+
+        if(!doc->IsArray())
+            return false;
+
+        auto items = doc->GetArray();
+
+        for (auto item = items.Begin(); item != items.End(); item++) {
+
+            std::map<std::string, std::string> row;
+
+            for (_Value::ConstMemberIterator m = item->MemberBegin(); m != item->MemberEnd(); m++) {
+
+                std::string key = m->name.GetString();
+                std::string value;
+
+                if (m->value.IsInt()) {
+                    long int intVal = m->value.GetInt();
+                    value = std::to_string(intVal);
+                } else if (m->value.IsString()) {
+                    value = m->value.GetString();
+                } else if (m->value.IsBool()) {
+                    bool boolVal = m->value.GetBool();
+                    value = std::to_string(boolVal);
+                } else {
+                    value = "";
+                }
+
+                row.insert(std::pair<std::string, std::string>(key, value));
+
+            }
+
+            values.push_back(row);
+        }
+
+        return true;
+    }
+
+    bool bJson::getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, std::string>> &values) {
+        //Объект
+        _Value::ConstMemberIterator itr = doc->FindMember(member.c_str());
+
+        if (itr == doc->MemberEnd()) {
+            return false;
+        } else {
+            if (itr->value.IsObject()) {
+
+                for (_Value::ConstMemberIterator m = itr->value.MemberBegin(); m != itr->value.MemberEnd(); m++) {
+
+                    std::map<std::string, std::string> _value;
+
+                    std::string key = m->name.GetString();
+                    std::string value;
+
+                    if (m->value.IsInt()) {
+                        long int intVal = m->value.GetInt();
+                        value = std::to_string(intVal);
+                    } else if (m->value.IsString()) {
+                        value = m->value.GetString();
+                    } else if (m->value.IsBool()) {
+                        bool boolVal = m->value.GetBool();
+                        value = std::to_string(boolVal);
+                    } else {
+                        value = "";
+                    }
+
+                    _value.insert(std::pair<std::string, std::string>(key, value));
+
+                    values.push_back(_value);
+                }
+
+            } else if (itr->value.IsArray()) {
+
+                for (auto item = itr->value.Begin(); item != itr->value.End(); item++) {
+
+                    std::map<std::string, std::string> row;
+
+                    for (_Value::ConstMemberIterator m = item->MemberBegin(); m != item->MemberEnd(); m++) {
+
+                        std::string key = m->name.GetString();
+                        std::string value;
+
+                        if (m->value.IsInt()) {
+                            long int intVal = m->value.GetInt();
+                            value = std::to_string(intVal);
+                        } else if (m->value.IsString()) {
+                            value = m->value.GetString();
+                        } else if (m->value.IsBool()) {
+                            bool boolVal = m->value.GetBool();
+                            value = std::to_string(boolVal);
+                        } else {
+                            value = "";
+                        }
+
+                        row.insert(std::pair<std::string, std::string>(key, value));
+
+                    }
+
+                    values.push_back(row);
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    bool bJson::getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values) {
+        //Объект
+        _Value::ConstMemberIterator itr = doc->FindMember(member.c_str());
+
+        if (itr == doc->MemberEnd()) {
+            return false;
+        } else {
+            if (itr->value.IsObject()) {
+
+                for (_Value::ConstMemberIterator m = itr->value.MemberBegin(); m != itr->value.MemberEnd(); m++) {
+
+                    std::map<std::string, arcirk::bVariant> _value;
+
+                    std::string key = m->name.GetString();
+                    bVariant value;
+
+                    if (itr->value.IsInt()) {
+                        long int intVal = m->value.GetInt();
+                        value = intVal;
+                    } else if (m->value.IsString()) {
+                        value = m->value.GetString();
+                    } else if (m->value.IsBool()) {
+                        bool boolVal = m->value.GetBool();
+                        value = boolVal;
+                    } else {
+                        value = "";
+                    }
+
+                    _value.insert(std::pair<std::string, arcirk::bVariant>(key, value));
+
+                    values.push_back(_value);
+                }
+
+            }
 
         }
 
@@ -222,6 +371,13 @@ namespace arcirk{
         return getMembers(this, member, value);
     }
 
+    bool bJson::getMembers(const std::string &member, std::vector<std::map<std::string, std::string>> &values) {
+        return getMembers(this, member, values);
+    }
+
+    bool bJson::getMembers(const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values) {
+        return getMembers(this, member, values);
+    }
     void bJson::addObject(_Document * doc, std::vector<content_value> &values) {
 
         if (!doc->IsObject()){
@@ -329,6 +485,7 @@ namespace arcirk{
             return "";
         }
     }
+
     bool bJson::parse_pt(const std::string& json, ptree& pt){
         try {
 

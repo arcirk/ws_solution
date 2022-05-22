@@ -1,6 +1,10 @@
 //
 // Created by arcady on 05.11.2021.
 //
+#ifdef _WINDOWS
+    #pragma warning(disable:4101)
+#endif
+
 #include "../include/arcirk.h"
 
 namespace arcirk{

@@ -126,7 +126,16 @@ namespace arcirk{
         bool getMember(const std::string &member, bVariant &value);
         bVariant get_member(const std::string &member);
         static bool getMembers(_Document *doc, const std::string &member, std::vector<content_value> &value);
+        static bool getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, std::string>> &values);
+        static bool getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values);
+
         bool getMembers(const std::string &member, std::vector<content_value> &value);
+        bool getMembers(const std::string &member, std::vector<std::map<std::string, std::string>> &values);
+        bool getMembers(const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values);
+
+        bool getArray(std::vector<std::map<std::string, std::string>> &values);
+        static bool getArray(_Document *doc, std::vector<std::map<std::string, std::string>> &values);
+
         static void addMember(_Document * doc, content_value& value);
         static void addMember(_Document *doc, content_value &val, bool updateIsExists);
         void addMember(content_value value) { addMember(this, value); };

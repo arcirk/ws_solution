@@ -48,7 +48,10 @@ set(SHARED_INCLUDE ../chared)
 set(SQLWRAPPER_INCLUDE ../sqlwrapper/include)
 set(SQLWRAPPER_LIB ../sqlwrapper/x64-static)
 
-link_directories(${ARCIRK_LIB})
+link_directories(
+        ${ARCIRK_LIB}
+        ${SQLWRAPPER_LIB}
+)
 
 add_executable(${TARGET}
         main.cpp
@@ -110,6 +113,15 @@ else()
 
 endif()
 
-add_custom_command(TARGET ws_server PRE_BUILD
+add_custom_command(TARGET ${TARGET} PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/ws_server/app/ ${CMAKE_BINARY_DIR})
+
+if (WIN32)
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rm
+            ${CMAKE_BINARY_DIR}/sqlwrapper.dll)
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/sqlwrapper/x64-static/sqlwrapper.dll ${CMAKE_BINARY_DIR}/sqlwrapper.dll)
+endif()

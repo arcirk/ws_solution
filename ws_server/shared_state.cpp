@@ -3,50 +3,28 @@
 #include <utility>
 #include "./include/websocket_session.hpp"
 
-
-//#include <boost/regex.hpp>
+#include "./include/_sqlwrapper.h"
 
 shared_state::
 shared_state(std::string doc_root)
         : doc_root_(std::move(doc_root))
 {
     arcirk::bConf conf("conf.json", true);
-    std::string sql_format = conf[SQLFormat].get_string();
-    std::cout << "shared_state::shared_state " << sql_format << std::endl;
+    sql_format = conf[SQLFormat].get_string();
+    std::cout << "shared_state::shared_state sql_format:" << sql_format << std::endl;
+    if(sql_format.empty()){
+        sql_format = "SQLITE";
+    }
 
     sqlite3Db = new arc_sqlite::sqlite3_db();
-    bool res = sqlite3Db->open("base/db.sqlite");
-    if(!res)
-        std::cerr << "Файл базы данных не найден!";
-    sqlite3Db->check_database_table(arc_sqlite::eUsers);
-    sqlite3Db->check_database_table(arc_sqlite::eMessages);
-    sqlite3Db->check_database_table(arc_sqlite::eChannels);
-    sqlite3Db->check_database_table(arc_sqlite::eSubscribers);
 
-    //ищем пользователя с правами администратора
-    std::string query = "SELECT * FROM Users WHERE role = 'admin'";
-    int result = sqlite3Db->exec(query);
-
-    if (result == 0){
-        _add_new_user("admin", "admin", "admin", "", "admin");
+    if(sql_format == "SQLITE"){
+        connect_sqlite_database();
+    }else if(sql_format == "SQLSERVER"){
+        connect_sqlserver_database();
+    }else{
+        std::cerr << "Not support sql format " + sql_format << std::endl;
     }
-    //справочник пользователей
-    query = "CREATE VIEW IF NOT EXISTS UsersCatalog AS "
-            "    SELECT FirstField, "
-            "           SecondField, "
-            "           Ref, "
-            "           Parent, "
-            "           1 AS IsGroup "
-            "      FROM Channels "
-            "    UNION "
-            "    SELECT FirstField, "
-            "           SecondField, "
-            "           Ref, "
-            "           channel AS Parent, "
-            "           0 AS IsGroup "
-            "      FROM Users;";
-
-    result = sqlite3Db->exec(query);
 
 }
 
@@ -60,10 +38,7 @@ void shared_state::_add_new_user(const std::string &usr, const std::string &pwd,
         hash = pwd;
 
     boost::uuids::uuid _uuid{};
-//    if (uuid.empty()){
-//        _uuid = boost::uuids::random_generator()();
-//    } else
-        _uuid = arcirk::string_to_uuid(uuid, true);
+    _uuid = arcirk::string_to_uuid(uuid, true);
 
     std::vector<arcirk::content_value> fields;
 
@@ -79,9 +54,9 @@ void shared_state::_add_new_user(const std::string &usr, const std::string &pwd,
     fields.emplace_back(arcirk::content_value("channel", _parent));
 
     sqlite3Db->insert(arc_sqlite::tables::eUsers, fields, error);
-
     if (error.empty())
-        std::cout << "Регистрация пользователя - "<< usr << ":" << hash << std::endl;
+        std::cout << "Регистрация пользователя - " << usr << ":" << hash << std::endl;
+
 }
 
 void
@@ -89,7 +64,6 @@ shared_state::
 join(websocket_session* session)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    //sessions_.insert(session);
     sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
 }
 
@@ -216,24 +190,10 @@ shared_state::deliver(const std::string& message, websocket_session *session)
             }
         }else{
             send_error(err, session, command, uuid_form);
-//            _ws_message _message = createMessage(session);
-//            _message.message = err;
-//            _message.result = "error";
-//            _message.uuid_form = arcirk::string_to_uuid(uuid_form, false);
-//            _message.command = command;
-//
-//            auto * msg = new ws_message(_message);
-//            result = msg->get_json(true);
-//
-//            auto const ss = boost::make_shared<std::string const>(std::move(result));
-//            session->send(ss);
-//            delete msg;
         }
 
     }else{
         auto const ss = boost::make_shared<std::string const>(std::move(result));
-
-        //int i = session->get_subscribers()->size();
 
         for(auto const& wp : *session->get_subscribers())
             wp.second->deliver(ss);
@@ -446,10 +406,6 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return true;//params == 1; //динамически
     else if (command == "send_all_message")
         return params == 2;
-//    else if (command == "subscribe_to_channel")
-//        return params == 3;
-//    else if (command == "subscribe_exit_channel")
-//        return params == 3;
     else if (command == "add_user")
         return params == 6;
     else if (command == "get_users")
@@ -506,8 +462,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 5;
     else if (command == "get_channel_token")
         return params == 3;
-    else if (command == "set_sql_format")
-        return params == 1;
+    else if (command == "set_sql_settings")
+        return params == 5;
     else
         return false;
 }
@@ -520,8 +476,6 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("send_all_message");
     commands.emplace_back("add_user");
     commands.emplace_back("reset_unread_messages");
-//    commands.emplace_back("subscribe_exit_channel");
-    //commands.emplace_back("send_private_message");
     commands.emplace_back("message");
     commands.emplace_back("get_users");
     commands.emplace_back("update_user");
@@ -549,7 +503,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_webdav_settings");
     commands.emplace_back("set_webdav_settings");
     commands.emplace_back("get_channel_token");
-    commands.emplace_back("set_sql_format");
+    commands.emplace_back("set_sql_settings");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -561,10 +515,6 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::get_active_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "send_all_message")
         return  std::bind(&shared_state::send_all_message, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-//    else if (command == "subscribe_to_channel")
-//        return  std::bind(&shared_state::subscribe_to_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-//    else if (command == "subscribe_exit_channel")
-//        return  std::bind(&shared_state::subscribe_exit_channel, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "add_user")
         return  std::bind(&shared_state::add_new_user, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "get_users")
@@ -621,8 +571,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
        return  std::bind(&shared_state::set_webdav_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else if (command == "get_channel_token")
        return  std::bind(&shared_state::get_channel_token, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-    else if (command == "set_sql_format")
-        return  std::bind(&shared_state::set_sql_format, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "set_sql_settings")
+        return  std::bind(&shared_state::set_sql_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
    else
        return nullptr;
 }
@@ -666,9 +616,22 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                 std::cout << session->get_name() << ":" << hash << std::endl;
                 std::vector<std::map<std::string, std::string>> table;
                 err = "";
-                std::string query = arcirk::str_sample("select _id, Ref, role, FirstField from Users where hash = '%1%'", hash);
-                int result = sqlite3Db->execute(query,
+                std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+                std::string query = arcirk::str_sample("select _id, Ref, role, FirstField from %1%Users where hash = '%2%'", dbo, hash);
+
+                int result = 0;
+                //if(sql_format == "SQLITE")
+                    result = sqlite3Db->execute(query,
                                                 "Users", table, err);
+//                else if(sql_format == "SQLSERVER"){
+//                    auto _err = new char;
+//                    result = sqlWrapper->execute(query.c_str(),
+//                                                "Users", table, _err);
+//                    err = std::string(_err);
+//                    if (err == "no error")
+//                        err = "";
+//                    delete _err;
+//                }
                 bool is_valid_name = false;
 
                 if (table.size() > 0){
@@ -848,14 +811,36 @@ shared_state::send_message(const std::string &message, boost::uuids::uuid &recip
 
        std::string ref;
 
-       std::string filter_app_name = "";
+       std::string filter_app_name;
         if (current_sess->get_app_name() == "qt_client")
             filter_app_name = "qt_client";
 
        bool active = get_user_status_(recipient, filter_app_name);
 
-       bool result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active,
+        bool result = false;
+ //       if(sql_format == "SQLITE")
+            result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active,
                                              current_sess->get_name());
+//        else if(sql_format == "SQLSERVER"){
+//            auto szHash = new char;
+//            sqlWrapper->get_channel_token(arcirk::uuid_to_string(current_sess->get_user_uuid()).c_str(),
+//                                          arcirk::uuid_to_string(recipient).c_str(), szHash);
+//            std::string sz(szHash);
+//            std::string _hash;
+//            if(sz != "error"){
+//                T_vec m_hash = arcirk::split(sz, "|");
+//                _hash = arcirk::get_hash(m_hash[0], m_hash[1]);
+//            }else
+//                _hash = sz;
+//            delete szHash;
+//            auto szRef = new char;
+//            result = sqlWrapper->save_message(message.c_str(), _hash.c_str(), szRef, active,current_sess->get_name().c_str());
+//            ref = std::string(szRef);
+//            delete szRef;
+//
+//        }else
+//            return false;
+
 
         if (!result)
             return false;
@@ -863,7 +848,9 @@ shared_state::send_message(const std::string &message, boost::uuids::uuid &recip
         //////////
         std::string struct_type = current_sess->get_message_struct_type();
         std::string tmp_message = message;
-        std::string query = arcirk::str_sample("select * from Messages where Ref = '%1%'", ref);
+        std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+        std::string query = arcirk::str_sample("select * from %1%Messages where Ref = '%2%'", dbo, ref);
+
         std::string err;
         result = (bool)sqlite3Db->execute(query, "Messages", tmp_message, err, true);
         if (!result)
@@ -983,8 +970,8 @@ bool shared_state::get_db_users(boost::uuids::uuid &uuid, arcirk::bJson* params,
                                 std::string &err, std::string &custom_result) {
 
     std::string channel = params->get_member("channel").get_string();
-
-    std::string query = "SELECT * FROM Users";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("SELECT * FROM %1%Users", dbo);
 
     if (!channel.empty()){
         query += " WHERE channel = '" + channel + "'";
@@ -1003,7 +990,8 @@ bool shared_state::get_db_users(boost::uuids::uuid &uuid, arcirk::bJson* params,
 bool shared_state::update_user(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                std::string &err, std::string &custom_result) {
 
-    std::string query = "UPDATE Users SET ";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("UPDATE %1%Users SET ", dbo);
 
     try {
         std::vector<arcirk::content_value> m_sets;
@@ -1103,42 +1091,30 @@ bool shared_state::get_messages(boost::uuids::uuid &uuid, arcirk::bJson* params,
     } else{
         std::vector<std::string> arr;
         sqlite3Db->get_columns_arr("Messages", arr);
-        auto * obj_json = new arcirk::bJson();
-        obj_json->set_object();
+        auto obj_json = arcirk::bJson();
+        obj_json.set_object();
         _Value _header(rapidjson::Type::kArrayType);
         _header.SetArray();
         for(auto column : arr){
             arcirk::bVariant column_name = column;
-            obj_json->push_back(_header, column_name);
+            obj_json.push_back(_header, column_name);
         }
         _Value _rows(rapidjson::Type::kArrayType);
         _rows.SetArray();
         arcirk::bVariant uuid_var = arcirk::uuid_to_string(uuid);
-        obj_json->addMember("uuid", uuid_var);
+        obj_json.addMember("uuid", uuid_var);
         arcirk::bVariant uuid_recipient_var = _recipient;
-        obj_json->addMember("uuid_recipient", uuid_recipient_var);
-        obj_json->addMember("token", token);
-        obj_json->addMember("columns", _header);
-        obj_json->addMember("rows", _rows);
-        custom_result = obj_json->to_string();
-        delete obj_json;
+        obj_json.addMember("uuid_recipient", uuid_recipient_var);
+        obj_json.addMember("token", token);
+        obj_json.addMember("columns", _header);
+        obj_json.addMember("rows", _rows);
+        custom_result = obj_json.to_string();
     }
 
     if (!err.empty())
         return false;
 
     msg->message().uuid_channel = recipient;
-
-//    //костыль, временно
-//    if(current_sess->get_app_name() == "qt_client"){
-//        _ws_message _message = createMessage(current_sess);
-//        _message.message = token;
-//        _message.command = "get_channel_token";
-//        _message.uuid_channel = recipient;
-//        std::string m = arcirk::ws_message(_message).get_json(true);
-//        auto const ss = boost::make_shared<std::string const>(std::move(m));
-//        current_sess->send(ss);
-//    }
 
     return true;
 
@@ -1152,7 +1128,8 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
 
     if (user_uuid != arcirk::nil_uuid()){
 
-        std::string query = "select * from Users where Ref = '" + to_string(user_uuid) + "';";
+        std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+        std::string query = arcirk::str_sample("select * from %1%Users where Ref = '", dbo) + to_string(user_uuid) + "';";
         std::vector<std::map<std::string , std::string>> row;
         std::string err = "";
 
@@ -1165,7 +1142,6 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
             json->addMember(arcirk::content_value("name", row[0].at("FirstField")));
             json->addMember(arcirk::content_value("performance", row[0].at("SecondField")));
             json->addMember(arcirk::content_value("uuid", row[0].at("Ref")));
-            //json->addMember(arcirk::content_value("cache", row[0].at("cache")));
             get_user_subdivision(to_string(user_uuid), json);
             get_user_department(to_string(user_uuid), json);
         } else
@@ -1192,8 +1168,8 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
 
 bool shared_state::get_group_list(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message *msg,
                                   std::string &err, std::string &custom_result){
-
-    std::string query = "SELECT SecondField, FirstField, Ref, Parent FROM Channels;";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("SELECT SecondField, FirstField, Ref, Parent FROM %1%Channels;", dbo);
     err = "";
     sqlite3Db->execute(query, "Channels", custom_result, err);
 
@@ -1346,7 +1322,8 @@ bool shared_state::remove_group(boost::uuids::uuid &uuid, arcirk::bJson* params,
 void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::string &err) {
 
     std::set<int> m_idList;
-    std::string query = "SELECT _id FROM Channels WHERE Ref = '" + current_uuid + "';";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("SELECT _id FROM %1%Channels WHERE Ref = '", dbo) + current_uuid + "';";
     std::vector<std::map<std::string, arcirk::bVariant>> table;
 
     //Получаем _id верхнего узла иерархии по uuid и добавляем его в общий список set
@@ -1371,7 +1348,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     get_group_hierarchy_keys(current_uuid, m_idList, err);
 
     //подготавливаем список ключей для перемещения пользователей в группу root
-    query = "SELECT Users._id FROM Users INNER JOIN Channels ON Users.channel = Channels.Ref WHERE Channels._id IN (";
+    query = arcirk::str_sample("SELECT %1%Users._id FROM %1%Users INNER JOIN %1%Channels ON %1%Users.channel = %1%Channels.Ref WHERE %1%Channels._id IN (", dbo);
 
     for (auto itr = m_idList.begin(); itr != m_idList.end() ; ++itr) {
         query.append(std::to_string(*itr));
@@ -1387,7 +1364,8 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     }
 
     //Перемещаем
-    query = "UPDATE Users SET channel = '" + arcirk::nil_string_uuid() + "' WHERE _id in (";
+    query = arcirk::str_sample("UPDATE %1%Users SET channel = '" + arcirk::nil_string_uuid() + "' WHERE _id in (", dbo);
+
     for (auto itr = tableUsers.begin(); itr != tableUsers.end() ; ++itr) {
         std::map<std::string, arcirk::bVariant> row = *itr;
         if(row["_id"].is_int())
@@ -1406,7 +1384,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     }
 
     //удаляем группы
-    query = "DELETE FROM Channels WHERE _id in (";
+    query = arcirk::str_sample("DELETE FROM %1%Channels WHERE _id in (", dbo);
     for (auto itr = m_idList.begin(); itr != m_idList.end() ; ++itr) {
         query.append(std::to_string(*itr));
         if (itr !=  --m_idList.end())
@@ -1420,7 +1398,8 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
 
 void shared_state::get_group_hierarchy_keys(const std::string &current_uuid, std::set<int> &vec_uuid, std::string &err) {
 
-    std::string query = "select _id, Ref from Channels where Parent = '" + current_uuid + "';";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("select _id, Ref from %1%Channels where Parent = '", dbo) + current_uuid + "';";
 
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     err = "";
@@ -1465,10 +1444,10 @@ bool shared_state::set_parent(boost::uuids::uuid &uuid, arcirk::bJson *params, w
     if (_uuid.empty()){
         _parent = arcirk::nil_string_uuid();
     }
-
-    std::string query = "UPDATE Users\n"
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("UPDATE %1%Users\n"
                         " SET channel = '" + _parent + "'\n"
-                        " WHERE Ref = '" + _uuid + "';";
+                        " WHERE Ref = '" + _uuid + "';", dbo);
 
     err = "";
     sqlite3Db->exec(query, err);
@@ -1505,8 +1484,9 @@ bool shared_state::remove_user(boost::uuids::uuid &uuid, arcirk::bJson *params, 
         return false;
     }
 
-    std::string query = "DELETE FROM Users\n"
-                        "WHERE Ref = '" + _uuid + "';";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("DELETE FROM %1%Users\n"
+                        "WHERE Ref = '" + _uuid + "';", dbo);
 
     err = "";
     sqlite3Db->exec(query, err);
@@ -1640,7 +1620,8 @@ bool shared_state::get_users_catalog(boost::uuids::uuid &uuid, arcirk::bJson *pa
 
     }
 
-    std::string query = "select * from UsersCatalog;";
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("select * from %1%UsersCatalog;", dbo);
     err = "";
     std::string szResult;
     sqlite3Db->execute(query, "UsersCatalog", szResult, err, true);
@@ -1672,7 +1653,8 @@ bool shared_state::get_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *param
         return false;
     }
 
-    std::string query = arcirk::str_sample("SELECT cache FROM Users WHERE Ref = '%1%'", _uuid);
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("SELECT cache FROM %1%Users WHERE Ref = '%2%'", dbo, _uuid);
 
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     err = "";
@@ -1715,8 +1697,8 @@ bool shared_state::set_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *param
     }
 
     std::string cache = params->get_member("cache").get_string();
-
-    std::string query = arcirk::str_sample("UPDATE Users SET cache = '%1%' WHERE Ref = '%2%'", cache, _uuid);
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("UPDATE %1%Users SET cache = '%2%' WHERE Ref = '%3%'", dbo, cache, _uuid);
 
     err = "";
     sqlite3Db->exec(query, err);
@@ -1730,8 +1712,9 @@ bool shared_state::set_user_cache(boost::uuids::uuid &uuid, arcirk::bJson *param
 
 void shared_state::get_user_subdivision(const std::string &user_ref, arcirk::bJson *jsonObj) {
 
-    std::string sample = "SELECT channel FROM Users WHERE %1% = '%2%'";
-    std::string query = arcirk::str_sample(sample, "Ref", user_ref);
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string sample = "SELECT channel FROM %1%Users WHERE %2% = '%3%'";
+    std::string query = arcirk::str_sample(sample, dbo, "Ref", user_ref);
     std::string err = "";
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     err = "";
@@ -1744,15 +1727,14 @@ void shared_state::get_user_subdivision(const std::string &user_ref, arcirk::bJs
     if (result > 0){
         std::string parent = table[0]["channel"].get_string();
 
-        sample = "SELECT SecondField, Ref, parent FROM Channels WHERE %1% = '%2%'";
-
+        sample = "SELECT SecondField, Ref, parent FROM %1%Channels WHERE %2% = '%3%'";
         table.clear();
 
         while (result > 0){
             if(parent.empty()){
                 break;
             }
-            query = arcirk::str_sample(sample, "Ref", parent);
+            query = arcirk::str_sample(sample, dbo, "Ref", parent);
             std::vector<std::map<std::string, arcirk::bVariant>> _table;
             result = sqlite3Db->execute(query, "Channels", _table, err);
             if (result > 0){
@@ -1774,8 +1756,9 @@ void shared_state::get_user_subdivision(const std::string &user_ref, arcirk::bJs
 
 void shared_state::get_user_department(const std::string &user_ref, arcirk::bJson *jsonObj) {
 
-    std::string sample = "SELECT channel FROM Users WHERE %1% = '%2%'";
-    std::string query = arcirk::str_sample(sample, "Ref", user_ref);
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string sample = "SELECT channel FROM %1%Users WHERE %2% = '%3%'";
+    std::string query = arcirk::str_sample(sample, dbo, "Ref", user_ref);
     std::string err = "";
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     err = "";
@@ -1788,8 +1771,8 @@ void shared_state::get_user_department(const std::string &user_ref, arcirk::bJso
     if (result > 0) {
         std::string parent = table[0]["channel"].get_string();
         table.clear();
-        sample = "SELECT SecondField, Ref FROM Channels WHERE %1% = '%2%'";
-        query = arcirk::str_sample(sample, "Ref", parent);
+        sample = "SELECT SecondField, Ref FROM %1%Channels WHERE %2% = '%3%'";
+        query = arcirk::str_sample(sample, dbo, "Ref", parent);
         result = sqlite3Db->execute(query, "Channels", table, err);
 
         if (result > 0) {
@@ -1966,8 +1949,8 @@ int shared_state::get_unread_messages_from_data(boost::uuids::uuid &uuid, boost:
         return 0;
     }
 
-    std::string query = arcirk::str_sample("select sum(unreadMessages) as unreadMessages from Messages where token = '%1%' and SecondField = '%2%'", token, boost::to_string(uuid));
-
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("select sum(unreadMessages) as unreadMessages from %1%Messages where token = '%2%' and SecondField = '%3%'", dbo, token, boost::to_string(uuid));
     std::vector<std::map<std::string, arcirk::bVariant>> table;
     std::string err;
 
@@ -2003,8 +1986,8 @@ shared_state::reset_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *par
         err = "Не верный токен!";
         return false;
     }
-
-    std::string query = arcirk::str_sample("UPDATE Messages SET unreadMessages = '0' WHERE SecondField = '%1%' AND token = '%2%' AND unreadMessages > '0';", boost::to_string(current_sess->get_user_uuid()), token);
+    std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
+    std::string query = arcirk::str_sample("UPDATE %1%Messages SET unreadMessages = '0' WHERE SecondField = '%2%' AND token = '%3%' AND unreadMessages > '0';", dbo, boost::to_string(current_sess->get_user_uuid()), token);
     err = "";
     sqlite3Db->exec(query, err);
     if(!err.empty())
@@ -2168,7 +2151,7 @@ bool shared_state::get_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *
 
 }
 
-bool shared_state::set_sql_format(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+bool shared_state::set_sql_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                        std::string &err, std::string &custom_result){
     auto  current_sess = get_session(uuid);
 
@@ -2186,11 +2169,19 @@ bool shared_state::set_sql_format(boost::uuids::uuid &uuid, arcirk::bJson *param
     }
 
     std::string sql_format = params->get_member(bConf::get_field_alias(arcirk::SQLFormat)).get_string();
+    std::string sql_host = params->get_member(bConf::get_field_alias(arcirk::SQLHost)).get_string();
+    std::string sql_user = params->get_member(bConf::get_field_alias(arcirk::SQLUser)).get_string();
+    std::string sql_password = params->get_member(bConf::get_field_alias(arcirk::SQLPassword)).get_string();
     arcirk::bConf conf("conf.json", true);
     conf[SQLFormat] = sql_format;
+    conf[SQLHost] = sql_host;
+    conf[SQLUser] = sql_user;
+    conf[SQLPassword] = sql_password;
     conf.save();
 
     custom_result = "Изменился формат базы данных. Требуется перезапустить сервер.";
+
+    std::cout << custom_result << std::endl;
 
     return true;
 
@@ -2284,4 +2275,83 @@ bool shared_state::get_channel_token(boost::uuids::uuid &uuid, arcirk::bJson *pa
 bool shared_state::send_technical_information(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                               std::string &err, std::string &custom_result) {
     return false;
+}
+
+void shared_state::connect_sqlite_database() {
+
+    std::string parent;
+    std::string err;
+
+    sqlite3Db = new arc_sqlite::sqlite3_db();
+    bool res = sqlite3Db->open("base/db.sqlite");
+    if(!res)
+        std::cerr << "Файл базы данных не найден!";
+    sqlite3Db->check_database_table(arc_sqlite::eUsers);
+    sqlite3Db->check_database_table(arc_sqlite::eMessages);
+    sqlite3Db->check_database_table(arc_sqlite::eChannels);
+    sqlite3Db->check_database_table(arc_sqlite::eSubscribers);
+    //ищем пользователя с правами администратора
+    std::string query = "SELECT * FROM Users WHERE role = 'admin'";
+
+    int result = sqlite3Db->exec(query);
+
+    if (result == 0){
+        _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
+    }
+    //справочник пользователей
+    query = "CREATE VIEW IF NOT EXISTS UsersCatalog AS "
+            "    SELECT FirstField, "
+            "           SecondField, "
+            "           Ref, "
+            "           Parent, "
+            "           1 AS IsGroup "
+            "      FROM Channels "
+            "    UNION "
+            "    SELECT FirstField, "
+            "           SecondField, "
+            "           Ref, "
+            "           channel AS Parent, "
+            "           0 AS IsGroup "
+            "      FROM Users;";
+
+    result = sqlite3Db->exec(query);
+
+}
+
+void shared_state::connect_sqlserver_database() {
+
+    std::string parent;
+    std::string err;
+
+    arcirk::bConf conf("conf.json", true);
+
+    sqlWrapper = new SqlWrapper();
+
+    std::string sql_host = conf[SQLHost].get_string();
+    std::string sql_user = conf[SQLUser].get_string();
+    std::string _passEn = conf[SQLPassword].get_string();
+    std::string sql_pass;
+    if(!_passEn.empty()){
+        sql_pass = arcirk::_crypt(_passEn, "my_key");
+    }
+    sqlWrapper->setHost(sql_host.c_str());
+    sqlWrapper->setSqlUser(sql_user.c_str());
+    sqlWrapper->setSqlPwd(sql_pass.c_str());
+    bool sqlResult = sqlWrapper->connect("arcirk");
+    if(!sqlResult)
+        std::cerr << "shared_state::shared_state error connect to sql server!" << std::endl;
+    else{
+        sqlWrapper->verifyTables();
+        sqlWrapper->verifyViews();
+    }
+
+    auto err_ = new char;
+    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE role = 'admin'", err_);
+    err = std::string(err_);
+    delete err_;
+    if(result == 0){
+       _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
+    }
+
+    sqlite3Db->set_qt_wrapper(sqlWrapper);
 }

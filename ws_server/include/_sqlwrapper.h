@@ -1,21 +1,16 @@
-#ifndef SQLWRAPPER_H
-#define SQLWRAPPER_H
+#ifndef _SQLWRAPPER_H
+#define _SQLWRAPPER_H
 
-#include "sqlwrapper_global.h"
+#define SQL_WRAPPER_EXPORT   __declspec( dllexport )
 
 #include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-
-class SqlInterface;
 
 enum DriverType{
     sqlserver = -1,
     sqlite
 };
 
-class SQLWRAPPER_EXPORT SqlWrapper
+class SQL_WRAPPER_EXPORT SqlWrapper
 {
 public:
 
@@ -30,24 +25,14 @@ public:
     [[nodiscard]] std::string sqlPwd() const;
     void setDatabaseName(char const* value);
     [[nodiscard]] std::string databaseName() const;
-
-    bool connect(char const* dbName, char const* usr = "", char const* pass = "", DriverType driverType = sqlserver);
+    bool connect(char const* dbName, char const* usr = "", char const* pass = "", enum DriverType driverType = sqlserver);
+    bool isOpen();
     bool verifyTables();
     bool verifyViews();
-    bool isOpen();
 
     int exec(char const* query, char* err);
     int execute(char const* query, char* result, char* err, bool header = false);
 
 
-private:
-    SqlInterface * sql;
-    std::string _host;
-    std::string _user;
-    std::string _pwd;
-    std::string _databaseName;
-    DriverType _driverType;
-
 };
-
-#endif // SQLWRAPPER_H
+#endif // _SQLWRAPPER_H

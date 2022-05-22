@@ -477,15 +477,19 @@ void bWebSocket::setWebDavSettingsToServer()
         client->set_webdav_settings_on_server();
 }
 
-void bWebSocket::setSqlFormat()
+void bWebSocket::setSqlOptions()
 {
     updateSettings();
     QJsonObject obj = QJsonObject();
+    obj.insert("uuid_form", QUuid{}.toString());
     obj.insert("SQLFormat", settings[bConfFieldsWrapper::SQLFormat].toString());
+    obj.insert("SQLHost", settings[bConfFieldsWrapper::SQLHost].toString());
+    obj.insert("SQLUser", settings[bConfFieldsWrapper::SQLUser].toString());
+    obj.insert("SQLPassword", settings[bConfFieldsWrapper::SQLPassword].toString());
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
     if(client->started()){
-         client->send_command("set_sql_format", "", param.toStdString());
+         client->send_command("set_sql_settings", "", param.toStdString());
     }
 
 }

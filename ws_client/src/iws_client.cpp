@@ -2,6 +2,7 @@
 #ifdef _WINDOWS
     #pragma warning(disable:4061)
     #pragma warning(disable:4001)
+    #pragma warning(disable:4100)
     #include  <SDKDDKVer.h>
     #include "../include/net.h"
     #include "../include/ws_client.h"

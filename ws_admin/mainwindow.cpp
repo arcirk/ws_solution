@@ -7,6 +7,10 @@
 
 #include <QAbstractItemModel>
 
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+#endif
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -157,7 +161,7 @@ void MainWindow::on_mnuOptions_triggered()
         settings = ClientSettings(confFile, false);
         if(client->isStarted()){
             client->setWebDavSettingsToServer();
-            client->setSqlFormat();
+            client->setSqlOptions();
         }
         fillTree(client->isStarted());
     }
@@ -474,8 +478,9 @@ void MainWindow::fillList(const QString &nodeName) {
 
     if (nodeName == "ServerName"){
         ServeResponse::loadTableFromJson(listChildServerObjects, settings.getJsonObject());
-        resizeColumns();
+        //resizeColumns();
         visibilityControl(false, false);
+        listChildServerObjects->resizeColumnsToContents();
     }else if (nodeName == "ActiveUsers"){
         visibilityControl(false, true);
         client->sendCommand("get_active_users");

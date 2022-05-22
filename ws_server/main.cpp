@@ -19,58 +19,60 @@ main(int argc, char* argv[])
 {
     setlocale(LC_ALL, "Russian");
 
-    arcirk::bConf st = arcirk::bConf("conf.json", true);
+    try {
 
-    std::string host = arcirk::bIp::get_default_host(st[arcirk::bConfFields::ServerHost].get_string());
+        arcirk::bConf st = arcirk::bConf("conf.json", true);
 
-    if (host != st[arcirk::bConfFields::ServerHost].get_string()){
-        st[arcirk::bConfFields::ServerHost] = host;
-        st.save();
-    }
+        std::string host = arcirk::bIp::get_default_host(st[arcirk::bConfFields::ServerHost].get_string());
 
-    std::cout << "Start server " << host << ":" << st[arcirk::bConfFields::ServerPort].to_string() << std::endl;
+        if (host != st[arcirk::bConfFields::ServerHost].get_string()) {
+            st[arcirk::bConfFields::ServerHost] = host;
+            st.save();
+        }
 
-    auto const threads = 4;
-    auto address = net::ip::make_address(host);
-    auto port = static_cast<unsigned short>(st[arcirk::bConfFields::ServerPort].get_int());
-    auto rootDir = st[arcirk::bConfFields::ServerWorkingDirectory].to_string();
+        std::cout << "Start server " << host << ":" << st[arcirk::bConfFields::ServerPort].to_string() << std::endl;
 
-    // The io_context is required for all I/O
-    net::io_context ioc;
+        auto const threads = 4;
+        auto address = net::ip::make_address(host);
+        auto port = static_cast<unsigned short>(st[arcirk::bConfFields::ServerPort].get_int());
+        auto rootDir = st[arcirk::bConfFields::ServerWorkingDirectory].to_string();
 
-    // Create and launch a listening port
-    boost::make_shared<listener>(
-            ioc,
-            tcp::endpoint{address, port},
-            boost::make_shared<shared_state>(rootDir + "/html/"))->run();//, boost::make_shared<channel>())->run();
+        // The io_context is required for all I/O
+        net::io_context ioc;
 
-    // Capture SIGINT and SIGTERM to perform a clean shutdown
-    net::signal_set signals(ioc, SIGINT, SIGTERM);
-    signals.async_wait(
-            [&ioc](boost::system::error_code const&, int)
-            {
-                // Stop the io_context. This will cause run()
-                // to return immediately, eventually destroying the
-                // io_context and any remaining handlers in it.
-                ioc.stop();
-            });
+        // Create and launch a listening port
+        boost::make_shared<listener>(
+                ioc,
+                tcp::endpoint{address, port},
+                boost::make_shared<shared_state>(rootDir + "/html/"))->run();//, boost::make_shared<channel>())->run();
 
-    // Run the I/O service on the requested number of threads
-    std::vector<std::thread> v;
-    v.reserve(threads - 1);
-    for(auto i = threads - 1; i > 0; --i)
-        v.emplace_back(
-                [&ioc]
-                {
-                    ioc.run();
+        // Capture SIGINT and SIGTERM to perform a clean shutdown
+        net::signal_set signals(ioc, SIGINT, SIGTERM);
+        signals.async_wait(
+                [&ioc](boost::system::error_code const &, int) {
+                    // Stop the io_context. This will cause run()
+                    // to return immediately, eventually destroying the
+                    // io_context and any remaining handlers in it.
+                    ioc.stop();
                 });
-    ioc.run();
 
-    // (If we get here, it means we got a SIGINT or SIGTERM)
+        // Run the I/O service on the requested number of threads
+        std::vector<std::thread> v;
+        v.reserve(threads - 1);
+        for (auto i = threads - 1; i > 0; --i)
+            v.emplace_back(
+                    [&ioc] {
+                        ioc.run();
+                    });
+        ioc.run();
 
-    // Block until all the threads exit
-    for(auto& t : v)
-        t.join();
+        // (If we get here, it means we got a SIGINT or SIGTERM)
 
+        // Block until all the threads exit
+        for (auto &t: v)
+            t.join();
+    }catch (std::exception& e){
+        std::cerr << e.what() << std::endl;
+    }
     return EXIT_SUCCESS;
 }

@@ -11502,7 +11502,7 @@ struct Fts5ExtensionApi {
 **       <li> <b>FTS5_TOKENIZE_AUX</b> - The tokenizer is being invoked to 
 **            satisfy an fts5_api.xTokenize() request made by an auxiliary
 **            function. Or an fts5_api.xColumnSize() request made by the same
-**            on a columnsize=0 database.  
+**            on a columnsize=0 connect_sqlite_database.
 **   </ul>
 **
 **   For each token in the input string, the supplied callback xToken() must
@@ -11619,7 +11619,7 @@ struct Fts5ExtensionApi {
 **   because the index contains entries for both "first" and "1st", prefix
 **   queries such as 'fi*' or '1s*' will match correctly. However, because
 **   extra entries are added to the FTS index, this method uses more space
-**   within the database.
+**   within the connect_sqlite_database.
 **
 **   Method (2) offers a midpoint between (1) and (3). Using this method,
 **   a query such as '1s*' will match documents that contain the literal 

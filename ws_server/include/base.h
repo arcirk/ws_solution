@@ -7,8 +7,7 @@
 
 #include "../sqlite/sqlite3.h"
 #include <arcirk.h>
-//#include "../arc_json/global.h"
-
+#include "_sqlwrapper.h"
 
 namespace arc_sqlite {
 
@@ -145,10 +144,18 @@ namespace arc_sqlite {
 
         int get_unread_messages(const std::string& recipient, std::string& result, std::string &err);
 
+
+        void set_qt_wrapper(SqlWrapper * wrapper);
+
+        bool is_use_wrapper() const{return useWrapper;};
+
     private:
 
         std::string database_file;
         sqlite3* db{};
+
+        SqlWrapper * qtWrapper;
+        bool useWrapper;
 
         static std::string get_columns_for_query(tables tableType);
         static std::string get_table_name(tables tableType);

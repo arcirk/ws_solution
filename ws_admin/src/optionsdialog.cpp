@@ -57,8 +57,11 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
 
     ui->lineSqlHost->setText(settings[bConfFieldsWrapper::SQLHost].toString());
     ui->lineSqlUser->setText(settings[bConfFieldsWrapper::SQLUser].toString());
-    if(ui->lineSqlUser->text().isEmpty())
+    if(ui->lineSqlUser->text().isEmpty()){
        ui->lineSqlUser->setText("sa");
+       settings[bConfFieldsWrapper::SQLUser] = "sa";
+    }
+
     dPwd = settings[bConfFieldsWrapper::SQLPassword].toString().toStdString();
     pass = "";
     if (!dPwd.empty()){
@@ -274,7 +277,7 @@ void OptionsDialog::on_cmbFormatDb_currentTextChanged(const QString &arg1)
     ui->lineSqlPassword->setEnabled(enable);
     ui->toolButton->setEnabled(enable);
 
-    qDebug() << settings[bConfFieldsWrapper::SQLFormat].toString();
+   // qDebug() << settings[bConfFieldsWrapper::SQLFormat].toString();
 }
 
 

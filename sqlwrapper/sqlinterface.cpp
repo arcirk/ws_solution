@@ -1,8 +1,18 @@
 #include "sqlinterface.h"
 #include <QDir>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <iostream>
+#include <QSqlRecord>
+#include <QJsonArray>
+#include <QSqlField>
 
-SqlInterface::SqlInterface(QObject *parent)
-: QObject{parent}
+#include "arcirk.h"
+
+SqlInterface::SqlInterface() //QObject *parent)
+//: QObject{parent}
 {
 
 }
@@ -55,27 +65,288 @@ QString SqlInterface::databaseName() const
 
 bool SqlInterface::connect(const QString &driver)
 {
-    db = QSqlDatabase::addDatabase(driver);
+    bool result = false;
+    try {
+        db = QSqlDatabase::addDatabase(driver);
 
-    if (driver == "QSQLITE") {
-        QString dbPath = QDir::fromNativeSeparators(databaseName());
+        if (driver == "QSQLITE") {
+            QString dbPath = QDir::fromNativeSeparators(databaseName());
 
-        QFile dbFile(dbPath);
-        if(!dbFile.exists()){
-            return false;
+            QFile dbFile(dbPath);
+            if (!dbFile.exists()) {
+                return false;
+            }
+            db.setDatabaseName(dbPath);
+        } else if (driver == "QODBC") {
+            db.setConnectOptions();
+            db.setDatabaseName(QString("DRIVER={SQL Server};"
+                                       "SERVER=%1;Persist Security Info=true;"
+                                       "uid=%2;pwd=%3").arg(host(), user(), pwd()));
         }
-        db.setDatabaseName(dbPath);
-    }else if (driver == "QODBC") {
-        db.setConnectOptions();
-        db.setDatabaseName(QString("DRIVER={SQL Server};"
-                    "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
-                    "uid=%3;pwd=%4").arg(host(), databaseName(), user(), pwd()));
-    }
 
-    return db.open();
+        _driverType = driver;
+
+        result = db.open();
+    }catch (std::exception& e){
+        std::cerr << e.what() << std::endl;
+
+    }
+    return result;
 }
 
 bool SqlInterface::isOpen()
 {
     return db.isOpen();
+}
+
+bool SqlInterface::verifyDatabase() {
+
+    if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
+        return false;
+
+    QString query = QString("IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '%1')\n"
+                            "BEGIN\n"
+                            "CREATE DATABASE %1\n"
+                            "END;").arg(databaseName());
+
+    auto result = db.exec(query);
+
+    query = QString("SELECT * FROM sys.databases WHERE name = '%1'").arg(databaseName());
+    result = db.exec(query);
+
+    bool isExists = false;
+
+    while (result.next()){
+        isExists = true;
+        break;
+    }
+    if(isExists){
+        db.exec(QString("USE [%1]").arg(databaseName()));
+        std::cout << QString("Connected connect_sqlite_database '%1'").arg(databaseName()).toStdString() << std::endl;
+        return true;
+    }
+
+    return false;
+
+}
+
+int SqlInterface::exec(const QString &query, QString& err) {
+
+    err = "";
+    int count = 0;
+    try{
+        if(!isOpen())
+            return 0;
+
+        auto result = db.exec(query);
+        if(result.lastError().isValid()){
+            err = result.lastError().text();
+            std::cerr << "SqlInterface::exec: " << query.toStdString() <<  std::endl;;
+            std::cerr << "SqlInterface::exec: " << "Ошибка SQL запроса : " << err.toStdString() << std::endl;
+            return 0;
+        }
+
+
+        while (result.next()){
+            count++;
+        }
+    } catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+
+    return count;
+
+}
+
+bool SqlInterface::verifyTable(int tableIndex) {
+
+    if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
+        return false;
+
+    QString vTable = QString("SELECT * FROM sysobjects where  name = '%1'").arg(tables[tableIndex]);
+    auto sqlQuery = db.exec(vTable);
+    bool isExists = false;
+    while (sqlQuery.next()){
+        isExists = true;
+        break;
+    }
+    if(!isExists){
+        QString query = queryTemplate(tableIndex);
+        QString fields = tableFields(tableIndex);
+        query.replace("_NEXT_FIELDS_", fields);
+
+        db.exec(query);
+        sqlQuery = db.exec(QString("SELECT * FROM sysobjects where  name = '%1'").arg(tables[tableIndex]));
+        while (sqlQuery.next()){
+            isExists = true;
+            std::cout << QString("Created table '%1'").arg(tables[tableIndex]).toStdString() << std::endl;
+            break;
+        }
+        if(isExists){
+            setIndexes(tableIndex);
+        }else{
+            std::cerr << "error query: \n" << QString(query).toStdString() << std::endl;
+        }
+    }
+
+    return isExists;
+
+}
+
+QString SqlInterface::queryTemplate(int tableIndex) const{
+    const QString& tableName = tables[tableIndex];
+    QString query = QString("CREATE TABLE [dbo].[%1](\n"
+                    "[_id] [int] IDENTITY(1,1) NOT NULL,\n"
+                    "[FirstField] [char](150) NULL,\n"
+                    "[SecondField] [char](150) NULL,\n"
+                    "[Ref] [char](36) NOT NULL,\n"
+                    "_NEXT_FIELDS_\n"
+                    "CONSTRAINT [PK_%1] PRIMARY KEY CLUSTERED\n"
+                    "(\n"
+                    "[_id] ASC\n"
+                    ")WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]\n"
+                    ") ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]").arg(tableName);
+    return query;
+}
+
+QString SqlInterface::tableFields(int tableIndex) {
+    const QString& tableName = tables[tableIndex];
+    QString result = "";
+    if(tableName == "Users"){
+        result = "[hash] [char](1000) NOT NULL,\n"
+                 "[role] [char](10) NULL,\n"
+                 "[Performance] [char](150) NULL,\n"
+                 "[channel] [char](36) NOT NULL,\n"
+                 "[parent] [char](36) NULL,\n"
+                 "[cache] [text] NULL,";
+    }else if(tableName == "Channels"){
+        result = "[parent] [char](36) NOT NULL,\n"
+                 "[cache] [text] NULL,";
+    }else if(tableName == "Messages"){
+        result = "[message] [text] NULL,\n"
+                 "[token] [char](255) NOT NULL,\n"
+                 "[date] [int] NOT NULL,\n"
+                 "[contentType] [char](10) NULL,\n"
+                 "[unreadMessages] [int] NULL,";
+    }else if(tableName == "Subscribers"){
+        result = "[channel] [char](36) NOT NULL,\n"
+                 "[user_uuid] [char](36) NOT NULL,\n"
+                 "[cache] [text] NULL,";
+    }else if(tableName == "TechnicalInformation"){
+        result = "[cache] [text] NULL,";
+    }
+
+    return result;
+}
+
+void SqlInterface::setIndexes(int tableIndex) {
+
+    const QString& tableName = tables[tableIndex];
+    if(tableName == "Users"){
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_channel]  DEFAULT (((((0)-(0))-(0))-(0))-(0)) FOR [channel]");
+    }else if(tableName == "Channels"){
+        db.exec("ALTER TABLE [dbo].[Channels] ADD  CONSTRAINT [DF_Channels_Parent]  DEFAULT (((((0)-(0))-(0))-(0))-(0.)) FOR [Parent]");
+    }else if(tableName == "Messages"){
+        db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_contentType]  DEFAULT ('HTML') FOR [contentType]");
+        db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_unreadMessages]  DEFAULT ((0)) FOR [unreadMessages]");
+    }
+
+}
+
+bool SqlInterface::verifyViews() {
+
+    if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
+        return false;
+
+    QString vTable = "SELECT * FROM sysobjects where  name = 'UsersCatalog'";
+    auto sqlQuery = db.exec(vTable);
+    bool isExists = false;
+    while (sqlQuery.next()){
+        isExists = true;
+        break;
+    }
+    QString query;
+    if(!isExists){
+        query = "CREATE VIEW [dbo].[UsersCatalog]\n"
+                        "AS\n"
+                        "SELECT FirstField, SecondField, Ref, Parent, 1 AS IsGroup\n"
+                        "FROM  dbo.Channels\n"
+                        "UNION\n"
+                        "SELECT  FirstField, SecondField, Ref, channel AS Parent, 0 AS IsGroup\n"
+                        "FROM dbo.Users";
+
+        sqlQuery = db.exec(query);
+        sqlQuery = db.exec(vTable);
+        while (sqlQuery.next()){
+            isExists = true;
+            std::cout << "Created view 'UsersCatalog'" << std::endl;
+            break;
+        }
+    }
+
+    if(!isExists){
+        std::cerr << "error create view: " << query.toStdString() << std::endl;
+    }
+
+    return isExists;
+}
+
+int SqlInterface::execute(const std::string &query, QString &table, QString &error, bool header) {
+
+    int rowCount = 0;
+
+    try {
+        if (!isOpen())
+            return 0;
+
+        error = "no error";
+
+        auto result = db.exec(QString::fromStdString(query));
+        if (result.lastError().isValid()) {
+            error = result.lastError().text();
+            std::cerr << "SqlInterface::execute: " << query << std::endl;
+            std::cerr << "SqlInterface::execute: " << "Ошибка SQL запроса : " << error.toStdString() << std::endl;
+            return 0;
+        }
+        int count = result.record().count();
+
+        auto rows = QJsonArray();
+        auto cols = QJsonArray();
+
+        while (result.next()) {
+            QJsonObject obj = QJsonObject();
+            for (int i = 0; i < count; ++i) {
+                QString key = result.record().fieldName(i);
+                cols.push_back(key);
+                QVariant val = result.value(i);
+                if (val.typeId() == QMetaType::QString)
+                    obj.insert(key, val.toString());
+                else if (val.typeId() == QMetaType::Double)
+                    obj.insert(key, val.toDouble());
+                else if (val.typeId() == QMetaType::Int)
+                    obj.insert(key, val.toInt());
+            }
+
+            rows.push_back(obj);
+            rowCount++;
+        }
+        QJsonDocument doc = QJsonDocument();
+        if (header) {
+            QJsonObject obj = QJsonObject();
+            obj.insert("columns", cols);
+            obj.insert("rows", rows);
+
+            doc.setObject(obj);
+        } else {
+            doc.setArray(rows);
+        }
+
+        table = doc.toJson();
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return rowCount;
+
 }

@@ -4,12 +4,23 @@
 #include <QObject>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QUuid>
+#include <QVector>
+#include <QMap>
 
-class SqlInterface : public QObject
+const QStringList tables = {
+        "Users",
+        "Messages",
+        "Channels",
+        "Subscribers",
+        "TechnicalInformation"
+};
+
+class SqlInterface //: public QObject
 {
-    Q_OBJECT
+    //Q_OBJECT
 public:
-    explicit SqlInterface(QObject *parent = nullptr);
+    explicit SqlInterface(); //QObject *parent = nullptr);
     ~SqlInterface();
 
     void setHost(const QString& value);
@@ -24,6 +35,16 @@ public:
     bool connect(const QString& driver);
     bool isOpen();
 
+    bool verifyDatabase();
+    bool verifyTable(int tableIndex);
+    [[nodiscard]] QString queryTemplate(int tableIndex) const;
+    QString tableFields(int tableIndex);
+    void setIndexes(int tableIndex);
+    bool verifyViews();
+
+    int exec(const QString& query, QString& err);
+    int execute(const std::string &query, QString &table, QString &error, bool header = false);
+
 private:
     QString _host;
     QString _user;
@@ -33,7 +54,7 @@ private:
 
     QSqlDatabase db;
 
-signals:
+//signals:
 
 };
 

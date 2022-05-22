@@ -124,7 +124,7 @@ namespace arcirk{
 
             typedef bai::transform_width<bai::binary_from_base64<const char *>, 8, 6> base64_dec;
 
-            unsigned int size = s.size();
+            unsigned int size = (unsigned int)s.size();
 
             // Remove the padding characters, cf. https://svn.boost.org/trac/boost/ticket/5629
             if (size && s[size - 1] == '=') {
