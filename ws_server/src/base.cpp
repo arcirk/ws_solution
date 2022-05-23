@@ -171,11 +171,10 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
-            auto err = new char;
-            //char* err = 0;
+            auto err = new char[1024];
             i = qtWrapper->exec(query.c_str(), err);
             error = std::string(err);
-            delete err;
+            delete[] err;
         }else{
             sqlite3_stmt* pStmt;
             char* err = 0;
@@ -214,13 +213,11 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
-            auto err = new char;
-            auto result = new char;
-            i = qtWrapper->execute(query.c_str(), result, err, header);
+            char * err = nullptr;
+            char * result = nullptr;
+            i = qtWrapper->execute(query.c_str(), &result, &err, header);
             error = std::string(err);
             json = std::string(result);
-            delete err;
-            delete result;
 
             if(header && fields.size() > 0){
                 auto obj_json = arcirk::bJson();
@@ -352,14 +349,11 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
-
-            auto chTable = new char;
-            auto err = new char;
-
-            i = qtWrapper->execute(query.c_str(), chTable,  err);
+            char * err = nullptr;
+            char * chTable = nullptr;
+            i = qtWrapper->execute(query.c_str(), &chTable,  &err);
             if(err){
                 error = std::string(err);
-                delete err;
                 if(error == "no error")
                     error = "";
             }
@@ -371,13 +365,11 @@ namespace arc_sqlite {
                     b_json.getArray(table);
                 }
             }
-            if(chTable)
-                delete chTable;
 
 
         }else{
             sqlite3_stmt* pStmt;
-            char* err = 0;
+            char* err = nullptr;
 
             int rc;
 
@@ -456,7 +448,8 @@ namespace arc_sqlite {
         return i;
     }
 
-    bool sqlite3_db::insert(tables tableType, std::vector<arcirk::content_value> values, std::string& err) {
+    bool sqlite3_db::insert(tables tableType, std::vector<arcirk::content_value> values, std::string &err,
+                            const std::string &not_ref) {
 
         std::string table = get_table_name(tableType);
 
@@ -495,8 +488,34 @@ namespace arc_sqlite {
         into.append("\n)");
         values_.append("\n)");
         query.append(into);
-        query.append("\nVALUES\n");
-        query.append(values_ + ";");
+        if(!not_ref.empty()) {
+            if (!useWrapper)
+                query.append("\nSELECT\n");
+            else
+                query.append("\nVALUES\n");
+        }else
+            query.append("\nVALUES\n");
+        query.append(values_);
+
+        if(!not_ref.empty()){
+            if(!useWrapper)
+            query.append(arcirk::str_sample("WHERE NOT EXISTS \n"
+                         " (SELECT [Ref] FROM %1% WHERE [Ref]='%2%')", table, not_ref));
+            else{
+                std::string query_ = arcirk::str_sample("IF NOT EXISTS \n"
+                                                        "    (   SELECT  [Ref]\n"
+                                                        "        FROM    dbo.%1% \n"
+                                                        "        WHERE   [Ref]='%2%' \n"
+                                                        "    )\n"
+                                                        "BEGIN\n", table, not_ref);
+                query_.append(query);
+                query_.append("\nEND");
+                query = query_;
+            }
+
+        }
+
+        query.append(";");
 
         err = "";
 
@@ -627,7 +646,7 @@ namespace arc_sqlite {
 
             std::string err;
 
-            bool result = insert(eMessages, values, err);
+            bool result = insert(eMessages, values, err, "");
 
             if (!result)
                 if (!err.empty())
@@ -744,24 +763,21 @@ namespace arc_sqlite {
 
         if(useWrapper){
 
-            auto chTable = new char;
-            auto err = new char;
-
-            i = qtWrapper->execute(query.c_str(), chTable,  err);
+            char * chTable = nullptr;
+            char * err = nullptr;
+            i = qtWrapper->execute(query.c_str(), &chTable,  &err);
             if(i > 0){
                 std::string json = std::string(chTable);
                 auto b_json = arcirk::bJson();
                 b_json.parse(json);
                 if(b_json.is_parse()){
-                    b_json.getMembers("rows", table);
+                    b_json.getArray(table);
                 }
             }else{
                 if(err){
                     error = std::string(err);
                 }
-            }
-            delete chTable;
-            delete err;
+            };
 
         }else {
             sqlite3_stmt *pStmt;
@@ -838,9 +854,9 @@ namespace arc_sqlite {
         if(useWrapper){
 
             std::string query = arcirk::str_sample("SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('dbo.%1%')", table_name);
-            auto err = new char;
-            auto result = new char;
-            int i = qtWrapper->execute(query.c_str(), result, err);
+            char * err = nullptr;
+            char * result = nullptr;
+            int i = qtWrapper->execute(query.c_str(), &result, &err);
             if(i > 0){
                 std::string b_result = std::string(result);
                 auto json = arcirk::bJson();
@@ -855,7 +871,6 @@ namespace arc_sqlite {
                     }
                 }
             }
-
         }else{
             sqlite3_stmt* pStmt;
             int rc;
@@ -888,25 +903,24 @@ namespace arc_sqlite {
                           "  SecondField AS recipient,"
                           "  token,"
                           "  sum(unreadMessages) AS unreadMessages"
-                          " FROM _dbo_Messages "
-                          " WHERE SecondField = '%1%' AND"
+                          " FROM %1%Messages "
+                          " WHERE SecondField = '%2%' AND"
                           "  unreadMessages > '0' "
-                          " GROUP BY FirstField;", recipient);
-        query.replace(query.find("_dbo_"), query.length(), dbo);
+                          " GROUP BY FirstField, SecondField, token;", dbo, recipient);
 
         if(useWrapper){
-            auto res = new char;
-            auto err = new char;
-            i = qtWrapper->execute(query.c_str(), res, err, true);
+
+            char * res = nullptr;
+            char * err = nullptr;
+            i = qtWrapper->execute(query.c_str(), &res, &err, true);
             if(i > 0){
                 result = std::string(res);
             }
             error = std::string(err);
-            delete res;
-            delete err;
+
         }else {
             sqlite3_stmt *pStmt;
-            char *err = 0;
+            char *err = nullptr;
 
             int rc;
             auto json = arcirk::bJson();
@@ -981,6 +995,104 @@ namespace arc_sqlite {
             result = json.to_string();
         }
         return i;
+    }
+
+    bool sqlite3_db::export_tables() {
+
+        if(!useWrapper)
+            return false;
+
+        if(!qtWrapper->isOpen()){
+            return false;
+        }
+
+        std::map<std::string, tables> t;
+        t.insert(std::pair<std::string, tables>("Users", tables::eUsers));
+        t.insert(std::pair<std::string, tables>("Messages", tables::eMessages));
+        t.insert(std::pair<std::string, tables>("Channels", tables::eChannels));
+        t.insert(std::pair<std::string, tables>("Subscribers", tables::eSubscribers));
+        t.insert(std::pair<std::string, tables>("TechnicalInformation", tables::eTechnicalInformation));
+
+        if(!open("base/db.sqlite"))
+            return false;
+
+        sqlite3_stmt *pStmt;
+        char *err = 0;
+        int rc;
+        unsigned int j;
+
+        for(auto itr = t.begin(); itr != t.end(); ++itr){
+            std::string table_name = itr->first;
+            std::string query = arcirk::str_sample("select * from %1%;", table_name);
+
+            if (sqlite3_exec(db, query.c_str(), 0, 0, &err)) {
+                std::cerr << "sqlite3_db::export_table_to_SqlWrapper: " << "Ошибка SQL запроса : " << err << std::endl;
+                sqlite3_free(err);
+            }
+
+            if (sqlite3_prepare_v2(db, query.c_str(), -1, &pStmt, NULL)) {
+                sqlite3_finalize(pStmt);
+            }
+
+            while ((rc = sqlite3_step(pStmt)) == SQLITE_ROW) {
+
+                unsigned int col_count = sqlite3_data_count(pStmt);
+
+                std::vector<arcirk::content_value> row;
+                std::string Ref;
+
+                for (j = 0; j < col_count; j++) {
+
+                    int iColType = sqlite3_column_type(pStmt, j);
+
+                    const char *p;
+
+                    arcirk::content_value val;
+
+                    val.key = reinterpret_cast<const char *>(sqlite3_column_name(pStmt, j));
+                    if(val.key == "_id")
+                        continue;
+
+                    if (iColType == SQLITE3_TEXT)// ((sz_col_type == "TEXT") || (sz_col_type == "TEXT (36)"))
+                    {
+                        p = reinterpret_cast<const char *>(sqlite3_column_text(pStmt, j));
+                        if (p != NULL)
+                            val.value = std::string(p);
+                        else
+                            val.value = "";
+                    } else if (iColType == SQLITE_INTEGER) //(sz_col_type == "INTEGER")
+                    {
+                        val.value = (long int) sqlite3_column_int(pStmt, j);
+                    } else if (iColType == SQLITE_FLOAT) //(sz_col_type == "REAL")
+                    {
+                        val.value = sqlite3_column_double(pStmt, j);
+                    } else if (iColType == SQLITE_NULL) //(sz_col_type == "REAL")
+                    {
+                        val.value = "null";
+                    } else {
+                        p = reinterpret_cast<const char *>(sqlite3_column_text(pStmt, j));
+                        if (p != NULL)
+                            val.value = std::string(p);
+                        else
+                            val.value = "";
+                    }
+
+                    if(val.key == "Ref")
+                        Ref = val.value.to_string();
+
+                    row.push_back(val);
+
+                }
+
+                std::string error;
+                insert(t[table_name], row, error, Ref);
+            }
+            sqlite3_finalize(pStmt);
+            std::cout << "export table " << itr->first << std::endl;
+        }
+        close();
+
+        return true;
     }
 
 

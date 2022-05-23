@@ -98,3 +98,6 @@ tests/
 /sqlwrapper/x64-static/
 /cmake-build-releaseqtstatic/
 /cmake-build-debugqtstatic/
+/debug-qt-static/
+/static_Debug/
+/release-qt-static/

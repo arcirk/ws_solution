@@ -73,6 +73,8 @@ private slots:
 
     void on_mnuAbout_triggered();
 
+    void on_mnuExportData_triggered();
+
 private:
     Ui::MainWindow *ui;
     ClientSettings settings;

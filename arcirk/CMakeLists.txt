@@ -48,6 +48,10 @@ else()
     find_package(Boost REQUIRED COMPONENTS regex)
 endif()
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(arcirk PRIVATE
         ${Boost_LIBRARIES}

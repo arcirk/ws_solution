@@ -881,3 +881,11 @@ void MainWindow::on_mnuAbout_triggered()
     optDlg->exec();
 }
 
+
+void MainWindow::on_mnuExportData_triggered()
+{
+    if(client->isStarted()){
+        client->sendCommand("export_tables_to_ext");
+    }
+}
+

@@ -9,10 +9,7 @@
 #include <QJsonArray>
 #include <QSqlField>
 
-#include "arcirk.h"
-
-SqlInterface::SqlInterface() //QObject *parent)
-//: QObject{parent}
+SqlInterface::SqlInterface()
 {
 
 }
@@ -78,10 +75,19 @@ bool SqlInterface::connect(const QString &driver)
             }
             db.setDatabaseName(dbPath);
         } else if (driver == "QODBC") {
-            db.setConnectOptions();
+            db.setUserName(user());
+            db.setPassword(pwd());
+            db.setHostName(host());
             db.setDatabaseName(QString("DRIVER={SQL Server};"
                                        "SERVER=%1;Persist Security Info=true;"
                                        "uid=%2;pwd=%3").arg(host(), user(), pwd()));
+//            db.setDatabaseName(QString("DRIVER={ODBC Driver 17 for SQL Server};"
+//                                       "SERVER=%1;Persist Security Info=true;"
+//                                       "uid=%2;pwd=%3").arg(host(), user(), pwd()));
+//            db.setDatabaseName(QString("DRIVER={SQL Server Native Client 11.0};"
+//                                       "SERVER=%1;Persist Security Info=true;"
+//                                       "uid=%2;pwd=%3").arg(host(), user(), pwd()));
+            db.setConnectOptions();
         }
 
         _driverType = driver;
@@ -277,7 +283,6 @@ bool SqlInterface::verifyViews() {
                         "FROM dbo.Users";
 
         sqlQuery = db.exec(query);
-        sqlQuery = db.exec(vTable);
         while (sqlQuery.next()){
             isExists = true;
             std::cout << "Created view 'UsersCatalog'" << std::endl;
@@ -302,26 +307,41 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
 
         error = "no error";
 
-        auto result = db.exec(QString::fromStdString(query));
-        if (result.lastError().isValid()) {
-            error = result.lastError().text();
-            std::cerr << "SqlInterface::execute: " << query << std::endl;
-            std::cerr << "SqlInterface::execute: " << "Ошибка SQL запроса : " << error.toStdString() << std::endl;
+        QSqlQuery m_query;// = QSqlQuery(QString::fromStdString(query), db);
+        bool result = false;
+        try {
+            //result = m_query.exec();
+            m_query = db.exec(QString::fromStdString(query));
+            result = true;
+        } catch (std::exception &e) {
+            std::cerr << e.what() << std::endl;
+        }
+
+        if(!result){
+            if (m_query.lastError().isValid()) {
+                error = m_query.lastError().text();
+                std::cerr << "SqlInterface::execute: " << query << std::endl;
+                std::cerr << "SqlInterface::execute: " << "Ошибка SQL запроса : " << error.toStdString() << std::endl;
+                std::cerr << m_query.lastError().databaseText().toStdString() << std::endl;
+                std::cerr << m_query.lastError().driverText().toStdString() << std::endl;
+                std::cerr << m_query.lastQuery().toStdString() << std::endl;
+            }
             return 0;
         }
-        int count = result.record().count();
+
+        int count = m_query.record().count();
 
         auto rows = QJsonArray();
         auto cols = QJsonArray();
 
-        while (result.next()) {
+        while (m_query.next()) {
             QJsonObject obj = QJsonObject();
             for (int i = 0; i < count; ++i) {
-                QString key = result.record().fieldName(i);
+                QString key = m_query.record().fieldName(i);
                 cols.push_back(key);
-                QVariant val = result.value(i);
+                QVariant val = m_query.value(i);
                 if (val.typeId() == QMetaType::QString)
-                    obj.insert(key, val.toString());
+                    obj.insert(key, val.toString().trimmed());
                 else if (val.typeId() == QMetaType::Double)
                     obj.insert(key, val.toDouble());
                 else if (val.typeId() == QMetaType::Int)

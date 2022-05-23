@@ -285,6 +285,13 @@
     <property name="title">
      <string>&amp;Сервер</string>
     </property>
+    <widget class="QMenu" name="menu_3">
+     <property name="title">
+      <string>База данных</string>
+     </property>
+     <addaction name="mnuImportData"/>
+     <addaction name="mnuExportData"/>
+    </widget>
     <addaction name="mnuOptions"/>
     <addaction name="separator"/>
     <addaction name="mnuConnect"/>
@@ -296,6 +303,8 @@
     <addaction name="mnuRestartService"/>
     <addaction name="separator"/>
     <addaction name="mnuInstallService"/>
+    <addaction name="separator"/>
+    <addaction name="menu_3"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -403,6 +412,22 @@
   <action name="mnuRestartService">
    <property name="text">
     <string>Перезаупстить</string>
+   </property>
+  </action>
+  <action name="mnuImportData">
+   <property name="text">
+    <string>Выгрузить данные в локальную базу</string>
+   </property>
+   <property name="toolTip">
+    <string>Загрузить данные в локальную базу</string>
+   </property>
+  </action>
+  <action name="mnuExportData">
+   <property name="text">
+    <string>Загрузить данные в локальную базу данных</string>
+   </property>
+   <property name="toolTip">
+    <string>Загрузить данные из локальной базы данных</string>
    </property>
   </action>
  </widget>

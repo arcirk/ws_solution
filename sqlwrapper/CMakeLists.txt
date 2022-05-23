@@ -17,17 +17,8 @@ else()
     add_definitions(/MT)
 endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-if (WIN32)
-    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
-    set(Boost_USE_DEBUG_LIBS        OFF)  # ignore debug libs and
-    set(Boost_USE_RELEASE_LIBS       ON)  # only find release libs
-    set(Boost_USE_MULTITHREADED      ON)
-    set(Boost_USE_STATIC_RUNTIME    ON)
-endif()
-
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Sql REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Sql REQUIRED)
-find_package(Boost REQUIRED COMPONENTS regex)
 
 add_library(sqlwrapper SHARED
         sqlwrapper_global.h
@@ -35,16 +26,11 @@ add_library(sqlwrapper SHARED
         sqlwrapper.cpp
         sqlinterface.h
         sqlinterface.cpp
-        arcirk.h
-        arcirk.cpp
         )
-
-include_directories(${Boost_INCLUDE_DIRS})
 
 target_link_libraries(sqlwrapper PRIVATE
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Sql
-#        ${Boost_LIBRARIES}
         )
 
 target_compile_definitions(sqlwrapper PRIVATE TESTCMAKE_LIBRARY)

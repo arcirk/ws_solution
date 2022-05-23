@@ -122,39 +122,28 @@ bool SqlWrapper::verifyViews() {
 //}
 
 int
-SqlWrapper::execute(char const* query, char* result, char* err, bool header){
+SqlWrapper::execute(char const* query, char** result, char** err, bool header){
 
     if(!sql->isOpen()) {
-        strcpy(err, "Database not open!");
+        strcpy(*err, "Database not open!");
         return 0;
     }
     QString _result;
     QString error;
     int res = sql->execute(query, _result, error, header);
-    strcpy(err, error.toStdString().c_str());
-    strcpy(result, _result.toStdString().c_str());
+    *err = new char[error.toStdString().length() + 1];
+    *result = new char[_result.toStdString().length() + 1];
+    strcpy(*err, error.toStdString().c_str());
+    strcpy(*result, _result.toStdString().c_str());
     return res;
 }
-//
-//bool SqlWrapper::save_message(const char *message, const char * first,
-//                                const char * second, char *ref, bool active,
-//                                const char *firstName) {
-//
-//    if(!sql->isOpen())
-//        return false;
-//    QString _ref;
-//    bool result = sql->save_message(message, first, second,
-//                                    _ref, active, firstName);
-//    strcpy(ref, _ref.toStdString().c_str());
-//    return result;
-//}
-//
-//void SqlWrapper::get_channel_token(const char *first, const char *second, char *result) {
-//
-//    QString res;
-//
-//    sql->get_channel_token(first, second, res);
-//
-//    strcpy(result, res.toStdString().c_str());
-//
-//}
+
+int SqlWrapper::execute(const std::string &query, std::string &result, std::string &err, bool header) {
+    QString _result;
+    QString error;
+    int res = sql->execute(query, _result, error, header);
+    result = _result.toStdString();
+    err = error.toStdString();
+    return res;
+}
+

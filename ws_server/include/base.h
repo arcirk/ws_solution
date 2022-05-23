@@ -126,7 +126,8 @@ namespace arc_sqlite {
 
         int execute(const std::string &query, const std::string &table_name, std::vector<std::map<std::string, arcirk::bVariant>> &table, std::string &error);
 
-        bool insert(tables tableType, std::vector<arcirk::content_value> values, std::string& err = (std::string &) "");
+        bool insert(tables tableType, std::vector<arcirk::content_value> values, std::string &err,
+                    const std::string &not_ref);
 
         bool update(tables tableType, std::vector<arcirk::content_value> &sets, std::vector<arcirk::content_value> &where, std::string& err = (std::string &) "");
 
@@ -149,6 +150,8 @@ namespace arc_sqlite {
 
         bool is_use_wrapper() const{return useWrapper;};
 
+        bool export_tables();
+
     private:
 
         std::string database_file;
@@ -160,6 +163,7 @@ namespace arc_sqlite {
         static std::string get_columns_for_query(tables tableType);
         static std::string get_table_name(tables tableType);
         static std::string get_table_name_template() { return "%TABLE_NAME%"; };
+
     };
 
 }

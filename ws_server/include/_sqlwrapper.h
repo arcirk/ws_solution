@@ -31,8 +31,8 @@ public:
     bool verifyViews();
 
     int exec(char const* query, char* err);
-    int execute(char const* query, char* result, char* err, bool header = false);
-
+    int execute(char const* query, char** result, char** err, bool header = false);
+    int execute(const std::string &query, std::string &result, std::string &err, bool header = false);
 
 };
 #endif // _SQLWRAPPER_H

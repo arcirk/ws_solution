@@ -135,6 +135,8 @@ namespace arcirk{
 
         bool getArray(std::vector<std::map<std::string, std::string>> &values);
         static bool getArray(_Document *doc, std::vector<std::map<std::string, std::string>> &values);
+        bool getArray(std::vector<std::map<std::string, bVariant>> &values);
+        static bool getArray(_Document *doc, std::vector<std::map<std::string, bVariant>> &values);
 
         static void addMember(_Document * doc, content_value& value);
         static void addMember(_Document *doc, content_value &val, bool updateIsExists);

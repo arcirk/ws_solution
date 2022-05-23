@@ -89,7 +89,11 @@ namespace arcirk{
     }
 
     std::string uuid_to_string(const boost::uuids::uuid& uuid){
-        return boost::to_string(uuid);
+        try {
+            return boost::to_string(uuid);
+        } catch(...) {
+            return nil_string_uuid();
+        }
         //return boost::lexical_cast<std::string>(uuid);
     }
 
@@ -269,19 +273,23 @@ namespace arcirk{
 
     std::string _crypt(const std::string &source, const std::string& key) {
 
-        int n = (int)source.length();
-        char * text = new char[n + 1];
-        std::strcpy(text, source.c_str());
-        int n1 = (int)key.length();
-        char * pass = new char[n1 + 1];
-        std::strcpy(pass, key.c_str());
+//        int n = (int)source.length();
+//        char * text = new char[n + 1];
+//        std::strcpy(text, source.c_str());
+//        int n1 = (int)key.length();
+//        char * pass = new char[n1 + 1];
+//        std::strcpy(pass, key.c_str());
 
-        crypt(text, ARR_SIZE(text), pass, ARR_SIZE(pass));
+        void * text = (void *) source.c_str();
+        void * pass = (void *) key.c_str();
+        crypt(text, ARR_SIZE(source.c_str()), pass, ARR_SIZE(key.c_str()));
+        //crypt((void *) source.c_str(), ARR_SIZE(text), pass, ARR_SIZE(pass));
+        std::string result((char*)text);
 
-        std::string result(std::move(text));
-
-        delete[] text;
-        delete[] pass;
+//        delete[] text;
+//        text = nullptr;
+//        delete[] pass;
+//        pass = nullptr;
 
         return result;
     }

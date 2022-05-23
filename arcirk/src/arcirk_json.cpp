@@ -219,6 +219,9 @@ namespace arcirk{
     bool bJson::getArray(std::vector<std::map<std::string, std::string>> &values) {
         return getArray(this, values);
     }
+    bool bJson::getArray(std::vector<std::map<std::string, bVariant>> &values) {
+        return getArray(this, values);
+    }
 
     bool bJson::getArray(_Document *doc, std::vector<std::map<std::string, std::string>> &values) {
 
@@ -249,6 +252,43 @@ namespace arcirk{
                 }
 
                 row.insert(std::pair<std::string, std::string>(key, value));
+
+            }
+
+            values.push_back(row);
+        }
+
+        return true;
+    }
+
+    bool bJson::getArray(_Document *doc, std::vector<std::map<std::string, bVariant>> &values) {
+
+        if(!doc->IsArray())
+            return false;
+
+        auto items = doc->GetArray();
+
+        for (auto item = items.Begin(); item != items.End(); item++) {
+
+            std::map<std::string, bVariant> row;
+
+            for (_Value::ConstMemberIterator m = item->MemberBegin(); m != item->MemberEnd(); m++) {
+
+                std::string key = m->name.GetString();
+                bVariant value;
+
+                if (m->value.IsInt()) {
+                    long int intVal = m->value.GetInt();
+                    value = intVal;
+                } else if (m->value.IsString()) {
+                    value = m->value.GetString();
+                } else if (m->value.IsBool()) {
+                    value = m->value.GetBool();
+                } else {
+                    value = "";
+                }
+
+                row.insert(std::pair<std::string, bVariant>(key, value));
 
             }
 
