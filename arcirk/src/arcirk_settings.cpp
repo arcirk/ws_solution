@@ -76,7 +76,8 @@ namespace arcirk{
             if(public_settings)
                 m_vec[bConfFields::AppName] = "server";
             if(!no_save_def)
-            save();
+                save();
+
         }
         else
             parse();

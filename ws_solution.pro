@@ -6,6 +6,7 @@ SUBDIRS += \
     ws_admin \
     ws_client_qml \
     ws_agent/ws_agent \
-    sqlwrapper
+    sqlwrapper \
+    certmanager/CertManager
 
 

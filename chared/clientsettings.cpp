@@ -40,9 +40,14 @@ QString ClientSettings::confFileName() const {
     return output_filename;
 }
 
+QString ClientSettings::confFilePath() const
+{
+    return QDir::toNativeSeparators(output_directory + QDir::separator() + output_filename);
+}
+
 QString ClientSettings::get_home(){
 #ifdef _WINDOWS
-    return getenv("APPDATA");
+    return QDir::toNativeSeparators(QDir::homePath() + QDir::separator() + "AppData/Local");//getenv("APPDATA");
 #else
     //return getenv("HOME");
     return QDir::homePath();
@@ -50,7 +55,7 @@ QString ClientSettings::get_home(){
 }
 
 QString ClientSettings::get_conf_directory() {
-    return get_home() + QDir::separator() + get_conf_dirname();
+    return QDir::toNativeSeparators(get_home() + QDir::separator() + get_conf_dirname());
 }
 
 QString ClientSettings::get_conf_dirname() {
@@ -79,9 +84,9 @@ ClientSettings::ClientSettings(const QString &file_name, bool public_settings, b
     init(public_settings);
 
     if(!public_settings){
-        output_directory = get_conf_directory() + QDir::separator() + "config";
+        output_directory = QDir::toNativeSeparators(get_conf_directory() + QDir::separator() + "config");
     }else
-        output_directory = QCoreApplication::applicationDirPath() + QDir::separator() + "config";
+        output_directory = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + "config");
 
     bool result = verify_directory(output_directory);
 
@@ -93,7 +98,7 @@ ClientSettings::ClientSettings(const QString &file_name, bool public_settings, b
     if(!file_name.isEmpty())
         output_filename = file_name;
 
-    QString fileName = output_directory + QDir::separator() + output_filename;
+    QString fileName = QDir::toNativeSeparators(output_directory + QDir::separator() + output_filename);
 
     if (!QFile(fileName).exists()){
         if (!no_save_def)
@@ -245,6 +250,11 @@ QJsonObject ClientSettings::getJsonObject() {
 
     return m_doc.object();
 
+}
+
+void ClientSettings::setSettingsFileName(const QString &fname)
+{
+    output_filename = fname;
 }
 
 bool ClientSettings::createDaemonFile()

@@ -59,6 +59,7 @@ public:
     static std::string crypt(const std::string &source, const std::string& key);
 
     [[nodiscard]] QString confFileName() const;
+    [[nodiscard]] QString confFilePath() const;
 
 private:
     static void* _crypt(void* data, unsigned data_size, void* key, unsigned key_size);

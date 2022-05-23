@@ -18,7 +18,8 @@ namespace arc_sqlite {
         eChannels,
         eSubscribers,
         eTechnicalInformation,
-        eUnknown
+        eContainers,
+        eCertUsers
     };
 
     namespace exception{

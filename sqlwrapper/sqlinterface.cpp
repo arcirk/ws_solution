@@ -241,7 +241,16 @@ QString SqlInterface::tableFields(int tableIndex) {
                  "[cache] [text] NULL,";
     }else if(tableName == "TechnicalInformation"){
         result = "[cache] [text] NULL,";
+    }else if(tableName == "Containers"){
+        result = "[cache] [text] NULL,\n"
+                 "[data] [varbinary](max) NULL,";
+    }else if(tableName == "CertUsers"){
+        result = "[cache] [text] NULL,\n"
+                 "[uuid] [char](38) NULL,\n"
+                 "[sid] [varchar](136) NULL,\n"
+                 "[domain] [char](100) NULL,";
     }
+
 
     return result;
 }

@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+#endif
+
 #include <QAction>
 #include <QCoreApplication>
 #include <QCloseEvent>

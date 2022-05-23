@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/system_config_root.ico</file>
+        <file>img/key_password_lock_800.ico</file>
+        <file>img/certificate.ico</file>
+        <file>img/bootloader_users_person_people_6080.ico</file>
+        <file>img/itemAdd.png</file>
+        <file>img/itemDelete.png</file>
+        <file>img/itemEdit.png</file>
+        <file>img/viewPwd.svg</file>
+        <file>img/viewPwd1.svg</file>
+        <file>img/userOptions.ico</file>
+        <file>img/registry.ico</file>
+        <file>img/sqlServer.png</file>
+        <file>img/exportKeysToDatabase.png</file>
+        <file>img/importFromDatabase.png</file>
+        <file>img/externalDataTable.png</file>
+        <file>img/checked.png</file>
+        <file>img/installToUser.png</file>
+    </qresource>
+</RCC>

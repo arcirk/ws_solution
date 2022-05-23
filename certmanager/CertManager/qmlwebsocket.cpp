@@ -13,8 +13,6 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 : QObject(parent),
   settings(confFile, false, true)
 {
-
-    QString _confFile = confFile;
     //Предполагаем что если не указан конфиг файл тогда инициализация происходит из qml модуля
     //по этому запрещаем сохранять настройки при инициализации - no_save_def = true
     //если имя файла не указано то настройки загрузятся по умолчанию в файле conf.json, нам это не нужно
@@ -22,11 +20,6 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
     if (confFile.isEmpty()){
         //разрешим сохранение с указанным именем файла, или загрузим сохраненные настройки
         settings = ClientSettings("conf_qt_client.json", false);
-        _confFile = "conf_qt_client.json";
-    }else{
-        if(!QFile::exists(settings.confFilePath())){
-            settings.save();
-        }
     }
 
 
@@ -38,7 +31,7 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
     _pwdEdit = false;
 
     //pWebDav= new bWebDav(this, settings.confFileName());
-    qWebdav = new QWebdav(this, _confFile);
+    qWebdav = new QWebdav(this, settings.confFileName());
     connect(qWebdav, &QWebdav::errorChanged, this, &bWebSocket::onWebDavError);
     connect(qWebdav, &QWebdav::downloadFinished, this, &bWebSocket::downloadFinished);
     connect(qWebdav, &QWebdav::uploadFinished, this, &bWebSocket::uploadFinished);
@@ -482,23 +475,6 @@ void bWebSocket::setWebDavSettingsToServer()
     updateSettings();
     if(client->started())
         client->set_webdav_settings_on_server();
-}
-
-void bWebSocket::setSqlOptions()
-{
-    updateSettings();
-    QJsonObject obj = QJsonObject();
-    obj.insert("uuid_form", QUuid{}.toString());
-    obj.insert("SQLFormat", settings[bConfFieldsWrapper::SQLFormat].toString());
-    obj.insert("SQLHost", settings[bConfFieldsWrapper::SQLHost].toString());
-    obj.insert("SQLUser", settings[bConfFieldsWrapper::SQLUser].toString());
-    obj.insert("SQLPassword", settings[bConfFieldsWrapper::SQLPassword].toString());
-
-    QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
-    if(client->started()){
-         client->send_command("set_sql_settings", "", param.toStdString());
-    }
-
 }
 
 bool bWebSocket::isAgentUse()

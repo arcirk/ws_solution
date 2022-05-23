@@ -166,8 +166,6 @@ void MainWindow::on_mnuOptions_triggered()
         fillTree(client->isStarted());
     }
 
-    delete optDlg;
-
 }
 
 
