@@ -174,9 +174,9 @@ namespace arc_sqlite {
                 return useWrapper;
 #endif
         };
-#ifndef USE_QT_CREATOR
+//#ifndef USE_QT_CREATOR
         bool export_tables();
-#endif
+//#endif
     private:
         bool useWrapper;
         std::string database_file;

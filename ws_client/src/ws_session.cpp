@@ -208,7 +208,7 @@ session::on_read(
     }
 
     if(ec.value() == 995){
-        std::string err = "Операция ввода-вывода была прервана";
+        std::string err = "I/O operation was aborted";
         std::cerr << "session::on_read: " << err << std::endl;
         //client_->error("read", err);
         return;

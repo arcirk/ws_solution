@@ -476,9 +476,10 @@ void MainWindow::fillList(const QString &nodeName) {
 
     if (nodeName == "ServerName"){
         ServeResponse::loadTableFromJson(listChildServerObjects, settings.getJsonObject());
-        //resizeColumns();
-        visibilityControl(false, false);
-        listChildServerObjects->resizeColumnsToContents();
+        //listChildServerObjects->resizeColumnsToContents();
+        listChildServerObjects->resizeColumnToContents(0);
+        listChildServerObjects->resizeColumnToContents(1);
+        visibilityControl(false, false);      
     }else if (nodeName == "ActiveUsers"){
         visibilityControl(false, true);
         client->sendCommand("get_active_users");

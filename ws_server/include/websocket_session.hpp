@@ -79,6 +79,7 @@ public:
 
     void set_agent(websocket_session* sess);
 
+    void deadline_cancel();
 private:
 
     std::string ip_address = "0.0.0.0";

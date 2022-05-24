@@ -84,14 +84,15 @@ bool SqlWrapper::isOpen()
     return sql->isOpen();
 }
 
-int SqlWrapper::exec(char const* query, char* err) {
+int SqlWrapper::exec(char const* query, char** err) {
     if(!sql->isOpen()) {
-        strcpy(err, "Database not open!");
+        strcpy(*err, "Database not open!");
         return 0;
     }
     QString error;
     int result = sql->exec(query, error);
-    strcpy(err, error.toStdString().c_str());
+    *err = new char[error.toStdString().length() + 1];
+    strcpy(*err, error.toStdString().c_str());
     return result;
 }
 

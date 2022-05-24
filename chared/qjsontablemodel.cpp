@@ -1,6 +1,9 @@
 //
 // Created by arcady on 10.11.2021.
 //
+#ifdef _WINDOWS
+#pragma warning(disable:4100)
+#endif
 
 #include "qjsontablemodel.h"
 

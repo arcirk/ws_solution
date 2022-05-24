@@ -637,18 +637,10 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                 std::string query = arcirk::str_sample("select [_id], [Ref], [role], [FirstField] from %1%Users where [hash] = '%2%'", dbo, hash);
 
                 int result = 0;
-                //if(sql_format == "SQLITE")
-                    result = sqlite3Db->execute(query,
-                                                "Users", table, err);
-//                else if(sql_format == "SQLSERVER"){
-//                    auto _err = new char;
-//                    result = sqlWrapper->execute(query.c_str(),
-//                                                "Users", table, _err);
-//                    err = std::string(_err);
-//                    if (err == "no error")
-//                        err = "";
-//                    delete _err;
-//                }
+
+                result = sqlite3Db->execute(query,
+                                            "Users", table, err);
+
                 bool is_valid_name = false;
 
                 if (table.size() > 0){
@@ -663,6 +655,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                     std::string ref = table[0].at("Ref");
                     if (!ref.empty())
                         user_uuid = arcirk::string_to_uuid(ref, true);
+                    session->deadline_cancel();
                 }
             }
 
@@ -834,30 +827,10 @@ shared_state::send_message(const std::string &message, boost::uuids::uuid &recip
 
        bool active = get_user_status_(recipient, filter_app_name);
 
-        bool result = false;
- //       if(sql_format == "SQLITE")
-            result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active,
-                                             current_sess->get_name());
-//        else if(sql_format == "SQLSERVER"){
-//            auto szHash = new char;
-//            sqlWrapper->get_channel_token(arcirk::uuid_to_string(current_sess->get_user_uuid()).c_str(),
-//                                          arcirk::uuid_to_string(recipient).c_str(), szHash);
-//            std::string sz(szHash);
-//            std::string _hash;
-//            if(sz != "error"){
-//                T_vec m_hash = arcirk::split(sz, "|");
-//                _hash = arcirk::get_hash(m_hash[0], m_hash[1]);
-//            }else
-//                _hash = sz;
-//            delete szHash;
-//            auto szRef = new char;
-//            result = sqlWrapper->save_message(message.c_str(), _hash.c_str(), szRef, active,current_sess->get_name().c_str());
-//            ref = std::string(szRef);
-//            delete szRef;
-//
-//        }else
-//            return false;
+       bool result = false;
 
+       result = sqlite3Db->save_message(message, current_sess->get_user_uuid(), recipient, ref, active,
+                                             current_sess->get_name());
 
         if (!result)
             return false;
@@ -2319,12 +2292,9 @@ bool shared_state::export_tables_to_ext(boost::uuids::uuid &uuid, arcirk::bJson 
 
     err = "";
     bool _result;
-#ifndef USE_QT_CREATOR
+
     _result = sqlite3Db->export_tables();
-#else
-    _result = false;
-    custom_result = "command not suppored";
-#endif
+
     return _result;
 }
 
@@ -2390,9 +2360,10 @@ void shared_state::connect_sqlite_database() {
 //    sqlWrapper->setSqlUser(sql_user.c_str());
 //    sqlWrapper->setSqlPwd(sql_pass.c_str());
 
-
+    sqlWrapper->setDriver("QSQLITE");
     sqlWrapper->setDatabaseName("base/db.sqlite");
     bool sqlResult = sqlWrapper->connect("QSQLITE");
+    std::cout << sqlWrapper->databaseName().toStdString() << std::endl;
     if(!sqlResult)
         std::cerr << "shared_state::shared_state error connect to sqlite!" << std::endl;
     else{
@@ -2436,18 +2407,29 @@ void shared_state::connect_sqlserver_database() {
     sqlWrapper->setHost(sql_host.c_str());
     sqlWrapper->setSqlUser(sql_user.c_str());
     sqlWrapper->setSqlPwd(sql_pass.c_str());
+
 #ifdef USE_QT_CREATOR
+    sqlWrapper->setDriver("QODBC");
     sqlWrapper->setDatabaseName("arcirk");
     bool sqlResult = sqlWrapper->connect("QODBC");
 #else
     bool sqlResult = sqlWrapper->connect("arcirk");
 #endif
-    if(!sqlResult)
+    if(!sqlResult){
         std::cerr << "shared_state::shared_state error connect to sql server!" << std::endl;
+        delete sqlWrapper;
+        std::cout << "try connect to local database!" << std::endl;
+        connect_sqlite_database();
+        return;
+    }
     else{
         sqlWrapper->verifyTables();
         sqlWrapper->verifyViews();
-        std::cout << "connect to sql server!" << std::endl;
+#ifdef USE_QT_CREATOR
+        std::cout << "connect to sql server! " << sqlWrapper->host().toStdString() << " " << sqlWrapper->driver().toStdString() << " " << sqlWrapper->databaseName().toStdString() << std::endl;
+//#else
+//        std::cout << "connect to sql server! " << sqlWrapper->host()  << " " << sqlWrapper->databaseName() << std::endl;
+#endif
     }
 #ifndef USE_QT_CREATOR
     char * err_ = nullptr;

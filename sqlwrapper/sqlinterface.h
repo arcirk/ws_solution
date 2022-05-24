@@ -34,8 +34,9 @@ public:
     void setDatabaseName(const QString& value);
     QString databaseName() const;
     QString driver();
+    void setDriver(const QString& value);
 
-    bool connect(const QString& driver);
+    bool connect(const QString& driver = "QODBC");
     bool isOpen();
 
     bool verifyDatabase();
@@ -48,6 +49,8 @@ public:
 
     int exec(const QString& query, QString& err);
     int execute(const std::string &query, QString &table, QString &error, bool header = false);
+
+    bool exportTablesToSqlServer();
 
 private:
     QString _host;

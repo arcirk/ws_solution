@@ -1167,7 +1167,7 @@ namespace arc_sqlite {
 
         return i;
     }
-#ifndef USE_QT_CREATOR
+
     bool sqlite3_db::export_tables() {
 
 
@@ -1178,6 +1178,12 @@ namespace arc_sqlite {
             return false;
         }
 
+
+#ifdef USE_QT_CREATOR
+
+    return qtWrapper->exportTablesToSqlServer();
+
+#else
         std::map<std::string, tables> t;
         t.insert(std::pair<std::string, tables>("Users", tables::eUsers));
         t.insert(std::pair<std::string, tables>("Messages", tables::eMessages));
@@ -1263,10 +1269,10 @@ namespace arc_sqlite {
             std::cout << "export table " << itr->first << std::endl;
         }
         close();
-
+#endif
         return true;
     }
-#endif
+
 
 
 }

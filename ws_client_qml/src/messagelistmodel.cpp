@@ -1,3 +1,7 @@
+#ifdef _WINDOWS
+#pragma warning(disable:4100)
+#endif
+
 #include "../include/messagelistmodel.h"
 #include <QJsonObject>
 #include <QString>

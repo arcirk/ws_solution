@@ -235,7 +235,20 @@ websocket_session::on_close(beast::error_code ec)
 }
 bool websocket_session::stopped() const
 {
-    return !ws_.next_layer().socket().is_open();
+    bool result = false;
+    try {
+        result  = !ws_.next_layer().socket().is_open();
+    }  catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return result;
+
+}
+
+void
+websocket_session::deadline_cancel(){
+    deadline_.cancel();
 }
 
 void

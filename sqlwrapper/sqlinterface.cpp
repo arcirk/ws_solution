@@ -54,7 +54,10 @@ QString SqlInterface::pwd() const
 void SqlInterface::setDatabaseName(const QString &value)
 {
 #ifdef _WINDOWS
-    _databaseName = QCoreApplication::applicationDirPath() + QDir::separator() + value;
+    if(driver() == "QSQLITE")
+        _databaseName = QCoreApplication::applicationDirPath() + QDir::separator() + value;
+    else //if(driver() == "QODBC")
+        _databaseName = value;
 #else
     _databaseName = value;
 #endif
@@ -67,6 +70,11 @@ QString SqlInterface::databaseName() const
 
 QString SqlInterface::driver(){
     return _driverType;
+}
+
+void SqlInterface::setDriver(const QString &value)
+{
+    _driverType = value;
 }
 
 bool SqlInterface::connect(const QString &driver)
@@ -141,7 +149,7 @@ bool SqlInterface::verifyDatabase() {
     }
     if(isExists){
         db.exec(QString("USE [%1]").arg(databaseName()));
-        std::cout << QString("Connected connect_sqlite_database '%1'").arg(databaseName()).toStdString() << std::endl;
+        std::cout << QString("Connected database '%1'").arg(databaseName()).toStdString() << std::endl;
         return true;
     }
 
@@ -391,6 +399,84 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
 
     return rowCount;
 
+}
+
+bool SqlInterface::exportTablesToSqlServer()
+{
+    if(driver() != "QODBC")
+        return false;
+
+    auto dbSqlite = QSqlDatabase::addDatabase("QSQLITE","tempSqlite");
+    QString file = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + "db.sqlite");
+    QFile f(file);
+    if(!f.exists())
+    {
+        std::cerr << "file: " << file.toStdString() << " not found!" << std::endl;
+        return false;
+    }
+    std::cerr << "set sqlite database: " << file.toStdString() << std::endl;
+    dbSqlite.setDatabaseName(file);
+
+    if(!dbSqlite.open())
+        return false;
+
+    for (int itr = 0; itr < tables.size(); ++itr) {
+        QString table = tables[itr];
+        QString query = QString("select * from %1;").arg(table);
+        auto result = dbSqlite.exec(query);
+        if(result.lastError().type() == QSqlError::NoError){
+            query = "INSERT INTO ";
+            query.append("dbo.");
+            query.append(table);
+            QString into = "\n(";
+            QString values_ = "\n(";
+            int i = 0;
+            int count = result.record().count() - 1;
+            while (result.next()) {
+                QString key = result.record().fieldName(i);
+                if(key == "_id")
+                    continue;
+                if(i < count){
+                    into.append(",\n");
+                }
+                QVariant value = result.value(i);
+                if(value.typeId() == QMetaType::QString){
+                    QString _value = value.toString();
+                    values_.append("'" + _value + "'");
+                    if (i < count)
+                        values_.append(",\n");
+                }else if(value.typeId() == QMetaType::Int){
+                    QString _value = QString::number(value.toInt());
+                    values_.append("'" + _value + "'");
+                    if (i < count)
+                        values_.append(",\n");
+                }
+                i++;
+            }
+            into.append("\n)");
+            values_.append("\n)");
+            query.append(into);
+            query.append("\nVALUES\n");
+            query.append(values_);
+            query.append(";");
+
+            QString err = "";
+
+            exec(query, err);
+
+            if (!err.isEmpty())
+                std::cerr << "error export table: " << table.toStdString() << std::endl;
+            else
+                std::cout << "successful export table: " << table.toStdString() << std::endl;
+        }else
+           std::cerr << result.lastError().text().toStdString() <<std::endl;
+
+    }
+
+    dbSqlite.close();
+    QSqlDatabase::removeDatabase("tempSqlite");
+
+    return true;
 }
 
 bool SqlInterface::verifyTables() {
