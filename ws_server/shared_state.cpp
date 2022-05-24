@@ -9,6 +9,10 @@
 #include "./include/_sqlwrapper.h"
 #endif
 
+#ifdef _WINDOWS
+#pragma warning(disable:4100)
+#endif
+
 shared_state::
 shared_state(std::string doc_root)
         : doc_root_(std::move(doc_root))
@@ -1160,7 +1164,7 @@ bool shared_state::get_user_info(boost::uuids::uuid &uuid, arcirk::bJson* params
         } else
             json->addMember(arcirk::content_value("name", "не зарегистрирован"));
 
-        websocket_session* session = nullptr;
+        //websocket_session* session = nullptr;
 
         auto sessions = get_sessions(user_uuid);
 
@@ -2026,7 +2030,7 @@ shared_state::get_unread_messages(boost::uuids::uuid &uuid, arcirk::bJson *param
     std::string json;
     err = "";
 
-    int result = sqlite3Db->get_unread_messages(boost::to_string(current_sess->get_user_uuid()), json, err);
+    sqlite3Db->get_unread_messages(boost::to_string(current_sess->get_user_uuid()), json, err);
 
     if(!err.empty() && err != "no error"){
         return false;
@@ -2292,6 +2296,7 @@ bool shared_state::send_technical_information(boost::uuids::uuid &uuid, arcirk::
 
 bool shared_state::export_tables_to_ext(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                               std::string &err, std::string &custom_result) {
+
     auto  current_sess = get_session(uuid);
 
     try {
@@ -2313,14 +2318,18 @@ bool shared_state::export_tables_to_ext(boost::uuids::uuid &uuid, arcirk::bJson 
     }
 
     err = "";
-
-    bool _result = sqlite3Db->export_tables();
-
+    bool _result;
+#ifndef USE_QT_CREATOR
+    _result = sqlite3Db->export_tables();
+#else
+    _result = false;
+    custom_result = "command not suppored";
+#endif
     return _result;
 }
 
 void shared_state::connect_sqlite_database() {
-
+#ifndef USE_QT_CREATOR
     std::string parent;
     std::string err;
 
@@ -2328,10 +2337,13 @@ void shared_state::connect_sqlite_database() {
     bool res = sqlite3Db->open("base/db.sqlite");
     if(!res)
         std::cerr << "Файл базы данных не найден!";
+
     sqlite3Db->check_database_table(arc_sqlite::eUsers);
     sqlite3Db->check_database_table(arc_sqlite::eMessages);
     sqlite3Db->check_database_table(arc_sqlite::eChannels);
     sqlite3Db->check_database_table(arc_sqlite::eSubscribers);
+
+
     //ищем пользователя с правами администратора
     std::string query = "SELECT * FROM Users WHERE role = 'admin'";
 
@@ -2357,6 +2369,45 @@ void shared_state::connect_sqlite_database() {
             "      FROM Users;";
 
     result = sqlite3Db->exec(query);
+#else
+
+    std::string parent;
+    std::string err;
+
+    arcirk::bConf conf("conf.json", true);
+
+    sqlWrapper = new SqlInterface();
+    sqlite3Db->set_qt_wrapper(sqlWrapper);
+
+//    std::string sql_host = conf[SQLHost].get_string();
+//    std::string sql_user = conf[SQLUser].get_string();
+//    std::string _passEn = conf[SQLPassword].get_string();
+//    std::string sql_pass;
+//    if(!_passEn.empty()){
+//        sql_pass = arcirk::_crypt(_passEn, "my_key");
+//    }
+//    sqlWrapper->setHost(sql_host.c_str());
+//    sqlWrapper->setSqlUser(sql_user.c_str());
+//    sqlWrapper->setSqlPwd(sql_pass.c_str());
+
+
+    sqlWrapper->setDatabaseName("base/db.sqlite");
+    bool sqlResult = sqlWrapper->connect("QSQLITE");
+    if(!sqlResult)
+        std::cerr << "shared_state::shared_state error connect to sqlite!" << std::endl;
+    else{
+        std::cout << "shared_state::shared_state connect to sqlite!" << std::endl;
+        sqlWrapper->verifyTables();
+        sqlWrapper->verifyViews();
+    }
+
+    QString err_;
+    int result = sqlWrapper->exec("SELECT * FROM Users WHERE [role] = 'admin'", err_);
+    err = err_.toStdString();
+    if(result == 0){
+       _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
+    }
+#endif
 
 }
 
@@ -2385,12 +2436,18 @@ void shared_state::connect_sqlserver_database() {
     sqlWrapper->setHost(sql_host.c_str());
     sqlWrapper->setSqlUser(sql_user.c_str());
     sqlWrapper->setSqlPwd(sql_pass.c_str());
+#ifdef USE_QT_CREATOR
+    sqlWrapper->setDatabaseName("arcirk");
+    bool sqlResult = sqlWrapper->connect("QODBC");
+#else
     bool sqlResult = sqlWrapper->connect("arcirk");
+#endif
     if(!sqlResult)
         std::cerr << "shared_state::shared_state error connect to sql server!" << std::endl;
     else{
         sqlWrapper->verifyTables();
         sqlWrapper->verifyViews();
+        std::cout << "connect to sql server!" << std::endl;
     }
 #ifndef USE_QT_CREATOR
     char * err_ = nullptr;

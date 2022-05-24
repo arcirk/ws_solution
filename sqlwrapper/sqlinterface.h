@@ -33,6 +33,7 @@ public:
     QString pwd() const;
     void setDatabaseName(const QString& value);
     QString databaseName() const;
+    QString driver();
 
     bool connect(const QString& driver);
     bool isOpen();

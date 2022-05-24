@@ -1,5 +1,6 @@
 #include "sqlinterface.h"
 #include <QDir>
+#include <QCoreApplication>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QJsonObject>
@@ -52,7 +53,11 @@ QString SqlInterface::pwd() const
 
 void SqlInterface::setDatabaseName(const QString &value)
 {
+#ifdef _WINDOWS
+    _databaseName = QCoreApplication::applicationDirPath() + QDir::separator() + value;
+#else
     _databaseName = value;
+#endif
 }
 
 QString SqlInterface::databaseName() const
@@ -60,11 +65,15 @@ QString SqlInterface::databaseName() const
     return _databaseName;
 }
 
+QString SqlInterface::driver(){
+    return _driverType;
+}
+
 bool SqlInterface::connect(const QString &driver)
 {
     bool result = false;
     try {
-        db = QSqlDatabase::addDatabase(driver);
+        db = QSqlDatabase::addDatabase(driver,"default");
 
         if (driver == "QSQLITE") {
             QString dbPath = QDir::fromNativeSeparators(databaseName());
@@ -92,7 +101,7 @@ bool SqlInterface::connect(const QString &driver)
 
         _driverType = driver;
 
-        QSqlDatabase::removeDatabase("default");
+        //QSqlDatabase::removeDatabase("default");
 
         result = db.open();
 

@@ -5,12 +5,12 @@
 #ifndef WS_SOLUTION_BASE_H
 #define WS_SOLUTION_BASE_H
 
-#include "../sqlite/sqlite3.h"
 #include <arcirk.h>
 
 #ifdef USE_QT_CREATOR
 #include "../../sqlwrapper/sqlinterface.h"
 #else
+#include "../sqlite/sqlite3.h"
 #include "_sqlwrapper.h"
 #endif
 
@@ -27,8 +27,9 @@ namespace arc_sqlite {
         eContainers,
         eCertUsers
     };
-
+#ifndef USE_QT_CREATOR
     namespace exception{
+
         static std::string what(int err){
 
             std::string result = "Не известная ошибка";
@@ -105,6 +106,7 @@ namespace arc_sqlite {
             return result;
         }
     }
+#endif
 
     class sqlite3_db{
 
@@ -118,12 +120,15 @@ namespace arc_sqlite {
 
         std::string get_database_file();
 
+        void verify_tables();
+
+#ifndef USE_QT_CREATOR
         void check_database_table(tables tableType);
 
         static std::string createQuery(tables tableType);
 
         static std::string get_query_template(tables tableType);
-
+#endif
         int exec(const std::string& query, std::string& error = (std::string &) "");
 
         int execute(const std::string& query, const std::string &table_name, std::string& json = (std::string &) "", std::string& error = (std::string &) "",
@@ -159,23 +164,34 @@ namespace arc_sqlite {
 #endif
 
 
-        bool is_use_wrapper() const{return useWrapper;};
-
+        bool is_use_wrapper() const{
+#ifndef USE_QT_CREATOR
+            return useWrapper;
+#else
+            if(qtWrapper->driver() != "QODBC")
+                return false;
+            else
+                return useWrapper;
+#endif
+        };
+#ifndef USE_QT_CREATOR
         bool export_tables();
-
+#endif
     private:
-
+        bool useWrapper;
         std::string database_file;
+#ifndef USE_QT_CREATOR
         sqlite3* db{};
+#endif
+        static std::string get_table_name(tables tableType);
 #ifdef USE_QT_CREATOR
     SqlInterface * qtWrapper;
 #else
-        SqlWrapper * qtWrapper;
-#endif
-        bool useWrapper;
+        SqlWrapper * qtWrapper;        
         static std::string get_columns_for_query(tables tableType);
-        static std::string get_table_name(tables tableType);
         static std::string get_table_name_template() { return "%TABLE_NAME%"; };
+#endif
+
 
     };
 

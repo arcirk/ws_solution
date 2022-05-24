@@ -5,8 +5,13 @@
 #include <arcirk.h>
 #include "../include/base.h"
 
+#ifdef _WINDOWS
+#pragma warning(disable:4100)
+#endif
+
 namespace arc_sqlite {
 
+#ifndef USE_QT_CREATOR
     static int callback(void* data, int argc, char** argv, char** azColName)
     {
         int i;
@@ -19,6 +24,7 @@ namespace arc_sqlite {
         printf("\n");
         return 0;
     }
+#endif
 
     sqlite3_db::sqlite3_db() {
         database_file = "";
@@ -38,7 +44,7 @@ namespace arc_sqlite {
     }
 #endif
 
-    sqlite3_db::~sqlite3_db() {
+    sqlite3_db::~sqlite3_db() {        
         close();
     }
 
@@ -46,14 +52,23 @@ namespace arc_sqlite {
         return database_file;
     }
 
+    void sqlite3_db::verify_tables()
+    {
+        //
+    }
+
     bool sqlite3_db::open(const std::string& file) {
+
+        bool result = false;
+#ifndef USE_QT_CREATOR
+
 
         if (!file.empty()){
             database_file = file;
         }
 
         //char* err = 0;
-        bool result = false;
+
 
         if (sqlite3_open(database_file.c_str(), &db)) {
             std::cerr << "Ошибка создания базы данных : " << sqlite3_errmsg(db) << std::endl;
@@ -63,14 +78,20 @@ namespace arc_sqlite {
         {
             result = true;
         }
+#endif
 
         return result;
     }
 
     void sqlite3_db::close() {
+#ifndef USE_QT_CREATOR
         sqlite3_close(db);
+#else
+//      if(useWrapper)
+//          qtWrapper->
+#endif
     }
-
+#ifndef USE_QT_CREATOR
     void sqlite3_db::check_database_table(tables tableType) {
 
         std::string mQery = createQuery(tableType);
@@ -148,7 +169,7 @@ namespace arc_sqlite {
 
         return result;
     }
-
+#endif
     std::string sqlite3_db::get_table_name(tables tableType) {
         switch (tableType)
         {
@@ -188,6 +209,7 @@ namespace arc_sqlite {
             error = err.toStdString();
 #endif
         }else{
+#ifndef USE_QT_CREATOR
             sqlite3_stmt* pStmt;
             char* err = 0;
             bool result = false;
@@ -214,10 +236,16 @@ namespace arc_sqlite {
             }
 
             sqlite3_finalize(pStmt);
+#else
+            QString err;
+            i = qtWrapper->exec(QString::fromStdString(query), err);
+            error = err.toStdString();
+#endif
         }
 
         return i;
     }
+
 
     int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error
                             , bool header, std::map<std::string, arcirk::bVariant> fields ) {
@@ -250,6 +278,7 @@ namespace arc_sqlite {
             }
 
         }else {
+#ifndef USE_QT_CREATOR
             sqlite3_stmt *pStmt;
             char *err = 0;
             int rc;
@@ -358,9 +387,27 @@ namespace arc_sqlite {
                     obj_json.addMember(k->first, k->second);
                 }
             }
-
             json = obj_json.to_string();
+#else
+            QString err;
+            QString result;
+            i = qtWrapper->execute(query, result, err, header);
+            error = err.toStdString();
+            json = result.toStdString();
+
+            if(header && fields.size() > 0){
+                auto obj_json = arcirk::bJson();
+                obj_json.parse(json);
+                if(obj_json.is_parse()){
+                    for (auto k = fields.begin(); k != fields.end(); ++k) {
+                        obj_json.addMember(k->first, k->second);
+                    }
+                }
+                json = obj_json.to_string();
+            }
+ #endif
         }
+
         return i;
     }
 
@@ -398,6 +445,7 @@ namespace arc_sqlite {
 
 
         }else{
+#ifndef USE_QT_CREATOR
             sqlite3_stmt* pStmt;
             char* err = nullptr;
 
@@ -471,10 +519,20 @@ namespace arc_sqlite {
             }
 
             sqlite3_finalize(pStmt);
+#else
+            QString err;
+            QString chTable;
+            i = qtWrapper->execute(query, chTable,  err);
+            if(i > 0){
+                std::string json = chTable.toStdString();
+                auto b_json = arcirk::bJson();
+                b_json.parse(json);
+                if(b_json.is_parse()){
+                    b_json.getArray(table);
+                }
+            }
+#endif
         }
-
-
-
         return i;
     }
 
@@ -824,6 +882,7 @@ namespace arc_sqlite {
             };
 
         }else {
+#ifndef USE_QT_CREATOR
             sqlite3_stmt *pStmt;
             char *err = 0;
             int rc;
@@ -889,7 +948,24 @@ namespace arc_sqlite {
             }
 
             sqlite3_finalize(pStmt);
+#else
+
+            QString chTable;
+            QString err;
+            i = qtWrapper->execute(query, chTable,  err);
+            if(i > 0){
+                std::string json = chTable.toStdString();
+                auto b_json = arcirk::bJson();
+                b_json.parse(json);
+                if(b_json.is_parse()){
+                    b_json.getArray(table);
+                }
+            }else{
+                error = err.toStdString();
+            };
+#endif
         }
+
         return i;
     }
 
@@ -927,6 +1003,7 @@ namespace arc_sqlite {
                 }
             }
         }else{
+#ifndef USE_QT_CREATOR
             sqlite3_stmt* pStmt;
             int rc;
             std::string table_info = "PRAGMA table_info(" + table_name + ")";
@@ -944,8 +1021,27 @@ namespace arc_sqlite {
                 std::string column_name = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, 1));
                 arr.push_back(column_name);
             }
+#else
+            std::string query = arcirk::str_sample("SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('dbo.%1%')", table_name);
+            QString err;
+            QString result;
+            int i = qtWrapper->execute(query.c_str(), result, err);
+            if(i > 0){
+                std::string b_result = result.toStdString();
+                auto json = arcirk::bJson();
+                json.parse(b_result);
+                if(json.is_parse() && json.IsArray()){
+                    _Value v_arr = json.GetArray();
+                    for (auto itr = v_arr.Begin(); itr != v_arr.End(); ++itr) {
+                        auto colItr = itr->FindMember("name");
+                        if(colItr != itr->MemberEnd()){
+                            arr.push_back(colItr->value.GetString());
+                        }
+                    }
+                }
+            }
+#endif
         }
-
 
     }
 
@@ -982,8 +1078,8 @@ namespace arc_sqlite {
             error = err.toStdString();
 #endif
 
-
-        }else {
+            }else{
+#ifndef USE_QT_CREATOR
             sqlite3_stmt *pStmt;
             char *err = nullptr;
 
@@ -1058,11 +1154,22 @@ namespace arc_sqlite {
             json.addMember("rows", rows);
 
             result = json.to_string();
+#else
+            QString res;
+            QString err;
+            i = qtWrapper->execute(query.c_str(), res, err, true);
+            if(i > 0){
+                result = res.toStdString();
+            }
+            error = err.toStdString();
+#endif
         }
+
         return i;
     }
-
+#ifndef USE_QT_CREATOR
     bool sqlite3_db::export_tables() {
+
 
         if(!useWrapper)
             return false;
@@ -1159,7 +1266,7 @@ namespace arc_sqlite {
 
         return true;
     }
-
+#endif
 
 
 }

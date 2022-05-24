@@ -15,7 +15,6 @@ SOURCES += \
         listener.cpp \
         main.cpp \
         shared_state.cpp \
-        sqlite/sqlite3.c \
         src/base.cpp \
         subscriber.cpp \
         websocket_session.cpp
@@ -35,8 +34,7 @@ HEADERS += \
     include/public_channels.h \
     include/shared_state.hpp \
     include/subscriber.h \
-    include/websocket_session.hpp \
-    sqlite/sqlite3.h
+    include/websocket_session.hpp
 
 windows:INCLUDEPATH += $(BOOST_INCLDUE) #C:/lib/vcpkg/vcpkg/installed/x64-windows/include
 windows:LIBS += -L$(BOOST_LIB) #-LC:/lib/vcpkg/vcpkg/installed/x64-windows/lib
