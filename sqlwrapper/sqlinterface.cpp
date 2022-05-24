@@ -92,7 +92,11 @@ bool SqlInterface::connect(const QString &driver)
 
         _driverType = driver;
 
+        QSqlDatabase::removeDatabase("default");
+
         result = db.open();
+
+
     }catch (std::exception& e){
         std::cerr << e.what() << std::endl;
 
@@ -378,4 +382,19 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
 
     return rowCount;
 
+}
+
+bool SqlInterface::verifyTables() {
+
+    if(!isOpen())
+        return false;
+
+    bool result = false;
+    for (int i = 0; i < tables.size(); ++i) {
+        result = verifyTable(i);
+        if (!result)
+            return false;
+    }
+
+    return true;
 }

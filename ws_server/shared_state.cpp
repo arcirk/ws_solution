@@ -3,7 +3,11 @@
 #include <utility>
 #include "./include/websocket_session.hpp"
 
+#ifdef USE_QT_CREATOR
+#include "../../sqlwrapper/sqlinterface.h"
+#else
 #include "./include/_sqlwrapper.h"
+#endif
 
 shared_state::
 shared_state(std::string doc_root)
@@ -2363,8 +2367,13 @@ void shared_state::connect_sqlserver_database() {
 
     arcirk::bConf conf("conf.json", true);
 
+#ifdef USE_QT_CREATOR
+    sqlWrapper = new SqlInterface();
+    sqlite3Db->set_qt_wrapper(sqlWrapper);
+#else
     sqlWrapper = new SqlWrapper();
     sqlite3Db->set_qt_wrapper(sqlWrapper);
+#endif
 
     std::string sql_host = conf[SQLHost].get_string();
     std::string sql_user = conf[SQLUser].get_string();
@@ -2383,12 +2392,15 @@ void shared_state::connect_sqlserver_database() {
         sqlWrapper->verifyTables();
         sqlWrapper->verifyViews();
     }
-
-    auto err_ = new char[1024];
-    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", err_);
+#ifndef USE_QT_CREATOR
+    char * err_ = nullptr;
+    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", &err_);
     err = std::string(err_);
-    if(err_)
-        delete[] err_;
+#else
+    QString err_;
+    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", err_);
+    err = err_.toStdString();
+#endif
     if(result == 0){
        _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
     }

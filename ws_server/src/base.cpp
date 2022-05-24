@@ -26,10 +26,17 @@ namespace arc_sqlite {
         useWrapper = false;
     }
 
+#ifdef USE_QT_CREATOR
+    void sqlite3_db::set_qt_wrapper(SqlInterface *wrapper) {
+        qtWrapper = wrapper;
+        useWrapper = true;
+    }
+#else
     void sqlite3_db::set_qt_wrapper(SqlWrapper *wrapper) {
         qtWrapper = wrapper;
         useWrapper = true;
     }
+#endif
 
     sqlite3_db::~sqlite3_db() {
         close();
@@ -171,10 +178,15 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
-            auto err = new char[1024];
-            i = qtWrapper->exec(query.c_str(), err);
+#ifndef USE_QT_CREATOR
+            char * err = nullptr;
+            i = qtWrapper->exec(query.c_str(), &err);
             error = std::string(err);
-            delete[] err;
+#else
+            QString err;
+            i = qtWrapper->exec(QString::fromStdString(query), err);
+            error = err.toStdString();
+#endif
         }else{
             sqlite3_stmt* pStmt;
             char* err = 0;
@@ -213,12 +225,19 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
+#ifndef USE_QT_CREATOR
             char * err = nullptr;
             char * result = nullptr;
             i = qtWrapper->execute(query.c_str(), &result, &err, header);
             error = std::string(err);
             json = std::string(result);
-
+#else
+            QString err;
+            QString result;
+            i = qtWrapper->execute(query, result, err, header);
+            error = err.toStdString();
+            json = result.toStdString();
+#endif
             if(header && fields.size() > 0){
                 auto obj_json = arcirk::bJson();
                 obj_json.parse(json);
@@ -349,6 +368,7 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
+#ifndef USE_QT_CREATOR
             char * err = nullptr;
             char * chTable = nullptr;
             i = qtWrapper->execute(query.c_str(), &chTable,  &err);
@@ -357,8 +377,18 @@ namespace arc_sqlite {
                 if(error == "no error")
                     error = "";
             }
+#else
+            QString err;
+            QString chTable;
+            i = qtWrapper->execute(query, chTable,  err);
+#endif
+
             if(i > 0){
+#ifndef USE_QT_CREATOR
                 std::string json = std::string(chTable);
+#else
+                std::string json = chTable.toStdString();
+#endif
                 auto b_json = arcirk::bJson();
                 b_json.parse(json);
                 if(b_json.is_parse()){
@@ -762,21 +792,35 @@ namespace arc_sqlite {
         int i = 0;
 
         if(useWrapper){
-
+#ifndef USE_QT_CREATOR
             char * chTable = nullptr;
             char * err = nullptr;
             i = qtWrapper->execute(query.c_str(), &chTable,  &err);
+#else
+            QString chTable;
+            QString err;
+            i = qtWrapper->execute(query, chTable,  err);
+#endif
+
             if(i > 0){
+#ifndef USE_QT_CREATOR
                 std::string json = std::string(chTable);
+#else
+                std::string json = chTable.toStdString();
+#endif
                 auto b_json = arcirk::bJson();
                 b_json.parse(json);
                 if(b_json.is_parse()){
                     b_json.getArray(table);
                 }
             }else{
+#ifndef USE_QT_CREATOR
                 if(err){
                     error = std::string(err);
                 }
+#else
+                error = err.toStdString();
+#endif
             };
 
         }else {
@@ -854,11 +898,22 @@ namespace arc_sqlite {
         if(useWrapper){
 
             std::string query = arcirk::str_sample("SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('dbo.%1%')", table_name);
+#ifndef USE_QT_CREATOR
             char * err = nullptr;
             char * result = nullptr;
             int i = qtWrapper->execute(query.c_str(), &result, &err);
+#else
+            QString err;
+            QString result;
+            int i = qtWrapper->execute(query.c_str(), result, err);
+#endif
+
             if(i > 0){
+#ifndef USE_QT_CREATOR
                 std::string b_result = std::string(result);
+#else
+                std::string b_result = result.toStdString();
+#endif
                 auto json = arcirk::bJson();
                 json.parse(b_result);
                 if(json.is_parse() && json.IsArray()){
@@ -909,7 +964,7 @@ namespace arc_sqlite {
                           " GROUP BY FirstField, SecondField, token;", dbo, recipient);
 
         if(useWrapper){
-
+#ifndef USE_QT_CREATOR
             char * res = nullptr;
             char * err = nullptr;
             i = qtWrapper->execute(query.c_str(), &res, &err, true);
@@ -917,6 +972,16 @@ namespace arc_sqlite {
                 result = std::string(res);
             }
             error = std::string(err);
+#else
+            QString res;
+            QString err;
+            i = qtWrapper->execute(query.c_str(), res, err, true);
+            if(i > 0){
+                result = res.toStdString();
+            }
+            error = err.toStdString();
+#endif
+
 
         }else {
             sqlite3_stmt *pStmt;

@@ -101,3 +101,4 @@ tests/
 /debug-qt-static/
 /static_Debug/
 /release-qt-static/
+/ws_server/.vscode/

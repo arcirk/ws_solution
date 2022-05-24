@@ -22,8 +22,11 @@
 #include <arcirk.h>
 
 using namespace arcirk;
-
+#ifdef USE_QT_CREATOR
+class SqlInterface;
+#else
 class SqlWrapper;
+#endif
 // Forward declaration
 class websocket_session;
 
@@ -51,6 +54,7 @@ public:
             sqlite3Db->close();
             delete sqlite3Db;
         }
+
         if(sqlWrapper) {
             delete sqlWrapper;
         }
@@ -70,7 +74,11 @@ public:
 
 private:
     arc_sqlite::sqlite3_db* sqlite3Db;
+#ifdef USE_QT_CREATOR
+    SqlInterface * sqlWrapper;
+#else
     SqlWrapper * sqlWrapper;
+#endif
     std::string sql_format;
 
     _ws_message createMessage(websocket_session *session);

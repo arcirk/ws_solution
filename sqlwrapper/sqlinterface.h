@@ -15,7 +15,7 @@ const QStringList tables = {
         "Subscribers",
         "TechnicalInformation",
         "Containers",
-        "CertUsers",
+        "CertUsers"
 };
 
 class SqlInterface //: public QObject
@@ -43,6 +43,7 @@ public:
     QString tableFields(int tableIndex);
     void setIndexes(int tableIndex);
     bool verifyViews();
+    bool verifyTables();
 
     int exec(const QString& query, QString& err);
     int execute(const std::string &query, QString &table, QString &error, bool header = false);

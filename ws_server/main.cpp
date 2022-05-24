@@ -1,3 +1,8 @@
+
+#ifdef USE_QT_CREATOR
+#include <QCoreApplication>
+#endif
+
 #ifdef _WINDOWS
 #include <SDKDDKVer.h>
 #endif
@@ -17,6 +22,10 @@
 int
 main(int argc, char* argv[])
 {
+#ifdef USE_QT_CREATOR
+    QCoreApplication a(argc, argv);
+#endif
+
     setlocale(LC_ALL, "Russian");
 
     try {
@@ -47,8 +56,8 @@ main(int argc, char* argv[])
                 boost::make_shared<shared_state>(rootDir + "/html/"))->run();//, boost::make_shared<channel>())->run();
 
         // Capture SIGINT and SIGTERM to perform a clean shutdown
-        net::signal_set signals(ioc, SIGINT, SIGTERM);
-        signals.async_wait(
+        net::signal_set _signals(ioc, SIGINT, SIGTERM);
+        _signals.async_wait(
                 [&ioc](boost::system::error_code const &, int) {
                     // Stop the io_context. This will cause run()
                     // to return immediately, eventually destroying the
@@ -74,5 +83,10 @@ main(int argc, char* argv[])
     }catch (std::exception& e){
         std::cerr << e.what() << std::endl;
     }
+#ifdef USE_QT_CREATOR
+    return a.exec();
+#else
     return EXIT_SUCCESS;
+#endif
+
 }

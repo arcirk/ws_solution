@@ -7,7 +7,13 @@
 
 #include "../sqlite/sqlite3.h"
 #include <arcirk.h>
+
+#ifdef USE_QT_CREATOR
+#include "../../sqlwrapper/sqlinterface.h"
+#else
 #include "_sqlwrapper.h"
+#endif
+
 
 namespace arc_sqlite {
 
@@ -146,8 +152,12 @@ namespace arc_sqlite {
 
         int get_unread_messages(const std::string& recipient, std::string& result, std::string &err);
 
-
+#ifdef USE_QT_CREATOR
+    void set_qt_wrapper(SqlInterface * wrapper);
+#else
         void set_qt_wrapper(SqlWrapper * wrapper);
+#endif
+
 
         bool is_use_wrapper() const{return useWrapper;};
 
@@ -157,10 +167,12 @@ namespace arc_sqlite {
 
         std::string database_file;
         sqlite3* db{};
-
+#ifdef USE_QT_CREATOR
+    SqlInterface * qtWrapper;
+#else
         SqlWrapper * qtWrapper;
+#endif
         bool useWrapper;
-
         static std::string get_columns_for_query(tables tableType);
         static std::string get_table_name(tables tableType);
         static std::string get_table_name_template() { return "%TABLE_NAME%"; };
