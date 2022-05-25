@@ -81,7 +81,7 @@ bool SqlInterface::connect(const QString &driver)
 {
     bool result = false;
     try {
-        db = QSqlDatabase::addDatabase(driver,"default");
+        db = QSqlDatabase::addDatabase(driver, "arcirk");
 
         if (driver == "QSQLITE") {
             QString dbPath = QDir::fromNativeSeparators(databaseName());
@@ -109,10 +109,21 @@ bool SqlInterface::connect(const QString &driver)
 
         _driverType = driver;
 
-        //QSqlDatabase::removeDatabase("default");
-
         result = db.open();
 
+        if(result){
+            QSqlDatabase::removeDatabase("default");
+            result = verifyDatabase();
+//            if(result){
+//                db.close();
+//                db.setDatabaseName(QString("DRIVER={SQL Server};"
+//                                           "SERVER=%1;Persist Security Info=true;"
+//                                           "uid=%2;pwd=%3;DATABASE=%4").arg(host(), user(), pwd(), databaseName()));
+//                db.setConnectOptions();
+//                result = db.open();
+//                std::cout << db.databaseName().toStdString() << std::endl;
+//            }
+        }
 
     }catch (std::exception& e){
         std::cerr << e.what() << std::endl;
@@ -149,6 +160,8 @@ bool SqlInterface::verifyDatabase() {
     }
     if(isExists){
         db.exec(QString("USE [%1]").arg(databaseName()));
+//        std::cout << databaseName().toStdString() << std::endl;
+//        std::cout MM
         std::cout << QString("Connected database '%1'").arg(databaseName()).toStdString() << std::endl;
         return true;
     }
@@ -164,6 +177,9 @@ int SqlInterface::exec(const QString &query, QString& err) {
     try{
         if(!isOpen())
             return 0;
+
+        db.exec("USE " + databaseName());
+
 
         auto result = db.exec(query);
         if(result.lastError().isValid()){
@@ -191,12 +207,18 @@ bool SqlInterface::verifyTable(int tableIndex) {
     if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
         return false;
 
-    QString vTable = QString("SELECT * FROM sysobjects where  name = '%1'").arg(tables[tableIndex]);
+    db.exec(QString("USE [%1]").arg(databaseName()));
+
+    QString vTable = QString("SELECT count([name]) as [rowcount] FROM sysobjects where  name = '%1'").arg(tables[tableIndex]);
+    //std::cout << vTable.toStdString() << std::endl;
     auto sqlQuery = db.exec(vTable);
     bool isExists = false;
     while (sqlQuery.next()){
-        isExists = true;
-        break;
+        if(sqlQuery.value(0).toInt() > 0){
+            isExists = true;
+            break;
+        }
+        //std::cout << "exists table name rowcount:" + QString::number(sqlQuery.value(0).toInt()).toStdString() << std::endl;
     }
     if(!isExists){
         QString query = queryTemplate(tableIndex);
@@ -270,6 +292,13 @@ QString SqlInterface::tableFields(int tableIndex) {
                  "[uuid] [char](38) NULL,\n"
                  "[sid] [varchar](136) NULL,\n"
                  "[domain] [char](100) NULL,";
+    }else if(tableName == "WSConf"){
+        result = "[cache] [text] NULL,\n"
+                 "[host] [char](15) NULL,\n"
+                 "[port] [int] NULL";
+    }else if(tableName == "Servers"){
+        result = "[cache] [text] NULL,"
+                 "[ipadrr] [char](15) NULL";
     }
 
 
@@ -407,7 +436,7 @@ bool SqlInterface::exportTablesToSqlServer()
         return false;
 
     auto dbSqlite = QSqlDatabase::addDatabase("QSQLITE","tempSqlite");
-    QString file = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + "db.sqlite");
+    QString file = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + "base/db.sqlite");
     QFile f(file);
     if(!f.exists())
     {
@@ -484,11 +513,15 @@ bool SqlInterface::verifyTables() {
     if(!isOpen())
         return false;
 
-    bool result = false;
+    //std::cout << db.databaseName().toStdString() << std::endl;
+    //std::cout << db.hostName().toStdString() << std::endl;
+
+    //bool result = false;
     for (int i = 0; i < tables.size(); ++i) {
-        result = verifyTable(i);
-        if (!result)
-            return false;
+        //result =
+          verifyTable(i);
+//        if (!result)
+//            return false;
     }
 
     return true;

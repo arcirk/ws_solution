@@ -33,6 +33,8 @@ public:
     explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "");
     ~bWebSocket();
 
+    static QString generateHash(const QString& usr, const QString& pwd);
+
     Q_INVOKABLE void open(const QString& user_name, const QString& user_password);
     Q_INVOKABLE void close();
     Q_INVOKABLE void saveCache(const QString& jsonText);
@@ -82,6 +84,7 @@ public:
     [[nodiscard]] QString getUserName() const;
     void setUserName(const QString& name);
     [[nodiscard]] QString getHash() const;
+
     bool isStarted();
     const QString getUserUUID();
     const QString getUuidSession();

@@ -32,11 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
     currentUser->setContainers(curContainers);
 
-    m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
-    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
-    if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty())
-        m_client->options()[bConfFieldsWrapper::User] = "admin";
-
     db = QSqlDatabase::addDatabase("QODBC");
     db.setConnectOptions();
 
@@ -47,13 +42,36 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addWidget(infoBar);
     infoBar->setText("Не подключен.");
 
-    if(!_sett->server().isEmpty())
+    if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
         onReconnect(_sett, _sett->pwd());
+
+
+    m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
+    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
+    if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty()){
+        m_client->options()[bConfFieldsWrapper::User] = "admin";
+        QString hash = bWebSocket::generateHash("admin", "admin");
+        m_client->options()[bConfFieldsWrapper::Hash] = hash;
+        m_client->options().save();
+    }
+
+    connectToWsServer();
+
+    if(m_client->isStarted())
+    {
+        QString status;
+        if(db.isOpen()){
+            status = "SQL Server: " + _sett->server() + "  ";
+        }
+        status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
+        infoBar->setText(status);
+    }
 }
 
 MainWindow::~MainWindow()
 {
-    delete m_client;
+    if(m_client)
+        delete m_client;
     delete ui;
 }
 
@@ -286,6 +304,29 @@ void MainWindow::userToDatabase(const QString &name)
     {
         QMessageBox::information(this, "Пользователь", "Пользователь уже есть на севрвере!");
     }
+}
+
+void MainWindow::connectToWsServer()
+{
+    if(!db.isOpen())
+        return;
+    if(!m_client)
+        return;
+    if(m_client->isStarted())
+        return;
+
+    auto result = db.exec("select [host], [port] from dbo.WSConf;");
+    if(result.lastError().type() == QSqlError::NoError){
+        while (result.next()){
+            QString _host = result.value(0).toString();
+            int _port = result.value(1).toInt();
+            m_client->setHost(_host);
+            m_client->setPort(_port);
+            m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+        }
+
+    }
+
 }
 
 //void MainWindow::getUsersInDatabase()

@@ -24,6 +24,9 @@ shared_state(std::string doc_root)
         sql_format = "SQLITE";
     }
 
+    currentHost = conf[ServerHost].get_string();
+    currentPort = conf[ServerPort].get_int();
+
     sqlite3Db = new arc_sqlite::sqlite3_db();
 
     if(sql_format == "SQLITE"){
@@ -2431,18 +2434,36 @@ void shared_state::connect_sqlserver_database() {
 //        std::cout << "connect to sql server! " << sqlWrapper->host()  << " " << sqlWrapper->databaseName() << std::endl;
 #endif
     }
+    if(sqlResult){
 #ifndef USE_QT_CREATOR
-    char * err_ = nullptr;
-    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", &err_);
-    err = std::string(err_);
+        char * err_ = nullptr;
+        int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", &err_);
+        err = std::string(err_);
 #else
-    QString err_;
-    int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", err_);
-    err = err_.toStdString();
+        QString err_;
+        int result = sqlWrapper->exec("SELECT * FROM dbo.Users WHERE [role] = 'admin'", err_);
+        err = err_.toStdString();
+
 #endif
-    if(result == 0){
-       _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
+        if(result == 0){
+           _add_new_user("admin", "admin", "admin", "", "admin", parent, err);
+        }
+#ifdef USE_QT_CREATOR
+        err_ = "";
+        sqlWrapper->exec("TRUNCATE TABLE dbo.WSConf", err_);
+        std::string uuid = arcirk::random_uuid();
+        sqlWrapper->exec(QString("INSERT INTO [dbo].[WSConf]\n"
+                                 "(\n"
+                                 "[Ref]\n"
+                                 ",[host]\n"
+                                 ",[port])\n"
+                                 "VALUES\n"
+                                 "(\n"
+                                 "'%1'\n"
+                                 ",'%2'\n"
+                                 ",'%3');").arg(QString::fromStdString(uuid),
+                                                QString::fromStdString(currentHost),
+                                                QString::number(currentPort)), err_);
+#endif
     }
-
-
 }

@@ -15,7 +15,9 @@ const QStringList tables = {
         "Subscribers",
         "TechnicalInformation",
         "Containers",
-        "CertUsers"
+        "CertUsers",
+        "WSConf",
+        "Servers"
 };
 
 class SqlInterface //: public QObject

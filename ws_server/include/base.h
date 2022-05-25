@@ -25,7 +25,9 @@ namespace arc_sqlite {
         eSubscribers,
         eTechnicalInformation,
         eContainers,
-        eCertUsers
+        eCertUsers,
+        eWSConf,
+        eServers
     };
 #ifndef USE_QT_CREATOR
     namespace exception{

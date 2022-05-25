@@ -315,6 +315,11 @@ QString bWebSocket::getHash() const
     return settings[bConfFieldsWrapper::Hash].toString();
 }
 
+QString bWebSocket::generateHash(const QString &usr, const QString &pwd)
+{
+    return QString::fromStdString(IClient::get_hash(usr.toStdString(), pwd.toStdString()));
+}
+
 bool bWebSocket::isStarted()
 {
     if(client){

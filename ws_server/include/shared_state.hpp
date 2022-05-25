@@ -73,6 +73,8 @@ public:
     void on_start();
 
 private:
+    std::string currentHost;
+    int currentPort;
     arc_sqlite::sqlite3_db* sqlite3Db;
 #ifdef USE_QT_CREATOR
     SqlInterface * sqlWrapper;

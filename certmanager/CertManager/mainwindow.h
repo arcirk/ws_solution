@@ -73,5 +73,6 @@ private:
     bool isUserExists(const QString& name);
     void userToDatabase(const QString& name);
 
+    void connectToWsServer();
 };
 #endif // MAINWINDOW_H
