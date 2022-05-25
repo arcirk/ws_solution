@@ -48,6 +48,14 @@ private slots:
 
     void on_mnuOptions_triggered();
 
+    void onConnectionSuccess();
+    void onCloseConnection();
+    void onConnectedStatusChanged(bool status);
+    void onClientJoin(const QString& resp);
+    void onClientLeave(const QString& resp);
+    void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
+    void onDisplayError(const QString& what, const QString& err);
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;

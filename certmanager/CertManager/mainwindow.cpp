@@ -48,24 +48,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
     m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
-    if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty()){
+    //if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty()){
         m_client->options()[bConfFieldsWrapper::User] = "admin";
         QString hash = bWebSocket::generateHash("admin", "admin");
         m_client->options()[bConfFieldsWrapper::Hash] = hash;
         m_client->options().save();
-    }
+    //}
+
+    connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
+    connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
+    connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
+    connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
+    connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
+    connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
+    connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
 
     connectToWsServer();
 
-    if(m_client->isStarted())
-    {
-        QString status;
-        if(db.isOpen()){
-            status = "SQL Server: " + _sett->server() + "  ";
-        }
-        status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
-        infoBar->setText(status);
-    }
 }
 
 MainWindow::~MainWindow()
@@ -318,11 +317,12 @@ void MainWindow::connectToWsServer()
     auto result = db.exec("select [host], [port] from dbo.WSConf;");
     if(result.lastError().type() == QSqlError::NoError){
         while (result.next()){
-            QString _host = result.value(0).toString();
+            QString _host = result.value(0).toString().trimmed();
             int _port = result.value(1).toInt();
             m_client->setHost(_host);
             m_client->setPort(_port);
             m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+            break;
         }
 
     }
@@ -464,6 +464,20 @@ void MainWindow::on_mnuConnect_triggered()
 
     if(dlg->result() == QDialog::Accepted){
        onReconnect(_sett, dlg->pwd());
+       if(m_client->isStarted())
+           m_client->close();
+
+       connectToWsServer();
+
+       if(m_client->isStarted())
+       {
+           QString status;
+           if(db.isOpen()){
+               status = "SQL Server: " + _sett->server() + "  ";
+           }
+           status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
+           infoBar->setText(status);
+       }
     }
 
 }
@@ -663,5 +677,55 @@ void MainWindow::on_mnuOptions_triggered()
 
     }
 
+}
+
+void MainWindow::onConnectionSuccess()
+{
+    if(m_client->isStarted())
+    {
+        QString status;
+        if(db.isOpen()){
+            status = "SQL Server: " + _sett->server() + "  ";
+        }
+        status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
+        infoBar->setText(status);
+    }
+
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onCloseConnection()
+{
+    QString status;
+    if(db.isOpen()){
+        status = "SQL Server: " + _sett->server();
+    }
+    infoBar->setText(status);
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onConnectedStatusChanged(bool status)
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onClientJoin(const QString &resp)
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onClientLeave(const QString &resp)
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onDisplayError(const QString &what, const QString &err)
+{
+    qCritical() << __FUNCTION__ << what << ": " << err ;
 }
 

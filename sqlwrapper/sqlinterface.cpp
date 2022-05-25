@@ -170,7 +170,7 @@ bool SqlInterface::verifyDatabase() {
 
 }
 
-int SqlInterface::exec(const QString &query, QString& err) {
+int SqlInterface:: exec(const QString &query, QString& err) {
 
     err = "";
     int count = 0;

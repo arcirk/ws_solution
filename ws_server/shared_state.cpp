@@ -2464,6 +2464,9 @@ void shared_state::connect_sqlserver_database() {
                                  ",'%3');").arg(QString::fromStdString(uuid),
                                                 QString::fromStdString(currentHost),
                                                 QString::number(currentPort)), err_);
+
+        std::cout << "update currentHost:" + currentHost << std::endl;
+
 #endif
     }
 }
