@@ -75,7 +75,13 @@ MainWindow::MainWindow(QWidget *parent) :
         client->open(settings[bConfFieldsWrapper::User].toString(), "");
     }
 
-    //qDebug() << "get_std_parent_path: " << QString::fromStdString(bWebSocket::get_std_parent_path());
+    QFile f(":/osScripts/os/get_1c_users.os");
+    bool r = f.open(QIODevice::ReadOnly);
+    if(r){
+        qDebug() << QString(f.readAll());
+        f.close();
+    }
+
 }
 
 QString MainWindow::serverView(){

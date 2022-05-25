@@ -23,4 +23,7 @@
         <file>img/connect.svg</file>
         <file>img/disconnect.svg</file>
     </qresource>
+    <qresource prefix="/osScripts">
+        <file>os/get_1c_users.os</file>
+    </qresource>
 </RCC>

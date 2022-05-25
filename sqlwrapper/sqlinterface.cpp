@@ -268,7 +268,11 @@ QString SqlInterface::tableFields(int tableIndex) {
                  "[Performance] [char](150) NULL,\n"
                  "[channel] [char](36) NOT NULL,\n"
                  "[parent] [char](36) NULL,\n"
-                 "[cache] [text] NULL,";
+                 "[cache] [text] NULL,\n"
+                 "[isGroup] [int] NOT NULL,"
+                 "[block] [int] NOT NULL,"
+                 "[allowСhat] [int] NOT NULL,"
+                 "[deletionMark] [int] NOT NULL,";
     }else if(tableName == "Channels"){
         result = "[parent] [char](36) NOT NULL,\n"
                  "[cache] [text] NULL,";
@@ -310,6 +314,10 @@ void SqlInterface::setIndexes(int tableIndex) {
     const QString& tableName = tables[tableIndex];
     if(tableName == "Users"){
         db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_channel]  DEFAULT (((((0)-(0))-(0))-(0))-(0)) FOR [channel]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_isGroup]  DEFAULT ((0)) FOR [isGroup]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_block]  DEFAULT ((0)) FOR [block]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_allowСhat]  DEFAULT ((1)) FOR [allowСhat]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_deletionMark]  DEFAULT ((0)) FOR [deletionMark]");
     }else if(tableName == "Channels"){
         db.exec("ALTER TABLE [dbo].[Channels] ADD  CONSTRAINT [DF_Channels_Parent]  DEFAULT (((((0)-(0))-(0))-(0))-(0.)) FOR [Parent]");
     }else if(tableName == "Messages"){
