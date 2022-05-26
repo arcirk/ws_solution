@@ -26,7 +26,10 @@ enum bConfFieldsWrapper{
     SQLFormat,
     SQLHost,
     SQLUser,
-    SQLPassword
+    SQLPassword,
+    HSHost,
+    HSUser,
+    HSPassword
 };
 
 class ClientSettings{

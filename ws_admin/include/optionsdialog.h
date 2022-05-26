@@ -72,6 +72,12 @@ private slots:
 
     void on_toolButton_toggled(bool checked);
 
+    void on_lineHsHost_textChanged(const QString &arg1);
+
+    void on_lineHsUser_textChanged(const QString &arg1);
+
+    void on_btnHsPassView_toggled(bool checked);
+
 private:
     Ui::OptionsDialog *ui;
     ClientSettings settings;;

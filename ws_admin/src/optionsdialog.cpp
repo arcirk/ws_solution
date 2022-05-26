@@ -69,6 +69,15 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     }
     ui->lineSqlPassword->setText(pass);
 
+    ui->lineHsHost->setText(settings[bConfFieldsWrapper::HSHost].toString());
+    ui->lineHsUser->setText(settings[bConfFieldsWrapper::HSUser].toString());
+    dPwd = settings[bConfFieldsWrapper::HSPassword].toString().toStdString();
+    pass = "";
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    ui->lineHsPassword->setText(pass);
+
     settings.password = "***";
 
 
@@ -120,6 +129,14 @@ void OptionsDialog::on_OptionsDialog_accepted()
     }
     settings[bConfFieldsWrapper::SQLPassword] = pass;
     settings[bConfFieldsWrapper::SQLFormat] = ui->cmbFormatDb->currentText();
+
+    pass = "";
+     dPwd = ui->lineHsPassword->text().toStdString();
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    settings[bConfFieldsWrapper::HSPassword] = pass;
+
     settings.save();
 }
 
@@ -299,5 +316,26 @@ void OptionsDialog::on_toolButton_toggled(bool checked)
     QString iconPath = checked ? ":/images/img/viewPwd.svg" : ":/images/img/viewPwd1.svg";
     ui->toolButton->setIcon(QIcon(iconPath));
     ui->lineSqlPassword->setEchoMode(echoMode);
+}
+
+
+void OptionsDialog::on_lineHsHost_textChanged(const QString &arg1)
+{
+    settings[bConfFieldsWrapper::HSHost] = ui->lineHsHost->text();
+}
+
+
+void OptionsDialog::on_lineHsUser_textChanged(const QString &arg1)
+{
+    settings[bConfFieldsWrapper::HSUser] = ui->lineHsUser->text();
+}
+
+
+void OptionsDialog::on_btnHsPassView_toggled(bool checked)
+{
+    auto echoMode = checked ? QLineEdit::Normal : QLineEdit::Password;
+    QString iconPath = checked ? ":/images/img/viewPwd.svg" : ":/images/img/viewPwd1.svg";
+    ui->btnHsPassView->setIcon(QIcon(iconPath));
+    ui->lineHsPassword->setEchoMode(echoMode);
 }
 

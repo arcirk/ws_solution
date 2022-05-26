@@ -7,6 +7,7 @@
 #include <clientsettings.h>
 #include <qmlwebsocket.h>
 #include "include/userdialog.h"
+#include "httpservice.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -45,6 +46,7 @@ private slots:
     void onSetUserParent(const QString& resp);
     void onClientLeave(const QString& resp);
     void onClientJoin(const QString& resp);
+    void onReplyFinished(QNetworkReply* reply);
 
     void on_treeSrvObjects_itemSelectionChanged();
     void on_treeChannels_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
@@ -75,6 +77,8 @@ private slots:
 
     void on_mnuExportData_triggered();
 
+    void on_mnuImportUsersFrom1C_triggered();
+
 private:
     Ui::MainWindow *ui;
     ClientSettings settings;
@@ -83,6 +87,7 @@ private:
     QLabel* lblStatusSocket;
     bWebSocket* client;
     bool isServiceStarted;
+    HttpService * httpService;
 
     QTreeWidget* treeServerObjects;
     QTableWidget * listChildServerObjects;
@@ -104,6 +109,9 @@ private:
     void fillTreeGroup(QSortFilterProxyModel* model, QTreeWidgetItem* root, QMap<QString, int> header);
 
     std::string user_change_request_parameters(Ui::user_info *usr_info);
+
+    bool responseResultHsService(const QString& result);
+
 };
 
 #endif // MAINWINDOW_H

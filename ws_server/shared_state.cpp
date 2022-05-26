@@ -481,6 +481,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 5;
     else if (command == "export_tables_to_ext")
         return params == 1;
+    else if (command == "sync_users")
+        return params == 1;
     else
         return false;
 }
@@ -522,6 +524,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("get_channel_token");
     commands.emplace_back("set_sql_settings");
     commands.emplace_back("export_tables_to_ext");
+    commands.emplace_back("sync_users");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -593,6 +596,9 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::set_sql_settings, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "export_tables_to_ext")
         return  std::bind(&shared_state::export_tables_to_ext, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "sync_users")
+        return  std::bind(&shared_state::sync_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+
     else
        return nullptr;
 }
@@ -2299,6 +2305,34 @@ bool shared_state::export_tables_to_ext(boost::uuids::uuid &uuid, arcirk::bJson 
     _result = sqlite3Db->export_tables();
 
     return _result;
+}
+
+bool shared_state::sync_users(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                                              std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+    if (current_sess->get_role() != "admin"){
+        err = "не достаточно прав доступа для команды!";
+        return false;
+    }
+
+    arcirk::bVariant var_table;
+
+    if (params->getMember("table", var_table)){
+        sqlite3Db->sync_users(var_table.to_string());
+        return true;
+    }
+
+    return false;
 }
 
 void shared_state::connect_sqlite_database() {

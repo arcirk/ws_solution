@@ -28,6 +28,18 @@ QString ServeResponse::base64_decode(const std::string &resp)
     return QString::fromStdString(json);
 }
 
+QString ServeResponse::base64_encode(const std::string &resp)
+{
+    std::string json;
+    try {
+        json = IClient::base64_encode(resp);
+    }  catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return "";
+    }
+
+    return QString::fromStdString(json);
+}
 void ServeResponse::parse(const QString& resp){
 
 

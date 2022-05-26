@@ -292,6 +292,12 @@
      <addaction name="mnuImportData"/>
      <addaction name="mnuExportData"/>
     </widget>
+    <widget class="QMenu" name="menu1C">
+     <property name="title">
+      <string>1C</string>
+     </property>
+     <addaction name="mnuImportUsersFrom1C"/>
+    </widget>
     <addaction name="mnuOptions"/>
     <addaction name="separator"/>
     <addaction name="mnuConnect"/>
@@ -305,6 +311,8 @@
     <addaction name="mnuInstallService"/>
     <addaction name="separator"/>
     <addaction name="menu_3"/>
+    <addaction name="separator"/>
+    <addaction name="menu1C"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -428,6 +436,11 @@
    </property>
    <property name="toolTip">
     <string>Загрузить данные из локальной базы данных</string>
+   </property>
+  </action>
+  <action name="mnuImportUsersFrom1C">
+   <property name="text">
+    <string>Импорт справочника пользователи</string>
    </property>
   </action>
  </widget>

@@ -4,7 +4,7 @@
 #include "include/groupdialog.h"
 #include "include/selectgroupdialog.h"
 #include "include/aboutdialog.h"
-
+#include <serveresponse.h>
 #include <QAbstractItemModel>
 
 #ifdef _WINDOWS
@@ -75,12 +75,17 @@ MainWindow::MainWindow(QWidget *parent) :
         client->open(settings[bConfFieldsWrapper::User].toString(), "");
     }
 
-    QFile f(":/osScripts/os/get_1c_users.os");
-    bool r = f.open(QIODevice::ReadOnly);
-    if(r){
-        qDebug() << QString(f.readAll());
-        f.close();
-    }
+    QString httpPwd = settings[bConfFieldsWrapper::HSPassword].toString();
+    if(!httpPwd.isEmpty())
+        httpPwd = QString::fromStdString(ClientSettings::crypt(httpPwd.toStdString(), "my_key"));
+    else
+        httpPwd = "";
+    httpService = new HttpService(this, settings[bConfFieldsWrapper::HSHost].toString(),
+            settings[bConfFieldsWrapper::HSUser].toString(),
+            httpPwd);
+
+    connect(httpService, SIGNAL(finished(QNetworkReply*)),
+            this, SLOT(onReplyFinished(QNetworkReply*)));
 
 }
 
@@ -170,6 +175,14 @@ void MainWindow::on_mnuOptions_triggered()
             client->setSqlOptions();
         }
         fillTree(client->isStarted());
+        httpService->setHttpHost(settings[bConfFieldsWrapper::HSHost].toString());
+        httpService->setHttpUser(settings[bConfFieldsWrapper::HSUser].toString());
+        QString httpPwd = settings[bConfFieldsWrapper::HSPassword].toString();
+        if(!httpPwd.isEmpty())
+            httpPwd = QString::fromStdString(ClientSettings::crypt(httpPwd.toStdString(), "my_key"));
+        else
+            httpPwd = "";
+        httpService->setHttpPassword(httpPwd);
     }
 
 }
@@ -595,6 +608,21 @@ void MainWindow::onClientJoin(const QString &resp)
         fillList(currentNode);
 }
 
+void MainWindow::onReplyFinished(QNetworkReply *reply)
+{
+    QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+       if(status_code.isValid()){
+           int status = status_code.toInt();
+           if(status != 200)
+                qDebug() << __FUNCTION__ << "Error: " << status << " " + reply->errorString() ;
+           else
+           {
+               QByteArray data = reply->readAll();
+               responseResultHsService(data);
+           }
+       }
+}
+
 void MainWindow::on_btnAddGroup_clicked()
 {
     auto * info = new Ui::group_info();
@@ -776,6 +804,19 @@ std::string MainWindow::user_change_request_parameters(Ui::user_info *usr_info) 
 
 }
 
+bool MainWindow::responseResultHsService(const QByteArray &result)
+{
+    auto doc = QJsonDocument::fromJson(result);
+    if(!doc.isEmpty()){
+        auto obj = doc.object();
+        auto itr = obj.find("comand");
+        if(itr != obj.end()){
+            QString cmd = itr.value().toString();
+
+        }
+    }
+}
+
 void MainWindow::on_btnDeleteUser_clicked()
 {
     QTableWidgetItem * item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
@@ -892,5 +933,11 @@ void MainWindow::on_mnuExportData_triggered()
     if(client->isStarted()){
         client->sendCommand("export_tables_to_ext");
     }
+}
+
+
+void MainWindow::on_mnuImportUsersFrom1C_triggered()
+{
+    httpService->request("getUsers");
 }
 

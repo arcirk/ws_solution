@@ -41,7 +41,10 @@ const std::string bFieldsStr[] = {
         "SQLFormat",
         "SQLHost",
         "SQLUser",
-        "SQLPassword"};
+        "SQLPassword",
+        "HSHost",
+        "HSUser",
+        "HSPassword"};
 
 namespace arcirk{
 
@@ -155,6 +158,9 @@ namespace arcirk{
         m_vec[bConfFields::SQLUser] = "sa";
         m_vec[bConfFields::SQLPassword] = "";
         m_vec[bConfFields::SQLHost] = "";
+        m_vec[bConfFields::HSHost] = "";
+        m_vec[bConfFields::HSUser] = "";
+        m_vec[bConfFields::HSPassword] = "";
     }
 
     void bConf::save() {

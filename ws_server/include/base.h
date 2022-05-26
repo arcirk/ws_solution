@@ -159,6 +159,8 @@ namespace arc_sqlite {
 
         int get_unread_messages(const std::string& recipient, std::string& result, std::string &err);
 
+        void sync_users(const std::string& resp);
+
 #ifdef USE_QT_CREATOR
     void set_qt_wrapper(SqlInterface * wrapper);
 #else

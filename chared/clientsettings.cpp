@@ -33,7 +33,10 @@ QStringList bFieldsStr = {
         "SQLFormat",
         "SQLHost",
         "SQLUser",
-        "SQLPassword"};
+        "SQLPassword",
+        "HSHost",
+        "HSUser",
+        "HSPassword"};
 
 
 QString ClientSettings::confFileName() const {
@@ -160,6 +163,9 @@ void ClientSettings::init(bool server) {
     m_vec[bConfFieldsWrapper::SQLUser] = "sa";
     m_vec[bConfFieldsWrapper::SQLPassword] = "";
     m_vec[bConfFieldsWrapper::SQLHost] = "";
+    m_vec[bConfFieldsWrapper::HSHost] = "";
+    m_vec[bConfFieldsWrapper::HSUser] = "";
+    m_vec[bConfFieldsWrapper::HSPassword] = "";
 }
 
 void ClientSettings::save() {

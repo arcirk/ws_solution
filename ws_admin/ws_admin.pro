@@ -5,6 +5,7 @@ QT += network
 CONFIG += c++17
 
 SOURCES += \
+        httpservice.cpp \
         main.cpp \
         ../chared/clientsettings.cpp \
         ../chared/qmlwebsocket.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     ../chared/qmlwebsocket.h \
     ../chared/qwebdav.h \
     ../chared/serveresponse.h \
+    httpservice.h \
     include/optionsdialog.h \
     include/groupdialog.h \
     include/userdialog.h \

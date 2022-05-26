@@ -1273,6 +1273,35 @@ namespace arc_sqlite {
         return true;
     }
 
+    void sqlite3_db::sync_users(const std::string &resp){
+
+        auto doc = arcirk::bJson();
+        doc.parse(resp);
+        if(!doc.is_parse())
+            return;
+
+        std::vector<std::vector<arcirk::content_value>> arr;
+        doc.getMembers("rows", arr);
+
+        for (auto itr : arr) {
+            std::string err;
+            std::string ref;
+
+            std::vector<arcirk::content_value> _ref;
+
+            for(auto item : itr){
+                if(item.key == "Ref"){
+                    ref = item.value.get_string();
+                    _ref.push_back(arcirk::content_value("Ref", ref));
+                    break;
+                }
+            }
+            bool result = insert(tables::eUsers, itr, err, ref);
+            if(result && !ref.empty())
+                update(tables::eUsers, itr, _ref, err);
+
+        }
+    }
 
 
 }

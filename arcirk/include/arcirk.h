@@ -128,10 +128,14 @@ namespace arcirk{
         static bool getMembers(_Document *doc, const std::string &member, std::vector<content_value> &value);
         static bool getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, std::string>> &values);
         static bool getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values);
+        static bool getMembers(_Document *doc, const std::string &member, std::vector<std::map<std::string, content_value>> &values);
+        static bool getMembers(_Document *doc, const std::string &member, std::vector<std::vector<content_value>> &values);
 
         bool getMembers(const std::string &member, std::vector<content_value> &value);
         bool getMembers(const std::string &member, std::vector<std::map<std::string, std::string>> &values);
         bool getMembers(const std::string &member, std::vector<std::map<std::string, arcirk::bVariant>> &values);
+        bool getMembers(const std::string &member, std::vector<std::map<std::string, content_value>> &values);
+        bool getMembers(const std::string &member, std::vector<std::vector<content_value>> &values);
 
         bool getArray(std::vector<std::map<std::string, std::string>> &values);
         static bool getArray(_Document *doc, std::vector<std::map<std::string, std::string>> &values);
@@ -276,7 +280,10 @@ namespace arcirk{
         SQLFormat,
         SQLHost,
         SQLUser,
-        SQLPassword
+        SQLPassword,
+        HSHost,
+        HSUser,
+        HSPassword
     };
 
     class bConf{
