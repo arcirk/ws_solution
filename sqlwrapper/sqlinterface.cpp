@@ -272,7 +272,11 @@ QString SqlInterface::tableFields(int tableIndex) {
                  "[isGroup] [int] NOT NULL,"
                  "[block] [int] NOT NULL,"
                  "[allowСhat] [int] NOT NULL,"
-                 "[deletionMark] [int] NOT NULL,";
+                 "[deletionMark] [int] NOT NULL,"
+                 "[FullName] [text] NULL,"
+                 "[LastName] [text] NULL,"
+                 "[FirstName] [text] NULL,"
+                 "[Reporting] [text] NULL,";
     }else if(tableName == "Channels"){
         result = "[parent] [char](36) NOT NULL,\n"
                  "[cache] [text] NULL,";
@@ -313,13 +317,16 @@ void SqlInterface::setIndexes(int tableIndex) {
 
     const QString& tableName = tables[tableIndex];
     if(tableName == "Users"){
-        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_channel]  DEFAULT (((((0)-(0))-(0))-(0))-(0)) FOR [channel]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_hash]  DEFAULT ('0') FOR [hash]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_role]  DEFAULT ('user') FOR [role]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_channel]  DEFAULT ('00000000-0000-0000-0000-000000000000') FOR [channel]");
+        db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_parent]  DEFAULT ('00000000-0000-0000-0000-000000000000') FOR [parent]");
         db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_isGroup]  DEFAULT ((0)) FOR [isGroup]");
         db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_block]  DEFAULT ((0)) FOR [block]");
         db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_allowСhat]  DEFAULT ((1)) FOR [allowСhat]");
         db.exec("ALTER TABLE [dbo].[Users] ADD  CONSTRAINT [DF_Users_deletionMark]  DEFAULT ((0)) FOR [deletionMark]");
     }else if(tableName == "Channels"){
-        db.exec("ALTER TABLE [dbo].[Channels] ADD  CONSTRAINT [DF_Channels_Parent]  DEFAULT (((((0)-(0))-(0))-(0))-(0.)) FOR [Parent]");
+        db.exec("ALTER TABLE [dbo].[Channels] ADD  CONSTRAINT [DF_Channels_Parent]  DEFAULT ('00000000-0000-0000-0000-000000000000') FOR [Parent]");
     }else if(tableName == "Messages"){
         db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_contentType]  DEFAULT ('HTML') FOR [contentType]");
         db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_unreadMessages]  DEFAULT ((0)) FOR [unreadMessages]");

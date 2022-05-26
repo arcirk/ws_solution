@@ -152,6 +152,11 @@ void bWebSocket::resetUnreadMsgFromData(const QString &sender)
 
 void bWebSocket::ext_message(const std::string &msg)
 {
+    if(msg == "exit_thread"){
+        emit connectedStatusChanged(false);
+        return;
+    }
+
     QString resp = ServeResponse::base64_decode(msg);
     //qDebug() << QString::fromStdString(msg);
 

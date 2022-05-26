@@ -480,6 +480,35 @@ namespace arcirk{
                     values.push_back(_value);
                 }
 
+            }else if (itr->value.IsArray()) {
+
+                for (auto item = itr->value.Begin(); item != itr->value.End(); item++) {
+
+                    std::vector<content_value> row;
+
+                    for (_Value::ConstMemberIterator m = item->MemberBegin(); m != item->MemberEnd(); m++) {
+
+                        std::string key = m->name.GetString();
+                        bVariant value;
+
+                        if (m->value.IsInt()) {
+                            long int intVal = m->value.GetInt();
+                            value = std::to_string(intVal);
+                        } else if (m->value.IsString()) {
+                            value = m->value.GetString();
+                        } else if (m->value.IsBool()) {
+                            bool boolVal = m->value.GetBool();
+                            value = std::to_string(boolVal);
+                        } else {
+                            value = "";
+                        }
+
+                        row.push_back(content_value(key, value));
+
+                    }
+
+                    values.push_back(row);
+                }
             }
 
         }

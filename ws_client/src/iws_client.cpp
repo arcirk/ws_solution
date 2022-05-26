@@ -130,6 +130,9 @@ void IClient::start() {
     std::cout << "IClient::start: exit client thread" << std::endl;
 
     if(client){
+        if(callback_msg){
+            callback_msg("exit_thread");
+        }
         delete client;
         client = nullptr;
     }

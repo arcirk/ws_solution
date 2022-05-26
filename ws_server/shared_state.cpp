@@ -482,7 +482,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "export_tables_to_ext")
         return params == 1;
     else if (command == "sync_users")
-        return params == 1;
+        return params == 2;
     else
         return false;
 }
@@ -2325,14 +2325,9 @@ bool shared_state::sync_users(boost::uuids::uuid &uuid, arcirk::bJson *params, w
         return false;
     }
 
-    arcirk::bVariant var_table;
+    sqlite3Db->sync_users(params->to_string());
 
-    if (params->getMember("table", var_table)){
-        sqlite3Db->sync_users(var_table.to_string());
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 void shared_state::connect_sqlite_database() {

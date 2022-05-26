@@ -110,7 +110,7 @@ private:
 
     std::string user_change_request_parameters(Ui::user_info *usr_info);
 
-    bool responseResultHsService(const QString& result);
+    bool responseResultHsService(const QByteArray& result);
 
 };
 

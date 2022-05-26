@@ -310,7 +310,7 @@ void MainWindow::on_mnuStatusService_triggered()
 }
 
 void MainWindow::onConnectedStatusChanged(bool status) {
-    //qDebug() << "connection status: " << status;
+    qDebug() << __FUNCTION__ << status;
     QString wsStatus = status ? "Активное" : "Не активное";
     lblStatusSocket->setText("Статус подключения: " + wsStatus);
     fillTree(status);
@@ -809,12 +809,21 @@ bool MainWindow::responseResultHsService(const QByteArray &result)
     auto doc = QJsonDocument::fromJson(result);
     if(!doc.isEmpty()){
         auto obj = doc.object();
-        auto itr = obj.find("comand");
+        auto itr = obj.find("command");
         if(itr != obj.end()){
             QString cmd = itr.value().toString();
+            if(cmd == "getUsers"){
+                if(client) {
+                    if(client->isStarted()){
+                        client->sendCommand("sync_users", bWebSocket::nilUuid(), QString::fromStdString(result.toStdString()));
+                    }
+                }
+            }
 
         }
-    }
+    }else
+        return false;
+    return true;
 }
 
 void MainWindow::on_btnDeleteUser_clicked()

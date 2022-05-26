@@ -1296,9 +1296,15 @@ namespace arc_sqlite {
                     break;
                 }
             }
+            itr.push_back(arcirk::content_value("hash", "0"));
             bool result = insert(tables::eUsers, itr, err, ref);
-            if(result && !ref.empty())
+            if(result && !ref.empty()){
+                itr.resize(itr.size() - 1);
                 update(tables::eUsers, itr, _ref, err);
+            }
+
+
+
 
         }
     }
