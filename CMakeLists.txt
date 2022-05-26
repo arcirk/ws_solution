@@ -15,4 +15,3 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/sqlwrapper" "${PROJECT_SOURCE_DIR}/sqlwr
 #add_subdirectory("tests/bconf" "${PROJECT_SOURCE_DIR}bconf/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/wdc" "${PROJECT_SOURCE_DIR}/wdc/cmake-build-debug")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/tests/client_sync" "${PROJECT_SOURCE_DIR}/tests/client_sync/cmake-build-debug")
-add_subdirectory("${PROJECT_SOURCE_DIR}/win_service" "${PROJECT_SOURCE_DIR}/win_service/cmake-build-debug")

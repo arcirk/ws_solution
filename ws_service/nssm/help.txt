@@ -1,0 +1,5 @@
+https://windowsnotes.ru/programs/kak-zapustit-prilozhenie-v-vide-sluzhby-windows/
+
+http://nssm.cc/download
+
+http://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip
