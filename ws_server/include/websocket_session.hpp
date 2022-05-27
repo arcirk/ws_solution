@@ -80,9 +80,12 @@ public:
     void set_agent(websocket_session* sess);
 
     void deadline_cancel();
+
+    std::string ip_address() const;
+
 private:
 
-    std::string ip_address = "0.0.0.0";
+    std::string _ip_address = "0.0.0.0";
     std::string port = "0";
     steady_timer deadline_;
 
@@ -91,7 +94,7 @@ private:
     void
     on_close(beast::error_code ec);
 
-    std::string get_ip_address();
+
 
     void check_deadline();
 

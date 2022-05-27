@@ -303,10 +303,11 @@ QString SqlInterface::tableFields(int tableIndex) {
     }else if(tableName == "WSConf"){
         result = "[cache] [text] NULL,\n"
                  "[host] [char](15) NULL,\n"
-                 "[port] [int] NULL";
+                 "[port] [int] NULL,";
     }else if(tableName == "Servers"){
         result = "[cache] [text] NULL,"
-                 "[ipadrr] [char](15) NULL";
+                 "[ipadrr] [char](15) NULL,"
+                 "[isServer] [int] NOT NULL,";
     }
 
 
@@ -330,6 +331,8 @@ void SqlInterface::setIndexes(int tableIndex) {
     }else if(tableName == "Messages"){
         db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_contentType]  DEFAULT ('HTML') FOR [contentType]");
         db.exec("ALTER TABLE [dbo].[Messages] ADD  CONSTRAINT [DF_Messages_unreadMessages]  DEFAULT ((0)) FOR [unreadMessages]");
+    }else if(tableName == "Servers"){
+        db.exec("ALTER TABLE [dbo].[Servers] ADD  CONSTRAINT [DF_Servers_isServer]  DEFAULT ((0)) FOR [isServer]");
     }
 
 }
@@ -464,6 +467,8 @@ bool SqlInterface::exportTablesToSqlServer()
     if(!dbSqlite.open())
         return false;
 
+    //QSqlDatabase::database().transaction();
+
     for (int itr = 0; itr < tables.size(); ++itr) {
         QString table = tables[itr];
         QString query = QString("select * from %1;").arg(table);
@@ -518,6 +523,7 @@ bool SqlInterface::exportTablesToSqlServer()
     }
 
     dbSqlite.close();
+    //QSqlDatabase::database().commit();
     QSqlDatabase::removeDatabase("tempSqlite");
 
     return true;

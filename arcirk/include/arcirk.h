@@ -206,6 +206,7 @@ namespace arcirk{
         std::string         channel_name;
         std::string         object_name;
         std::string         msg_ref;
+        std::string         ip_address;
 
         _ws_message();
 
@@ -229,6 +230,7 @@ namespace arcirk{
         void set_channel_name(bVariant& val);
         void set_object_name(bVariant& val);
         void set_msg_ref(bVariant& val);
+        void set_ip_address(bVariant& val);
 
         setFun get_set_function(const std::string& nameField);
 

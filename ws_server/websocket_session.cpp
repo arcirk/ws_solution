@@ -12,7 +12,7 @@ websocket_session(tcp::socket&& socket, boost::shared_ptr<shared_state>  state)
 {
     boost::beast::error_code ec;
     auto remote = ws_.next_layer().socket().remote_endpoint(ec);
-    ip_address = remote.address().to_string();
+    _ip_address = remote.address().to_string();
     port = std::to_string(remote.port());
     uuid_ = boost::uuids::random_generator()();
     join_channel(this);
@@ -177,9 +177,9 @@ on_write(beast::error_code ec, std::size_t)
                         shared_from_this()));
 }
 
-std::string websocket_session::get_ip_address() {
+std::string websocket_session::ip_address() const{
 
-    return ip_address;
+    return _ip_address;
 }
 
 void

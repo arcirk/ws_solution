@@ -119,6 +119,7 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _message.app_name = session->get_app_name();
     _message.uuid_user = session->get_user_uuid();
     _message.role = session->get_role();
+    _message.ip_address = session->ip_address();
     std::cout << _message.uuid << std::endl;
     return _message;
 }
@@ -746,6 +747,7 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
             json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
             json_arr.addMember(&doc, arcirk::content_value("app_name", p.second->get_app_name()));
             json_arr.addMember(&doc, arcirk::content_value("user_name", p.second->get_name()));
+            json_arr.addMember(&doc, arcirk::content_value("ip_address", p.second->ip_address()));
             json_arr.push_back(doc) ;
         }
     }else{
@@ -764,6 +766,7 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
             object.emplace_back(arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
             object.emplace_back(arcirk::content_value("app_name", p.second->get_app_name()));
             object.emplace_back(arcirk::content_value("user_name", p.second->get_name()));
+            object.emplace_back(arcirk::content_value("ip_address", p.second->ip_address()));
             users.insert(std::pair<boost::uuids::uuid, std::vector<content_value>>(uuid_, object));
         }
 

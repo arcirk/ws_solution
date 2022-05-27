@@ -124,6 +124,8 @@ QString ServeResponse::to_string() const
     msg.insert("recipientName", recipientName);
     msg.insert("app_name", app_name);
     msg.insert("uuid_session", uuid_session);
+    msg.insert("ip_address", ip_address);
+
     return QJsonDocument(msg).toJson(QJsonDocument::Indented);
 }
 

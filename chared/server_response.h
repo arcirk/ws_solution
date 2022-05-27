@@ -18,6 +18,7 @@ public:
     std::string recipientName;
     std::string app_name;
     std::string uuid_form;
+    std::string ip_address;
 
     static arcirk::bJson parseResp(const std::string& resp);
 

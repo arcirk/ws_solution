@@ -17,6 +17,12 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+enum sqlCommand{
+    sqlInsert = 0,
+    sqlUpdate,
+    sqlDelete
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -28,17 +34,13 @@ public:
 private slots:
     void on_mnuExit_triggered();
 
-    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
-
-    void on_tableWidget_cellDoubleClicked(int row, int column);
-
     void onReconnect(settings * sett, const QString& pwd);
 
     void on_mnuConnect_triggered();
 
     void on_btnAdd_clicked();
 
-    void on_tableWidget_itemClicked(QTableWidgetItem *item);
+    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
     void on_btnToDatabase_clicked();
 
@@ -55,6 +57,13 @@ private slots:
     void onClientLeave(const QString& resp);
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
+    void UpdateRowIcons();
+
+    void on_tableView_doubleClicked(const QModelIndex &index);
+
+    void on_tableView_clicked(const QModelIndex &index);
+
+    void on_btnEdit_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -80,7 +89,14 @@ private:
     bool isContainerExists(const QString& name);
     bool isUserExists(const QString& name);
     void userToDatabase(const QString& name);
-
+    void loadCimputers();
     void connectToWsServer();
+
+    bool insertSqlTableRow(const QString& table, QMap<QString, QVariant>& vals, const QString& ref = "");
+    bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
+    bool deleteSqlTableRow(const QString& table, const QString& ref);
+    QString queryText(const QString& table, QMap<QString, QVariant>& values,
+                        sqlCommand command, const QString& not_ref);
+
 };
 #endif // MAINWINDOW_H

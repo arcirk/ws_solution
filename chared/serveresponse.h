@@ -25,6 +25,7 @@ public:
     QString contentType;
     QString recipientName;
     QString app_name;
+    QString ip_address;
 
     static QJsonDocument parseResp(const QString& resp);
 

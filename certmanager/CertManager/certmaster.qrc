@@ -17,5 +17,8 @@
         <file>img/externalDataTable.png</file>
         <file>img/checked.png</file>
         <file>img/installToUser.png</file>
+        <file>img/computers.ico</file>
+        <file>img/desktop.ico</file>
+        <file>img/server.ico</file>
     </qresource>
 </RCC>

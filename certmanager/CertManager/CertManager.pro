@@ -15,6 +15,7 @@ SOURCES += \
     ../../chared/qmlwebsocket.cpp \
     ../../chared/qwebdav.cpp \
     ../../chared/serveresponse.cpp \
+    dialogcomputer.cpp \
     dialogconnection.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     ../../chared/qmlwebsocket.h \
     ../../chared/qwebdav.h \
     ../../chared/serveresponse.h \
+    dialogcomputer.h \
     dialogconnection.h \
     dialogoptions.h \
     dialogselectdevice.h \
@@ -42,6 +44,7 @@ HEADERS += \
     user.h
 
 FORMS += \
+    dialogcomputer.ui \
     dialogconnection.ui \
     dialogoptions.ui \
     dialogselectdevice.ui \

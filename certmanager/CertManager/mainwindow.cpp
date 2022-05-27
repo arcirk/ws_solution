@@ -10,6 +10,9 @@
 #include <QPixmap>
 #include "dialogoptions.h"
 #include <clientsettings.h>
+#include <QSqlQueryModel>
+#include <dialogcomputer.h>
+#include <QSqlError>
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
@@ -90,6 +93,7 @@ void MainWindow::createTree()
     curr_user->setToolTip(0, QString("Текущий пользователь (%1)").arg(usrName));
     curr_user->setIcon(0, QIcon(":/img/userOptions.ico"));
     root->addChild(curr_user);
+
     auto * currUserReg = new QTreeWidgetItem();
     currUserReg->setText(0, "Реестр");
     currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
@@ -115,46 +119,53 @@ void MainWindow::createTree()
     users->setIcon(0, QIcon(":/img/bootloader_users_person_people_6080.ico"));
     server->addChild(users);
 
+    auto * comps = new QTreeWidgetItem();
+    comps->setText(0, "Компьютеры");
+    comps->setIcon(0, QIcon(":/img/computers.ico"));
+    root->addChild(comps);
+
     tree->expandAll();
 }
 
 void MainWindow::createRootList()
 {
-    auto table = ui->tableWidget;
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+    auto model = new QStandardItemModel(this);
 
-    table->setColumnCount(1);
-    table->setRowCount(3);
+    model->setColumnCount(1);
+    model->setRowCount(3);
+
     QStringList cols = {"root"};
-    table->setHorizontalHeaderLabels(cols);
+    model->setHorizontalHeaderLabels(cols);
 
-    auto itemKeys = new QTableWidgetItem("Контейнеры");
+    auto itemKeys = new QStandardItem("Контейнеры");
     itemKeys->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
     itemKeys->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-    table->setItem(0, 0, itemKeys);
-    auto itemCerts = new QTableWidgetItem("Сертификаты");
+    model->setItem(0, 0, itemKeys);
+    auto itemCerts = new QStandardItem("Сертификаты");
     itemCerts->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
     itemCerts->setIcon(QIcon(":/img/certificate.ico"));
-    table->setItem(1, 0, itemCerts);
-    auto itemUsers = new QTableWidgetItem("Пользователи");
+    model->setItem(1, 0, itemCerts);
+    auto itemUsers = new QStandardItem("Пользователи");
     itemUsers->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
     itemUsers->setIcon(QIcon(":/img/bootloader_users_person_people_6080.ico"));
-    table->setItem(2, 0, itemUsers);
+    model->setItem(2, 0, itemUsers);
 
+    table->setModel(model);
     table->resizeColumnsToContents();
 
 }
 
 void MainWindow::loadContainersList()
 {
-    auto table = ui->tableWidget;
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto tableView = ui->tableView;
+    tableView->setModel(nullptr);
+    auto table = new QStandardItemModel(this);
     table->setColumnCount(2);
     QStringList cols = {"Наименование", "id"};
     table->setHorizontalHeaderLabels(cols);
-    table->setColumnHidden(1, true);
+
 
     if(db.isOpen()){
         QSqlQuery query("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]");
@@ -163,41 +174,40 @@ void MainWindow::loadContainersList()
             table->setRowCount(table->rowCount()+ 1);
             int id = query.value(0).toInt();
             QString name = query.value(1).toString().trimmed();
-            auto itemTable = new QTableWidgetItem(name);
+            auto itemTable = new QStandardItem(name);
             itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
             //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
             table->setItem(i, 0, itemTable);
-            auto itemId = new QTableWidgetItem(QString::number(id));
+            auto itemId = new QStandardItem(QString::number(id));
             itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
             table->setItem(i, 1, itemId);
             i++;
         }
     }
 
-    table->resizeColumnsToContents();
+    tableView->setModel(table);
+    tableView->setColumnHidden(1, true);
+    tableView->resizeColumnsToContents();
 }
 
 void MainWindow::LoadUsersList()
 {
-    auto table = ui->tableWidget;
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto table = ui->tableView;
+    table->setModel(nullptr);
 
     ui->btnAdd->setEnabled(true);
 }
 
 void MainWindow::createCertList()
 {
-    auto table = ui->tableWidget;
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto table = ui->tableView;
+    table->setModel(nullptr);
 }
 
 void MainWindow::createUsersList()
 {
-    auto table = ui->tableWidget;
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto table = ui->tableView;
+    table->setModel(nullptr);
 }
 
 void MainWindow::enableToolbar(bool value)
@@ -209,22 +219,23 @@ void MainWindow::enableToolbar(bool value)
 
 void MainWindow::loadItemChilds(QTreeWidgetItem *item)
 {
-    auto table = ui->tableWidget;
-    table->setRowCount(0);
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto tableView = ui->tableView;
+    tableView->setModel(nullptr);
+    auto table = new QStandardItemModel(this);
     table->setColumnCount(1);
     table->setRowCount(item->childCount());
     QStringList cols = {"root"};
     table->setHorizontalHeaderLabels(cols);
     for (int i = 0; i < item->childCount(); i++) {
         auto child = item->child(i);
-        auto itemTable = new QTableWidgetItem(child->text(0));
+        auto itemTable = new QStandardItem(child->text(0));
         itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
         //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
         table->setItem(i, 0, itemTable);
     }
-    table->resizeColumnsToContents();
+
+    tableView->setModel(table);
+    tableView->resizeColumnsToContents();
 }
 
 void MainWindow::loadItemSpecific(QTreeWidgetItem *item)
@@ -235,10 +246,9 @@ void MainWindow::loadItemSpecific(QTreeWidgetItem *item)
 void MainWindow::loadKeysOnRegistry(CertUser *usr)
 {
     QStringList keys = usr->containers();
-    auto table = ui->tableWidget;
-    table->setRowCount(0);
-    table->setColumnCount(0);
-    table->setRowCount(0);
+    auto tableView = ui->tableView;
+    tableView->setModel(nullptr);
+    auto table = new QStandardItemModel(this);
     table->setColumnCount(2);
     table->setRowCount(keys.size());
     QStringList cols = {"","Наименование"};
@@ -247,23 +257,24 @@ void MainWindow::loadKeysOnRegistry(CertUser *usr)
     colDb->setIcon(QIcon(":/img/externalDataTable.png"));
     int i = 0;
     foreach(const QString& key, keys){
-        auto itemTable = new QTableWidgetItem(key);
+        auto itemTable = new QStandardItem(key);
         itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
         //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
         table->setItem(i, 1, itemTable);
         if(isContainerExists(key)){
-//            auto itemIco = new QTableWidgetItem();
-//            itemIco->setIcon(QIcon(":/img/checked.png"));
-//            table->setItem(i, 0, itemIco);
+            auto itemIco = new QStandardItem();
+            itemIco->setIcon(QIcon(":/img/checked.png"));
+            table->setItem(i, 0, itemIco);
 
-            QLabel *lbl_item = new QLabel();
-            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-            table->setCellWidget(i, 0, lbl_item);
+//            QLabel *lbl_item = new QLabel();
+//            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+//            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+//            tableView->setCellWidget(i, 0, lbl_item);
         }
         i++;
     }
-    table->resizeColumnsToContents();
+    tableView->setModel(table);
+    tableView->resizeColumnsToContents();
 }
 
 void MainWindow::disableToolBar()
@@ -286,6 +297,7 @@ bool MainWindow::isContainerExists(const QString &name)
 
     return false;
 }
+
 bool MainWindow::isUserExists(const QString &name)
 {
     if(db.isOpen()){
@@ -297,11 +309,54 @@ bool MainWindow::isUserExists(const QString &name)
 
     return false;
 }
+
 void MainWindow::userToDatabase(const QString &name)
 {
     if(isUserExists(name))
     {
         QMessageBox::information(this, "Пользователь", "Пользователь уже есть на севрвере!");
+    }
+}
+
+void MainWindow::loadCimputers()
+{
+
+    ui->tableView->setModel(nullptr);
+    auto queryModel = new QSqlQueryModel(this);
+    queryModel->setQuery("SELECT [_id]\n"
+                         ", NULL AS Сервер\n"
+                         ",[FirstField] AS Наименование\n"
+                         ",[SecondField] AS Представление\n"
+                         ",[Ref] AS Идентификатор\n"
+                         ",[ipadrr] AS Адрес\n"
+                         ",[isServer]\n"
+                         "FROM [dbo].[Servers]");
+
+    ui->tableView->setModel(queryModel);
+    ui->tableView->setColumnHidden(0, true);
+    ui->tableView->setColumnHidden(4, true);
+    ui->tableView->setColumnHidden(6, true);
+
+    UpdateRowIcons();
+    ui->tableView->model()->setHeaderData(1, Qt::Orientation::Horizontal, "");
+    ui->tableView->resizeColumnsToContents();
+
+    disableToolBar();
+    ui->btnAdd->setEnabled(true);
+    ui->btnEdit->setEnabled(true);
+    ui->btnDelete->setEnabled(true);
+}
+
+void MainWindow::UpdateRowIcons(){
+   for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
+       QModelIndex index = ui->tableView->model()->index(i, 1);
+       QLabel *lbl_item = new QLabel();
+        if(ui->tableView->model()->index(i, 6).data().toInt() > 0){
+            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/server.ico")));// *ui->my_label->pixmap());
+        }else
+            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/desktop.ico")));
+        lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        ui->tableView->setIndexWidget(index, lbl_item);
     }
 }
 
@@ -329,29 +384,146 @@ void MainWindow::connectToWsServer()
 
 }
 
-//void MainWindow::getUsersInDatabase()
-//{
-//    m_users.clear();
+bool MainWindow::insertSqlTableRow(const QString &table, QMap<QString, QVariant>& vals, const QString& ref)
+{
 
-//    QSqlQuery query("SELECT [id]"
-//                    ",[name]"
-//                    ",[uuid]"
-//                    ",[sid]"
-//                    ",[domain]"
-//                    "FROM [CertManager].[dbo].[users]");
-//    while (query.next()) {
-//        //auto usr = new User();
-//        //usr->ge
-//    }
+    db.exec("USE arcirk;");
 
-//}
+    QString query = queryText(table, vals, sqlCommand::sqlInsert, ref);
 
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+bool MainWindow::updateSqlTableRow(const QString &table, QMap<QString, QVariant> vals, const QString& ref)
+{
+
+    QString query = queryText(table, vals, sqlCommand::sqlUpdate, ref);
+
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+bool MainWindow::deleteSqlTableRow(const QString &table, const QString& ref)
+{
+    QMap<QString, QVariant> vals;
+    QString query = queryText(table, vals, sqlCommand::sqlDelete, ref);
+
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+QString MainWindow::queryText(const QString& table, QMap<QString, QVariant>& values,
+                                sqlCommand command, const QString& not_ref)
+{
+    QString query;
+
+
+    if(command == sqlCommand::sqlInsert){
+
+        QString into = "\n(";
+        QString values_ = "\n(";
+        query = "INSERT INTO ";
+        query.append("dbo." + table);
+        for (auto iter = values.begin(); iter != values.end(); iter++) {
+            into.append(iter.key());
+            if (iter != --values.end())
+                into.append(",\n");
+
+            if (iter.value().typeId() == QMetaType::QString){
+                QString value = iter.value().toString();
+                values_.append("'" + value + "'");
+                if (iter != --values.end())
+                    values_.append(",\n");
+            }else if (iter.value().typeId() == QMetaType::Int){
+                int res = iter.value().toInt();
+                QString value = QString::number(res);
+                values_.append("'" + value + "'");
+                if (iter != --values.end())
+                    values_.append(",\n");
+            }
+        }
+        into.append("\n)");
+        values_.append("\n)");
+        query.append(into);
+        query.append("\nVALUES\n");
+        query.append(values_);
+
+        if(!not_ref.isEmpty()){
+            QString query_ = QString("IF NOT EXISTS \n"
+                                     "    (   SELECT  [Ref]\n"
+                                     "        FROM    dbo.%1 \n"
+                                     "        WHERE   [Ref]='%2' \n"
+                                     "    )\n"
+                                     "BEGIN\n").arg(table, not_ref);
+            query_.append(query);
+            query_.append("\nEND");
+            query = query_;
+        }
+
+        query.append(";");
+
+    }else if(command == sqlCommand::sqlUpdate){
+        query = "UPDATE dbo." + table;
+        QString _set = "\n SET ";
+        QString _where = QString("\n WHERE Ref = '%1'").arg(not_ref);
+        for (auto iter = values.begin(); iter != values.end(); iter++) {
+            _set.append(iter.key());
+            if (iter.value().typeId() == QMetaType::QString){
+                QString value = iter.value().toString();
+                _set.append(" = '" + value + "'");
+                if (iter != --values.end())
+                    _set.append(",\n");
+            }else if (iter.value().typeId() == QMetaType::Int){
+                int res = iter.value().toInt();
+                QString value = QString::number(res);
+                _set.append(" = '" + value + "'");
+                if (iter != --values.end())
+                    _set.append(",\n");
+            }
+
+        }
+        _set.append("\n");
+        _where.append("\n");
+        query.append(_set);
+        query.append(_where + ";");
+    }else if(command == sqlCommand::sqlDelete){
+        query = QString("DELETE FROM [dbo].[Servers]\n"
+                "WHERE Ref = '%1'").arg(not_ref);
+    }
+
+    return query;
+
+}
 
 void MainWindow::on_mnuExit_triggered()
 {
     QApplication::exit();
 }
-
 
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
@@ -373,6 +545,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             loadContainersList();
         }else if(itemText == "Пользователи"){
             LoadUsersList();
+        }else if(itemText == "Компьютеры"){
+            loadCimputers();
         }
     }
 //    QString itemText = item->text(0);
@@ -391,30 +565,6 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 //    }else
 //        enableToolbar(true);
 
-}
-
-
-void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
-{
-    auto item = ui->tableWidget->item(row, column);
-    if(item){
-        QString itemText = item->text();
-        QTreeWidgetItem * child = nullptr;
-
-        if(itemText == "Контейнеры"){
-            child = ui->treeWidget->topLevelItem(0)->child(0);
-        }else if(itemText == "Сертификаты"){
-            child = ui->treeWidget->topLevelItem(0)->child(1);
-        }else if(itemText == "Пользователи"){
-            child = ui->treeWidget->topLevelItem(0)->child(2);
-        }
-
-        if(child){
-            ui->treeWidget->setCurrentItem(child, 0);
-            emit ui->treeWidget->itemClicked(child, 0);
-        }
-
-    }
 }
 
 void MainWindow::onReconnect(settings *sett, const QString &pwd)
@@ -454,7 +604,6 @@ void MainWindow::onReconnect(settings *sett, const QString &pwd)
     sett->save();
 }
 
-
 void MainWindow::on_mnuConnect_triggered()
 {
     auto dlg = new DialogConnection(_sett, this);
@@ -481,7 +630,6 @@ void MainWindow::on_mnuConnect_triggered()
     }
 
 }
-
 
 void MainWindow::on_btnAdd_clicked()
 {
@@ -550,39 +698,36 @@ void MainWindow::on_btnAdd_clicked()
         if(dlg->result() == QDialog::Accepted){
             QString userName = dlg->dialogResult();
         }
+    }else if(currentNode == "Компьютеры"){
+        auto dlg = new DialogComputer(this);
+        dlg->setModal(true);
+        dlg->exec();
+        if(dlg->result() == QDialog::Accepted){
+            auto result = dlg->computer();
+            if(result["Ref"].toString().isEmpty()){
+                QString ref =  QUuid::createUuid().toString();
+                ref = ref.mid(1, ref.length() - 2);
+                result["Ref"] = ref;
+                bool r = insertSqlTableRow("Servers", result);
+                auto model = (QSqlQueryModel*)ui->tableView->model();
+                model->setQuery(model->query().lastQuery());
+                UpdateRowIcons();
+                ui->tableView->resizeColumnsToContents();
+                if(!r)
+                    qCritical() << __FUNCTION__ << "Ошибка добавления новой строки в таблицу 'Servers'!";
+            }
+        }
     }
 
 }
-
-
-void MainWindow::on_tableWidget_itemClicked(QTableWidgetItem *item)
-{
-    auto treeItem = ui->treeWidget->currentItem();
-    if(!treeItem){
-        return;
-    }
-
-    QString currentNode = treeItem->text(0);
-
-    if(currentNode == "Реестр"){
-        ui->btnAdd->setEnabled(false);
-        ui->btnEdit->setEnabled(false);
-        ui->btnDelete->setEnabled(true);
-        ui->btnImportFromDatabase->setEnabled(true);
-        ui->btnToDatabase->setEnabled(true);
-    }else{
-        disableToolBar();
-    }
-}
-
 
 void MainWindow::on_btnToDatabase_clicked()
 {
     if(!db.isOpen())
         return;
 
-    auto table = ui->tableWidget;
-    int row = table->currentRow();
+    auto table = ui->tableView;
+    int row = table->currentIndex().row();
 
     if(row < 0){
         return;
@@ -594,7 +739,7 @@ void MainWindow::on_btnToDatabase_clicked()
     }
 
     QString currentNode = treeItem->text(0);
-    QString currentKeyName = table->item(row, 0)->text();
+    QString currentKeyName = table->model()->index(row, 0).data().toString();
 
     if(currentNode == "Реестр"){
         if(treeItem->parent()->text(0).compare("Текущий пользователь")){
@@ -616,14 +761,17 @@ void MainWindow::on_btnToDatabase_clicked()
     }
 }
 
-
 void MainWindow::on_btnDelete_clicked()
 {
     if(!db.isOpen())
         return;
 
-    auto table = ui->tableWidget;
-    int row = table->currentRow();
+    auto table = ui->tableView;
+
+    if(!table->currentIndex().isValid())
+        return;
+
+    int row = table->currentIndex().row();
 
     if(row < 0){
         return;
@@ -636,7 +784,7 @@ void MainWindow::on_btnDelete_clicked()
 
 
     QString currentNode = treeItem->text(0);
-    QString currentKeyName = table->item(row, 0)->text();
+    QString currentKeyName = table->model()->index(row, 0).data().toString();
 
     if(currentNode == "Реестр"){
         if(treeItem->parent()->text(0).compare("Текущий пользователь")){
@@ -648,23 +796,49 @@ void MainWindow::on_btnDelete_clicked()
                         QMessageBox::critical(this, "Ошибка", "Ошибка удаления контейнера!");
                     else{
                         QMessageBox::information(this, "Удаление контейнера закрытого ключа", "Контейнер успешно удален из реестра!");
-                        table->removeRow(row);
+                        table->model()->removeRow(row);
                         currentUser->setContainers(Registry::currentUserContainers(currentUser->sid()));
                     }
                 }
 
         }else{
 
+            if(currentNode == "Реестр"){
+
+            }else if(currentNode == "Пользователи"){
+        //        auto reg = Registry();
+        //        QStringList users = reg.localUsers();
+        //        auto dlg = new DialogSelectInList(users, "Пользователи системы", this);
+        //        dlg->setModal(true);
+        //        dlg->exec();
+        //        if(dlg->result() == QDialog::Accepted){
+        //            QString userName = dlg->dialogResult();
+        //        }
+            }
         }
+    }else if(currentNode == "Компьютеры"){
+        //
+        auto result = QMessageBox::question(this, "Удаление строки", "Удалить выбранную строку?");
+        if(result == QMessageBox::Yes){
+            bool r = deleteSqlTableRow("Servers", ui->tableView->model()->index(row, 3).data().toString());
+            if(!r)
+                QMessageBox::critical(this, "Ошибка", "Ошибка удаления строки!");
+            else
+            {
+                auto model = (QSqlQueryModel*)ui->tableView->model();
+                model->setQuery(model->query().lastQuery());
+                UpdateRowIcons();
+                ui->tableView->resizeColumnsToContents();
+            }
+        }
+
     }
 }
-
 
 void MainWindow::on_btnInstallToUser_clicked()
 {
 
 }
-
 
 void MainWindow::on_mnuOptions_triggered()
 {
@@ -727,5 +901,111 @@ void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, cons
 void MainWindow::onDisplayError(const QString &what, const QString &err)
 {
     qCritical() << __FUNCTION__ << what << ": " << err ;
+}
+
+
+void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
+{
+//    auto item = ui->tableView-item(row, column);
+//    if(item){
+        QString itemText = index.data().toString();
+        QTreeWidgetItem * child = nullptr;
+
+        if(itemText == "Контейнеры"){
+            child = ui->treeWidget->topLevelItem(0)->child(0);
+        }else if(itemText == "Сертификаты"){
+            child = ui->treeWidget->topLevelItem(0)->child(1);
+        }else if(itemText == "Пользователи"){
+            child = ui->treeWidget->topLevelItem(0)->child(2);
+        }
+
+        if(child){
+            ui->treeWidget->setCurrentItem(child, 0);
+            emit ui->treeWidget->itemClicked(child, 0);
+        }
+
+    //}
+}
+
+
+void MainWindow::on_tableView_clicked(const QModelIndex &index)
+{
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->text(0);
+
+    if(currentNode == "Реестр"){
+        ui->btnAdd->setEnabled(false);
+        ui->btnEdit->setEnabled(false);
+        ui->btnDelete->setEnabled(true);
+        ui->btnImportFromDatabase->setEnabled(true);
+        ui->btnToDatabase->setEnabled(true);
+    }else if(currentNode == "Компьютеры"){
+        ui->btnAdd->setEnabled(true);
+        ui->btnEdit->setEnabled(true);
+        ui->btnDelete->setEnabled(true);
+    }else{
+        disableToolBar();
+    }
+}
+
+
+void MainWindow::on_btnEdit_clicked()
+{
+    if(!db.isOpen())
+        return;
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->text(0);
+
+    auto index = ui->tableView->currentIndex();
+
+    if(!index.isValid())
+        return;
+
+    int row = index.row();
+
+    if(currentNode == "Реестр"){
+
+    }else if(currentNode == "Пользователи"){
+//        auto reg = Registry();
+//        QStringList users = reg.localUsers();
+//        auto dlg = new DialogSelectInList(users, "Пользователи системы", this);
+//        dlg->setModal(true);
+//        dlg->exec();
+//        if(dlg->result() == QDialog::Accepted){
+//            QString userName = dlg->dialogResult();
+//        }
+    }else if(currentNode == "Компьютеры"){
+        auto dlg = new DialogComputer(this);
+        QMap<QString, QVariant> _row;
+        _row.insert("FirstField", ui->tableView->model()->index(row, 2).data().toString());
+        _row.insert("SecondField", ui->tableView->model()->index(row, 3).data().toString());
+        _row.insert("Ref", ui->tableView->model()->index(row, 4).data().toString());
+        _row.insert("ipadrr", ui->tableView->model()->index(row, 5).data().toString());
+        _row.insert("isServer", ui->tableView->model()->index(row, 6).data().toInt());
+        dlg->setComputer(_row);
+        dlg->setModal(true);
+        dlg->exec();
+        if(dlg->result() == QDialog::Accepted){
+            auto result = dlg->computer();
+            if(!result["Ref"].toString().isEmpty()){
+                bool r = updateSqlTableRow("Servers", result, result["Ref"].toString());
+                auto model = (QSqlQueryModel*)ui->tableView->model();
+                model->setQuery(model->query().lastQuery());
+                UpdateRowIcons();
+                ui->tableView->resizeColumnsToContents();
+                if(!r)
+                    qCritical() << __FUNCTION__ << "Ошибка обновления строки в таблице 'Servers'!";
+            }
+        }
+    }
 }
 

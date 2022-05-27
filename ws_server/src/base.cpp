@@ -549,7 +549,7 @@ namespace arc_sqlite {
         std::string into = "\n(";
         std::string values_ = "\n(";
         try {
-            for (auto iter = values.begin(); iter < values.end(); iter++) {
+            for (auto iter = values.begin(); iter != values.end(); iter++) {
                 into.append(iter->key);
                 if (iter != --values.end())
                     into.append(",\n");

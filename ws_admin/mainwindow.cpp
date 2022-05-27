@@ -467,6 +467,8 @@ void MainWindow::setHeaderAliases(QTableWidget* table) {
             item->setText("Группа");
         else if (item->text() == "role")
             item->setText("Роль");
+        else if (item->text() == "ip_address")
+            item->setText("IP адрес");
     }
 }
 

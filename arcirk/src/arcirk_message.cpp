@@ -24,6 +24,7 @@ namespace arcirk{
                 , contentType("HTML")
                 , object_name("")
                 , msg_ref(nil_string_uuid())
+                , ip_address("0.0.0.0")
         {
         }
         std::vector<std::string> _ws_message::get_fields(){
@@ -101,6 +102,10 @@ namespace arcirk{
             if (val.is_string())
                 msg_ref = val.get_string();
         }
+        void _ws_message::set_ip_address(bVariant& val){
+            if (val.is_string())
+                msg_ref = val.get_string();
+        }
         setFun _ws_message::get_set_function(const std::string& nameField){
             if (nameField == "uuid")
             {
@@ -150,6 +155,9 @@ namespace arcirk{
             }else if (nameField == "msg_ref")
             {
                 return std::bind(&_ws_message::set_msg_ref, this, std::placeholders::_1);
+            }else if (nameField == "ip_address")
+            {
+                return std::bind(&_ws_message::set_ip_address, this, std::placeholders::_1);
             }else
                 return nullptr;
 
@@ -197,6 +205,7 @@ namespace arcirk{
             m_doc.addMember(content_value("channel_name", m_message.channel_name));
             m_doc.addMember(content_value("object_name", m_message.object_name));
             m_doc.addMember(content_value("msg_ref", m_message.msg_ref));
+            m_doc.addMember(content_value("ip_address", m_message.msg_ref));
 
             std::string result = m_doc.to_string();
 
