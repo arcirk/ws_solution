@@ -173,6 +173,21 @@ long int IClient::get_tz_offset() {
     return tz_offset();
 }
 
+//std::string IClient::string_utf_to_utf(const std::string &s)
+//{
+//    return arcirk::string_utf_to_utf(s);
+//}
+
+//std::string IClient::string_to_utf(const std::string& source, const char* charset)
+//{
+//    return arcirk::string_to_utf(source.c_str(), charset);
+//}
+
+//std::string IClient::string_from_utf(const std::string& source, const char* charset)
+//{
+//    return arcirk::string_from_utf(source, charset);
+//}
+
 void IClient::get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form) {
 
     boost::property_tree::ptree pt;
@@ -370,6 +385,7 @@ void IClient::open(bool new_thread){
     pt.add("hash", hash);
     pt.add("app_name", app_name);
     pt.add("user_uuid", user_uuid);
+    pt.add("user_name", user_name);
 
     std::stringstream _ss;
     boost::property_tree::json_parser::write_json(_ss, pt);

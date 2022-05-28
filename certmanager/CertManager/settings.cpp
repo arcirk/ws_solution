@@ -9,6 +9,9 @@ settings::settings(QObject *parent)
 
     QFile conf = QFile("conf.json");
 
+    _charset = "CP866";
+    _method = 0;
+
     if(conf.open(QIODevice::ReadOnly)){
 
         auto doc = QJsonDocument::fromJson(conf.readAll());
@@ -22,6 +25,12 @@ settings::settings(QObject *parent)
         itr = obj.find("pwd");
         if(itr != obj.end())
             setPwd(itr.value().toString());
+        itr = obj.find("method");
+        if(itr != obj.end())
+            setMethod(itr.value().toInt());
+        itr = obj.find("charset");
+        if(itr != obj.end())
+            setCharset(itr.value().toString());
     }
 
 }
@@ -67,12 +76,35 @@ void settings::save()
         obj.insert("user", _user);
         obj.insert("server", _server);
         obj.insert("pwd", _pwd);
-
+        obj.insert("method", _method);
+        obj.insert("charset", _charset);
         doc.setObject(obj);
 
         conf.write(QJsonDocument(doc).toJson(QJsonDocument::Indented));
 
         conf.close();
     }
+}
+
+QString settings::charset()
+{
+    return _charset;
+}
+
+void settings::setCharset(const QString &cp)
+{
+    if(cp == "CP833")
+        return;
+    _charset = cp;
+}
+
+int settings::method()
+{
+    return _method;
+}
+
+void settings::setMethod(int m)
+{
+    _method = m;
 }
 

@@ -25,6 +25,11 @@ public:
 
     void usersFromRegistry(const QString rootNode, const QString& group, QStringList lst = QStringList{});
 
+    static QStringList outputCmd(const QString cmd);
+
+    static std::string exec(const char* cmd);
+    static std::string execute( std::string cmd );
+
 };
 
 #endif // REGISTRY_H

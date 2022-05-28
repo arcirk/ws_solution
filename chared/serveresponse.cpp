@@ -58,6 +58,8 @@ void ServeResponse::parse(const QString& resp){
             auto _contentType = obj.find("contentType");
             auto _recipientName = obj.find("channel_name");
             auto _app_name = obj.find("app_name");
+            auto _ip_address = obj.find("ip_address");
+            auto _host_name = obj.find("host_name");
 
              if(_message->isString()){
                  message = _message.value().toString();
@@ -85,6 +87,12 @@ void ServeResponse::parse(const QString& resp){
              }
              if(_uuid_session->isString()){
                  uuid_session = _uuid_session.value().toString();
+             }
+             if(_ip_address->isString()){
+                 ip_address = _ip_address.value().toString();
+             }
+             if(_host_name->isString()){
+                 host_name = _host_name.value().toString();
              }
             isParse = true;
         }
@@ -125,6 +133,7 @@ QString ServeResponse::to_string() const
     msg.insert("app_name", app_name);
     msg.insert("uuid_session", uuid_session);
     msg.insert("ip_address", ip_address);
+    msg.insert("host_name", host_name);
 
     return QJsonDocument(msg).toJson(QJsonDocument::Indented);
 }

@@ -16,6 +16,7 @@ websocket_session(tcp::socket&& socket, boost::shared_ptr<shared_state>  state)
     port = std::to_string(remote.port());
     uuid_ = boost::uuids::random_generator()();
     join_channel(this);
+
 }
 
 boost::uuids::uuid & websocket_session::get_uuid() {
@@ -180,6 +181,16 @@ on_write(beast::error_code ec, std::size_t)
 std::string websocket_session::ip_address() const{
 
     return _ip_address;
+}
+
+std::string websocket_session::host_name() const
+{
+    return _host_name;
+}
+
+void websocket_session::set_host_name(const std::string &value)
+{
+    _host_name = value;
 }
 
 void

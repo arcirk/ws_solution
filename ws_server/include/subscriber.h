@@ -37,7 +37,8 @@ public:
 
     [[nodiscard]] std::string get_name() const;
     void set_name(std::string &name);
-    //void set_uuid(boost::uuids::uuid &uuid);
+    [[nodiscard]] std::string get_user_name() const;
+    void set_user_name(std::string &name);
     void set_user_uuid(boost::uuids::uuid &uuid);
     void set_app_name(const std::string &app_name);
     [[nodiscard]] std::string get_app_name() const;
@@ -48,7 +49,7 @@ public:
     void set_message_struct_type(const std::string& struct_type = "TEXT");
     std::string  get_message_struct_type() const;
 private:
-
+    std::string	_user_name;
 
 };
 

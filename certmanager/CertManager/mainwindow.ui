@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>779</width>
+    <height>746</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -139,7 +139,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>779</width>
      <height>21</height>
     </rect>
    </property>
@@ -156,6 +156,8 @@
     <addaction name="mnuConnect"/>
     <addaction name="separator"/>
     <addaction name="mnuOptions"/>
+    <addaction name="separator"/>
+    <addaction name="actionTest"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -189,6 +191,75 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidget_2">
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="3" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QToolButton" name="btnTermOptions">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="certmaster.qrc">
+           <normaloff>:/img/settings.ico</normaloff>:/img/settings.ico</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="btnTerminalClear">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="certmaster.qrc">
+           <normaloff>:/img/clear.ico</normaloff>:/img/clear.ico</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <layout class="QGridLayout" name="gridLayout_4"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QTextEdit" name="txtTerminal">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOn</enum>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOn</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="mnuExit">
    <property name="text">
     <string>Выход</string>
@@ -210,6 +281,11 @@
   <action name="mnuOptions">
    <property name="text">
     <string>Параметры</string>
+   </property>
+  </action>
+  <action name="actionTest">
+   <property name="text">
+    <string>Ввести команду</string>
    </property>
   </action>
  </widget>

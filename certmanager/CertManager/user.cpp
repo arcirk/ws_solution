@@ -7,6 +7,7 @@ CertUser::CertUser(QObject *parent)
     _domain = "";
     _name = "";
     _sid = "";
+    _treeItem = nullptr;
 
 }
 
@@ -28,6 +29,16 @@ void CertUser::setSid(const QString &value)
 void CertUser::setContainers(const QStringList &value)
 {
     _containers = value;
+}
+
+void CertUser::setTreeItem(QTreeWidgetItem *item)
+{
+    _treeItem = item;
+}
+
+QTreeWidgetItem *CertUser::treeItem()
+{
+    return _treeItem;
 }
 
 QString CertUser::domain()

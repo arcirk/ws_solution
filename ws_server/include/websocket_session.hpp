@@ -82,19 +82,20 @@ public:
     void deadline_cancel();
 
     std::string ip_address() const;
+    std::string host_name() const;
+    void set_host_name(const std::string& value);
 
 private:
 
     std::string _ip_address = "0.0.0.0";
     std::string port = "0";
     steady_timer deadline_;
+    std::string _host_name;
 
     void
     on_send(boost::shared_ptr<std::string const> const& ss);
     void
     on_close(beast::error_code ec);
-
-
 
     void check_deadline();
 

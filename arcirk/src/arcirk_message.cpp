@@ -25,11 +25,12 @@ namespace arcirk{
                 , object_name("")
                 , msg_ref(nil_string_uuid())
                 , ip_address("0.0.0.0")
+                , host_name(boost::asio::ip::host_name())
         {
         }
         std::vector<std::string> _ws_message::get_fields(){
             return {"uuid", "name", "uuid_channel", "message", "uuid_form", "command"
-                    , "hash", "app_name", "result", "role", "presentation", "uuid_user", "object_name"};
+                    , "hash", "app_name", "result", "role", "presentation", "uuid_user", "object_name", "host_name"};
         }
         void _ws_message::set_value(const std::string& nameField, bVariant& val){
 
@@ -104,7 +105,11 @@ namespace arcirk{
         }
         void _ws_message::set_ip_address(bVariant& val){
             if (val.is_string())
-                msg_ref = val.get_string();
+                ip_address = val.get_string();
+        }
+        void _ws_message::set_host_name(bVariant& val){
+            if (val.is_string())
+                host_name = val.get_string();
         }
         setFun _ws_message::get_set_function(const std::string& nameField){
             if (nameField == "uuid")
@@ -158,6 +163,9 @@ namespace arcirk{
             }else if (nameField == "ip_address")
             {
                 return std::bind(&_ws_message::set_ip_address, this, std::placeholders::_1);
+            }else if (nameField == "host_name")
+            {
+                return std::bind(&_ws_message::set_host_name, this, std::placeholders::_1);
             }else
                 return nullptr;
 
@@ -205,7 +213,8 @@ namespace arcirk{
             m_doc.addMember(content_value("channel_name", m_message.channel_name));
             m_doc.addMember(content_value("object_name", m_message.object_name));
             m_doc.addMember(content_value("msg_ref", m_message.msg_ref));
-            m_doc.addMember(content_value("ip_address", m_message.msg_ref));
+            m_doc.addMember(content_value("ip_address", m_message.ip_address));
+            m_doc.addMember(content_value("host_name", m_message.host_name));
 
             std::string result = m_doc.to_string();
 

@@ -469,6 +469,8 @@ void MainWindow::setHeaderAliases(QTableWidget* table) {
             item->setText("Роль");
         else if (item->text() == "ip_address")
             item->setText("IP адрес");
+        else if (item->text() == "host_name")
+            item->setText("Хост");
     }
 }
 

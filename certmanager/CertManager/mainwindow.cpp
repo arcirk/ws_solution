@@ -13,6 +13,13 @@
 #include <QSqlQueryModel>
 #include <dialogcomputer.h>
 #include <QSqlError>
+#include <qjsontablemodel.h>
+#include <QStringConverter>
+#include <QInputDialog>
+#include "dialogterminaloptions.h"
+#include <QTextOption>
+
+#include <Windows.h>
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
@@ -24,16 +31,45 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    m_client = nullptr;
+
     toolBar.append(ui->btnAdd);
     toolBar.append(ui->btnEdit);
     toolBar.append(ui->btnDelete);
 
+    terminal = new CommandLine(this);
+//    QStringList params = {"whoami /user & exit" };
+//    terminal->setParams(params);
+
     _sett = new settings(this);
+    terminal->setMethod(_sett->method());
+    terminal->setCurrentEncoding(_sett->charset());
+
+    connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
+    connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
+
+    terminal->start();
+    //terminal->send("cls\n", CommandLine::cmdCommand::unknown);
+    terminal->clearBuffer();
+    terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+
+    //$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' ;
+    //chcp 1251 &
+
+
+//    std::string whoami = "whoami /user";
+//    std::string result = Registry::exec( whoami.c_str() );
+//    QByteArray encodedString = result.data();
+//    auto toUtf16 = QStringDecoder(QStringDecoder::Utf32);
+//    QString _result = toUtf16(encodedString);
+//    qDebug() << qPrintable(_result);
+
+    //std::string _result = bWebSocket::string_to_utf(result);
 
     currentUser = new CertUser(this);
-    QStringList cmdLine = Registry::currentUser(currentUser);
-    QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
-    currentUser->setContainers(curContainers);
+//    QStringList cmdLine = Registry::currentUser(currentUser);
+//    QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
+//    currentUser->setContainers(curContainers);
 
     db = QSqlDatabase::addDatabase("QODBC");
     db.setConnectOptions();
@@ -51,12 +87,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
     m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
-    //if(m_client->options()[bConfFieldsWrapper::User].toString().isEmpty()){
-        m_client->options()[bConfFieldsWrapper::User] = "admin";
-        QString hash = bWebSocket::generateHash("admin", "admin");
-        m_client->options()[bConfFieldsWrapper::Hash] = hash;
-        m_client->options().save();
-    //}
+    m_client->options()[bConfFieldsWrapper::User] = "admin";
+    QString hash = bWebSocket::generateHash("admin", "admin");
+    m_client->options()[bConfFieldsWrapper::Hash] = hash;
+    m_client->options().save();
+    m_client->setOsUserName(currentUser->name());
+
 
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
     connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
@@ -65,13 +101,34 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
     connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
     connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
+    connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
 
     connectToWsServer();
 
+    setWindowTitle("Менеджер сертификатов");
+
+    ui->txtTerminal->setWordWrapMode(QTextOption::NoWrap);
+    QPalette pal = ui->txtTerminal->palette();
+    pal.setBrush(QPalette::Base, Qt::black);
+    ui->txtTerminal->setAutoFillBackground(true);
+    ui->txtTerminal->setPalette(pal);
+    ui->txtTerminal->setTextColor(QColor(0,255,0));
+
+
+}
+
+void MainWindow::onOutputCommandLine(const QString &data, CommandLine::cmdCommand command)
+{
+    //qDebug() << __FUNCTION__ << qPrintable(data);
+    ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + data);
+    //qDebug() << __FUNCTION__ << "commant: " << command;
+    terminal->parseCommand(data, command);
 }
 
 MainWindow::~MainWindow()
 {
+    terminal->stop();
+
     if(m_client)
         delete m_client;
     delete ui;
@@ -89,10 +146,14 @@ void MainWindow::createTree()
     QString usrName = currentUser->name();
 
     auto * curr_user = new QTreeWidgetItem();
-    curr_user->setText(0, QString("Текущий пользователь (%1)").arg(usrName));
+    if(usrName.isEmpty())
+        curr_user->setText(0, "Текущий пользователь");
+    else
+       curr_user->setText(0, QString("Текущий пользователь (%1)").arg(usrName));
     curr_user->setToolTip(0, QString("Текущий пользователь (%1)").arg(usrName));
     curr_user->setIcon(0, QIcon(":/img/userOptions.ico"));
     root->addChild(curr_user);
+    currentUser->setTreeItem(curr_user);
 
     auto * currUserReg = new QTreeWidgetItem();
     currUserReg->setText(0, "Реестр");
@@ -100,7 +161,7 @@ void MainWindow::createTree()
     curr_user->addChild(currUserReg);
 
     auto * server = new QTreeWidgetItem();
-    server->setText(0, "Сервер");
+    server->setText(0, "База");
     server->setIcon(0, QIcon(":/img/sqlServer.png"));
     root->addChild(server);
 
@@ -123,6 +184,16 @@ void MainWindow::createTree()
     comps->setText(0, "Компьютеры");
     comps->setIcon(0, QIcon(":/img/computers.ico"));
     root->addChild(comps);
+
+    auto * ws = new QTreeWidgetItem();
+    ws->setText(0, "WS Server");
+    ws->setIcon(0, QIcon(":/img/socket_16_only.ico"));
+    root->addChild(ws);
+
+    auto * activeUsers = new QTreeWidgetItem();
+    activeUsers->setText(0, "Активные пользователи");
+    activeUsers->setIcon(0, QIcon(":/img/activeUesers.png"));
+    ws->addChild(activeUsers);
 
     tree->expandAll();
 }
@@ -547,6 +618,18 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             LoadUsersList();
         }else if(itemText == "Компьютеры"){
             loadCimputers();
+        }else if(itemText == "Активные пользователи"){
+            ui->tableView->setModel(nullptr);
+            if(m_client){
+                if(m_client->isStarted()){
+                    QJsonDocument doc = QJsonDocument();
+                    QJsonObject obj = QJsonObject();
+                    obj.insert("table", true);
+                    doc.setObject(obj);
+                    QString param = doc.toJson();
+                    m_client->sendCommand("get_active_users", "", param);
+                }
+            }
         }
     }
 //    QString itemText = item->text(0);
@@ -1007,5 +1090,85 @@ void MainWindow::on_btnEdit_clicked()
             }
         }
     }
+}
+
+void MainWindow::onGetActiveUsers(const QString& resp){
+
+    ui->tableView->setModel(nullptr);
+    auto model = new QJsonTableModel(this);
+    model->setJsonText(resp);
+    ui->tableView->setModel(model);
+    ui->tableView->resizeColumnsToContents();
+
+}
+
+void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand command)
+{
+    if(command == CommandLine::cmdCommand::echoUserName){
+        currentUser->setName(result);
+        currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
+        terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+    }else if(command == CommandLine::cmdCommand::wmicGetSID){
+        currentUser->setSid(result);
+        terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
+    }
+}
+
+void MainWindow::on_actionTest_triggered()
+{
+    //execute_command("test");
+
+    if(terminal->listening()){
+        //terminal->send("whoami /user & echo %username%\n");
+        //wmic useraccount get name
+        bool bOk;
+        QString str = QInputDialog::getText( 0,
+                                             "Ввод команды",
+                                             "Команда:",
+                                             QLineEdit::Normal,
+                                             "",
+                                             &bOk
+        );
+        if (bOk) {
+            ui->txtTerminal->setText("");
+            terminal->send(str + "\n", CommandLine::unknown);
+            return;
+        }
+    }
+}
+
+void MainWindow::execute_command(QString param)
+{
+     SHELLEXECUTEINFO ShExecInfo = {0};
+     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+     ShExecInfo.hwnd = NULL;
+     ShExecInfo.lpVerb = L"runas";
+     ShExecInfo.lpFile = TEXT("powershell.exe");
+     ShExecInfo.lpParameters = TEXT("stuff..");
+     ShExecInfo.lpDirectory = NULL;
+     ShExecInfo.nShow = SW_SHOW;
+     ShExecInfo.hInstApp = NULL;
+     ShellExecuteEx(&ShExecInfo);
+     WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
+}
+
+void MainWindow::on_btnTermOptions_clicked()
+{
+
+    auto dlg = new DialogTerminalOptions(terminal, _sett, this);
+    dlg->setModal(true);
+    dlg->exec();
+
+    if(dlg->result() == QDialog::Accepted){
+
+    }
+
+}
+
+
+void MainWindow::on_btnTerminalClear_clicked()
+{
+    ui->txtTerminal->setText("");
 }
 

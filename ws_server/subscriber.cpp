@@ -22,9 +22,13 @@ void subscriber::set_name(std::string &name) {
     sub_name_ = name;
 }
 
-//void subscriber::set_uuid(boost::uuids::uuid &uuid) {
-//    uuid_ = boost::uuids::uuid(uuid);
-//}
+std::string subscriber::get_user_name() const {
+    return _user_name;
+}
+
+void subscriber::set_user_name(std::string &name) {
+    _user_name = name;
+}
 
 void subscriber::set_user_uuid(boost::uuids::uuid &uuid) {
     user_uuid_ = boost::uuids::uuid(uuid);

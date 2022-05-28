@@ -24,6 +24,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/format.hpp>
 
+//#include <boost/locale.hpp>
+
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/writer.h>
@@ -48,6 +50,10 @@ namespace arcirk{
     typedef boost::variant<std::string, long int, bool, double, boost::uuids::uuid> _Variant;
     typedef std::string             T_str;
     typedef std::vector<T_str>      T_vec;
+
+//    std::string string_utf_to_utf(const std::string& source);
+//    std::string string_to_utf(const char* source, const char* charset);
+//    std::string string_from_utf(const std::string& source, const char* charset);
 
     bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result);
     std::string get_sha1(const std::string& p_arg);
@@ -207,6 +213,7 @@ namespace arcirk{
         std::string         object_name;
         std::string         msg_ref;
         std::string         ip_address;
+        std::string         host_name;
 
         _ws_message();
 
@@ -231,6 +238,7 @@ namespace arcirk{
         void set_object_name(bVariant& val);
         void set_msg_ref(bVariant& val);
         void set_ip_address(bVariant& val);
+        void set_host_name(bVariant& val);
 
         setFun get_set_function(const std::string& nameField);
 

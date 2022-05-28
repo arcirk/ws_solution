@@ -392,35 +392,35 @@ void ws_client::set_user_uuid() {
 
 }
 
-void ws_client::subscribe_to_channel(const std::string &uuid_channel, const std::string &uuid_form) {
-
-    boost::uuids::uuid uuid{};
-    is_valid_uuid(uuid_channel, uuid);
-    auto _msg = ws_message();
-    _msg.message().uuid = get_uuid();
-    _msg.message().message = "subscribe_to_channel";
-    _msg.message().name = get_name();
-    _msg.message().app_name = get_app_name();
-    _msg.message().command = "subscribe_to_channel";
-    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
-
-    send("cmd " + _msg.get_json(true), false);
-}
-
-void ws_client::subscribe_exit_channel(const std::string &uuid_channel, const std::string &uuid_form) {
-
-    boost::uuids::uuid uuid{};
-    is_valid_uuid(uuid_channel, uuid);
-    auto _msg = ws_message();
-    _msg.message().uuid = get_uuid();
-    _msg.message().message = "subscribe_close_channel";
-    _msg.message().name = get_name();
-    _msg.message().app_name = get_app_name();
-    _msg.message().command = "subscribe_close_channel";
-    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
-
-    send("cmd " + _msg.get_json(true), false);
-}
+//void ws_client::subscribe_to_channel(const std::string &uuid_channel, const std::string &uuid_form) {
+//
+//    boost::uuids::uuid uuid{};
+//    is_valid_uuid(uuid_channel, uuid);
+//    auto _msg = ws_message();
+//    _msg.message().uuid = get_uuid();
+//    _msg.message().message = "subscribe_to_channel";
+//    _msg.message().name = get_name();
+//    _msg.message().app_name = get_app_name();
+//    _msg.message().command = "subscribe_to_channel";
+//    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+//
+//    send("cmd " + _msg.get_json(true), false);
+//}
+//
+//void ws_client::subscribe_exit_channel(const std::string &uuid_channel, const std::string &uuid_form) {
+//
+//    boost::uuids::uuid uuid{};
+//    is_valid_uuid(uuid_channel, uuid);
+//    auto _msg = ws_message();
+//    _msg.message().uuid = get_uuid();
+//    _msg.message().message = "subscribe_close_channel";
+//    _msg.message().name = get_name();
+//    _msg.message().app_name = get_app_name();
+//    _msg.message().command = "subscribe_close_channel";
+//    _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+//
+//    send("cmd " + _msg.get_json(true), false);
+//}
 
 std::string &ws_client::get_app_name() {
     return _app_name;
@@ -450,24 +450,24 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
         sess->send(ss);
 }
 
-void ws_client::set_session_param(const std::string &uuid, const std::string &name, const std::string &pwd,
-                                  const std::string &app_name, const std::string &user_uuid) {
-    std::string result = "set_client_param ";
-    result.append("00000000-0000-0000-0000-000000000000 "); //форма
-    result.append(uuid + " ");
-    result.append(name + " ");
-    result.append(get_hash(name, pwd) + " ");
-    result.append(app_name + " ");
-    result.append(user_uuid + " ");
-
-    auto _msg = ws_message();
-    _msg.message().uuid = get_uuid();
-    _msg.message().message = result;
-
-    std::string msg = "cmd " + _msg.get_json(true);
-
-    send(msg, false);
-}
+//void ws_client::set_session_param(const std::string &uuid, const std::string &name, const std::string &pwd,
+//                                  const std::string &app_name, const std::string &user_uuid) {
+//    std::string result = "set_client_param ";
+//    result.append("00000000-0000-0000-0000-000000000000 "); //форма
+//    result.append(uuid + " ");
+//    result.append(name + " ");
+//    result.append(get_hash(name, pwd) + " ");
+//    result.append(app_name + " ");
+//    result.append(user_uuid + " ");
+//
+//    auto _msg = ws_message();
+//    _msg.message().uuid = get_uuid();
+//    _msg.message().message = result;
+//
+//    std::string msg = "cmd " + _msg.get_json(true);
+//
+//    send(msg, false);
+//}
 
 void ws_client::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &json_param) {
 

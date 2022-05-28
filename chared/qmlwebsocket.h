@@ -138,6 +138,12 @@ public:
 
     static std::string get_std_parent_path();
 
+    void setOsUserName(const QString& value);
+
+//    static std::string string_utf_to_utf(const std::string &s);
+//    static std::string string_to_utf(const std::string &s, const char* charset);
+//    static std::string string_from_utf(const std::string &s, const char* charset);
+
 private:
     IClient * client;
     ClientSettings settings;
@@ -145,7 +151,7 @@ private:
     QString user;
     QString hash;
     QString confFileName;
-
+    QString os_user_name;
 
     QMap<QString,QString> m_agentClients;
     void joinClientToAgent(ServeResponse * resp);
@@ -158,6 +164,8 @@ private:
     QString uuidSessionAgent;
 
     void responseCommand(ServeResponse * resp);
+
+    //QString osUserName();
 
 signals:
     void displayError(const QString& what, const QString& err);

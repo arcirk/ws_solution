@@ -12,14 +12,17 @@ CONFIG += c++11
 
 SOURCES += \
     ../../chared/clientsettings.cpp \
+    ../../chared/qjsontablemodel.cpp \
     ../../chared/qmlwebsocket.cpp \
     ../../chared/qwebdav.cpp \
     ../../chared/serveresponse.cpp \
+    commandline.cpp \
     dialogcomputer.cpp \
     dialogconnection.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
     dialogselectinlist.cpp \
+    dialogterminaloptions.cpp \
     keyscontainer.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -29,14 +32,17 @@ SOURCES += \
 
 HEADERS += \
     ../../chared/clientsettings.h \
+    ../../chared/qjsontablemodel.h \
     ../../chared/qmlwebsocket.h \
     ../../chared/qwebdav.h \
     ../../chared/serveresponse.h \
+    commandline.h \
     dialogcomputer.h \
     dialogconnection.h \
     dialogoptions.h \
     dialogselectdevice.h \
     dialogselectinlist.h \
+    dialogterminaloptions.h \
     keyscontainer.h \
     mainwindow.h \
     registry.h \
@@ -49,6 +55,7 @@ FORMS += \
     dialogoptions.ui \
     dialogselectdevice.ui \
     dialogselectinlist.ui \
+    dialogterminaloptions.ui \
     mainwindow.ui
 
 # Default rules for deployment.
@@ -77,3 +84,6 @@ INCLUDEPATH += $$PWD/../../chared
 
 DEFINES += USE_QT_CREATOR
 win32:DEFINES += _WINDOWS
+
+#windows:DEFINES -= UNICODE
+#windows:DEFINES += _MBCS

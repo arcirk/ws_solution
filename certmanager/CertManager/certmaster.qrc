@@ -20,5 +20,10 @@
         <file>img/computers.ico</file>
         <file>img/desktop.ico</file>
         <file>img/server.ico</file>
+        <file>img/socket.ico</file>
+        <file>img/socket_16_only.ico</file>
+        <file>img/activeUesers.png</file>
+        <file>img/settings.ico</file>
+        <file>img/clear.ico</file>
     </qresource>
 </RCC>

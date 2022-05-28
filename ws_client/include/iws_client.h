@@ -27,12 +27,12 @@ class  WS_CLIENT_EXPORT IClient{
 public:
     std::string app_uuid;
     std::string user_uuid;
-    //std::string client_uuid;
     std::string host;
     int port;
     std::string admin_name;
     std::string app_name;
     std::string hash;
+    std::string user_name;
 
     explicit
     IClient();
@@ -79,6 +79,10 @@ public:
     static long int current_date_in_seconds();
     long int get_tz_offset();
 
+//    static std::string string_utf_to_utf(const std::string &s);
+//    static std::string string_to_utf(const std::string &s, const char* charset);
+//    static std::string string_from_utf(const std::string &s, const char* charset);
+
     static std::string base64_encode(const std::string &s);
     static std::string base64_decode(const std::string &s);
     static std::string nil_string_uuid();
@@ -113,9 +117,6 @@ private:
     std::string _client_param;
     _callback_message callback_msg;
     _callback_status _status_changed;
-
-//    boost::mutex mtx;
-//    boost::condition_variable cv;
     bool _m_synch;
     result_synch resultSynch;
 

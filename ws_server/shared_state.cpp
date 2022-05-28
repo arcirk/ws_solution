@@ -120,6 +120,7 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _message.uuid_user = session->get_user_uuid();
     _message.role = session->get_role();
     _message.ip_address = session->ip_address();
+    _message.host_name = session->host_name();
     std::cout << _message.uuid << std::endl;
     return _message;
 }
@@ -417,7 +418,7 @@ void shared_state::on_start() {
 
 bool shared_state::is_valid_param_count(const std::string &command, unsigned int params) {
     if (command == "set_client_param")
-        return params == 5;
+        return params == 6;
     else if (command == "get_active_users")
         return true;//params == 1; //динамически
     else if (command == "send_all_message")
@@ -612,6 +613,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
         boost::uuids::uuid new_uuid = params->get_member("uuid").get_uuid();
         std::string name = params->get_member("name").get_string();
+        std::string user_name = params->get_member("user_name").get_string();
         std::string pwd = params->get_member("pwd").get_string();
         std::string hash = params->get_member("hash").get_string(); //если указан хеш пароль игронится
         if (hash.empty())
@@ -619,6 +621,8 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
         std::string app_name = params->get_member("app_name").get_string();
         boost::uuids::uuid user_uuid = params->get_member("user_uuid").get_uuid();
+
+        //std::string host_name = params->get_member("host_name").get_string();
 
 
         if (get_session(new_uuid)){
@@ -666,6 +670,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                     if (!ref.empty())
                         user_uuid = arcirk::string_to_uuid(ref, true);
                     session->deadline_cancel();
+                    session->set_host_name(msg->message().host_name);
                 }
             }
 
@@ -679,6 +684,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
             session->set_user_uuid(user_uuid);
             session->set_app_name(app_name);
             session->set_role(role);
+            session->set_user_name(user_name);
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
@@ -720,11 +726,9 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
 bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result) {
 
-    arcirk::bJson json_arr{};
-    json_arr.set_array();
-
     std::string filter_app_name;
     bool unique = false;
+    bool table = false;
 
     if(params->get_member_count() > 0){
         bVariant val;
@@ -734,7 +738,14 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
         if (params->getMember("unique", val)){
             unique = val.get_bool();
         }
+        if (params->getMember("table", val)){
+            table = val.get_bool();
+        }
     }
+
+    arcirk::bJson json_arr{};
+    json_arr.set_array();
+
     if(!unique){
         for (auto p : sessions_){
             if(!filter_app_name.empty()){
@@ -746,8 +757,9 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
             json_arr.addMember(&doc, arcirk::content_value("name", p.second->get_name()));
             json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
             json_arr.addMember(&doc, arcirk::content_value("app_name", p.second->get_app_name()));
-            json_arr.addMember(&doc, arcirk::content_value("user_name", p.second->get_name()));
+            json_arr.addMember(&doc, arcirk::content_value("user_name", p.second->get_user_name()));
             json_arr.addMember(&doc, arcirk::content_value("ip_address", p.second->ip_address()));
+            json_arr.addMember(&doc, arcirk::content_value("host_name", p.second->host_name()));
             json_arr.push_back(doc) ;
         }
     }else{
@@ -765,8 +777,9 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
             object.emplace_back(arcirk::content_value("name", p.second->get_name()));
             object.emplace_back(arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
             object.emplace_back(arcirk::content_value("app_name", p.second->get_app_name()));
-            object.emplace_back(arcirk::content_value("user_name", p.second->get_name()));
+            object.emplace_back(arcirk::content_value("user_name", p.second->get_user_name()));
             object.emplace_back(arcirk::content_value("ip_address", p.second->ip_address()));
+            object.emplace_back(arcirk::content_value("host_name", p.second->host_name()));
             users.insert(std::pair<boost::uuids::uuid, std::vector<content_value>>(uuid_, object));
         }
 
@@ -780,7 +793,23 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
 
     }
 
-    custom_result = json_arr.to_string();
+    if(!table)
+        custom_result = json_arr.to_string();
+    else{
+        auto mainDoc = arcirk::bJson();
+        mainDoc.set_object();
+        _Value rows = json_arr.GetArray();
+        mainDoc.addMember("rows", rows);
+        _Value cols(rapidjson::Type::kArrayType);
+        cols.PushBack("name", mainDoc.GetAllocator());
+        cols.PushBack("user_uuid", mainDoc.GetAllocator());
+        cols.PushBack("app_name", mainDoc.GetAllocator());
+        cols.PushBack("user_name", mainDoc.GetAllocator());
+        cols.PushBack("ip_address", mainDoc.GetAllocator());
+        cols.PushBack("host_name", mainDoc.GetAllocator());
+        mainDoc.addMember("columns", cols);
+        custom_result = mainDoc.to_string();
+    }
 
     return true;
 

@@ -18,6 +18,11 @@ public:
 
     void save();
 
+    QString charset();
+    void setCharset(const QString& cp);
+
+    int method();
+    void setMethod(int m);
 private:
     const QString connectionStringTemplate = "DRIVER={SQL Server};"
                                              "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
@@ -27,6 +32,8 @@ private:
     QString _user;
     QString _pwd;
     QString _server;
+    int _method;
+    QString _charset;
 
 signals:
 

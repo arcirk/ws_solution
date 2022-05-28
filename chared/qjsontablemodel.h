@@ -10,7 +10,7 @@
 #include <QAbstractTableModel>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QSortFilterProxyModel>
+//#include <QSortFilterProxyModel>
 
 class QJsonTableModel : public QAbstractTableModel{
 

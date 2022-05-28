@@ -12,6 +12,7 @@
 #include "dialogselectdevice.h"
 #include "keyscontainer.h"
 #include <qmlwebsocket.h>
+#include <commandline.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,6 +23,7 @@ enum sqlCommand{
     sqlUpdate,
     sqlDelete
 };
+
 
 class MainWindow : public QMainWindow
 {
@@ -58,12 +60,21 @@ private slots:
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
     void UpdateRowIcons();
+    void onGetActiveUsers(const QString& resp);
+    void onParseCommand(const QString& result, CommandLine::cmdCommand command);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
     void on_tableView_clicked(const QModelIndex &index);
 
     void on_btnEdit_clicked();
+
+    void onOutputCommandLine(const QString& data, CommandLine::cmdCommand command);
+    void on_actionTest_triggered();
+
+    void on_btnTermOptions_clicked();
+
+    void on_btnTerminalClear_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -74,6 +85,10 @@ private:
     CertUser * currentUser;
     QMap<QString, CertUser*> m_users;
     bWebSocket* m_client;
+
+    CommandLine * terminal;
+
+    void execute_command(QString param);
 
     void createTree();
     void createRootList();

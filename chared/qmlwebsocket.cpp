@@ -7,7 +7,8 @@
 #include <QImage>
 #include <QBuffer>
 #include <QMimeDatabase>
-
+#include <QProcess>
+//#include <QTextCodec>
 
 bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 : QObject(parent),
@@ -49,6 +50,8 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
 
     m_is_agent = false;
     m_hidden = false;
+
+    //os_user_name = osUserName();
 }
 
 bWebSocket::~bWebSocket()
@@ -69,7 +72,7 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
         return;
     }
 
-    QString _hash;
+    //QString _hash;
 
     if(_pwdEdit){
         settings[bConfFieldsWrapper::Hash] = QString::fromStdString( IClient::get_hash(user_name.toStdString(), user_password.toStdString()));
@@ -81,7 +84,7 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
     client->host = settings[bConfFieldsWrapper::ServerHost].toString().toStdString();
     client->port = settings[bConfFieldsWrapper::ServerPort].toInt();
     client->app_name = settings[bConfFieldsWrapper::AppName].toString().toStdString();
-
+    client->user_name = os_user_name.toStdString();
     client->open();
 
     settings.save();
@@ -656,6 +659,73 @@ void bWebSocket::responseCommand(ServeResponse * resp)
         }
     }
 }
+
+void bWebSocket::setOsUserName(const QString &value)
+{
+    os_user_name = value;
+}
+
+//std::string bWebSocket::string_utf_to_utf(const std::string &s)
+//{
+//    return IClient::string_utf_to_utf(s);
+//}
+
+//std::string bWebSocket::string_to_utf(const std::string& source, const char* charset)
+//{
+//    return IClient::string_to_utf(source, charset);
+//}
+
+//std::string bWebSocket::string_from_utf(const std::string& source, const char* charset)
+//{
+//    return IClient::string_from_utf(source, charset);
+//}
+
+//QString bWebSocket::osUserName()
+//{
+//    QString result;
+
+//#ifdef _WINDOWS
+//    QProcess cmd;
+//    QString program;
+//    program.append("powershell");
+//    try {
+//        QStringList lstResult;
+//        QString commandLine = "WHOAMI /USER";
+//        commandLine.append("\n");
+
+//        cmd.start(program);
+//        cmd.write(commandLine.toUtf8());
+
+//        if(!cmd.waitForStarted(500))
+//        {
+//            qCritical() << __FUNCTION__ << "Cannot execute:" << program;
+//        }
+//        cmd.waitForFinished(500);
+//        cmd.setProcessChannelMode(QProcess::MergedChannels);
+
+//        if(cmd.exitStatus() == QProcess::NormalExit
+//           && cmd.exitCode() == QProcess::NormalExit){;
+//            QString r = QTextCodec::codecForName("CP866")->toUnicode(cmd.readAllStandardOutput());
+//            r.replace("\r", "");
+//            lstResult = r.split("\n");
+//            QString result = lstResult[lstResult.size() - 2];
+//            result.replace("\\", " ");
+//            QStringList mResult = result.split(" ");
+//            //usr->setDomain(mResult[0]);
+//            result = mResult[1];
+//           // usr->setSid(mResult[2]);
+//        } else {
+//            qCritical() << __FUNCTION__ << qPrintable(QString::fromStdString(cmd.readAllStandardError().toStdString()));
+//        }
+//    }  catch (std::exception& e) {
+//        qCritical() << e.what();
+//    }
+
+//    cmd.close();
+//#endif
+
+//    return result;
+//}
 
 void bWebSocket::registerToAgent(const QString &uuid) {
     qDebug() << "bWebSocket::registerToAgent: " << uuid;

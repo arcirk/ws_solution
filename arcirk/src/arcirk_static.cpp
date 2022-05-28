@@ -294,4 +294,17 @@ namespace arcirk{
         return result;
     }
 
+//    std::string string_utf_to_utf(const std::string& source){
+//        std::string utf8 = boost::locale::conv::utf_to_utf<char>(source);
+//        return utf8;
+//    }
+
+//    std::string string_to_utf(const char* source, const char* charset){
+//        std::string utf8 = boost::locale::conv::to_utf<char>(source, charset);
+//        return utf8;
+//    }
+//    std::string string_from_utf(const std::string& source, const char* charset){
+//        std::string latin1_string = boost::locale::conv::from_utf(source,charset);
+//        return latin1_string;
+//    }
 }
