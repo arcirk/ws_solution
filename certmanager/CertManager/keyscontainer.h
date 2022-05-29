@@ -3,13 +3,14 @@
 
 #include <QObject>
 #include <QSettings>
+#include <sqlinterface.h>
 
 class KeysContainer : public QObject
 {
     Q_OBJECT
 public:
     explicit KeysContainer(QObject *parent = nullptr);
-    explicit KeysContainer(const QString& sid, const QString& localName, QObject *parent = nullptr);
+    explicit KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent = nullptr);
 
     void setName(const QString& value);
     QString name();
@@ -41,6 +42,7 @@ private:
     QByteArray _primary_key;
     QByteArray _primary2_key;
 
+    SqlInterface * _db;
     QString _name;
 
 signals:

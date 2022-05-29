@@ -41,12 +41,12 @@ public:
     explicit
     IClient(const std::string& _host, const int& _port, _callback_message& callback, _callback_status& _status_changed_fun);
     ~IClient(){
-        close();
+        close(true);
     };
 
     void ext_message(const std::string& msg);
 
-    void close();
+    void close(bool exitParent = false);
     void open(bool new_thread = true);
     bool synch_open();
 
@@ -119,7 +119,7 @@ private:
     _callback_status _status_changed;
     bool _m_synch;
     result_synch resultSynch;
-
+    bool _exitParent;
     void start();
 
 };

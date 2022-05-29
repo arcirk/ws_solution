@@ -16,7 +16,9 @@ SOURCES += \
     ../../chared/qmlwebsocket.cpp \
     ../../chared/qwebdav.cpp \
     ../../chared/serveresponse.cpp \
+    ../../sqlwrapper/sqlinterface.cpp \
     commandline.cpp \
+    databasemanager.cpp \
     dialogcomputer.cpp \
     dialogconnection.cpp \
     dialogoptions.cpp \
@@ -36,7 +38,9 @@ HEADERS += \
     ../../chared/qmlwebsocket.h \
     ../../chared/qwebdav.h \
     ../../chared/serveresponse.h \
+    ../../sqlwrapper/sqlinterface.h \
     commandline.h \
+    databasemanager.h \
     dialogcomputer.h \
     dialogconnection.h \
     dialogoptions.h \
@@ -79,6 +83,7 @@ else:unix: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
 INCLUDEPATH += $$PWD/../../ws_client/include
 DEPENDPATH += $$PWD/../../ws_client
 INCLUDEPATH += $$PWD/../../chared
+INCLUDEPATH += $$PWD/../../sqlwrapper/
 
 DEFINES += USE_QT_CREATOR
 win32:DEFINES += _WINDOWS

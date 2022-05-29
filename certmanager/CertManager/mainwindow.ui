@@ -18,118 +18,180 @@
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QToolButton" name="btnAdd">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Добавить</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/itemAdd.png</normaloff>:/img/itemAdd.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btnEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Изменить</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/itemEdit.png</normaloff>:/img/itemEdit.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btnDelete">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Удалить</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/itemDelete.png</normaloff>:/img/itemDelete.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="maximumSize">
-         <size>
-          <width>5</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btnToDatabase">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Экспорт на сервер</string>
-        </property>
-        <property name="text">
-         <string>Экспорт на сервер</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/importFromDatabase.png</normaloff>:/img/importFromDatabase.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btnImportFromDatabase">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Импорт с сервера</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/exportKeysToDatabase.png</normaloff>:/img/exportKeysToDatabase.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btnInstallToUser">
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="certmaster.qrc">
-          <normaloff>:/img/installToUser.png</normaloff>:/img/installToUser.png</iconset>
-        </property>
+       <widget class="QWidget" name="wToolBarMain" native="true">
+        <layout class="QGridLayout" name="gridLayout_6">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QToolButton" name="btnAdd">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Добавить</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/itemAdd.png</normaloff>:/img/itemAdd.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QToolButton" name="btnToDatabase">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Экспорт на сервер</string>
+           </property>
+           <property name="text">
+            <string>Экспорт на сервер</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/importFromDatabase.png</normaloff>:/img/importFromDatabase.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QToolButton" name="btnEdit">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Изменить</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/itemEdit.png</normaloff>:/img/itemEdit.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QToolButton" name="btnDelete">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Удалить</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/itemDelete.png</normaloff>:/img/itemDelete.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QToolButton" name="btnImportFromDatabase">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Импорт с сервера</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/exportKeysToDatabase.png</normaloff>:/img/exportKeysToDatabase.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="6">
+          <widget class="QToolButton" name="btnInstallToUser">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/installToUser.png</normaloff>:/img/installToUser.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label">
+           <property name="maximumSize">
+            <size>
+             <width>5</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <widget class="QTableView" name="tableView">
       <property name="selectionMode">
        <enum>QAbstractItemView::SingleSelection</enum>
       </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QWidget" name="wToolBarAU" native="true">
+      <layout class="QGridLayout" name="gridLayout_5">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="toolBarActiveUsers">
+         <item>
+          <widget class="QToolButton" name="btnUserToDatabase">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/userToDatabase.png</normaloff>:/img/userToDatabase.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnCompToDatabase">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/compToTataBase.png</normaloff>:/img/compToTataBase.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>

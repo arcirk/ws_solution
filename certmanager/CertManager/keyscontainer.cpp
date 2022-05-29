@@ -17,7 +17,7 @@ KeysContainer::KeysContainer(QObject *parent)
 
 }
 
-KeysContainer::KeysContainer(const QString& sid, const QString& localName, QObject *parent)
+KeysContainer::KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent)
     : QObject{parent}
 {
     const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, localName);
@@ -29,6 +29,8 @@ KeysContainer::KeysContainer(const QString& sid, const QString& localName, QObje
     _primary_key = reg.value("primary.key").toByteArray();
     _primary2_key = reg.value("primary2.key").toByteArray();
     _name = localName;
+
+    _db = db;
 }
 
 void KeysContainer::setName(const QString &value)
@@ -141,9 +143,14 @@ bool KeysContainer::toDataBase()
    if(fdata.open(QIODevice::ReadOnly)){
         QByteArray data = fdata.readAll();
         fdata.close();
-        QSqlQuery query;
-        query.prepare("INSERT INTO [dbo].[containers] ([name] ,[data]) "
-                      "VALUES (?, ?)");
+
+        QUuid _uuid = QUuid::createUuid();
+        QString uuid = _uuid.toString().mid(1, 36);
+
+        QSqlQuery query(_db->getDatabase());
+        query.prepare("INSERT INTO [dbo].[Containers] ([Ref], [FirstField] ,[data]) "
+                      "VALUES (?, ?, ?)");
+        query.addBindValue(uuid);
         query.addBindValue(name().trimmed());
         query.addBindValue(data);
         query.exec();

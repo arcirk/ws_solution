@@ -10,7 +10,7 @@
 #include <QProcess>
 //#include <QTextCodec>
 
-bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
+bWebSocket::bWebSocket(QObject *parent, const QString& confFile, const QString& sysUser)
 : QObject(parent),
   settings(confFile, false, true)
 {
@@ -51,13 +51,13 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile)
     m_is_agent = false;
     m_hidden = false;
 
-    //os_user_name = osUserName();
+    os_user_name = sysUser;
 }
 
 bWebSocket::~bWebSocket()
 {
     if (client->started()) {
-        client->close();
+        client->close(true);
     }
 
     m_agentClients.clear();
@@ -92,10 +92,10 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
     emit startedChanged();
 }
 
-void bWebSocket::close()
+void bWebSocket::close(bool exitParent)
 {
     if(client->started()){
-        client->close();
+        client->close(exitParent);
     }
 
     emit startedChanged();

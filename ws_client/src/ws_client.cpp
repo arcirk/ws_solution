@@ -179,6 +179,8 @@ ws_client::on_stop() {
 
         _callback_msg(_msg.get_json(true));
 
+        _callback_msg("exit_thread");
+
     }
     if(status_changed)
         status_changed(false);

@@ -30,13 +30,13 @@ class bWebSocket : public QObject
     Q_PROPERTY(bool hidden READ isHidden WRITE setHidden NOTIFY hiddenChanged);
 
 public:
-    explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "");
+    explicit bWebSocket(QObject *parent = nullptr, const QString& confFile = "", const QString& sysUser = "");
     ~bWebSocket();
 
     static QString generateHash(const QString& usr, const QString& pwd);
 
     Q_INVOKABLE void open(const QString& user_name, const QString& user_password);
-    Q_INVOKABLE void close();
+    Q_INVOKABLE void close(bool exitParent = false);
     Q_INVOKABLE void saveCache(const QString& jsonText);
     Q_INVOKABLE void messages(const QString& uuid);
     Q_INVOKABLE void sendMessage(const QString& recipient, const QString& msg, const QString& objectName = "", const QString& msg_ref = "");

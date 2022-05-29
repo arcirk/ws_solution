@@ -13,16 +13,11 @@
 #include "keyscontainer.h"
 #include <qmlwebsocket.h>
 #include <commandline.h>
+#include <sqlinterface.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-
-enum sqlCommand{
-    sqlInsert = 0,
-    sqlUpdate,
-    sqlDelete
-};
 
 
 class MainWindow : public QMainWindow
@@ -76,11 +71,17 @@ private slots:
 
     void on_btnTerminalClear_clicked();
 
+    void on_btnCompToDatabase_clicked();
+
+    void on_btnUserToDatabase_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
+    QList<QToolButton*> toolBarActiveUsers;
     settings * _sett;
-    QSqlDatabase db;
+    //QSqlDatabase db;
+    SqlInterface * db;
     QLabel * infoBar;
     CertUser * currentUser;
     QMap<QString, CertUser*> m_users;
@@ -94,7 +95,7 @@ private:
     void createRootList();
     void loadContainersList();
     void LoadUsersList();
-    void createCertList();
+    void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
     void loadItemChilds(QTreeWidgetItem *item);
@@ -102,16 +103,18 @@ private:
     void loadKeysOnRegistry(CertUser * usr);
     void disableToolBar();
     bool isContainerExists(const QString& name);
-    bool isUserExists(const QString& name);
+    bool isUserExists(const QString& name, const QString& host = "");
+    bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
     void loadCimputers();
     void connectToWsServer();
+    void toolBarSetVisible(QWidget * bar, bool value);
 
-    bool insertSqlTableRow(const QString& table, QMap<QString, QVariant>& vals, const QString& ref = "");
-    bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
-    bool deleteSqlTableRow(const QString& table, const QString& ref);
-    QString queryText(const QString& table, QMap<QString, QVariant>& values,
-                        sqlCommand command, const QString& not_ref);
+//    bool insertSqlTableRow(const QString& table, QMap<QString, QVariant>& vals, const QString& ref = "");
+//    bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
+//    bool deleteSqlTableRow(const QString& table, const QString& ref);
+//    QString queryText(const QString& table, QMap<QString, QVariant>& values,
+//                        sqlCommand command, const QString& not_ref);
 
 };
 #endif // MAINWINDOW_H

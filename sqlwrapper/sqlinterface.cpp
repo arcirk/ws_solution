@@ -10,9 +10,10 @@
 #include <QJsonArray>
 #include <QSqlField>
 
-SqlInterface::SqlInterface()
+SqlInterface::SqlInterface(QObject *parent)
+    : QObject{parent}
 {
-
+    _driverType = "QODBC";
 }
 
 SqlInterface::~SqlInterface()
@@ -247,8 +248,8 @@ QString SqlInterface::queryTemplate(int tableIndex) const{
     const QString& tableName = tables[tableIndex];
     QString query = QString("CREATE TABLE [dbo].[%1](\n"
                     "[_id] [int] IDENTITY(1,1) NOT NULL,\n"
-                    "[FirstField] [char](150) NULL,\n"
-                    "[SecondField] [char](150) NULL,\n"
+                    "[FirstField] [varchar](max) NULL,\n"
+                    "[SecondField] [varchar](max) NULL,\n"
                     "[Ref] [char](36) NOT NULL,\n"
                     "_NEXT_FIELDS_\n"
                     "CONSTRAINT [PK_%1] PRIMARY KEY CLUSTERED\n"
@@ -265,7 +266,7 @@ QString SqlInterface::tableFields(int tableIndex) {
     if(tableName == "Users"){
         result = "[hash] [char](1000) NOT NULL,\n"
                  "[role] [char](10) NULL,\n"
-                 "[Performance] [char](150) NULL,\n"
+                 "[Performance] [varchar](max) NULL,\n"
                  "[channel] [char](36) NOT NULL,\n"
                  "[parent] [char](36) NULL,\n"
                  "[cache] [text] NULL,\n"
@@ -273,16 +274,16 @@ QString SqlInterface::tableFields(int tableIndex) {
                  "[block] [int] NOT NULL,"
                  "[allowСhat] [int] NOT NULL,"
                  "[deletionMark] [int] NOT NULL,"
-                 "[FullName] [text] NULL,"
-                 "[LastName] [text] NULL,"
-                 "[FirstName] [text] NULL,"
-                 "[Reporting] [text] NULL,";
+                 "[FullName] [varchar](max) NULL,"
+                 "[LastName] [varchar](max) NULL,"
+                 "[FirstName] [varchar](max) NULL,"
+                 "[Reporting] [varchar](max) NULL,";
     }else if(tableName == "Channels"){
         result = "[parent] [char](36) NOT NULL,\n"
                  "[cache] [text] NULL,";
     }else if(tableName == "Messages"){
         result = "[message] [text] NULL,\n"
-                 "[token] [char](255) NOT NULL,\n"
+                 "[token] [varchar](max) NOT NULL,\n"
                  "[date] [int] NOT NULL,\n"
                  "[contentType] [char](10) NULL,\n"
                  "[unreadMessages] [int] NULL,";
@@ -299,15 +300,19 @@ QString SqlInterface::tableFields(int tableIndex) {
         result = "[cache] [text] NULL,\n"
                  "[uuid] [char](38) NULL,\n"
                  "[sid] [varchar](136) NULL,\n"
-                 "[domain] [char](100) NULL,";
+                 "[domain] [varchar](max) NULL,";
     }else if(tableName == "WSConf"){
         result = "[cache] [text] NULL,\n"
-                 "[host] [char](15) NULL,\n"
+                 "[host] [varchar](max) NULL,\n"
                  "[port] [int] NULL,";
     }else if(tableName == "Servers"){
         result = "[cache] [text] NULL,"
-                 "[ipadrr] [char](15) NULL,"
+                 "[ipadrr] [varchar](max) NULL,"
                  "[isServer] [int] NOT NULL,";
+    }else if(tableName == "Certificates"){
+        result = "[cache] [text] NULL,\n"
+                 "[data] [varbinary](max) NULL,"
+                 "[privateKey] [char](36) NULL";
     }
 
 
@@ -389,9 +394,16 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
         try {
             //result = m_query.exec();
             m_query = db.exec(QString::fromStdString(query));
+            if(m_query.lastError().type() != QSqlError::NoError){
+                result = false;
+                error = m_query.lastError().text();
+                return 0;
+            }
             result = true;
         } catch (std::exception &e) {
             std::cerr << e.what() << std::endl;
+            error = QString(e.what());
+            return 0;
         }
 
         if(!result){
@@ -442,6 +454,7 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
         table = doc.toJson();
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
+        error = QString(e.what());
     }
 
     return rowCount;
@@ -546,4 +559,151 @@ bool SqlInterface::verifyTables() {
     }
 
     return true;
+}
+
+
+bool SqlInterface::insertSqlTableRow(const QString &table, QMap<QString, QVariant>& vals, const QString& ref)
+{
+
+    db.exec("USE arcirk;");
+
+    QString query = queryText(table, vals, sqlCommand::sqlInsert, ref);
+
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+bool SqlInterface::updateSqlTableRow(const QString &table, QMap<QString, QVariant> vals, const QString& ref)
+{
+
+    QString query = queryText(table, vals, sqlCommand::sqlUpdate, ref);
+
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+bool SqlInterface::deleteSqlTableRow(const QString &table, const QString& ref)
+{
+    QMap<QString, QVariant> vals;
+    QString query = queryText(table, vals, sqlCommand::sqlDelete, ref);
+
+    QSqlQuery q = db.exec(query);
+
+    bool result = q.lastError().type() == QSqlError::NoError;
+
+    if(!result){
+        qCritical() << __FUNCTION__ << qPrintable(query);
+        qCritical() << q.lastError().text();
+    }
+
+    return result;
+}
+
+QString SqlInterface::queryText(const QString& table, QMap<QString, QVariant>& values,
+                                sqlCommand command, const QString& not_ref)
+{
+    QString query;
+
+
+    if(command == sqlCommand::sqlInsert){
+
+        QString into = "\n(";
+        QString values_ = "\n(";
+        query = "INSERT INTO ";
+        query.append("dbo." + table);
+        for (auto iter = values.begin(); iter != values.end(); iter++) {
+            into.append(iter.key());
+            if (iter != --values.end())
+                into.append(",\n");
+
+            if (iter.value().typeId() == QMetaType::QString){
+                QString value = iter.value().toString();
+                values_.append("'" + value + "'");
+                if (iter != --values.end())
+                    values_.append(",\n");
+            }else if (iter.value().typeId() == QMetaType::Int){
+                int res = iter.value().toInt();
+                QString value = QString::number(res);
+                values_.append("'" + value + "'");
+                if (iter != --values.end())
+                    values_.append(",\n");
+            }
+        }
+        into.append("\n)");
+        values_.append("\n)");
+        query.append(into);
+        query.append("\nVALUES\n");
+        query.append(values_);
+
+        if(!not_ref.isEmpty()){
+            QString query_ = QString("IF NOT EXISTS \n"
+                                     "    (   SELECT  [Ref]\n"
+                                     "        FROM    dbo.%1 \n"
+                                     "        WHERE   [Ref]='%2' \n"
+                                     "    )\n"
+                                     "BEGIN\n").arg(table, not_ref);
+            query_.append(query);
+            query_.append("\nEND");
+            query = query_;
+        }
+
+        query.append(";");
+
+    }else if(command == sqlCommand::sqlUpdate){
+        query = "UPDATE dbo." + table;
+        QString _set = "\n SET ";
+        QString _where = QString("\n WHERE Ref = '%1'").arg(not_ref);
+        for (auto iter = values.begin(); iter != values.end(); iter++) {
+            _set.append(iter.key());
+            if (iter.value().typeId() == QMetaType::QString){
+                QString value = iter.value().toString();
+                _set.append(" = '" + value + "'");
+                if (iter != --values.end())
+                    _set.append(",\n");
+            }else if (iter.value().typeId() == QMetaType::Int){
+                int res = iter.value().toInt();
+                QString value = QString::number(res);
+                _set.append(" = '" + value + "'");
+                if (iter != --values.end())
+                    _set.append(",\n");
+            }
+
+        }
+        _set.append("\n");
+        _where.append("\n");
+        query.append(_set);
+        query.append(_where + ";");
+    }else if(command == sqlCommand::sqlDelete){
+        query = QString("DELETE FROM [dbo].[Servers]\n"
+                "WHERE Ref = '%1'").arg(not_ref);
+    }
+
+    return query;
+
+}
+
+QString SqlInterface::lastError()
+{
+    return db.lastError().text();
+}
+
+QSqlDatabase SqlInterface::getDatabase() const
+{
+    return db;
 }

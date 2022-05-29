@@ -17,6 +17,7 @@
 #include <QStringConverter>
 #include <QInputDialog>
 #include "dialogterminaloptions.h"
+#include "registry.h"
 #include <QTextOption>
 
 #include <Windows.h>
@@ -36,17 +37,22 @@ MainWindow::MainWindow(QWidget *parent)
     toolBar.append(ui->btnAdd);
     toolBar.append(ui->btnEdit);
     toolBar.append(ui->btnDelete);
+    toolBar.append(ui->btnImportFromDatabase);
+    toolBar.append(ui->btnInstallToUser);
+    toolBar.append(ui->btnToDatabase);
+    toolBarActiveUsers.append(ui->btnUserToDatabase);
+    toolBarActiveUsers.append(ui->btnCompToDatabase);
+    toolBarSetVisible(ui->wToolBarAU, false);
+
+//    QWidget* _toolBar = qobject_cast<QWidget*>(ui->toolBarActiveUsers);
+//    if(_toolBar)
+//        _toolBar->setVisible(false);
 
     _sett = new settings(this);
+    currentUser = new CertUser(this);
     terminal = new CommandLine(this, false, _sett->charset());
 
-//    QStringList params = {"whoami /user & exit" };
-//    terminal->setParams(params);
-
-
     terminal->setMethod(_sett->method());
-    //terminal->setCurrentEncoding(_sett->charset());
-
     connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
     connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
 
@@ -56,29 +62,11 @@ MainWindow::MainWindow(QWidget *parent)
     //terminal->clearBuffer();
     terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
 
-    //$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' ;
-    //chcp 1251 &
-
-
-//    std::string whoami = "whoami /user";
-//    std::string result = Registry::exec( whoami.c_str() );
-//    QByteArray encodedString = result.data();
-//    auto toUtf16 = QStringDecoder(QStringDecoder::Utf32);
-//    QString _result = toUtf16(encodedString);
-//    qDebug() << qPrintable(_result);
-
-    //std::string _result = bWebSocket::string_to_utf(result);
-
-    currentUser = new CertUser(this);
-//    QStringList cmdLine = Registry::currentUser(currentUser);
-//    QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
-//    currentUser->setContainers(curContainers);
-
-    db = QSqlDatabase::addDatabase("QODBC");
-    db.setConnectOptions();
+    db = new SqlInterface(this);
 
     createTree();
     ui->horizontalLayout->addStretch();
+    ui->toolBarActiveUsers->addStretch();
 
     infoBar = new QLabel(this);
     ui->statusbar->addWidget(infoBar);
@@ -94,7 +82,6 @@ MainWindow::MainWindow(QWidget *parent)
     QString hash = bWebSocket::generateHash("admin", "admin");
     m_client->options()[bConfFieldsWrapper::Hash] = hash;
     m_client->options().save();
-    m_client->setOsUserName(currentUser->name());
 
 
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
@@ -106,8 +93,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
 
-    connectToWsServer();
-
     setWindowTitle("Менеджер сертификатов");
 
     ui->txtTerminal->setWordWrapMode(QTextOption::NoWrap);
@@ -118,6 +103,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->txtTerminal->setTextColor(QColor(0,255,0));
 
 
+}
+
+void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
+//    for (auto item : bar) {
+//        item->setVisible(value);
+//    }
+    bar->setVisible(value);
 }
 
 void MainWindow::onOutputCommandLine(const QString &data, CommandLine::cmdCommand command)
@@ -241,8 +233,8 @@ void MainWindow::loadContainersList()
     table->setHorizontalHeaderLabels(cols);
 
 
-    if(db.isOpen()){
-        QSqlQuery query("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]");
+    if(db->isOpen()){
+        QSqlQuery query("SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]", db->getDatabase());
         int i = 0;
         while (query.next()) {
             table->setRowCount(table->rowCount()+ 1);
@@ -268,14 +260,70 @@ void MainWindow::LoadUsersList()
 {
     auto table = ui->tableView;
     table->setModel(nullptr);
-
     ui->btnAdd->setEnabled(true);
+
+    if(!db->isOpen())
+        return;
+
+    QString result;
+    QString query = "SELECT [_id]\n"
+            ",[FirstField]\n"
+            ",[Ref]\n"
+            ",[uuid]\n"
+            ",[sid]\n"
+            ",[host]\n"
+            "FROM [dbo].[CertUsers]";
+
+
+    QString err;
+
+    int i = db->execute(query.toStdString(), result, err, true);
+    if(i> 0){
+        ui->tableView->setModel(nullptr);
+        auto model = new QJsonTableModel(this);
+        model->setJsonText(result);
+        ui->tableView->setModel(model);
+        ui->tableView->resizeColumnsToContents();
+    }
+    if(!err.isEmpty()){
+        qCritical() << __FUNCTION__ <<  err;
+    }
+
+
 }
 
-void MainWindow::createCertList()
+void MainWindow::loadCertList()
 {
     auto table = ui->tableView;
     table->setModel(nullptr);
+    ui->btnAdd->setEnabled(true);
+
+    if(!db->isOpen())
+        return;
+
+    QString result;
+    QString query = "SELECT [_id]\n"
+                    ",[FirstField]\n"
+                    ",[SecondField]\n"
+                    ",[Ref]\n"
+                    ",[privateKey]\n"
+                    "FROM [dbo].[Certificates]";
+
+
+    QString err;
+
+    int i = db->execute(query.toStdString(), result, err, true);
+    if(i> 0){
+        ui->tableView->setModel(nullptr);
+        auto model = new QJsonTableModel(this);
+        model->setJsonText(result);
+        ui->tableView->setModel(model);
+        ui->tableView->resizeColumnsToContents();
+    }
+    if(!err.isEmpty()){
+        qCritical() << __FUNCTION__ <<  err;
+    }
+
 }
 
 void MainWindow::createUsersList()
@@ -362,8 +410,8 @@ void MainWindow::disableToolBar()
 
 bool MainWindow::isContainerExists(const QString &name)
 {
-    if(db.isOpen()){
-        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers] WHERE [FirstField] = '%1'").arg(name));
+    if(db->isOpen()){
+        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers] WHERE [FirstField] = '%1'").arg(name), db->getDatabase());
         while (query.next()) {
             return true;
         }
@@ -372,10 +420,26 @@ bool MainWindow::isContainerExists(const QString &name)
     return false;
 }
 
-bool MainWindow::isUserExists(const QString &name)
+bool MainWindow::isUserExists(const QString &name, const QString& host)
 {
-    if(db.isOpen()){
-        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[users] WHERE [FirstField] = '%1'").arg(name));
+    if(db->isOpen()){
+        QString _host;
+        if(!host.isEmpty()){
+            _host = QString(" AND [host] = '%1'").arg(host);
+        }
+        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1''%2'").arg(name, _host), db->getDatabase());
+        while (query.next()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool MainWindow::isHostExists(const QString &name)
+{
+    if(db->isOpen()){
+        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Servers] WHERE [FirstField] = '%1'").arg(name), db->getDatabase());
         while (query.next()) {
             return true;
         }
@@ -404,7 +468,7 @@ void MainWindow::loadCimputers()
                          ",[Ref] AS Идентификатор\n"
                          ",[ipadrr] AS Адрес\n"
                          ",[isServer]\n"
-                         "FROM [dbo].[Servers]");
+                         "FROM [dbo].[Servers]", db->getDatabase());
 
     ui->tableView->setModel(queryModel);
     ui->tableView->setColumnHidden(0, true);
@@ -436,14 +500,14 @@ void MainWindow::UpdateRowIcons(){
 
 void MainWindow::connectToWsServer()
 {
-    if(!db.isOpen())
+    if(!db->isOpen())
         return;
     if(!m_client)
         return;
     if(m_client->isStarted())
         return;
 
-    auto result = db.exec("select [host], [port] from dbo.WSConf;");
+    QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
     if(result.lastError().type() == QSqlError::NoError){
         while (result.next()){
             QString _host = result.value(0).toString().trimmed();
@@ -458,141 +522,141 @@ void MainWindow::connectToWsServer()
 
 }
 
-bool MainWindow::insertSqlTableRow(const QString &table, QMap<QString, QVariant>& vals, const QString& ref)
-{
+//bool MainWindow::insertSqlTableRow(const QString &table, QMap<QString, QVariant>& vals, const QString& ref)
+//{
 
-    db.exec("USE arcirk;");
+//    db.exec("USE arcirk;");
 
-    QString query = queryText(table, vals, sqlCommand::sqlInsert, ref);
+//    QString query = queryText(table, vals, sqlCommand::sqlInsert, ref);
 
-    QSqlQuery q = db.exec(query);
+//    QSqlQuery q = db.exec(query);
 
-    bool result = q.lastError().type() == QSqlError::NoError;
+//    bool result = q.lastError().type() == QSqlError::NoError;
 
-    if(!result){
-        qCritical() << __FUNCTION__ << qPrintable(query);
-        qCritical() << q.lastError().text();
-    }
+//    if(!result){
+//        qCritical() << __FUNCTION__ << qPrintable(query);
+//        qCritical() << q.lastError().text();
+//    }
 
-    return result;
-}
+//    return result;
+//}
 
-bool MainWindow::updateSqlTableRow(const QString &table, QMap<QString, QVariant> vals, const QString& ref)
-{
+//bool MainWindow::updateSqlTableRow(const QString &table, QMap<QString, QVariant> vals, const QString& ref)
+//{
 
-    QString query = queryText(table, vals, sqlCommand::sqlUpdate, ref);
+//    QString query = queryText(table, vals, sqlCommand::sqlUpdate, ref);
 
-    QSqlQuery q = db.exec(query);
+//    QSqlQuery q = db.exec(query);
 
-    bool result = q.lastError().type() == QSqlError::NoError;
+//    bool result = q.lastError().type() == QSqlError::NoError;
 
-    if(!result){
-        qCritical() << __FUNCTION__ << qPrintable(query);
-        qCritical() << q.lastError().text();
-    }
+//    if(!result){
+//        qCritical() << __FUNCTION__ << qPrintable(query);
+//        qCritical() << q.lastError().text();
+//    }
 
-    return result;
-}
+//    return result;
+//}
 
-bool MainWindow::deleteSqlTableRow(const QString &table, const QString& ref)
-{
-    QMap<QString, QVariant> vals;
-    QString query = queryText(table, vals, sqlCommand::sqlDelete, ref);
+//bool MainWindow::deleteSqlTableRow(const QString &table, const QString& ref)
+//{
+//    QMap<QString, QVariant> vals;
+//    QString query = queryText(table, vals, sqlCommand::sqlDelete, ref);
 
-    QSqlQuery q = db.exec(query);
+//    QSqlQuery q = db.exec(query);
 
-    bool result = q.lastError().type() == QSqlError::NoError;
+//    bool result = q.lastError().type() == QSqlError::NoError;
 
-    if(!result){
-        qCritical() << __FUNCTION__ << qPrintable(query);
-        qCritical() << q.lastError().text();
-    }
+//    if(!result){
+//        qCritical() << __FUNCTION__ << qPrintable(query);
+//        qCritical() << q.lastError().text();
+//    }
 
-    return result;
-}
+//    return result;
+//}
 
-QString MainWindow::queryText(const QString& table, QMap<QString, QVariant>& values,
-                                sqlCommand command, const QString& not_ref)
-{
-    QString query;
+//QString MainWindow::queryText(const QString& table, QMap<QString, QVariant>& values,
+//                                sqlCommand command, const QString& not_ref)
+//{
+//    QString query;
 
 
-    if(command == sqlCommand::sqlInsert){
+//    if(command == sqlCommand::sqlInsert){
 
-        QString into = "\n(";
-        QString values_ = "\n(";
-        query = "INSERT INTO ";
-        query.append("dbo." + table);
-        for (auto iter = values.begin(); iter != values.end(); iter++) {
-            into.append(iter.key());
-            if (iter != --values.end())
-                into.append(",\n");
+//        QString into = "\n(";
+//        QString values_ = "\n(";
+//        query = "INSERT INTO ";
+//        query.append("dbo." + table);
+//        for (auto iter = values.begin(); iter != values.end(); iter++) {
+//            into.append(iter.key());
+//            if (iter != --values.end())
+//                into.append(",\n");
 
-            if (iter.value().typeId() == QMetaType::QString){
-                QString value = iter.value().toString();
-                values_.append("'" + value + "'");
-                if (iter != --values.end())
-                    values_.append(",\n");
-            }else if (iter.value().typeId() == QMetaType::Int){
-                int res = iter.value().toInt();
-                QString value = QString::number(res);
-                values_.append("'" + value + "'");
-                if (iter != --values.end())
-                    values_.append(",\n");
-            }
-        }
-        into.append("\n)");
-        values_.append("\n)");
-        query.append(into);
-        query.append("\nVALUES\n");
-        query.append(values_);
+//            if (iter.value().typeId() == QMetaType::QString){
+//                QString value = iter.value().toString();
+//                values_.append("'" + value + "'");
+//                if (iter != --values.end())
+//                    values_.append(",\n");
+//            }else if (iter.value().typeId() == QMetaType::Int){
+//                int res = iter.value().toInt();
+//                QString value = QString::number(res);
+//                values_.append("'" + value + "'");
+//                if (iter != --values.end())
+//                    values_.append(",\n");
+//            }
+//        }
+//        into.append("\n)");
+//        values_.append("\n)");
+//        query.append(into);
+//        query.append("\nVALUES\n");
+//        query.append(values_);
 
-        if(!not_ref.isEmpty()){
-            QString query_ = QString("IF NOT EXISTS \n"
-                                     "    (   SELECT  [Ref]\n"
-                                     "        FROM    dbo.%1 \n"
-                                     "        WHERE   [Ref]='%2' \n"
-                                     "    )\n"
-                                     "BEGIN\n").arg(table, not_ref);
-            query_.append(query);
-            query_.append("\nEND");
-            query = query_;
-        }
+//        if(!not_ref.isEmpty()){
+//            QString query_ = QString("IF NOT EXISTS \n"
+//                                     "    (   SELECT  [Ref]\n"
+//                                     "        FROM    dbo.%1 \n"
+//                                     "        WHERE   [Ref]='%2' \n"
+//                                     "    )\n"
+//                                     "BEGIN\n").arg(table, not_ref);
+//            query_.append(query);
+//            query_.append("\nEND");
+//            query = query_;
+//        }
 
-        query.append(";");
+//        query.append(";");
 
-    }else if(command == sqlCommand::sqlUpdate){
-        query = "UPDATE dbo." + table;
-        QString _set = "\n SET ";
-        QString _where = QString("\n WHERE Ref = '%1'").arg(not_ref);
-        for (auto iter = values.begin(); iter != values.end(); iter++) {
-            _set.append(iter.key());
-            if (iter.value().typeId() == QMetaType::QString){
-                QString value = iter.value().toString();
-                _set.append(" = '" + value + "'");
-                if (iter != --values.end())
-                    _set.append(",\n");
-            }else if (iter.value().typeId() == QMetaType::Int){
-                int res = iter.value().toInt();
-                QString value = QString::number(res);
-                _set.append(" = '" + value + "'");
-                if (iter != --values.end())
-                    _set.append(",\n");
-            }
+//    }else if(command == sqlCommand::sqlUpdate){
+//        query = "UPDATE dbo." + table;
+//        QString _set = "\n SET ";
+//        QString _where = QString("\n WHERE Ref = '%1'").arg(not_ref);
+//        for (auto iter = values.begin(); iter != values.end(); iter++) {
+//            _set.append(iter.key());
+//            if (iter.value().typeId() == QMetaType::QString){
+//                QString value = iter.value().toString();
+//                _set.append(" = '" + value + "'");
+//                if (iter != --values.end())
+//                    _set.append(",\n");
+//            }else if (iter.value().typeId() == QMetaType::Int){
+//                int res = iter.value().toInt();
+//                QString value = QString::number(res);
+//                _set.append(" = '" + value + "'");
+//                if (iter != --values.end())
+//                    _set.append(",\n");
+//            }
 
-        }
-        _set.append("\n");
-        _where.append("\n");
-        query.append(_set);
-        query.append(_where + ";");
-    }else if(command == sqlCommand::sqlDelete){
-        query = QString("DELETE FROM [dbo].[Servers]\n"
-                "WHERE Ref = '%1'").arg(not_ref);
-    }
+//        }
+//        _set.append("\n");
+//        _where.append("\n");
+//        query.append(_set);
+//        query.append(_where + ";");
+//    }else if(command == sqlCommand::sqlDelete){
+//        query = QString("DELETE FROM [dbo].[Servers]\n"
+//                "WHERE Ref = '%1'").arg(not_ref);
+//    }
 
-    return query;
+//    return query;
 
-}
+//}
 
 void MainWindow::on_mnuExit_triggered()
 {
@@ -605,6 +669,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     if(item->childCount() > 0){
         loadItemChilds(item);
         disableToolBar();
+        toolBarSetVisible(ui->wToolBarAU, false);
+        toolBarSetVisible(ui->wToolBarMain, true);
     }else{
         QString itemText = item->text(0);
         if(itemText == "Реестр"){
@@ -616,12 +682,21 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 
             }
         }else if(itemText == "Контейнеры"){
+            toolBarSetVisible(ui->wToolBarAU, false);
+            toolBarSetVisible(ui->wToolBarMain, true);
             loadContainersList();
         }else if(itemText == "Пользователи"){
+            toolBarSetVisible(ui->wToolBarAU, false);
+            toolBarSetVisible(ui->wToolBarMain, true);
             LoadUsersList();
         }else if(itemText == "Компьютеры"){
+            toolBarSetVisible(ui->wToolBarAU, false);
+            toolBarSetVisible(ui->wToolBarMain, true);
             loadCimputers();
         }else if(itemText == "Активные пользователи"){
+            toolBarSetVisible(ui->wToolBarAU, true);
+            toolBarSetVisible(ui->wToolBarMain, false);
+            disableToolBar();
             ui->tableView->setModel(nullptr);
             if(m_client){
                 if(m_client->isStarted()){
@@ -633,6 +708,15 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                     m_client->sendCommand("get_active_users", "", param);
                 }
             }
+        }else if(itemText == "Сертификаты"){
+            loadCertList();
+            toolBarSetVisible(ui->wToolBarAU, false);
+            toolBarSetVisible(ui->wToolBarMain, true);
+        }else{
+            toolBarSetVisible(ui->wToolBarAU, false);
+            toolBarSetVisible(ui->wToolBarMain, true);
+            disableToolBar();
+            ui->tableView->setModel(nullptr);
         }
     }
 //    QString itemText = item->text(0);
@@ -661,31 +745,33 @@ void MainWindow::onReconnect(settings *sett, const QString &pwd)
     QString userName = sett->user();
     QString password = pwd;
 
-//    QString connectString = "Driver={SQL Server Native Client 10.0};"; // Driver is now {SQL Server}
-//    connectString.append("Server=%1;"); // IP,Port
-//    connectString.append("Database=%2;");  // Schema
-//    connectString.append("Uid=%3;");           // User
-//    connectString.append("Pwd=%4;");           // Pass
-//    db.setDatabaseName(QString(connectString).arg(host, database, userName, password));
-
-    db.setDatabaseName(QString("DRIVER={SQL Server};"
-                "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
-                "uid=%3;pwd=%4")
-              .arg(host, database, userName, password));
-
-//    QString connectString = "Driver={SQL Server Native Client 10.0};"; // Driver can also be {SQL Server Native Client 11.0}
-//    connectString.append("Server=SERVERHOSTNAME\\SQLINSTANCENAME;");   // Hostname,SQL-Server Instance
-//    connectString.append("Database=SQLDBSCHEMA;");  // Schema
-//    connectString.append("Uid=SQLUSER;");           // User
-//    connectString.append("Pwd=SQLPASS;");           // Pass
-//    db.setDatabaseName(connectString);
+//    db.setDatabaseName(QString("DRIVER={SQL Server};"
+//                "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
+//                "uid=%3;pwd=%4")
+//              .arg(host, database, userName, password));
 
 
-    if (!db.open()){
-        QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db.lastError().text()));
+    db->setSqlUser(userName);
+    db->setSqlPwd(password);
+    db->setHost(sett->server());
+    db->setDatabaseName(database);
+    db->connect();
+
+    if (!db->isOpen()){
+        QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
         infoBar->setText("Не подключен.");
-    }else
+    }else{
+//        bool result = db->verifyDatabase();
+//        if(!result){
+//            qCritical() << __FUNCTION__ << db->lastError();
+//        }else{
+//            result = db->verifyTables();
+//            if(!result)
+//                qCritical() << __FUNCTION__ << db->lastError();
+//        }
+
         infoBar->setText("Поключен к " + sett->server());
+    }
 
     sett->save();
 }
@@ -707,7 +793,7 @@ void MainWindow::on_mnuConnect_triggered()
        if(m_client->isStarted())
        {
            QString status;
-           if(db.isOpen()){
+           if(db->isOpen()){
                status = "SQL Server: " + _sett->server() + "  ";
            }
            status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
@@ -763,7 +849,7 @@ void MainWindow::on_btnAdd_clicked()
 //        }
 //    }
 
-    if(!db.isOpen())
+    if(!db->isOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -794,14 +880,86 @@ void MainWindow::on_btnAdd_clicked()
                 QString ref =  QUuid::createUuid().toString();
                 ref = ref.mid(1, ref.length() - 2);
                 result["Ref"] = ref;
-                bool r = insertSqlTableRow("Servers", result);
-                auto model = (QSqlQueryModel*)ui->tableView->model();
-                model->setQuery(model->query().lastQuery());
-                UpdateRowIcons();
-                ui->tableView->resizeColumnsToContents();
+                bool r = db->insertSqlTableRow("Servers", result);
+                //auto model = (QSqlQueryModel*)ui->tableView->model();
+                //model->setQuery(model->query().lastQuery());
+                //UpdateRowIcons();
+                //ui->tableView->resizeColumnsToContents();
+                 loadCimputers();
                 if(!r)
                     qCritical() << __FUNCTION__ << "Ошибка добавления новой строки в таблицу 'Servers'!";
             }
+        }
+    }else if(currentNode == "Контейнеры"){
+        auto dlg = new DialogSelectDevice(this);
+        dlg->setModal(true);
+        dlg->exec();
+
+        QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
+                                                     QDir::homePath(),
+                                                     QFileDialog::ShowDirsOnly
+                                                     | QFileDialog::DontResolveSymlinks);
+        if(dir != ""){
+            QFile file(dir + QDir::separator() + "name.key");
+            if(file.open(QIODevice::ReadOnly)){
+                QString data = QString::fromLocal8Bit(file.readAll());
+                qDebug() << data;
+                if(data.compare("0/\u0016-")){
+                    data.replace("0/\u0016-", "");
+                    auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
+
+                    if(result == QMessageBox::Yes){
+
+                    }
+                }else
+                   QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+            }else{
+                QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+            }
+        }
+    }else if(currentNode == "Сертификаты"){
+
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
+                                                     QDir::homePath(),
+                                                     "Файл сертификата (*.cer)");
+        if(fileName != ""){
+            QFile file(fileName);
+            QFileInfo fileInfo(file.fileName());
+            if(file.open(QIODevice::ReadOnly)){
+                QByteArray data = file.readAll();
+                QUuid _uuid = QUuid::createUuid();
+                QString uuid = _uuid.toString().mid(1, 36);
+                QSqlQuery sql = QSqlQuery(db->getDatabase());
+                sql.prepare("INSERT INTO [dbo].[Certificates] ([FirstField] ,[SecondField] ,[Ref] ,[data]) "
+                              "VALUES (?,?,?,?)");
+                sql.addBindValue(fileInfo.baseName());
+                sql.addBindValue(file.fileName());
+                sql.addBindValue(uuid);
+                sql.addBindValue(data);
+                auto r = sql.exec();
+                if(!r){
+                    qCritical() << __FUNCTION__ << "Ошибка обновления строки в таблице 'Certificates'!";
+                    qCritical() << __FUNCTION__ << db->lastError();
+                }
+                else
+                    loadCertList();
+            }
+
+//            if(file.open(QIODevice::ReadOnly)){
+//                QString data = QString::fromLocal8Bit(file.readAll());
+//                qDebug() << data;
+//                if(data.compare("0/\u0016-")){
+//                    data.replace("0/\u0016-", "");
+//                    auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
+
+//                    if(result == QMessageBox::Yes){
+
+//                    }
+//                }else
+//                   QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+//            }else{
+//                QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+//            }
         }
     }
 
@@ -809,7 +967,7 @@ void MainWindow::on_btnAdd_clicked()
 
 void MainWindow::on_btnToDatabase_clicked()
 {
-    if(!db.isOpen())
+    if(!db->isOpen())
         return;
 
     auto table = ui->tableView;
@@ -825,19 +983,19 @@ void MainWindow::on_btnToDatabase_clicked()
     }
 
     QString currentNode = treeItem->text(0);
-    QString currentKeyName = table->model()->index(row, 0).data().toString();
+    QString currentKeyName = table->model()->index(row, 1).data().toString();
 
     if(currentNode == "Реестр"){
         if(treeItem->parent()->text(0).compare("Текущий пользователь")){
             if(!isContainerExists(currentKeyName)){
-                auto result = QMessageBox::question(this, "Экспорт закрытого ключа", "Экспортировать закрытый ключ?");
+                auto result = QMessageBox::question(this, "Экспорт контейнера", "Экспортировать контейнер на сервер?");
                 if(result == QMessageBox::Yes){
-                    KeysContainer cnt = KeysContainer(currentUser->sid(), currentKeyName, this);
+                    KeysContainer cnt = KeysContainer(currentUser->sid(), currentKeyName, db, this);
                     bool result = cnt.toDataBase();
                     if(!result)
                         QMessageBox::critical(this, "Ошибка", "Ошибка экспорта контейнера!");
                     else
-                        QMessageBox::information(this, "Экспорт", "Ключ успешно экспортирован на сервер!");
+                        QMessageBox::information(this, "Экспорт", "Контейнер успешно экспортирован на сервер!");
                 }
             }else
                 QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже есть на сервере!").arg(currentKeyName));
@@ -849,7 +1007,7 @@ void MainWindow::on_btnToDatabase_clicked()
 
 void MainWindow::on_btnDelete_clicked()
 {
-    if(!db.isOpen())
+    if(!db->isOpen())
         return;
 
     auto table = ui->tableView;
@@ -906,14 +1064,15 @@ void MainWindow::on_btnDelete_clicked()
         //
         auto result = QMessageBox::question(this, "Удаление строки", "Удалить выбранную строку?");
         if(result == QMessageBox::Yes){
-            bool r = deleteSqlTableRow("Servers", ui->tableView->model()->index(row, 3).data().toString());
+            bool r = db->deleteSqlTableRow("Servers", ui->tableView->model()->index(row, 3).data().toString());
             if(!r)
                 QMessageBox::critical(this, "Ошибка", "Ошибка удаления строки!");
             else
             {
-                auto model = (QSqlQueryModel*)ui->tableView->model();
-                model->setQuery(model->query().lastQuery());
-                UpdateRowIcons();
+//                auto model = (QSqlQueryModel*)ui->tableView->model();
+//                model->setQuery(model->query().lastQuery());
+//                UpdateRowIcons();
+                loadCimputers();
                 ui->tableView->resizeColumnsToContents();
             }
         }
@@ -944,7 +1103,7 @@ void MainWindow::onConnectionSuccess()
     if(m_client->isStarted())
     {
         QString status;
-        if(db.isOpen()){
+        if(db->isOpen()){
             status = "SQL Server: " + _sett->server() + "  ";
         }
         status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
@@ -957,7 +1116,7 @@ void MainWindow::onConnectionSuccess()
 void MainWindow::onCloseConnection()
 {
     QString status;
-    if(db.isOpen()){
+    if(db->isOpen()){
         status = "SQL Server: " + _sett->server();
     }
     infoBar->setText(status);
@@ -1041,7 +1200,7 @@ void MainWindow::on_tableView_clicked(const QModelIndex &index)
 
 void MainWindow::on_btnEdit_clicked()
 {
-    if(!db.isOpen())
+    if(!db->isOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -1083,11 +1242,12 @@ void MainWindow::on_btnEdit_clicked()
         if(dlg->result() == QDialog::Accepted){
             auto result = dlg->computer();
             if(!result["Ref"].toString().isEmpty()){
-                bool r = updateSqlTableRow("Servers", result, result["Ref"].toString());
-                auto model = (QSqlQueryModel*)ui->tableView->model();
-                model->setQuery(model->query().lastQuery());
-                UpdateRowIcons();
-                ui->tableView->resizeColumnsToContents();
+                bool r = db->updateSqlTableRow("Servers", result, result["Ref"].toString());
+//                auto model = (QSqlQueryModel*)ui->tableView->model();
+//                model->setQuery(model->query().lastQuery());
+//                UpdateRowIcons();
+                 loadCimputers();
+               // ui->tableView->resizeColumnsToContents();
                 if(!r)
                     qCritical() << __FUNCTION__ << "Ошибка обновления строки в таблице 'Servers'!";
             }
@@ -1112,9 +1272,15 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
         terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+        m_client->setOsUserName(currentUser->name());
+        connectToWsServer();
     }else if(command == CommandLine::cmdCommand::wmicGetSID){
         currentUser->setSid(result);
         terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
+        if(!currentUser->sid().isEmpty()){
+            QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
+            currentUser->setContainers(curContainers);
+        }
     }
 }
 
@@ -1174,5 +1340,107 @@ void MainWindow::on_btnTermOptions_clicked()
 void MainWindow::on_btnTerminalClear_clicked()
 {
     ui->txtTerminal->setText("");
+}
+
+
+void MainWindow::on_btnCompToDatabase_clicked()
+{
+
+    if(!db->isOpen())
+        return;
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->text(0);
+
+    auto index = ui->tableView->currentIndex();
+
+    if(!index.isValid())
+        return;
+
+    int row = index.row();
+
+    if(currentNode == "Активные пользователи"){
+
+        QString hostName = ui->tableView->model()->index(row, 5).data().toString();
+        if(isHostExists(hostName)){
+            QMessageBox::critical(this, "Ошибка", "Компьютер уже зарегистрирован в базе!");
+            return;
+        }else{
+            auto result =  QMessageBox::question(this, "Регистрация комьютера в базе", "Зарегистрировать компьютер пользователя в базе?");
+            if(result != QMessageBox::Yes){
+                return;
+            }
+        }
+        QUuid _uuid = QUuid::createUuid();
+        QString uuid = _uuid.toString().mid(1, 36);
+        QMap<QString, QVariant> _row;
+        _row.insert("FirstField", hostName);
+        _row.insert("SecondField", hostName);
+        _row.insert("Ref",uuid);
+        _row.insert("ipadrr", ui->tableView->model()->index(row, 4).data().toString());
+        _row.insert("isServer", 0);
+        bool r = db->insertSqlTableRow("Servers", _row);
+        if(!r)
+            qCritical() << __FUNCTION__ << "Ошибка обновления строки в таблице 'Servers'!";
+
+    }
+}
+
+
+void MainWindow::on_btnUserToDatabase_clicked()
+{
+    if(!db->isOpen())
+        return;
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->text(0);
+
+    auto index = ui->tableView->currentIndex();
+
+    if(!index.isValid())
+        return;
+
+    int row = index.row();
+
+    if(currentNode == "Активные пользователи"){
+
+        QString hostName = ui->tableView->model()->index(row, 5).data().toString();
+        QString userName = ui->tableView->model()->index(row, 3).data().toString();
+
+        if(isUserExists(hostName, userName)){
+            QMessageBox::critical(this, "Ошибка", "Пользователь уже зарегистрирован в базе!");
+            return;
+        }else{
+            auto result =  QMessageBox::question(this, "Регистрация пользователя в базе", "Зарегистрировать пользователя в базе для использования сертификатов?");
+            if(result != QMessageBox::Yes){
+                return;
+            }
+        }
+        QUuid _uuid = QUuid::createUuid();
+        QString uuid = _uuid.toString().mid(1, 36);
+        QMap<QString, QVariant> _row;
+        _row.insert("FirstField", userName);
+        _row.insert("SecondField", userName);
+        _row.insert("Ref", uuid);
+        _row.insert("host", hostName);
+        bool r = db->insertSqlTableRow("CertUsers", _row);
+        if(!r){
+            qCritical() << __FUNCTION__ << "Ошибка обновления строки в таблице 'Servers'!";
+            QString err = db->lastError();
+            if(!err.isEmpty())
+                QMessageBox::critical(this, "Ошибка", "Ошибка регистрации в базе!");
+        }
+        else
+            QMessageBox::information(this, "Успех", "Пользователь успешно зарегистрирован!");
+
+    }
 }
 

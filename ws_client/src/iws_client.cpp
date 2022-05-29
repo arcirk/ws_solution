@@ -26,6 +26,7 @@ IClient::IClient()
     app_name = "admin_console";
     user_uuid = nil_string_uuid();
     _m_synch = false;
+    _exitParent = false;
 }
 
 IClient::IClient(const std::string& _host, const int& _port, _callback_message& callback)
@@ -38,6 +39,7 @@ IClient::IClient(const std::string& _host, const int& _port, _callback_message& 
     user_uuid = nil_string_uuid();
     _m_synch = false;
     resultSynch = result_synch::ok;
+    _exitParent = false;
 }
 IClient::IClient(const std::string &_host, const int &_port, _callback_message &callback,
                  _callback_status &_status_changed_fun) {
@@ -50,6 +52,7 @@ IClient::IClient(const std::string &_host, const int &_port, _callback_message &
     _status_changed = _status_changed_fun;
     _m_synch = false;
     resultSynch = result_synch::ok;
+    _exitParent = false;
 }
 
 void IClient::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param) {
@@ -96,13 +99,14 @@ void IClient::ext_message(const std::string& msg) {
     }
 }
 
-void IClient::close() {
+void IClient::close(bool exitParent) {
 
+    _exitParent = exitParent;
     if (client)
     {
         if (client->started())
         {
-            client->close();
+            client->close(exitParent);
         }
 
         //delete client;
@@ -129,7 +133,7 @@ void IClient::start() {
 
     std::cout << "IClient::start: exit client thread" << std::endl;
 
-    if(client){
+    if(client && !_exitParent){
         if(callback_msg){
             callback_msg("exit_thread");
         }

@@ -17,14 +17,21 @@ const QStringList tables = {
         "Containers",
         "CertUsers",
         "WSConf",
-        "Servers"
+        "Servers",
+        "Certificates"
 };
 
-class SqlInterface //: public QObject
+enum sqlCommand{
+    sqlInsert = 0,
+    sqlUpdate,
+    sqlDelete
+};
+
+class SqlInterface : public QObject
 {
-    //Q_OBJECT
+    Q_OBJECT
 public:
-    explicit SqlInterface(); //QObject *parent = nullptr);
+    explicit SqlInterface(QObject *parent = nullptr);
     ~SqlInterface();
 
     void setHost(const QString& value);
@@ -54,6 +61,16 @@ public:
 
     bool exportTablesToSqlServer();
 
+    bool insertSqlTableRow(const QString& table, QMap<QString, QVariant>& vals, const QString& ref = "");
+    bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
+    bool deleteSqlTableRow(const QString& table, const QString& ref);
+    QString queryText(const QString& table, QMap<QString, QVariant>& values,
+                        sqlCommand command, const QString& not_ref);
+
+    QString lastError();
+
+    QSqlDatabase getDatabase() const;
+
 private:
     QString _host;
     QString _user;
@@ -63,7 +80,7 @@ private:
 
     QSqlDatabase db;
 
-//signals:
+signals:
 
 };
 

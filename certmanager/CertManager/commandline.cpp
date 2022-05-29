@@ -298,7 +298,9 @@ QString CommandLine::parseCommand(const QString &result, cmdCommand command)
         QRegularExpression  re( "echo %username%\n");
         if(re.match(result).hasMatch()){
             int length = QString("echo %username%\n").length();
-            int fwd = result.lastIndexOf(re, length);
+            int l = result.lastIndexOf(re, length);
+            int in = result.indexOf(re, length);
+            int fwd = l > in ? l : in;
             int start = fwd + length;
             if(fwd >= 0){
                 for(int i = start; i < result.length(); ++i){
@@ -314,7 +316,10 @@ QString CommandLine::parseCommand(const QString &result, cmdCommand command)
     }else if(command == wmicGetSID){
         QString str(result);
         QRegularExpression  re( "S-1");
-        int fwd = str.indexOf(re, 3);
+        int length = QString("S-1").length();
+        int l = result.lastIndexOf(re, length);
+        int in = result.indexOf(re, length);
+        int fwd = l > in ? l : in;
         if(fwd >= 0){
             for(int i = fwd; i < str.length(); ++i){
                 QString s = str.mid(i, 1);
