@@ -71,8 +71,6 @@ RESOURCES += \
 
 #LIBS += -LC:/src/CertManager/lib/ws_client -lws_client
 
-#windows:DEFINES -= UNICODE
-#windows:DEFINES += _MBCS
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
@@ -85,5 +83,5 @@ INCLUDEPATH += $$PWD/../../chared
 DEFINES += USE_QT_CREATOR
 win32:DEFINES += _WINDOWS
 
-#windows:DEFINES -= UNICODE
-#windows:DEFINES += _MBCS
+windows:DEFINES -= UNICODE
+windows:DEFINES += _MBCS

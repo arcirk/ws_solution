@@ -33,6 +33,8 @@ settings::settings(QObject *parent)
             setCharset(itr.value().toString());
     }
 
+    if(_charset.isEmpty())
+        _charset = "CP866";
 }
 
 void settings::setUser(const QString &usr)

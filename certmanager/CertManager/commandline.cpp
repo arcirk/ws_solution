@@ -4,9 +4,12 @@
 #include <QRegularExpression>
 #include <QTextCodec>
 
-CommandLine::CommandLine(QObject *parent)
+
+
+CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
     : QObject{parent}
 {
+
     connect(&m_process, &QProcess::errorOccurred, this, &CommandLine::errorOccured);
     connect(&m_process, &QProcess::readyReadStandardError, this, &CommandLine::readyReadStandardError);
     connect(&m_process, &QProcess::readyReadStandardOutput, this, &CommandLine::readyReadStandardOutput);
@@ -17,10 +20,10 @@ CommandLine::CommandLine(QObject *parent)
     connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &CommandLine::finished);
 
     m_listening = false;
-    _currentEncoding = "CP866";
+    _currentEncoding = enc;
     _verefyEncoding = false;
     _method = 0;
-
+    _useSystem = usesysstem;
 
     codec = QTextCodec::codecForName(_currentEncoding.toUtf8());
 //    codec = QTextCodec::codecForName("IBM 866");
@@ -145,8 +148,38 @@ QString CommandLine::encodeData(const QByteArray &data, int m)
         return QTextCodec::codecForName(_currentEncoding.toStdString().c_str())->toUnicode(data);
 }
 
+std::string CommandLine::executeSystem(const std::string &cmd)
+{
+    std::string file_name = "C:\\temp\\result.txt" ;
+    std::string _cmd = cmd;
+    _cmd.append(" > " + file_name);
+    int r = std::system( _cmd.c_str());
+    qDebug() << __FUNCTION__ << r;
+    //std::_wsystem( cmd + " > " + file_name ).c_str() ) ; // redirect output to file
+
+    // open file for input, return string containing characters in the file
+    std::ifstream file(file_name) ;
+    return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() } ;
+}
+
+void CommandLine::setChcp()
+{
+    QRegularExpression re( "866");
+    if(re.match(_currentEncoding).hasMatch()){
+        send("chcp 866\n", unknown);
+        return;
+    }
+
+    re = QRegularExpression("1251");
+    if(re.match(_currentEncoding).hasMatch()){
+        send("chcp 1251\n", unknown);
+        return;
+    }
+}
+
 void CommandLine::setCurrentEncoding(const QString &enc)
 {
+
     if(enc.isEmpty())
         return;
     if(_currentEncoding != enc){
@@ -164,6 +197,7 @@ void CommandLine::setCurrentEncoding(const QString &enc)
         }
 
         codec = QTextCodec::codecForName(_currentEncoding.toUtf8());
+        QTextCodec::setCodecForLocale(codec);
     }
 }
 
@@ -192,16 +226,30 @@ int CommandLine::method()
     return _method;
 }
 
+bool CommandLine::useSystem()
+{
+    return _useSystem;
+}
+
+void CommandLine::setUseSystem(bool val)
+{
+    _useSystem = val;
+}
+
 void CommandLine::start() {
 
     //qInfo() << Q_FUNC_INFO;
     if(m_listening)
         return;
-//    if (params.isEmpty())
-//        return;
+
     m_listening = true;
-    //m_process.start(program, params);
-    m_process.start(program);
+
+    //QStringList chcp = {"chcp " + _currentEncoding};
+
+    if(!useSystem())
+        m_process.start(program);
+
+
 }
 
 void CommandLine::stop() {
@@ -212,10 +260,15 @@ void CommandLine::stop() {
 
 void CommandLine::send(const QString &commandText, cmdCommand command)
 {
-    if(m_listening){
-        m_process.write(commandText.toUtf8());
-        _lastCommand = commandText;
-        _command = command;
+    _lastCommand = commandText;
+    _command = command;
+    if(!useSystem()){
+        if(m_listening){
+            m_process.write(commandText.toUtf8());
+        }
+    }else{
+        std::string _result = executeSystem(commandText.toStdString());
+        emit output(QString::fromStdString(_result), command);
     }
 }
 
@@ -242,50 +295,32 @@ QString CommandLine::parseCommand(const QString &result, cmdCommand command)
 {
     QStringList _result;
     if(command == echoUserName){
-        QString str(result);
-        str.replace("\r", "");
-        _result = str.split("\n");
-        int count = _result.size() - 1;
-        QRegularExpression  re( "Microsoft");
-
-        for (int i = count; i > 0; --i) {
-            if(!_result[i].isEmpty()){
-                QString tmp = _result[i];                
-                if(re.match(tmp).hasMatch()){
-                    continue;
-                }else if(tmp.right(1)== ">"){
-                    continue;
-                }else if(tmp == ""){
-                    continue;
-                }else{
-                    QString _res = tmp.replace("\r", "").trimmed();
-                    emit endParse(_res, command);
-                    m_process.setReadChannel(QProcess::StandardOutput);
-                    break;
+        QRegularExpression  re( "echo %username%\n");
+        if(re.match(result).hasMatch()){
+            int length = QString("echo %username%\n").length();
+            int fwd = result.lastIndexOf(re, length);
+            int start = fwd + length;
+            if(fwd >= 0){
+                for(int i = start; i < result.length(); ++i){
+                    QString s = result.mid(i, 1);
+                    if(s == " " || s == "\n" || s == "\r"){
+                        QString _res = result.mid(start, i - start);
+                        emit endParse(_res, command);
+                        break;
+                    }
                 }
             }
         }
     }else if(command == wmicGetSID){
         QString str(result);
-        str.replace("\r", "");
-        _result = str.split("\n");
-        int count = _result.size() - 1;
-        QRegularExpression  re( "wmic");
-        for (int i = count; i > 0; --i) {
-            if(!_result[i].isEmpty()){
-                QString tmp = _result[i];
-                if(re.match(tmp).hasMatch()){
-                    continue;
-                }else if(tmp.right(1)== ">"){
-                    continue;
-                }else if(tmp == ""){
-                    continue;
-                }else{
-                    if(tmp.left(1) != "S")
-                        continue;
-                    QString _res = tmp.replace("\r", "").trimmed();
+        QRegularExpression  re( "S-1");
+        int fwd = str.indexOf(re, 3);
+        if(fwd >= 0){
+            for(int i = fwd; i < str.length(); ++i){
+                QString s = str.mid(i, 1);
+                if(s == " " || s == "\n" || s == "\r"){
+                    QString _res = str.mid(fwd, i - fwd);
                     emit endParse(_res, command);
-                    m_process.setReadChannel(QProcess::StandardOutput);
                     break;
                 }
             }

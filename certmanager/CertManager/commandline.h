@@ -5,13 +5,21 @@
 #include <QProcess>
 #include <QTextCodec>
 
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+//#include <wchar.h>
+//#include <string>
+//#include <process.h>
+//#include <windows.h>
+
 static const QString program = "cmd";
 
 class CommandLine : public QObject
 {
     Q_OBJECT
 public:
-    explicit CommandLine(QObject *parent = nullptr);
+    explicit CommandLine(QObject *parent = nullptr, bool usesysstem = false, const QString& enc = "CP866");
 
     void setParams(QStringList& param);
 
@@ -45,6 +53,10 @@ public slots:
     void setMethod(int val);
     int method();
 
+    bool useSystem();
+    void setUseSystem(bool val);
+    void setChcp();
+
 signals:
     void output(const QString& data, CommandLine::cmdCommand command);
     void endParse(const QString& result, CommandLine::cmdCommand command);
@@ -57,8 +69,6 @@ private slots:
     void stateChanged(QProcess::ProcessState newState);
     void readyRead();
 
-
-
 private:
     QProcess m_process;
     QStringList params;
@@ -69,8 +79,11 @@ private:
     QString _currentEncoding;
     bool _verefyEncoding;
     int _method;
+    bool _useSystem;
 
     QString encodeData(const QByteArray& data, int m);
+    std::string executeSystem(const std::string& cmd);
+
 };
 
 #endif // COMMANDLINE_H

@@ -37,20 +37,23 @@ MainWindow::MainWindow(QWidget *parent)
     toolBar.append(ui->btnEdit);
     toolBar.append(ui->btnDelete);
 
-    terminal = new CommandLine(this);
+    _sett = new settings(this);
+    terminal = new CommandLine(this, false, _sett->charset());
+
 //    QStringList params = {"whoami /user & exit" };
 //    terminal->setParams(params);
 
-    _sett = new settings(this);
+
     terminal->setMethod(_sett->method());
-    terminal->setCurrentEncoding(_sett->charset());
+    //terminal->setCurrentEncoding(_sett->charset());
 
     connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
     connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
 
     terminal->start();
-    //terminal->send("cls\n", CommandLine::cmdCommand::unknown);
-    terminal->clearBuffer();
+    if(_sett->charset() != "CP866")
+        terminal->setChcp();
+    //terminal->clearBuffer();
     terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
 
     //$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' ;
@@ -1107,7 +1110,8 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
     if(command == CommandLine::cmdCommand::echoUserName){
         currentUser->setName(result);
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
-        terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+        //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+        terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
     }else if(command == CommandLine::cmdCommand::wmicGetSID){
         currentUser->setSid(result);
         terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
@@ -1143,7 +1147,7 @@ void MainWindow::execute_command(QString param)
      ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
      ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
      ShExecInfo.hwnd = NULL;
-     ShExecInfo.lpVerb = L"runas";
+     ShExecInfo.lpVerb = "runas";
      ShExecInfo.lpFile = TEXT("powershell.exe");
      ShExecInfo.lpParameters = TEXT("stuff..");
      ShExecInfo.lpDirectory = NULL;
