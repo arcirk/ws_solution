@@ -140,9 +140,7 @@ public:
 
     void setOsUserName(const QString& value);
 
-//    static std::string string_utf_to_utf(const std::string &s);
-//    static std::string string_to_utf(const std::string &s, const char* charset);
-//    static std::string string_from_utf(const std::string &s, const char* charset);
+    QString get_system_info();
 
 private:
     IClient * client;

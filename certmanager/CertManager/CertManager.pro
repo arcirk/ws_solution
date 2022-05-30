@@ -23,6 +23,7 @@ SOURCES += \
     dialogconnection.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
+    dialogselectfromdatabase.cpp \
     dialogselectinlist.cpp \
     dialogterminaloptions.cpp \
     keyscontainer.cpp \
@@ -45,6 +46,7 @@ HEADERS += \
     dialogconnection.h \
     dialogoptions.h \
     dialogselectdevice.h \
+    dialogselectfromdatabase.h \
     dialogselectinlist.h \
     dialogterminaloptions.h \
     keyscontainer.h \
@@ -58,6 +60,7 @@ FORMS += \
     dialogconnection.ui \
     dialogoptions.ui \
     dialogselectdevice.ui \
+    dialogselectfromdatabase.ui \
     dialogselectinlist.ui \
     dialogterminaloptions.ui \
     mainwindow.ui
@@ -86,7 +89,7 @@ INCLUDEPATH += $$PWD/../../chared
 INCLUDEPATH += $$PWD/../../sqlwrapper/
 
 DEFINES += USE_QT_CREATOR
-win32:DEFINES += _WINDOWS
-
+windows:DEFINES += _WINDOWS
+windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:DEFINES -= UNICODE
 windows:DEFINES += _MBCS

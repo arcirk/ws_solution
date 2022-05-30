@@ -11,6 +11,7 @@ public:
     explicit CertUser(QObject *parent = nullptr);
 
     void setDomain(const QString& value);
+    void setRef(const QString& value);
     void setName(const QString& value);
     void setSid(const QString& value);
     void setContainers(const QStringList& value);
@@ -20,12 +21,14 @@ public:
     QString domain();
     QString name();
     QString sid();
+    QString ref();
     QStringList containers();
 
 private:
     QString _domain;
     QString _name;
     QString _sid;
+    QString _ref;
     QStringList _containers;
     QTreeWidgetItem * _treeItem;
 

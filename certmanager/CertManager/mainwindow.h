@@ -103,18 +103,17 @@ private:
     void loadKeysOnRegistry(CertUser * usr);
     void disableToolBar();
     bool isContainerExists(const QString& name);
-    bool isUserExists(const QString& name, const QString& host = "");
+    bool isCertUserExists(const QString& name, const QString& host = "");
     bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
     void loadCimputers();
     void connectToWsServer();
     void toolBarSetVisible(QWidget * bar, bool value);
+    void createWsObject();
+    void setConnectedSignals();
+    void initToolBars();
 
-//    bool insertSqlTableRow(const QString& table, QMap<QString, QVariant>& vals, const QString& ref = "");
-//    bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
-//    bool deleteSqlTableRow(const QString& table, const QString& ref);
-//    QString queryText(const QString& table, QMap<QString, QVariant>& values,
-//                        sqlCommand command, const QString& not_ref);
+    bool isDbOpen();
 
 };
 #endif // MAINWINDOW_H

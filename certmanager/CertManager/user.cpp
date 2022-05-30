@@ -16,6 +16,11 @@ void CertUser::setDomain(const QString &value)
     _domain = value;
 }
 
+void CertUser::setRef(const QString &value)
+{
+    _ref = value;
+}
+
 void CertUser::setName(const QString &value)
 {
     _name = value;
@@ -54,6 +59,11 @@ QString CertUser::name()
 QString CertUser::sid()
 {
     return _sid;
+}
+
+QString CertUser::ref()
+{
+    return _ref;
 }
 
 QStringList CertUser::containers()

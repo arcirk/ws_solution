@@ -470,7 +470,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "get_unread_messages")
         return params == 1;
     else if (command == "command_to_qt_client")
-        return params == 3;
+        return true; // params == 3;
     else if (command == "command_to_qt_agent")
         return params == 4;
     else if (command == "get_webdav_settings")

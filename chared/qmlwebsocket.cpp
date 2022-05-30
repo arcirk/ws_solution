@@ -256,6 +256,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             if(resp->message == "clientShow"){
                 emit clientShow();
             }
+#else
+            responseCommand(resp);
 #endif
         }
         else if(resp->command == "get_group_list"){
@@ -657,12 +659,70 @@ void bWebSocket::responseCommand(ServeResponse * resp)
         if(m_is_agent){
             emit hiddenChanged(m_hidden);
         }
+    }else if(command == "get_system_info"){
+        QString info = get_system_info();
+        QString _message = info.toUtf8().toBase64();
+        QJsonObject obj = QJsonObject();
+        obj.insert("uuid_agent", getUuidSession());
+        obj.insert("uuid_client", resp->recipient);
+        obj.insert("command", "system_info");
+        obj.insert("message", _message);
+
+        QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+
+        if(client->started()){
+            client->send_command("command_to_qt_client", "", param.toStdString());
+        }
+    }else if(command == "system_info"){
+        qDebug() << __FUNCTION__ << "system_info";
     }
 }
 
 void bWebSocket::setOsUserName(const QString &value)
 {
     os_user_name = value;
+}
+
+QString bWebSocket::get_system_info()
+{
+    QJsonObject obj = QJsonObject();
+    QSysInfo info = QSysInfo();
+
+    obj.insert("os_name", os_user_name);
+    obj.insert("host_name", info.machineHostName());
+    obj.insert("os", info.productType());
+#ifdef Q_OS_WINDOWS
+    QProcess cmd = QProcess();
+    cmd.setProgram("cmd");
+    cmd.start();
+    cmd.write("WHOAMI /USER & exit\n");
+    cmd.waitForStarted ();
+    cmd.waitForFinished ();
+    QString output = QString::fromLocal8Bit(cmd.readAllStandardOutput());
+    cmd.close();
+    //парсим для получения сида
+    QString str(output);
+    QRegularExpression  re( "S-1");
+    int length = QString("S-1").length();
+    int l = output.lastIndexOf(re, length);
+    int in = output.indexOf(re, length);
+    int fwd = l > in ? l : in;
+    QString _res;
+    if(fwd >= 0){
+        for(int i = fwd; i < str.length(); ++i){
+            QString s = str.mid(i, 1);
+            if(s == " " || s == "\n" || s == "\r"){
+                _res = str.mid(fwd, i - fwd);
+                break;
+            }
+        }
+    }
+    obj.insert("sid", _res);
+#endif
+
+    QJsonDocument doc = QJsonDocument();
+    doc.setObject(obj);
+    return doc.toJson();
 }
 
 //std::string bWebSocket::string_utf_to_utf(const std::string &s)

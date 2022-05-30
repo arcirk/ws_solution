@@ -19,12 +19,13 @@
 #include "dialogterminaloptions.h"
 #include "registry.h"
 #include <QTextOption>
+#include "dialogselectfromdatabase.h"
 
+
+#ifdef _WINDOWS
 #include <Windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifdef _WINDOWS
     #pragma warning(disable:4100)
 #endif
 
@@ -34,24 +35,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_client = nullptr;
-
-    toolBar.append(ui->btnAdd);
-    toolBar.append(ui->btnEdit);
-    toolBar.append(ui->btnDelete);
-    toolBar.append(ui->btnImportFromDatabase);
-    toolBar.append(ui->btnInstallToUser);
-    toolBar.append(ui->btnToDatabase);
-    toolBarActiveUsers.append(ui->btnUserToDatabase);
-    toolBarActiveUsers.append(ui->btnCompToDatabase);
-    toolBarSetVisible(ui->wToolBarAU, false);
-
-//    QWidget* _toolBar = qobject_cast<QWidget*>(ui->toolBarActiveUsers);
-//    if(_toolBar)
-//        _toolBar->setVisible(false);
-
+    initToolBars();
+    db = new SqlInterface(this);
     _sett = new settings(this);
     currentUser = new CertUser(this);
+
+    createWsObject();
+
     terminal = new CommandLine(this, false, _sett->charset());
 
     terminal->setMethod(_sett->method());
@@ -63,41 +53,18 @@ MainWindow::MainWindow(QWidget *parent)
         terminal->setChcp();
     QByteArray data(std::getenv("username"));
     QString uname = QString::fromLocal8Bit(data);
-    onOutputCommandLine(uname, CommandLine::cmdCommand::echoUserName);
-    //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
-
-    db = new SqlInterface(this);
 
     createTree();
+
+    onParseCommand(uname, CommandLine::cmdCommand::echoUserName);
+    //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+
     ui->horizontalLayout->addStretch();
     ui->toolBarActiveUsers->addStretch();
 
     infoBar = new QLabel(this);
     ui->statusbar->addWidget(infoBar);
     infoBar->setText("Не подключен.");
-
-    if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-        onReconnect(_sett, _sett->pwd());
-
-
-    m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
-    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
-    m_client->options()[bConfFieldsWrapper::User] = "admin";
-    QString hash = bWebSocket::generateHash("admin", "admin");
-    m_client->options()[bConfFieldsWrapper::Hash] = hash;
-    m_client->options().save();
-
-
-    connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
-    connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
-    connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
-    connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
-    connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
-    connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
-    connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
-    connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
-
-    setWindowTitle("Менеджер сертификатов");
 
     ui->txtTerminal->setWordWrapMode(QTextOption::NoWrap);
     QPalette pal = ui->txtTerminal->palette();
@@ -106,15 +73,75 @@ MainWindow::MainWindow(QWidget *parent)
     ui->txtTerminal->setPalette(pal);
     ui->txtTerminal->setTextColor(QColor(0,255,0));
 
+    setConnectedSignals();
 
+    if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+        onReconnect(_sett, _sett->pwd());
+
+    setWindowTitle("Менеджер сертификатов");
+
+    QString curentHost = QSysInfo::machineHostName();
+    currentUser->setDomain(curentHost);
 
 }
 
 void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
-//    for (auto item : bar) {
-//        item->setVisible(value);
-//    }
     bar->setVisible(value);
+}
+
+void MainWindow::createWsObject()
+{
+    m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
+    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
+    m_client->options()[bConfFieldsWrapper::User] = "admin";
+    QString hash = bWebSocket::generateHash("admin", "admin");
+    m_client->options()[bConfFieldsWrapper::Hash] = hash;
+    m_client->options().save();
+}
+
+void MainWindow::setConnectedSignals()
+{
+    connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
+    connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
+    connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
+    connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
+    connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
+    connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
+    connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
+    connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
+}
+
+void MainWindow::initToolBars()
+{
+    toolBar.append(ui->btnAdd);
+    toolBar.append(ui->btnEdit);
+    toolBar.append(ui->btnDelete);
+    toolBar.append(ui->btnImportFromDatabase);
+    toolBar.append(ui->btnInstallToUser);
+    toolBar.append(ui->btnToDatabase);
+    toolBarActiveUsers.append(ui->btnUserToDatabase);
+    toolBarActiveUsers.append(ui->btnCompToDatabase);
+    toolBarSetVisible(ui->wToolBarAU, false);
+    toolBarSetVisible(ui->wToolbarContainers, false);
+}
+
+bool MainWindow::isDbOpen()
+{
+    QString status;
+
+    bool result = db->isOpen();
+
+    if(db->isOpen()){
+        status = "SQL Server: " + _sett->server() + "  ";
+    }
+
+    if(m_client->isStarted()){
+        status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
+    }
+
+    infoBar->setText(status);
+
+    return result;
 }
 
 void MainWindow::onOutputCommandLine(const QString &data, CommandLine::cmdCommand command)
@@ -202,6 +229,10 @@ void MainWindow::createRootList()
 {
     auto table = ui->tableView;
     table->setModel(nullptr);
+
+    if(!isDbOpen())
+        return;
+
     auto model = new QStandardItemModel(this);
 
     model->setColumnCount(1);
@@ -230,30 +261,33 @@ void MainWindow::createRootList()
 
 void MainWindow::loadContainersList()
 {
+
     auto tableView = ui->tableView;
     tableView->setModel(nullptr);
+
+    if(!isDbOpen())
+        return;
+
     auto table = new QStandardItemModel(this);
     table->setColumnCount(2);
     QStringList cols = {"Наименование", "id"};
     table->setHorizontalHeaderLabels(cols);
 
 
-    if(db->isOpen()){
-        QSqlQuery query("SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]", db->getDatabase());
-        int i = 0;
-        while (query.next()) {
-            table->setRowCount(table->rowCount()+ 1);
-            int id = query.value(0).toInt();
-            QString name = query.value(1).toString().trimmed();
-            auto itemTable = new QStandardItem(name);
-            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-            //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-            table->setItem(i, 0, itemTable);
-            auto itemId = new QStandardItem(QString::number(id));
-            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-            table->setItem(i, 1, itemId);
-            i++;
-        }
+    QSqlQuery query("SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]", db->getDatabase());
+    int i = 0;
+    while (query.next()) {
+        table->setRowCount(table->rowCount()+ 1);
+        int id = query.value(0).toInt();
+        QString name = query.value(1).toString().trimmed();
+        auto itemTable = new QStandardItem(name);
+        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+        table->setItem(i, 0, itemTable);
+        auto itemId = new QStandardItem(QString::number(id));
+        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        table->setItem(i, 1, itemId);
+        i++;
     }
 
     tableView->setModel(table);
@@ -267,7 +301,7 @@ void MainWindow::LoadUsersList()
     table->setModel(nullptr);
     ui->btnAdd->setEnabled(true);
 
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     QString result;
@@ -279,21 +313,10 @@ void MainWindow::LoadUsersList()
             ",[host]\n"
             "FROM [dbo].[CertUsers]";
 
-
-    QString err;
-
-    int i = db->execute(query.toStdString(), result, err, true);
-    if(i> 0){
-        ui->tableView->setModel(nullptr);
-        auto model = new QJsonTableModel(this);
-        model->setJsonText(result);
-        ui->tableView->setModel(model);
-        ui->tableView->resizeColumnsToContents();
-    }
-    if(!err.isEmpty()){
-        qCritical() << __FUNCTION__ <<  err;
-    }
-
+    auto model = new QSqlQueryModel(this);
+    model->setQuery(query, db->getDatabase());
+    ui->tableView->setModel(model);
+    ui->tableView->resizeColumnsToContents();
 
 }
 
@@ -303,7 +326,7 @@ void MainWindow::loadCertList()
     table->setModel(nullptr);
     ui->btnAdd->setEnabled(true);
 
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     QString result;
@@ -315,19 +338,10 @@ void MainWindow::loadCertList()
                     "FROM [dbo].[Certificates]";
 
 
-    QString err;
-
-    int i = db->execute(query.toStdString(), result, err, true);
-    if(i> 0){
-        ui->tableView->setModel(nullptr);
-        auto model = new QJsonTableModel(this);
-        model->setJsonText(result);
-        ui->tableView->setModel(model);
-        ui->tableView->resizeColumnsToContents();
-    }
-    if(!err.isEmpty()){
-        qCritical() << __FUNCTION__ <<  err;
-    }
+    auto model = new QSqlQueryModel(this);
+    model->setQuery(query, db->getDatabase());
+    ui->tableView->setModel(model);
+    ui->tableView->resizeColumnsToContents();
 
 }
 
@@ -425,14 +439,16 @@ bool MainWindow::isContainerExists(const QString &name)
     return false;
 }
 
-bool MainWindow::isUserExists(const QString &name, const QString& host)
+bool MainWindow::isCertUserExists(const QString &name, const QString& host)
 {
     if(db->isOpen()){
         QString _host;
         if(!host.isEmpty()){
             _host = QString(" AND [host] = '%1'").arg(host);
         }
-        QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1''%2'").arg(name, _host), db->getDatabase());
+        QString str = QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1'%2").arg(name, _host);
+        qDebug() << str;
+        QSqlQuery query(str, db->getDatabase());
         while (query.next()) {
             return true;
         }
@@ -455,7 +471,7 @@ bool MainWindow::isHostExists(const QString &name)
 
 void MainWindow::userToDatabase(const QString &name)
 {
-    if(isUserExists(name))
+    if(isCertUserExists(name))
     {
         QMessageBox::information(this, "Пользователь", "Пользователь уже есть на севрвере!");
     }
@@ -676,6 +692,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
         disableToolBar();
         toolBarSetVisible(ui->wToolBarAU, false);
         toolBarSetVisible(ui->wToolBarMain, true);
+        toolBarSetVisible(ui->wToolbarContainers, false);
     }else{
         QString itemText = item->text(0);
         if(itemText == "Реестр"){
@@ -688,19 +705,23 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             }
         }else if(itemText == "Контейнеры"){
             toolBarSetVisible(ui->wToolBarAU, false);
-            toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolBarMain, false);
+            toolBarSetVisible(ui->wToolbarContainers, true);
             loadContainersList();
         }else if(itemText == "Пользователи"){
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolbarContainers, false);
             LoadUsersList();
         }else if(itemText == "Компьютеры"){
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolbarContainers, false);
             loadCimputers();
         }else if(itemText == "Активные пользователи"){
             toolBarSetVisible(ui->wToolBarAU, true);
             toolBarSetVisible(ui->wToolBarMain, false);
+            toolBarSetVisible(ui->wToolbarContainers, false);
             disableToolBar();
             ui->tableView->setModel(nullptr);
             if(m_client){
@@ -717,9 +738,11 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             loadCertList();
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolbarContainers, false);
         }else{
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolbarContainers, false);
             disableToolBar();
             ui->tableView->setModel(nullptr);
         }
@@ -750,35 +773,20 @@ void MainWindow::onReconnect(settings *sett, const QString &pwd)
     QString userName = sett->user();
     QString password = pwd;
 
-//    db.setDatabaseName(QString("DRIVER={SQL Server};"
-//                "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
-//                "uid=%3;pwd=%4")
-//              .arg(host, database, userName, password));
-
-
     db->setSqlUser(userName);
     db->setSqlPwd(password);
     db->setHost(sett->server());
     db->setDatabaseName(database);
     db->connect();
 
-    if (!db->isOpen()){
+    connectToWsServer();
+
+    if (!isDbOpen()){
         QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
-        infoBar->setText("Не подключен.");
-    }else{
-//        bool result = db->verifyDatabase();
-//        if(!result){
-//            qCritical() << __FUNCTION__ << db->lastError();
-//        }else{
-//            result = db->verifyTables();
-//            if(!result)
-//                qCritical() << __FUNCTION__ << db->lastError();
-//        }
-
-        infoBar->setText("Поключен к " + sett->server());
     }
-
     sett->save();
+
+
 }
 
 void MainWindow::on_mnuConnect_triggered()
@@ -795,15 +803,7 @@ void MainWindow::on_mnuConnect_triggered()
 
        connectToWsServer();
 
-       if(m_client->isStarted())
-       {
-           QString status;
-           if(db->isOpen()){
-               status = "SQL Server: " + _sett->server() + "  ";
-           }
-           status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
-           infoBar->setText(status);
-       }
+       isDbOpen();
     }
 
 }
@@ -854,7 +854,7 @@ void MainWindow::on_btnAdd_clicked()
 //        }
 //    }
 
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -972,7 +972,7 @@ void MainWindow::on_btnAdd_clicked()
 
 void MainWindow::on_btnToDatabase_clicked()
 {
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto table = ui->tableView;
@@ -1012,7 +1012,7 @@ void MainWindow::on_btnToDatabase_clicked()
 
 void MainWindow::on_btnDelete_clicked()
 {
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto table = ui->tableView;
@@ -1087,7 +1087,41 @@ void MainWindow::on_btnDelete_clicked()
 
 void MainWindow::on_btnInstallToUser_clicked()
 {
+    if(!m_client->isStarted()){
+        QMessageBox::critical(this, "Ошибка", "Сервер обмена не доступен!");
+        return;
+    }
+    if(!db->isOpen()){
+        QMessageBox::critical(this, "Ошибка", "Сервер баз данных не доступен!!");
+        return;
+    }
+    auto model = new QSqlQueryModel(this);
+    model->setQuery("SELECT [FirstField] AS Имя\n"
+                    ",[Ref] AS Ссылка\n"
+                    ",[host] AS Host\n"
+                    ",[sid] AS SID\n"
+                    ",[uuid] AS ID\n"
+                    "FROM [dbo].[CertUsers]", db->getDatabase());
 
+    auto dlg = new DialogSelectFromDataBase(model, this);
+    dlg->setModal(true);
+    dlg->exec();
+    if(dlg->result() == QDialog::Accepted){
+
+//        QJsonObject obj = QJsonObject();
+//        obj.insert("uuid_agent", m_client->getUuidSession());
+//        obj.insert("uuid_client", itr.key());
+//        obj.insert("command", "clientShow");
+
+
+//        QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+//        //qDebug() << param;
+
+//        if(client->started()){
+//            client->send_command("command_to_qt_client", "", param.toStdString());
+//        }
+
+    }
 }
 
 void MainWindow::on_mnuOptions_triggered()
@@ -1205,7 +1239,7 @@ void MainWindow::on_tableView_clicked(const QModelIndex &index)
 
 void MainWindow::on_btnEdit_clicked()
 {
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -1278,13 +1312,37 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
         terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
         m_client->setOsUserName(currentUser->name());
-        connectToWsServer();
     }else if(command == CommandLine::cmdCommand::wmicGetSID){
         currentUser->setSid(result);
         terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
         if(!currentUser->sid().isEmpty()){
             QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
             currentUser->setContainers(curContainers);
+
+            if(db->isOpen() && !currentUser->name().isEmpty() && !currentUser->domain().isEmpty()){
+                if(isCertUserExists(currentUser->name(), currentUser->domain())){
+                    QString str = QString("select [Ref], [sid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(currentUser->name()
+                                                                                                                                                  , currentUser->domain());
+
+                    qDebug() << str;
+                    QSqlQuery query = QSqlQuery(str
+                                                , db->getDatabase());
+                    QString ref;
+                    QString sid;
+                    while (query.next()) {
+                        ref = query.value(0).toString();
+                        sid = query.value(1).toString();
+                        break;
+                    }
+                    if(!ref.isEmpty() && sid.isEmpty()){
+                        currentUser->setRef(ref);
+                        //update sid
+                        QMap<QString, QVariant> _row;
+                        _row.insert("sid", currentUser->sid());
+                        db->updateSqlTableRow("CertUsers", _row, ref);
+                    }
+                }
+            }
         }
     }
 }
@@ -1351,7 +1409,7 @@ void MainWindow::on_btnTerminalClear_clicked()
 void MainWindow::on_btnCompToDatabase_clicked()
 {
 
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -1398,7 +1456,7 @@ void MainWindow::on_btnCompToDatabase_clicked()
 
 void MainWindow::on_btnUserToDatabase_clicked()
 {
-    if(!db->isOpen())
+    if(!isDbOpen())
         return;
 
     auto treeItem = ui->treeWidget->currentItem();
@@ -1420,7 +1478,7 @@ void MainWindow::on_btnUserToDatabase_clicked()
         QString hostName = ui->tableView->model()->index(row, 5).data().toString();
         QString userName = ui->tableView->model()->index(row, 3).data().toString();
 
-        if(isUserExists(hostName, userName)){
+        if(isCertUserExists(hostName, userName)){
             QMessageBox::critical(this, "Ошибка", "Пользователь уже зарегистрирован в базе!");
             return;
         }else{
