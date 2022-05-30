@@ -21,6 +21,8 @@
 #include <QTextOption>
 
 #include <Windows.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
@@ -59,8 +61,10 @@ MainWindow::MainWindow(QWidget *parent)
     terminal->start();
     if(_sett->charset() != "CP866")
         terminal->setChcp();
-    //terminal->clearBuffer();
-    terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+    QByteArray data(std::getenv("username"));
+    QString uname = QString::fromLocal8Bit(data);
+    onOutputCommandLine(uname, CommandLine::cmdCommand::echoUserName);
+    //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
 
     db = new SqlInterface(this);
 
@@ -101,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->txtTerminal->setAutoFillBackground(true);
     ui->txtTerminal->setPalette(pal);
     ui->txtTerminal->setTextColor(QColor(0,255,0));
+
 
 
 }
