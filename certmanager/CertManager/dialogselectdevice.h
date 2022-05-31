@@ -12,7 +12,7 @@ class DialogSelectDevice : public QDialog
     Q_OBJECT
 
 public:
-    explicit DialogSelectDevice(QWidget *parent = nullptr);
+    explicit DialogSelectDevice(QWidget *parent = nullptr, const QString& tTitle = "Реестр пользователя");
     ~DialogSelectDevice();
 
     void accept() override;

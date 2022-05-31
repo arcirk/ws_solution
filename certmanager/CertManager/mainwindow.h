@@ -118,7 +118,7 @@ private:
     void createWsObject();
     void setConnectedSignals();
     void initToolBars();
-
+    void setKeysToRegistry();
     bool isDbOpen();
 
 };

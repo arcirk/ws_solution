@@ -2,7 +2,7 @@
 #include "ui_dialogselectdevice.h"
 
 
-DialogSelectDevice::DialogSelectDevice(QWidget *parent) :
+DialogSelectDevice::DialogSelectDevice(QWidget *parent, const QString& tTitle) :
     QDialog(parent),
     ui(new Ui::DialogSelectDevice)
 {
@@ -10,7 +10,7 @@ DialogSelectDevice::DialogSelectDevice(QWidget *parent) :
 
     ui->radioBtnFolder->setChecked(true);
     _currentSelection = -1;
-
+    ui->radioBtnUserRegysty->setText(tTitle);
 }
 
 DialogSelectDevice::~DialogSelectDevice()

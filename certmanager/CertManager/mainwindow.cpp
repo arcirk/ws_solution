@@ -17,7 +17,6 @@
 #include <QStringConverter>
 #include <QInputDialog>
 #include "dialogterminaloptions.h"
-#include "registry.h"
 #include <QTextOption>
 #include "dialogselectfromdatabase.h"
 #include "serveresponse.h"
@@ -34,6 +33,14 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+
+    QFile csptest("C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe");
+    if(!csptest.exists())
+        qCritical() << __FUNCTION__ << "Утилита csptest найдена!";
+    else
+        qDebug() << __FUNCTION__ << "Утилита csptest установлена на компьютере!";
+    //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
 
     initToolBars();
     db = new SqlInterface(this);
@@ -123,6 +130,53 @@ void MainWindow::initToolBars()
     toolBarActiveUsers.append(ui->btnCompToDatabase);
     toolBarSetVisible(ui->wToolBarAU, false);
     toolBarSetVisible(ui->wToolbarContainers, false);
+}
+
+void MainWindow::setKeysToRegistry()
+{
+    auto dlg = new DialogSelectDevice(this, "База данных");
+    dlg->setModal(true);
+    dlg->exec();
+
+    if(dlg->result() == QDialog::Accepted){
+
+        if(dlg->currentSelection() == 0){
+
+            QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
+                                                         QDir::homePath(),
+                                                         QFileDialog::ShowDirsOnly
+                                                         | QFileDialog::DontResolveSymlinks);
+            if(dir != ""){
+                QFile file(dir + QDir::separator() + "name.key");
+                if(file.open(QIODevice::ReadOnly)){
+                    QString data = QString::fromLocal8Bit(file.readAll());
+                    //qDebug() << data;
+                    QRegularExpression ex("0/\u0016-");
+                    if(ex.match(data).hasMatch()){
+                        data.replace("0/\u0016-", "");
+                        auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
+                        if(result == QMessageBox::Yes){
+                            QString error;
+                            bool result = Registry::importKeysFromLocalCatalog(currentUser, dir, data, error);
+                            if(result)
+                                QMessageBox::information(this, "Успех", "Контейнер успешно импортирован в реестр!");
+                            else{
+                                if(!error.isEmpty())
+                                    QMessageBox::critical(this, "Ошибка", "Ошибка импорта контейнера!");
+                            }
+                        }
+                    }else
+                       QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+                }else{
+                    QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+                }
+            }
+        }else if(dlg->currentSelection() == 1){
+
+        }else if(dlg->currentSelection() == 2){
+
+        }
+    }
 }
 
 bool MainWindow::isDbOpen()
@@ -908,7 +962,7 @@ void MainWindow::on_btnAdd_clicked()
     QString currentNode = treeItem->text(0);
 
     if(currentNode == "Реестр"){
-
+        setKeysToRegistry();
     }else if(currentNode == "Пользователи"){
         auto reg = Registry();
         QStringList users = reg.localUsers();

@@ -46,6 +46,28 @@ std::string Registry::execute( std::string cmd )
     return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() } ;
 }
 
+bool Registry::importKeysFromLocalCatalog(CertUser * usr, const QString &folder, const QString &name, QString& error)
+{
+    if(usr->sid().isEmpty()){
+        error = "SID пользователя не указан!";
+        qCritical() << __FUNCTION__ << error;
+        return false;
+    }
+    const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys").arg(usr->sid());
+    QSettings reg = QSettings(root, QSettings::NativeFormat);
+    if(reg.childGroups().indexOf(name.trimmed()))
+    {
+        error = QString("Контейнер с именем %1 существует в реестре!").arg(name.trimmed());
+        qCritical() << __FUNCTION__ << error;
+        return false;
+    }
+    reg.childGroups().append(name);
+    reg.sync();
+    if(reg.status() != QSettings::NoError){
+        return false;
+    }
+}
+
 Registry::Registry(QObject *parent)
     : QObject{parent}
 {
