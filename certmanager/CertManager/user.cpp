@@ -8,6 +8,7 @@ CertUser::CertUser(QObject *parent)
     _name = "";
     _sid = "";
     _treeItem = nullptr;
+    _uuid = QUuid();
 
 }
 
@@ -41,6 +42,16 @@ void CertUser::setTreeItem(QTreeWidgetItem *item)
     _treeItem = item;
 }
 
+void CertUser::setUuid(const QUuid &value)
+{
+    _uuid = value;
+}
+
+void CertUser::setOnline(bool value)
+{
+    _online = value;
+}
+
 QTreeWidgetItem *CertUser::treeItem()
 {
     return _treeItem;
@@ -66,13 +77,32 @@ QString CertUser::ref()
     return _ref;
 }
 
+QUuid CertUser::uuid()
+{
+    return _uuid;
+}
+
 QStringList CertUser::containers()
 {
     return _containers;
 }
 
+bool CertUser::online()
+{
+    return _online;
+}
+
+bool CertUser::thisIsTheUser(const QString &usr, const QString &host)
+{
+    if(usr.trimmed().toLower() == _name.trimmed().toLower()
+            && host.trimmed().toLower() == _domain.trimmed().toLower())
+        return true;
+    else
+        return false;
+}
+
 void CertUser::init()
 {
-    auto reg = Registry();
+
 
 }

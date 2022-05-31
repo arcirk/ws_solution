@@ -191,6 +191,7 @@ signals:
     void connectedStatusChanged(bool status);
     void userInfo(const QString& uuid);
     void clientJoin(const QString& resp);
+    void clientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name);
     void getActiveUsers(const QString& resp);
     void clientLeave(const QString& resp);
     void requestUserData(const QString& resp);

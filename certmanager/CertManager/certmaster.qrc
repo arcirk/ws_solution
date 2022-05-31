@@ -28,5 +28,7 @@
         <file>img/userToDatabase.png</file>
         <file>img/compToTataBase.png</file>
         <file>img/installToRegistry.png</file>
+        <file>img/online.png</file>
+        <file>img/ofline.png</file>
     </qresource>
 </RCC>

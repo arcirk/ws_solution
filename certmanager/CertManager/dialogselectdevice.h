@@ -15,11 +15,15 @@ public:
     explicit DialogSelectDevice(QWidget *parent = nullptr);
     ~DialogSelectDevice();
 
+    void accept() override;
+
+    int currentSelection();
+
 private slots:
-    void on_DialogSelectDevice_accepted();
 
 private:
     Ui::DialogSelectDevice *ui;
+    int _currentSelection;
 };
 
 #endif // DIALOGSELECTDEVICE_H

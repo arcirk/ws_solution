@@ -2,7 +2,7 @@
 #include "ui_dialogselectfromdatabase.h"
 #include <QMessageBox>
 
-DialogSelectFromDataBase::DialogSelectFromDataBase(QSqlQueryModel * model, QWidget *parent) :
+DialogSelectFromDataBase::DialogSelectFromDataBase(QSqlQueryModel * model, const QString title, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogSelectFromDataBase)
 {
@@ -10,6 +10,8 @@ DialogSelectFromDataBase::DialogSelectFromDataBase(QSqlQueryModel * model, QWidg
 
     ui->tableView->setModel(model);
     ui->tableView->resizeColumnsToContents();
+
+    setWindowTitle(title);
 }
 
 DialogSelectFromDataBase::~DialogSelectFromDataBase()

@@ -7,6 +7,10 @@ DialogSelectDevice::DialogSelectDevice(QWidget *parent) :
     ui(new Ui::DialogSelectDevice)
 {
     ui->setupUi(this);
+
+    ui->radioBtnFolder->setChecked(true);
+    _currentSelection = -1;
+
 }
 
 DialogSelectDevice::~DialogSelectDevice()
@@ -14,8 +18,21 @@ DialogSelectDevice::~DialogSelectDevice()
     delete ui;
 }
 
-void DialogSelectDevice::on_DialogSelectDevice_accepted()
+void DialogSelectDevice::accept()
 {
+    if(ui->radioBtnFolder->isChecked())
+        _currentSelection = 0;
+    else if(ui->radioBtnRegysty->isChecked())
+        _currentSelection = 1;
+    else if(ui->radioBtnUserRegysty->isChecked())
+        _currentSelection = 2;
 
+    QDialog::accept();
 }
+
+int DialogSelectDevice::currentSelection()
+{
+    return _currentSelection;
+}
+
 

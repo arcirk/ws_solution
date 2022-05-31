@@ -3,7 +3,9 @@
 
 #include <QObject>
 #include <QTreeWidgetItem>
+#include <QUuid>
 
+namespace boost { namespace uuids { class uuid; } }
 class CertUser : public QObject
 {
     Q_OBJECT
@@ -16,19 +18,26 @@ public:
     void setSid(const QString& value);
     void setContainers(const QStringList& value);
     void setTreeItem(QTreeWidgetItem * item);
+    void setUuid(const QUuid& value);
+    void setOnline(bool value);
     QTreeWidgetItem * treeItem();
 
     QString domain();
     QString name();
     QString sid();
     QString ref();
+    QUuid uuid();
     QStringList containers();
+    bool online();
+    bool thisIsTheUser(const QString& usr, const QString& host);
 
 private:
     QString _domain;
     QString _name;
     QString _sid;
     QString _ref;
+    QUuid _uuid;
+    bool _online;
     QStringList _containers;
     QTreeWidgetItem * _treeItem;
 

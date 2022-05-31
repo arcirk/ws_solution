@@ -14,6 +14,7 @@
 #include <qmlwebsocket.h>
 #include <commandline.h>
 #include <sqlinterface.h>
+#include <QUuid>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -50,7 +51,7 @@ private slots:
     void onConnectionSuccess();
     void onCloseConnection();
     void onConnectedStatusChanged(bool status);
-    void onClientJoin(const QString& resp);
+    void onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name);
     void onClientLeave(const QString& resp);
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
@@ -75,6 +76,8 @@ private slots:
 
     void on_btnUserToDatabase_clicked();
 
+    void on_btnContAdd_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -89,6 +92,8 @@ private:
 
     CommandLine * terminal;
 
+    QMap<QUuid, CertUser*> m_actUsers;
+
     void execute_command(QString param);
 
     void createTree();
@@ -101,6 +106,7 @@ private:
     void loadItemChilds(QTreeWidgetItem *item);
     void loadItemSpecific(QTreeWidgetItem *item);
     void loadKeysOnRegistry(CertUser * usr);
+    void loadOnlineUsers();
     void disableToolBar();
     bool isContainerExists(const QString& name);
     bool isCertUserExists(const QString& name, const QString& host = "");

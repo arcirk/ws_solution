@@ -30,6 +30,8 @@ public:
     static std::string exec(const char* cmd);
     static std::string execute( std::string cmd );
 
+    bool importKeysFromLocalCatalog(const QString& folder, const QString& name = "");
+
 };
 
 #endif // REGISTRY_H

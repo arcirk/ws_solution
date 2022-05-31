@@ -237,7 +237,11 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "get_user_info"){
             emit userInfo(resp->message);
         }else if (resp->command == "client_join"){
+#ifndef QT_CERT_MANAGER
             emit clientJoin(resp->message);
+#else
+            emit clientJoinEx(resp->message, resp->ip_address, resp->host_name, resp->app_name);
+#endif
         }else if(resp->command == "client_leave"){
             emit clientLeave(resp->message);
         }else if(resp->command == "get_user_status"){

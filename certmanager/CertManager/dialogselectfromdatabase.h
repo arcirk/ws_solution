@@ -13,7 +13,7 @@ class DialogSelectFromDataBase : public QDialog
     Q_OBJECT
 
 public:
-    explicit DialogSelectFromDataBase(QSqlQueryModel * model, QWidget *parent = nullptr);
+    explicit DialogSelectFromDataBase(QSqlQueryModel * model, const QString title, QWidget *parent = nullptr);
     ~DialogSelectFromDataBase();
 
     void accept() override;

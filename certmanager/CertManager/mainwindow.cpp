@@ -20,7 +20,7 @@
 #include "registry.h"
 #include <QTextOption>
 #include "dialogselectfromdatabase.h"
-
+#include "serveresponse.h"
 
 #ifdef _WINDOWS
 #include <Windows.h>
@@ -104,7 +104,7 @@ void MainWindow::setConnectedSignals()
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
     connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
     connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
-    connect(m_client, &bWebSocket::clientJoin, this, &MainWindow::onClientJoin);
+    connect(m_client, &bWebSocket::clientJoinEx, this, &MainWindow::onClientJoinEx);
     connect(m_client, &bWebSocket::clientLeave, this, &MainWindow::onClientLeave);
     connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
     connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
@@ -305,19 +305,42 @@ void MainWindow::LoadUsersList()
         return;
 
     QString result;
-    QString query = "SELECT [_id]\n"
-            ",[FirstField]\n"
-            ",[Ref]\n"
-            ",[uuid]\n"
-            ",[sid]\n"
-            ",[host]\n"
+    QString query = "SELECT NULL AS isOnline\n"
+            ",[FirstField] AS Имя\n"
+            ",[Ref] AS Ссылка\n"
+            ",[uuid] AS ID\n"
+            ",[sid] AS SID\n"
+            ",[host] AS Host\n"
             "FROM [dbo].[CertUsers]";
 
     auto model = new QSqlQueryModel(this);
     model->setQuery(query, db->getDatabase());
     ui->tableView->setModel(model);
-    ui->tableView->resizeColumnsToContents();
 
+
+    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
+        QModelIndex index = ui->tableView->model()->index(i, 0);
+        QModelIndex indexUuid = ui->tableView->model()->index(i, 3);
+        QUuid uuid = QUuid::fromString(indexUuid.data().toString().trimmed());
+         auto iter = m_actUsers.find(uuid);
+
+         QLabel *lbl_item = new QLabel();
+         if(iter != m_actUsers.end()){
+             if(iter.value()->online()){
+                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/online.png")));
+             }else{
+                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
+             }
+
+         }else{
+            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
+         }
+         lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+         ui->tableView->setIndexWidget(index, lbl_item);
+     }
+
+    ui->tableView->model()->setHeaderData(0, Qt::Orientation::Horizontal, "");
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MainWindow::loadCertList()
@@ -418,6 +441,36 @@ void MainWindow::loadKeysOnRegistry(CertUser *usr)
     tableView->resizeColumnsToContents();
 }
 
+void MainWindow::loadOnlineUsers()
+{
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+
+    if(!m_client->isStarted())
+        return;
+
+    auto model = new QStandardItemModel(this);
+    model->setColumnCount(4);
+    model->setRowCount(m_actUsers.size() - 1);
+    QStringList header = {"Имя", "Хост", "ID пользователя", "SID"};
+    model->setHorizontalHeaderLabels(header);
+    int row = 0;
+    for(auto itr : m_actUsers){
+        if(itr->online()){
+            auto name = new QStandardItem(itr->name());
+            model->setItem(row, 0, name);
+            auto host = new QStandardItem(itr->domain());
+            model->setItem(row, 1, host);
+            auto uuid = new QStandardItem(itr->uuid().toString());
+            model->setItem(row, 2, uuid);
+            auto sid = new QStandardItem(itr->sid());
+            model->setItem(row, 3, sid);
+        }
+    }
+    table->setModel(model);
+    table->resizeColumnsToContents();
+}
+
 void MainWindow::disableToolBar()
 {
     ui->btnAdd->setEnabled(false);
@@ -447,7 +500,7 @@ bool MainWindow::isCertUserExists(const QString &name, const QString& host)
             _host = QString(" AND [host] = '%1'").arg(host);
         }
         QString str = QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1'%2").arg(name, _host);
-        qDebug() << str;
+        //qDebug() << str;
         QSqlQuery query(str, db->getDatabase());
         while (query.next()) {
             return true;
@@ -723,17 +776,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             toolBarSetVisible(ui->wToolBarMain, false);
             toolBarSetVisible(ui->wToolbarContainers, false);
             disableToolBar();
-            ui->tableView->setModel(nullptr);
-            if(m_client){
-                if(m_client->isStarted()){
-                    QJsonDocument doc = QJsonDocument();
-                    QJsonObject obj = QJsonObject();
-                    obj.insert("table", true);
-                    doc.setObject(obj);
-                    QString param = doc.toJson();
-                    m_client->sendCommand("get_active_users", "", param);
-                }
-            }
+            loadOnlineUsers();
         }else if(itemText == "Сертификаты"){
             loadCertList();
             toolBarSetVisible(ui->wToolBarAU, false);
@@ -893,33 +936,6 @@ void MainWindow::on_btnAdd_clicked()
                  loadCimputers();
                 if(!r)
                     qCritical() << __FUNCTION__ << "Ошибка добавления новой строки в таблицу 'Servers'!";
-            }
-        }
-    }else if(currentNode == "Контейнеры"){
-        auto dlg = new DialogSelectDevice(this);
-        dlg->setModal(true);
-        dlg->exec();
-
-        QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
-                                                     QDir::homePath(),
-                                                     QFileDialog::ShowDirsOnly
-                                                     | QFileDialog::DontResolveSymlinks);
-        if(dir != ""){
-            QFile file(dir + QDir::separator() + "name.key");
-            if(file.open(QIODevice::ReadOnly)){
-                QString data = QString::fromLocal8Bit(file.readAll());
-                qDebug() << data;
-                if(data.compare("0/\u0016-")){
-                    data.replace("0/\u0016-", "");
-                    auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
-
-                    if(result == QMessageBox::Yes){
-
-                    }
-                }else
-                   QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
-            }else{
-                QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
             }
         }
     }else if(currentNode == "Сертификаты"){
@@ -1103,7 +1119,7 @@ void MainWindow::on_btnInstallToUser_clicked()
                     ",[uuid] AS ID\n"
                     "FROM [dbo].[CertUsers]", db->getDatabase());
 
-    auto dlg = new DialogSelectFromDataBase(model, this);
+    auto dlg = new DialogSelectFromDataBase(model, "Выбор ползователя", this);
     dlg->setModal(true);
     dlg->exec();
     if(dlg->result() == QDialog::Accepted){
@@ -1147,6 +1163,13 @@ void MainWindow::onConnectionSuccess()
         }
         status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
         infoBar->setText(status);
+
+        QJsonDocument doc = QJsonDocument();
+        QJsonObject obj = QJsonObject();
+        obj.insert("table", true);
+        doc.setObject(obj);
+        QString param = doc.toJson();
+        m_client->sendCommand("get_active_users", "", param);
     }
 
     qDebug() << __FUNCTION__;
@@ -1159,22 +1182,83 @@ void MainWindow::onCloseConnection()
         status = "SQL Server: " + _sett->server();
     }
     infoBar->setText(status);
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
 }
 
 void MainWindow::onConnectedStatusChanged(bool status)
 {
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
+    if(currentUser)
+        currentUser->setOnline(status);
 }
 
-void MainWindow::onClientJoin(const QString &resp)
+void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name)
 {
-    qDebug() << __FUNCTION__;
+//    qDebug() << __FUNCTION__ << qPrintable(resp);
+//    qDebug() << __FUNCTION__ << ip_address << " " << host_name << " " << app_name;
+    //MainWindow::onClientJoinEx {"name": "admin", "uuid": "d1ca0bc6-b6cb-4b90-941c-85fb9faf70a9", "uuid_user": "e7429c10-8070-40da-ae2e-dea1cb9ae371", "active": true}
+    //MainWindow::onClientJoinEx "192.168.10.14"   "VMBUHSVR"   "qt_cert_manager"
+
+    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+    auto obj = doc.object();
+    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
+    QString name = obj.value("name").toString();
+
+    auto itr = m_actUsers.find(uuid);
+    if(itr != m_actUsers.end())
+        itr.value()->setOnline(true);
+    else{
+        CertUser * usr = nullptr;
+        if(!currentUser->thisIsTheUser(name, host_name)){
+            usr = new CertUser(this);
+            usr->setName(name);
+            usr->setDomain(host_name);
+        }
+        else {
+            usr = currentUser;
+        }
+        usr->setOnline(true);
+        usr->setUuid(uuid);
+        m_actUsers.insert(uuid, usr);
+    }
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->text(0);
+
+    if(currentNode == "Активные пользователи")
+    {
+        loadOnlineUsers();
+    }
+
 }
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
+
+    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+    auto obj = doc.object();
+    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
+    QString name = obj.value("name").toString();
+
+    auto itr = m_actUsers.find(uuid);
+    if(itr != m_actUsers.end()){
+        itr.value()->setOnline(false);
+    }
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+    QString currentNode = treeItem->text(0);
+
+    if(currentNode == "Активные пользователи")
+    {
+        loadOnlineUsers();
+    }
 }
 
 void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
@@ -1296,12 +1380,59 @@ void MainWindow::on_btnEdit_clicked()
 
 void MainWindow::onGetActiveUsers(const QString& resp){
 
-    ui->tableView->setModel(nullptr);
-    auto model = new QJsonTableModel(this);
-    model->setJsonText(resp);
-    ui->tableView->setModel(model);
-    ui->tableView->resizeColumnsToContents();
+//    ui->tableView->setModel(nullptr);
+//    auto model = new QJsonTableModel(this);
+//    model->setJsonText(resp);
+//    ui->tableView->setModel(model);
+//    ui->tableView->resizeColumnsToContents();
 
+    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+    auto obj = doc.object();
+
+    auto rows = obj.value("rows").toArray();
+
+    for (auto row = rows.begin(); row != rows.end(); ++row){
+        auto item = row->toObject();
+        QString name = item.value("user_name").toString();
+        QUuid user_uuid = QUuid::fromString(item.value("user_uuid").toString());
+        QString host = item.value("host_name").toString();
+        CertUser * user;
+        if(!currentUser->thisIsTheUser(name, host)){
+            user = new CertUser(this);
+            user->setName(name);
+            user->setDomain(host);
+        }
+        else{
+             user = currentUser;
+             if(db->isOpen()){
+                 QString str = QString("select [Ref], [sid], [uuid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(name, host);
+                 QSqlQuery query = QSqlQuery(str, db->getDatabase());
+                 QString ref;
+                 QString sid;
+                 QString uuid;
+                 QMap<QString, QVariant> _row;
+
+                 while (query.next()) {
+                     ref = query.value(0).toString();
+                     sid = query.value(1).toString();
+                     uuid = query.value(2).toString();
+                     if(sid.isEmpty())
+                         _row.insert("sid", currentUser->sid());
+                     if(uuid.isEmpty())
+                         _row.insert("uuid", user_uuid.toString());
+                     break;
+                 }
+                 if(!ref.isEmpty() && _row.size() > 0){
+                     currentUser->setRef(ref);
+                     //update sid
+                     db->updateSqlTableRow("CertUsers", _row, ref);
+                 }
+             }
+        }
+        user->setUuid(user_uuid);
+        user->setOnline(true);
+        m_actUsers.insert(user_uuid, user);
+    }
 }
 
 void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand command)
@@ -1318,31 +1449,6 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
         if(!currentUser->sid().isEmpty()){
             QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
             currentUser->setContainers(curContainers);
-
-            if(db->isOpen() && !currentUser->name().isEmpty() && !currentUser->domain().isEmpty()){
-                if(isCertUserExists(currentUser->name(), currentUser->domain())){
-                    QString str = QString("select [Ref], [sid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(currentUser->name()
-                                                                                                                                                  , currentUser->domain());
-
-                    qDebug() << str;
-                    QSqlQuery query = QSqlQuery(str
-                                                , db->getDatabase());
-                    QString ref;
-                    QString sid;
-                    while (query.next()) {
-                        ref = query.value(0).toString();
-                        sid = query.value(1).toString();
-                        break;
-                    }
-                    if(!ref.isEmpty() && sid.isEmpty()){
-                        currentUser->setRef(ref);
-                        //update sid
-                        QMap<QString, QVariant> _row;
-                        _row.insert("sid", currentUser->sid());
-                        db->updateSqlTableRow("CertUsers", _row, ref);
-                    }
-                }
-            }
         }
     }
 }
@@ -1504,6 +1610,47 @@ void MainWindow::on_btnUserToDatabase_clicked()
         else
             QMessageBox::information(this, "Успех", "Пользователь успешно зарегистрирован!");
 
+    }
+}
+
+
+void MainWindow::on_btnContAdd_clicked()
+{
+    auto dlg = new DialogSelectDevice(this);
+    dlg->setModal(true);
+    dlg->exec();
+
+    if(dlg->result() == QDialog::Accepted){
+
+        if(dlg->currentSelection() == 0){
+
+            QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
+                                                         QDir::homePath(),
+                                                         QFileDialog::ShowDirsOnly
+                                                         | QFileDialog::DontResolveSymlinks);
+            if(dir != ""){
+                QFile file(dir + QDir::separator() + "name.key");
+                if(file.open(QIODevice::ReadOnly)){
+                    QString data = QString::fromLocal8Bit(file.readAll());
+                    //qDebug() << data;
+                    QRegularExpression ex("0/\u0016-");
+                    if(ex.match(data).hasMatch()){
+                        data.replace("0/\u0016-", "");
+                        auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
+                        if(result == QMessageBox::Yes){
+
+                        }
+                    }else
+                       QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+                }else{
+                    QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+                }
+            }
+        }else if(dlg->currentSelection() == 1){
+
+        }else if(dlg->currentSelection() == 2){
+
+        }
     }
 }
 
