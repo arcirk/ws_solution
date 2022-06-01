@@ -67,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
     QByteArray data(std::getenv("username"));
     QString uname = QString::fromLocal8Bit(data);
 
+    terminal->send("cd C:/Program Files (x86)/Crypto Pro/CSP/\n", CommandLine::cmdCommand::unknown);
+
     createTree();
 
     onParseCommand(uname, CommandLine::cmdCommand::echoUserName);
