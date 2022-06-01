@@ -13,7 +13,19 @@
 //#include <process.h>
 //#include <windows.h>
 
+#ifdef _WINDOWS
 static const QString program = "cmd";
+#else
+static const QString program = "/bin/bash";
+#endif
+
+enum cmdCommand{
+    echoSystem = 0,
+    echoUserName,
+    wmicGetSID,
+    echoGetEncoding,
+    unknown
+};
 
 class CommandLine : public QObject
 {
@@ -25,22 +37,15 @@ public:
 
     bool listening();
 
-    enum cmdCommand{
-        echoSystem = 0,
-        echoUserName,
-        wmicGetSID,
-        echoGetEncoding,
-        unknown
-    };
 
 
-    QString parseCommand(const QString& result, CommandLine::cmdCommand command);
+    QString parseCommand(const QString& result, int command);
 
 public slots:
     void start();
     void stop();
 
-    void send(const QString& commandText, CommandLine::cmdCommand command);
+    void send(const QString& commandText, int);
 
     void clearBuffer();
 
@@ -58,8 +63,8 @@ public slots:
     void setChcp();
 
 signals:
-    void output(const QString& data, CommandLine::cmdCommand command);
-    void endParse(const QString& result, CommandLine::cmdCommand command);
+    void output(const QString& data, int command);
+    void endParse(const QString& result, int command);
 private slots:
     void errorOccured(QProcess::ProcessError error);
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
@@ -75,7 +80,7 @@ private:
     bool m_listening;
     QTextCodec *codec;
     QString _lastCommand;
-    cmdCommand _command;
+    int _command;
     QString _currentEncoding;
     bool _verefyEncoding;
     int _method;

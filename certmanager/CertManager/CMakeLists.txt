@@ -31,8 +31,10 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_admin.rc")
 
+file(GLOB _SOURCES "${CMAKE_CURRENT_SOURCE_DIR}*.cpp *.h *.ui *.qrc")
+
 set(PROJECT_SOURCES
-        main.cpp)
+        main.${_SOURCES})
 
 if(WIN32)
     add_executable(ws_admin WIN32

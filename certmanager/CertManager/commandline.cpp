@@ -258,7 +258,7 @@ void CommandLine::stop() {
     m_process.close();
 }
 
-void CommandLine::send(const QString &commandText, cmdCommand command)
+void CommandLine::send(const QString &commandText, int command)
 {
     _lastCommand = commandText;
     _command = command;
@@ -291,7 +291,7 @@ bool CommandLine::listening()
     return m_listening;
 }
 
-QString CommandLine::parseCommand(const QString &result, cmdCommand command)
+QString CommandLine::parseCommand(const QString &result, int command)
 {
     QStringList _result;
     if(command == echoUserName){

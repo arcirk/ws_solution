@@ -62,17 +62,27 @@ MainWindow::MainWindow(QWidget *parent)
     connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
 
     terminal->start();
+
+#ifdef _WINDOWS
+    QString cryptoProDir = "C:/Program Files (x86)/Crypto Pro/CSP/";
+    std::string envUSER = "username";
     if(_sett->charset() != "CP866")
-        terminal->setChcp();
-    QByteArray data(std::getenv("username"));
+        terminal->setChcp();    
+   //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+
+    QByteArray data(std::getenv(envUSER.c_str()));
     QString uname = QString::fromLocal8Bit(data);
 
-    terminal->send("cd C:/Program Files (x86)/Crypto Pro/CSP/\n", CommandLine::cmdCommand::unknown);
+    onParseCommand(uname, CommandLine::cmdCommand::echoUserName);
+#else
+    std::string envUSER = "USER";
+    QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+    terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
+#endif
 
+    terminal->send(QString("cd %1\n").arg(cryptoProDir), cmdCommand::unknown);
     createTree();
 
-    onParseCommand(uname, CommandLine::cmdCommand::echoUserName);
-    //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
 
     ui->horizontalLayout->addStretch();
     ui->toolBarActiveUsers->addStretch();
@@ -206,7 +216,7 @@ bool MainWindow::isDbOpen()
     return result;
 }
 
-void MainWindow::onOutputCommandLine(const QString &data, CommandLine::cmdCommand command)
+void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
     //qDebug() << __FUNCTION__ << qPrintable(data);
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + data);
@@ -1497,9 +1507,9 @@ void MainWindow::onGetActiveUsers(const QString& resp){
     }
 }
 
-void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand command)
+void MainWindow::onParseCommand(const QString &result, int command)
 {
-    if(command == CommandLine::cmdCommand::echoUserName){
+    if(command == cmdCommand::echoUserName){
         currentUser->setName(result);
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
@@ -1507,9 +1517,9 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
         terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
         m_client->setOsUserName(currentUser->name());
 #endif
-    }else if(command == CommandLine::cmdCommand::wmicGetSID){
+    }else if(command == cmdCommand::wmicGetSID){
         currentUser->setSid(result);
-        terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
+        terminal->send(QString("chcp\n").arg(result), cmdCommand::echoGetEncoding);
         if(!currentUser->sid().isEmpty()){
             QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
             currentUser->setContainers(curContainers);
@@ -1534,7 +1544,7 @@ void MainWindow::on_actionTest_triggered()
         );
         if (bOk) {
             ui->txtTerminal->setText("");
-            terminal->send(str + "\n", CommandLine::unknown);
+            terminal->send(str + "\n", unknown);
             return;
         }
     }

@@ -73,11 +73,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     certmaster.qrc
 
-#INCLUDEPATH += C:/src/CertManager/lib/ws_client/include
-#DEPENDPATH += C:/src/CertManager/lib/ws_client
-
-#LIBS += -LC:/src/CertManager/lib/ws_client -lws_client
-
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
@@ -103,5 +98,5 @@ windows:DEFINES += _MBCS
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
 #else:unix:!macx: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
 
-INCLUDEPATH += $$PWD/../../ws_client
-DEPENDPATH += $$PWD/../../ws_client
+#INCLUDEPATH += $$PWD/../../ws_client
+#DEPENDPATH += $$PWD/../../ws_client

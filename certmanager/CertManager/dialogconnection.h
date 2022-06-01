@@ -31,6 +31,7 @@ private slots:
     void on_lineServer_textChanged(const QString &arg1);
     void on_btnViewPwd_toggled(bool checked);
     void on_linePwd_textChanged(const QString &arg1);
+    void on_checkMode_stateChanged(int arg1);
 };
 
 #endif // DIALOGCONNECTION_H

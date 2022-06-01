@@ -57,7 +57,7 @@ private slots:
     void onDisplayError(const QString& what, const QString& err);
     void UpdateRowIcons();
     void onGetActiveUsers(const QString& resp);
-    void onParseCommand(const QString& result, CommandLine::cmdCommand command);
+    void onParseCommand(const QString& result, int command);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -65,7 +65,7 @@ private slots:
 
     void on_btnEdit_clicked();
 
-    void onOutputCommandLine(const QString& data, CommandLine::cmdCommand command);
+    void onOutputCommandLine(const QString& data, int command);
     void on_actionTest_triggered();
 
     void on_btnTermOptions_clicked();
