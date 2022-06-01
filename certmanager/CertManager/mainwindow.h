@@ -124,5 +124,6 @@ private:
     void setKeysToRegistry();
     bool isDbOpen();
 
+    void csptestGetContainers(const QString& result);
 };
 #endif // MAINWINDOW_H

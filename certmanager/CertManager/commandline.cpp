@@ -293,6 +293,9 @@ bool CommandLine::listening()
 
 QString CommandLine::parseCommand(const QString &result, int command)
 {
+    if(result == "Not running")
+        return "";
+
     QStringList _result;
     if(command == echoUserName){
         QRegularExpression  re( "echo %username%\n");
@@ -364,6 +367,16 @@ QString CommandLine::parseCommand(const QString &result, int command)
                     continue;
                 }
             }
+        }
+    }else if(command == csptestGetConteiners){
+        QString tmp(result);
+        int l = tmp.indexOf("\\\\.\\");
+        int e = tmp.lastIndexOf("OK.");
+
+        qDebug() << l << " " << e;
+        if(l > 0 && e > 0 && l < e){
+            tmp = tmp.mid(l, e - l);
+            emit endParse(tmp, command);
         }
     }
     return result;

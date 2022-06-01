@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QFile csptest(_cprocsp_exe);
     if(!csptest.exists())
-        qCritical() << __FUNCTION__ << "Утилита csptest найдена!";
+        qCritical() << __FUNCTION__ << "Утилита csptest не найдена!";
     else
         qDebug() << __FUNCTION__ << "Утилита csptest установлена на компьютере!";
     //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
@@ -63,6 +63,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     terminal->start();
 
+    createTree();
+
 #ifdef _WINDOWS
     QString cryptoProDir = "C:/Program Files (x86)/Crypto Pro/CSP/";
     std::string envUSER = "username";
@@ -73,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     QByteArray data(std::getenv(envUSER.c_str()));
     QString uname = QString::fromLocal8Bit(data);
 
-    onParseCommand(uname, CommandLine::cmdCommand::echoUserName);
+    onParseCommand(uname, cmdCommand::echoUserName);
 #else
     std::string envUSER = "USER";
     QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
@@ -81,8 +83,6 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
 
     terminal->send(QString("cd %1\n").arg(cryptoProDir), cmdCommand::unknown);
-    createTree();
-
 
     ui->horizontalLayout->addStretch();
     ui->toolBarActiveUsers->addStretch();
@@ -216,6 +216,48 @@ bool MainWindow::isDbOpen()
     return result;
 }
 
+void MainWindow::csptestGetContainers(const QString &result)
+{
+    if(result.isEmpty())
+        return;
+
+    QStringList keys = result.split("\n");
+    auto tableView = ui->tableView;
+    tableView->setModel(nullptr);
+    auto table = new QStandardItemModel(this);
+    table->setColumnCount(2);
+    //table->setRowCount(keys.size());
+    QStringList cols = {"","Наименование"};
+    table->setHorizontalHeaderLabels(cols);
+    auto colDb = table->horizontalHeaderItem(0);
+    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
+    //int i = 0;
+    foreach(const QString& key, keys){
+        if(key.isEmpty())
+            continue;
+        table->setRowCount(table->rowCount() + 1);
+        auto itemTable = new QStandardItem(key);
+        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+        table->setItem(table->rowCount() - 1, 1, itemTable);
+        if(isContainerExists(key)){
+            auto itemIco = new QStandardItem();
+            itemIco->setIcon(QIcon(":/img/checked.png"));
+            table->setItem(table->rowCount() - 1, 0, itemIco);
+
+//            QLabel *lbl_item = new QLabel();
+//            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+//            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+//            tableView->setCellWidget(i, 0, lbl_item);
+        }
+        //i++;
+    }
+    tableView->setModel(table);
+    tableView->resizeColumnsToContents();
+
+
+}
+
 void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
     //qDebug() << __FUNCTION__ << qPrintable(data);
@@ -254,10 +296,20 @@ void MainWindow::createTree()
     root->addChild(curr_user);
     currentUser->setTreeItem(curr_user);
 
+    auto * allowed_keys = new QTreeWidgetItem();
+    allowed_keys->setText(0, "Доступные контейнеры");
+    //allowed_keys->setIcon(0, QIcon(":/img/registry.ico"));
+    curr_user->addChild(allowed_keys);
+
     auto * currUserReg = new QTreeWidgetItem();
     currUserReg->setText(0, "Реестр");
     currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
-    curr_user->addChild(currUserReg);
+    allowed_keys->addChild(currUserReg);
+
+    auto * currUserDevice = new QTreeWidgetItem();
+    currUserDevice->setText(0, "Устройства");
+    //currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
+    allowed_keys->addChild(currUserDevice);
 
     auto * server = new QTreeWidgetItem();
     server->setText(0, "База");
@@ -481,36 +533,38 @@ void MainWindow::loadItemSpecific(QTreeWidgetItem *item)
 
 void MainWindow::loadKeysOnRegistry(CertUser *usr)
 {
-    QStringList keys = usr->containers();
-    auto tableView = ui->tableView;
-    tableView->setModel(nullptr);
-    auto table = new QStandardItemModel(this);
-    table->setColumnCount(2);
-    table->setRowCount(keys.size());
-    QStringList cols = {"","Наименование"};
-    table->setHorizontalHeaderLabels(cols);
-    auto colDb = table->horizontalHeaderItem(0);
-    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
-    int i = 0;
-    foreach(const QString& key, keys){
-        auto itemTable = new QStandardItem(key);
-        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-        table->setItem(i, 1, itemTable);
-        if(isContainerExists(key)){
-            auto itemIco = new QStandardItem();
-            itemIco->setIcon(QIcon(":/img/checked.png"));
-            table->setItem(i, 0, itemIco);
+//    QStringList keys = usr->containers();
+//    auto tableView = ui->tableView;
+//    tableView->setModel(nullptr);
+//    auto table = new QStandardItemModel(this);
+//    table->setColumnCount(2);
+//    table->setRowCount(keys.size());
+//    QStringList cols = {"","Наименование"};
+//    table->setHorizontalHeaderLabels(cols);
+//    auto colDb = table->horizontalHeaderItem(0);
+//    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
+//    int i = 0;
+//    foreach(const QString& key, keys){
+//        auto itemTable = new QStandardItem(key);
+//        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+//        table->setItem(i, 1, itemTable);
+//        if(isContainerExists(key)){
+//            auto itemIco = new QStandardItem();
+//            itemIco->setIcon(QIcon(":/img/checked.png"));
+//            table->setItem(i, 0, itemIco);
 
-//            QLabel *lbl_item = new QLabel();
-//            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-//            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-//            tableView->setCellWidget(i, 0, lbl_item);
-        }
-        i++;
-    }
-    tableView->setModel(table);
-    tableView->resizeColumnsToContents();
+////            QLabel *lbl_item = new QLabel();
+////            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+////            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+////            tableView->setCellWidget(i, 0, lbl_item);
+//        }
+//        i++;
+//    }
+//    tableView->setModel(table);
+//    tableView->resizeColumnsToContents();
+
+   terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
 }
 
 void MainWindow::loadOnlineUsers()
@@ -1514,7 +1568,7 @@ void MainWindow::onParseCommand(const QString &result, int command)
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
 #ifdef _WINDOWS
-        terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+        terminal->send(QString("WHOAMI /USER\n").arg(result), cmdCommand::wmicGetSID);
         m_client->setOsUserName(currentUser->name());
 #endif
     }else if(command == cmdCommand::wmicGetSID){
@@ -1524,6 +1578,8 @@ void MainWindow::onParseCommand(const QString &result, int command)
             QStringList curContainers = Registry::currentUserContainers(currentUser->sid());
             currentUser->setContainers(curContainers);
         }
+    }else if(command == csptestGetConteiners){
+        csptestGetContainers(result);
     }
 }
 

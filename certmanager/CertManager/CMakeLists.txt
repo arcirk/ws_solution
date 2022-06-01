@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(cert_manager)
+set(TARGET cert_manager)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -29,19 +30,20 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 #find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 
 
-set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_admin.rc")
+#set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ws_admin.rc")
 
 file(GLOB _SOURCES "${CMAKE_CURRENT_SOURCE_DIR}*.cpp *.h *.ui *.qrc")
 
-set(PROJECT_SOURCES
-        main.${_SOURCES})
+#set(PROJECT_SOURCES
+#       ${_SOURCES})
 
 if(WIN32)
-    add_executable(ws_admin WIN32
-            ${PROJECT_SOURCES}
-            ${APP_ICON_RESOURCE_WINDOWS})
+    add_executable(${TARGET} WIN32
+            ${_SOURCES}
+            #${APP_ICON_RESOURCE_WINDOWS}
+            )
 else()
-    add_executable(ws_admin
+    add_executable(${TARGET}
             ${PROJECT_SOURCES})
 endif()
 
@@ -72,7 +74,7 @@ include_directories("../chared")
 
 
 
-target_link_libraries(ws_admin PRIVATE
+target_link_libraries(${TARGET} PRIVATE
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Gui
         Qt${QT_VERSION_MAJOR}::Widgets

@@ -24,6 +24,7 @@ enum cmdCommand{
     echoUserName,
     wmicGetSID,
     echoGetEncoding,
+    csptestGetConteiners,
     unknown
 };
 
