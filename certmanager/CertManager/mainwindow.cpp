@@ -35,7 +35,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
 
-    QFile csptest("C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe");
+#ifdef _WINDOWS
+   _cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
+#else
+    _cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
+#endif
+
+    QFile csptest(_cprocsp_exe);
     if(!csptest.exists())
         qCritical() << __FUNCTION__ << "Утилита csptest найдена!";
     else
@@ -1495,8 +1501,10 @@ void MainWindow::onParseCommand(const QString &result, CommandLine::cmdCommand c
         currentUser->setName(result);
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
+#ifdef _WINDOWS
         terminal->send(QString("WHOAMI /USER\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
         m_client->setOsUserName(currentUser->name());
+#endif
     }else if(command == CommandLine::cmdCommand::wmicGetSID){
         currentUser->setSid(result);
         terminal->send(QString("chcp\n").arg(result), CommandLine::cmdCommand::echoGetEncoding);
@@ -1530,6 +1538,7 @@ void MainWindow::on_actionTest_triggered()
     }
 }
 
+#ifdef _WINDOWS
 void MainWindow::execute_command(QString param)
 {
      SHELLEXECUTEINFO ShExecInfo = {0};
@@ -1545,6 +1554,7 @@ void MainWindow::execute_command(QString param)
      ShellExecuteEx(&ShExecInfo);
      WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
 }
+#endif
 
 void MainWindow::on_btnTermOptions_clicked()
 {

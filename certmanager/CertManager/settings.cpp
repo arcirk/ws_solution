@@ -11,6 +11,7 @@ settings::settings(QObject *parent)
 
     _charset = "CP866";
     _method = 0;
+    _launch_mode = ws_srv;
 
     if(conf.open(QIODevice::ReadOnly)){
 
@@ -31,6 +32,9 @@ settings::settings(QObject *parent)
         itr = obj.find("charset");
         if(itr != obj.end())
             setCharset(itr.value().toString());
+        itr = obj.find("launch_mode");
+        if(itr != obj.end())
+            setLanchMode((launchMode)itr.value().toInt());
     }
 
     if(_charset.isEmpty())
@@ -50,6 +54,16 @@ void settings::setServer(const QString &val)
 void settings::setPwd(const QString &val)
 {
     _pwd = val;
+}
+
+void settings::setLanchMode(launchMode value)
+{
+    _launch_mode = value;
+}
+
+launchMode settings::launch_mode()
+{
+    return _launch_mode;
 }
 
 QString settings::user()
@@ -80,6 +94,7 @@ void settings::save()
         obj.insert("pwd", _pwd);
         obj.insert("method", _method);
         obj.insert("charset", _charset);
+        obj.insert("launch_mode", _launch_mode);
         doc.setObject(obj);
 
         conf.write(QJsonDocument(doc).toJson(QJsonDocument::Indented));

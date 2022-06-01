@@ -83,6 +83,9 @@ win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/releas
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
 else:unix: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
 
+unix:LIBS += -lboost_filesystem
+unix:LIBS += -lboost_thread
+
 INCLUDEPATH += $$PWD/../../ws_client/include
 DEPENDPATH += $$PWD/../../ws_client
 INCLUDEPATH += $$PWD/../../chared
@@ -95,3 +98,10 @@ windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:DEFINES -= UNICODE
 windows:DEFINES += _MBCS
+
+#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
+#else:unix:!macx: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
+
+INCLUDEPATH += $$PWD/../../ws_client
+DEPENDPATH += $$PWD/../../ws_client

@@ -34,3 +34,7 @@ windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 
 windows:DEFINES -= UNICODE
 windows:DEFINES += _MBCS
+
+unix:LIBS += -L/home/arcady/lib/vcpkg/installed/x64-linux/lib
+unix:LIBS += -lboost_system
+unix:LIBS += -lboost_filesystem

@@ -3,6 +3,11 @@
 
 #include <QObject>
 
+enum launchMode{
+    ws_srv = 0,
+    mixed
+};
+
 class settings : public QObject
 {
     Q_OBJECT
@@ -12,6 +17,9 @@ public:
     void setUser(const QString& usr);
     void setServer(const QString& val);
     void setPwd(const QString& val);
+    void setLanchMode(launchMode value);
+
+    launchMode launch_mode();
     QString user();
     QString server();
     QString pwd();
@@ -23,6 +31,8 @@ public:
 
     int method();
     void setMethod(int m);
+
+
 private:
     const QString connectionStringTemplate = "DRIVER={SQL Server};"
                                              "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
@@ -34,6 +44,7 @@ private:
     QString _server;
     int _method;
     QString _charset;
+    launchMode _launch_mode;
 
 signals:
 

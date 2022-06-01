@@ -42,6 +42,9 @@ Boost_USE_STATIC_LIBS = ON
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:LIBS += -lbcrypt
+unix:LIBS += -L/home/arcady/lib/vcpkg/installed/x64-linux/lib
+unix:LIBS += -lboost_system
+unix:LIBS += -lboost_filesystem
 
 DEFINES += USE_QT_CREATOR
 

@@ -92,10 +92,13 @@ private:
 
     CommandLine * terminal;
 
+    QString _cprocsp_exe;
+    QString _launch_mode;
+
     QMap<QUuid, CertUser*> m_actUsers;
-
+#ifdef _WINDOWS
     void execute_command(QString param);
-
+#endif
     void createTree();
     void createRootList();
     void loadContainersList();
