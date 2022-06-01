@@ -32,7 +32,7 @@ public:
 private slots:
     void on_mnuExit_triggered();
 
-    void onReconnect(settings * sett, const QString& pwd);
+    void connectToDatabase(Settings * sett, const QString& pwd);
 
     void on_mnuConnect_triggered();
 
@@ -82,7 +82,7 @@ private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
     QList<QToolButton*> toolBarActiveUsers;
-    settings * _sett;
+    Settings * _sett;
     //QSqlDatabase db;
     SqlInterface * db;
     QLabel * infoBar;
@@ -93,12 +93,22 @@ private:
     CommandLine * terminal;
 
     QString _cprocsp_exe;
+    bool isUseCsptest;
+    QString _cprocsp_dir;
     QString _launch_mode;
 
     QMap<QUuid, CertUser*> m_actUsers;
 #ifdef _WINDOWS
     void execute_command(QString param);
 #endif
+    void createConnectionsObjects();
+
+    void connectToWsServer();
+    void createWsObject();
+    void setWsConnectedSignals();
+
+    void createTerminal();
+
     void createTree();
     void createRootList();
     void loadContainersList();
@@ -116,14 +126,20 @@ private:
     bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
     void loadCimputers();
-    void connectToWsServer();
+
     void toolBarSetVisible(QWidget * bar, bool value);
-    void createWsObject();
-    void setConnectedSignals();
+
     void initToolBars();
     void setKeysToRegistry();
     bool isDbOpen();
+    void formControl();
+    void initCsptest();
 
     void csptestGetContainers(const QString& result);
+
+    QTreeWidgetItem * addTreeNode(const QString &text, const QVariant &key, const QString &imagePath);
+    QTreeWidgetItem * findTreeItem(const QString& key);
+    QTreeWidgetItem * findTreeItem(const QString& key, QTreeWidgetItem * parent);
+
 };
 #endif // MAINWINDOW_H

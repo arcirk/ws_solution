@@ -255,7 +255,8 @@ void CommandLine::start() {
 void CommandLine::stop() {
     qInfo() << Q_FUNC_INFO;
     m_listening = false;
-    m_process.close();
+    if(m_process.state() == QProcess::Running)
+        m_process.close();
 }
 
 void CommandLine::send(const QString &commandText, int command)

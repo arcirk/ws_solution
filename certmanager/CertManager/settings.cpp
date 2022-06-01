@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-settings::settings(QObject *parent)
+Settings::Settings(QObject *parent)
     : QObject{parent}
 {
 
@@ -41,47 +41,47 @@ settings::settings(QObject *parent)
         _charset = "CP866";
 }
 
-void settings::setUser(const QString &usr)
+void Settings::setUser(const QString &usr)
 {
     _user = usr;
 }
 
-void settings::setServer(const QString &val)
+void Settings::setServer(const QString &val)
 {
     _server = val;
 }
 
-void settings::setPwd(const QString &val)
+void Settings::setPwd(const QString &val)
 {
     _pwd = val;
 }
 
-void settings::setLanchMode(launchMode value)
+void Settings::setLanchMode(launchMode value)
 {
     _launch_mode = value;
 }
 
-launchMode settings::launch_mode()
+launchMode Settings::launch_mode()
 {
     return _launch_mode;
 }
 
-QString settings::user()
+QString Settings::user()
 {
     return _user;
 }
 
-QString settings::server()
+QString Settings::server()
 {
     return _server;
 }
 
-QString settings::pwd()
+QString Settings::pwd()
 {
     return _pwd;
 }
 
-void settings::save()
+void Settings::save()
 {
     QFile conf = QFile("conf.json");
 
@@ -103,24 +103,24 @@ void settings::save()
     }
 }
 
-QString settings::charset()
+QString Settings::charset()
 {
     return _charset;
 }
 
-void settings::setCharset(const QString &cp)
+void Settings::setCharset(const QString &cp)
 {
     if(cp == "CP833")
         return;
     _charset = cp;
 }
 
-int settings::method()
+int Settings::method()
 {
     return _method;
 }
 
-void settings::setMethod(int m)
+void Settings::setMethod(int m)
 {
     _method = m;
 }

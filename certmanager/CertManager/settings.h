@@ -8,11 +8,11 @@ enum launchMode{
     mixed
 };
 
-class settings : public QObject
+class Settings : public QObject
 {
     Q_OBJECT
 public:
-    explicit settings(QObject *parent = nullptr);
+    explicit Settings(QObject *parent = nullptr);
 
     void setUser(const QString& usr);
     void setServer(const QString& val);

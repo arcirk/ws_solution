@@ -44,7 +44,7 @@ class DialogTerminalOptions : public QDialog
     Q_OBJECT
 
 public:
-    explicit DialogTerminalOptions(CommandLine* cmd, settings * sett, QWidget *parent = nullptr);
+    explicit DialogTerminalOptions(CommandLine* cmd, Settings * sett, QWidget *parent = nullptr);
     ~DialogTerminalOptions();
 
     void accept() override;
@@ -52,7 +52,7 @@ public:
 private:
     Ui::DialogTerminalOptions *ui;
     CommandLine* _cmd;
-    settings * _sett;
+    Settings * _sett;
     QList<QRadioButton*> lst;
 };
 

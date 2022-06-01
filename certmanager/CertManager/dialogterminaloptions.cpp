@@ -2,7 +2,7 @@
 #include "ui_dialogterminaloptions.h"
 #include <QStringListModel>
 
-DialogTerminalOptions::DialogTerminalOptions(CommandLine* cmd, settings * sett, QWidget *parent) :
+DialogTerminalOptions::DialogTerminalOptions(CommandLine* cmd, Settings * sett, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogTerminalOptions)
 {

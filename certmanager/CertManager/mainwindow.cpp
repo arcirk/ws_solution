@@ -32,100 +32,82 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    qDebug() << __FUNCTION__;
+
     ui->setupUi(this);
 
+    initCsptest(); // init CriptoPro
 
-#ifdef _WINDOWS
-   _cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
-#else
-    _cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
-#endif
+    formControl();
 
-    QFile csptest(_cprocsp_exe);
-    if(!csptest.exists())
-        qCritical() << __FUNCTION__ << "Утилита csptest не найдена!";
-    else
-        qDebug() << __FUNCTION__ << "Утилита csptest установлена на компьютере!";
-    //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
+    _sett = new Settings(this);
 
-    initToolBars();
-    db = new SqlInterface(this);
-    _sett = new settings(this);
-    currentUser = new CertUser(this);
+    createTerminal();
 
-    createWsObject();
+    createConnectionsObjects();
 
-    terminal = new CommandLine(this, false, _sett->charset());
+    setWsConnectedSignals();
 
-    terminal->setMethod(_sett->method());
-    connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
-    connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
+    if(_sett->launch_mode() == mixed){
+        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+             connectToDatabase(_sett, _sett->pwd());
+    }
 
-    terminal->start();
+    connectToWsServer();
 
-    createTree();
+    //
 
-#ifdef _WINDOWS
-    QString cryptoProDir = "C:/Program Files (x86)/Crypto Pro/CSP/";
-    std::string envUSER = "username";
-    if(_sett->charset() != "CP866")
-        terminal->setChcp();    
-   //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+//
+//
+//
 
-    QByteArray data(std::getenv(envUSER.c_str()));
-    QString uname = QString::fromLocal8Bit(data);
+//    createWsObject();
 
-    onParseCommand(uname, cmdCommand::echoUserName);
-#else
-    std::string envUSER = "USER";
-    QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
-    terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
-#endif
+//
 
-    terminal->send(QString("cd %1\n").arg(cryptoProDir), cmdCommand::unknown);
 
-    ui->horizontalLayout->addStretch();
-    ui->toolBarActiveUsers->addStretch();
 
-    infoBar = new QLabel(this);
-    ui->statusbar->addWidget(infoBar);
-    infoBar->setText("Не подключен.");
 
-    ui->txtTerminal->setWordWrapMode(QTextOption::NoWrap);
-    QPalette pal = ui->txtTerminal->palette();
-    pal.setBrush(QPalette::Base, Qt::black);
-    ui->txtTerminal->setAutoFillBackground(true);
-    ui->txtTerminal->setPalette(pal);
-    ui->txtTerminal->setTextColor(QColor(0,255,0));
 
-    setConnectedSignals();
 
-    if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-        onReconnect(_sett, _sett->pwd());
 
-    setWindowTitle("Менеджер сертификатов");
+//    ui->horizontalLayout->addStretch();
+//    ui->toolBarActiveUsers->addStretch();
 
-    QString curentHost = QSysInfo::machineHostName();
-    currentUser->setDomain(curentHost);
+
+
+
+
+//
+
+//    if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+//        onReconnect(_sett, _sett->pwd());
+
+//    setWindowTitle("Менеджер сертификатов");
+
+
 
 }
 
 void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
+    qDebug() << __FUNCTION__;
     bar->setVisible(value);
 }
 
 void MainWindow::createWsObject()
 {
+    qDebug() << __FUNCTION__;
     m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
-    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
-    m_client->options()[bConfFieldsWrapper::User] = "admin";
-    QString hash = bWebSocket::generateHash("admin", "admin");
-    m_client->options()[bConfFieldsWrapper::Hash] = hash;
-    m_client->options().save();
+//    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
+//    m_client->options()[bConfFieldsWrapper::User] = "admin";
+//    QString hash = bWebSocket::generateHash("admin", "admin");
+//    m_client->options()[bConfFieldsWrapper::Hash] = hash;
+//    m_client->options().save();
 }
 
-void MainWindow::setConnectedSignals()
+void MainWindow::setWsConnectedSignals()
 {
+    qDebug() << __FUNCTION__;
     connect(m_client, &bWebSocket::connectionSuccess, this, &MainWindow::onConnectionSuccess);
     connect(m_client, &bWebSocket::closeConnection, this, &MainWindow::onCloseConnection);
     connect(m_client, &bWebSocket::connectedStatusChanged, this, &MainWindow::onConnectedStatusChanged);
@@ -136,8 +118,50 @@ void MainWindow::setConnectedSignals()
     connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
 }
 
+void MainWindow::createTerminal()
+{
+    currentUser = new CertUser(this);
+    QString curentHost = QSysInfo::machineHostName();
+    currentUser->setDomain(curentHost);
+
+    terminal = new CommandLine(this, false, _sett->charset());
+    ui->txtTerminal->setWordWrapMode(QTextOption::NoWrap);
+    QPalette pal = ui->txtTerminal->palette();
+    pal.setBrush(QPalette::Base, Qt::black);
+    ui->txtTerminal->setAutoFillBackground(true);
+    ui->txtTerminal->setPalette(pal);
+    ui->txtTerminal->setTextColor(QColor(0,255,0));
+    terminal->setMethod(_sett->method());
+
+    connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
+    connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
+
+    terminal->start();
+    if(isUseCsptest)
+        terminal->send(QString("cd %1\n").arg(_cprocsp_dir), cmdCommand::unknown);
+
+#ifdef _WINDOWS
+        std::string envUSER = "username";
+        if(_sett->charset() != "CP866")
+            terminal->setChcp();
+       //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+
+        QByteArray data(std::getenv(envUSER.c_str()));
+        QString uname = QString::fromLocal8Bit(data);
+        currentUser->setName(uname);
+#else
+        std::string envUSER = "USER";
+        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+        terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
+#endif
+
+
+
+}
+
 void MainWindow::initToolBars()
 {
+    qDebug() << __FUNCTION__;
     toolBar.append(ui->btnAdd);
     toolBar.append(ui->btnEdit);
     toolBar.append(ui->btnDelete);
@@ -152,6 +176,7 @@ void MainWindow::initToolBars()
 
 void MainWindow::setKeysToRegistry()
 {
+    qDebug() << __FUNCTION__;
     auto dlg = new DialogSelectDevice(this, "База данных");
     dlg->setModal(true);
     dlg->exec();
@@ -199,6 +224,7 @@ void MainWindow::setKeysToRegistry()
 
 bool MainWindow::isDbOpen()
 {
+    qDebug() << __FUNCTION__;
     QString status;
 
     bool result = db->isOpen();
@@ -216,8 +242,44 @@ bool MainWindow::isDbOpen()
     return result;
 }
 
+void MainWindow::formControl()
+{
+    qDebug() << __FUNCTION__;
+    initToolBars();
+    createTree();
+    infoBar = new QLabel(this);
+    ui->statusbar->addWidget(infoBar);
+    infoBar->setText("Не подключен.");
+}
+
+void MainWindow::initCsptest()
+{
+
+    isUseCsptest = false;
+
+#ifdef _WINDOWS
+   _cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
+   _cprocsp_dir = "C:/Program Files (x86)/Crypto Pro/CSP/";
+#else
+    _cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
+    _cprocsp_dir = "/opt/cprocsp/bin/amd64/"
+#endif
+
+    QFile csptest(_cprocsp_exe);
+    if(!csptest.exists())
+        qCritical() << __FUNCTION__ << "Утилита csptest не найдена!";
+    else{
+        //qDebug() << __FUNCTION__ << "Утилита csptest установлена на компьютере!";
+        isUseCsptest = true;
+    }
+    //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
+
+}
+
 void MainWindow::csptestGetContainers(const QString &result)
 {
+    qDebug() << __FUNCTION__;
+
     if(result.isEmpty())
         return;
 
@@ -258,11 +320,54 @@ void MainWindow::csptestGetContainers(const QString &result)
 
 }
 
+QTreeWidgetItem *MainWindow::addTreeNode(const QString &text, const QVariant &key, const QString &imagePath)
+{
+    qDebug() << __FUNCTION__;
+    auto * node = new QTreeWidgetItem();
+    node-> setText (0, text);
+    node->setData(0, Qt::UserRole, key);
+    node->setIcon(0, QIcon(imagePath));
+    return node;
+}
+
+QTreeWidgetItem *MainWindow::findTreeItem(const QString &key)
+{
+    auto tree = ui->treeWidget;
+    auto root = tree->topLevelItem(0);
+    return findTreeItem(key, root);
+}
+
+QTreeWidgetItem * MainWindow::findTreeItem(const QString& key, QTreeWidgetItem* parent)
+{
+    int i;
+
+    if (!parent)
+        return nullptr;
+
+    if(parent->childCount()>0){
+        for(i=0;i<parent->childCount();i++){
+            if(parent->child(i)!=0)
+            {
+                qDebug() << parent->child(i)->data(0, Qt::UserRole).toString();
+
+                if (parent->child(i)->data(0, Qt::UserRole).toString() == key)
+                    return parent->child(i);
+                else
+                    findTreeItem(key, parent->child(i));
+            }
+
+        }
+    }
+
+   return nullptr;
+}
+
 void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
+    //qDebug() << __FUNCTION__;
     //qDebug() << __FUNCTION__ << qPrintable(data);
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + data);
-    //qDebug() << __FUNCTION__ << "commant: " << command;
+    qDebug() << __FUNCTION__ << "commant: " << command;
     terminal->parseCommand(data, command);
 }
 
@@ -277,80 +382,97 @@ MainWindow::~MainWindow()
 
 void MainWindow::createTree()
 {
+    qDebug() << __FUNCTION__;
     auto tree = ui->treeWidget;   
+    //tree->setColumnCount(1);
+    tree->setHeaderHidden(true);
+//    tree->setColumnHidden(1, true);
 
-    auto * root = new QTreeWidgetItem();
-    root-> setText (0, "root");
-    root->setIcon(0, QIcon(":/img/system_config_root.ico"));
+//    auto * root = new QTreeWidgetItem();
+//    auto * rootId = new QTreeWidgetItem();
+//    root-> setText (0, "root");
+//    rootId-> setText (0, "root");
+//    root->setIcon(0, QIcon(":/img/system_config_root.ico"));
+
+
+    auto root = addTreeNode("root", "root", ":/img/system_config_root.ico");
     tree->addTopLevelItem(root);
-
-    QString usrName = currentUser->name();
-
-    auto * curr_user = new QTreeWidgetItem();
-    if(usrName.isEmpty())
-        curr_user->setText(0, "Текущий пользователь");
-    else
-       curr_user->setText(0, QString("Текущий пользователь (%1)").arg(usrName));
-    curr_user->setToolTip(0, QString("Текущий пользователь (%1)").arg(usrName));
-    curr_user->setIcon(0, QIcon(":/img/userOptions.ico"));
+    auto curr_user = addTreeNode("Текущий пользователь", "currentUser", ":/img/userOptions.ico");
     root->addChild(curr_user);
-    currentUser->setTreeItem(curr_user);
-
-    auto * allowed_keys = new QTreeWidgetItem();
-    allowed_keys->setText(0, "Доступные контейнеры");
-    //allowed_keys->setIcon(0, QIcon(":/img/registry.ico"));
-    curr_user->addChild(allowed_keys);
-
-    auto * currUserReg = new QTreeWidgetItem();
-    currUserReg->setText(0, "Реестр");
-    currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
-    allowed_keys->addChild(currUserReg);
-
-    auto * currUserDevice = new QTreeWidgetItem();
-    currUserDevice->setText(0, "Устройства");
-    //currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
-    allowed_keys->addChild(currUserDevice);
-
-    auto * server = new QTreeWidgetItem();
-    server->setText(0, "База");
-    server->setIcon(0, QIcon(":/img/sqlServer.png"));
+    auto server = addTreeNode("База", "SqlServer", ":/img/sqlServer.png");
     root->addChild(server);
-
-    auto * containers = new QTreeWidgetItem();
-    containers->setText(0, "Контейнеры");
-    containers->setIcon(0, QIcon(":/img/key_password_lock_800.ico"));
-    server->addChild(containers);
-
-    auto * certs = new QTreeWidgetItem();
-    certs->setText(0, "Сертификаты");
-    certs->setIcon(0, QIcon(":/img/certificate.ico"));
-    server->addChild(certs);
-
-    auto * users = new QTreeWidgetItem();
-    users->setText(0, "Пользователи");
-    users->setIcon(0, QIcon(":/img/bootloader_users_person_people_6080.ico"));
-    server->addChild(users);
-
-    auto * comps = new QTreeWidgetItem();
-    comps->setText(0, "Компьютеры");
-    comps->setIcon(0, QIcon(":/img/computers.ico"));
-    root->addChild(comps);
-
-    auto * ws = new QTreeWidgetItem();
-    ws->setText(0, "WS Server");
-    ws->setIcon(0, QIcon(":/img/socket_16_only.ico"));
+    auto ws = addTreeNode("Сервер взаимодействия", "WsServer", ":/img/socket_16_only.ico");
     root->addChild(ws);
 
-    auto * activeUsers = new QTreeWidgetItem();
-    activeUsers->setText(0, "Активные пользователи");
-    activeUsers->setIcon(0, QIcon(":/img/activeUesers.png"));
-    ws->addChild(activeUsers);
+////    QString usrName = currentUser->name();
+
+//    auto * curr_user = new QTreeWidgetItem();
+////    if(usrName.isEmpty())
+//        curr_user->setText(0, "Текущий пользователь");
+////    else
+////       curr_user->setText(0, QString("Текущий пользователь (%1)").arg(usrName));
+////    curr_user->setToolTip(0, QString("Текущий пользователь (%1)").arg(usrName));
+//    curr_user->setIcon(0, QIcon(":/img/userOptions.ico"));
+//    root->addChild(curr_user);
+
+    //currentUser->setTreeItem(curr_user);
+
+//    auto * allowed_keys = new QTreeWidgetItem();
+//    allowed_keys->setText(0, "Доступные контейнеры");
+//    //allowed_keys->setIcon(0, QIcon(":/img/registry.ico"));
+//    curr_user->addChild(allowed_keys);
+
+//    auto * currUserReg = new QTreeWidgetItem();
+//    currUserReg->setText(0, "Реестр");
+//    currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
+//    allowed_keys->addChild(currUserReg);
+
+//    auto * currUserDevice = new QTreeWidgetItem();
+//    currUserDevice->setText(0, "Устройства");
+//    //currUserReg->setIcon(0, QIcon(":/img/registry.ico"));
+//    allowed_keys->addChild(currUserDevice);
+
+//    auto * server = new QTreeWidgetItem();
+//    server->setText(0, "База");
+//    server->setIcon(0, QIcon(":/img/sqlServer.png"));
+//    root->addChild(server);
+
+//    auto * containers = new QTreeWidgetItem();
+//    containers->setText(0, "Контейнеры");
+//    containers->setIcon(0, QIcon(":/img/key_password_lock_800.ico"));
+//    server->addChild(containers);
+
+//    auto * certs = new QTreeWidgetItem();
+//    certs->setText(0, "Сертификаты");
+//    certs->setIcon(0, QIcon(":/img/certificate.ico"));
+//    server->addChild(certs);
+
+//    auto * users = new QTreeWidgetItem();
+//    users->setText(0, "Пользователи");
+//    users->setIcon(0, QIcon(":/img/bootloader_users_person_people_6080.ico"));
+//    server->addChild(users);
+
+//    auto * comps = new QTreeWidgetItem();
+//    comps->setText(0, "Компьютеры");
+//    comps->setIcon(0, QIcon(":/img/computers.ico"));
+//    root->addChild(comps);
+
+//    auto * ws = new QTreeWidgetItem();
+//    ws->setText(0, "Сервер взаимодействия");
+//    ws->setIcon(0, QIcon(":/img/socket_16_only.ico"));
+//    root->addChild(ws);
+
+//    auto * activeUsers = new QTreeWidgetItem();
+//    activeUsers->setText(0, "Активные пользователи");
+//    activeUsers->setIcon(0, QIcon(":/img/activeUesers.png"));
+//    ws->addChild(activeUsers);
 
     tree->expandAll();
 }
 
 void MainWindow::createRootList()
 {
+    qDebug() << __FUNCTION__;
     auto table = ui->tableView;
     table->setModel(nullptr);
 
@@ -386,6 +508,7 @@ void MainWindow::createRootList()
 void MainWindow::loadContainersList()
 {
 
+    qDebug() << __FUNCTION__;
     auto tableView = ui->tableView;
     tableView->setModel(nullptr);
 
@@ -421,6 +544,7 @@ void MainWindow::loadContainersList()
 
 void MainWindow::LoadUsersList()
 {
+    qDebug() << __FUNCTION__;
     auto table = ui->tableView;
     table->setModel(nullptr);
     ui->btnAdd->setEnabled(true);
@@ -469,6 +593,7 @@ void MainWindow::LoadUsersList()
 
 void MainWindow::loadCertList()
 {
+    qDebug() << __FUNCTION__;
     auto table = ui->tableView;
     table->setModel(nullptr);
     ui->btnAdd->setEnabled(true);
@@ -494,12 +619,14 @@ void MainWindow::loadCertList()
 
 void MainWindow::createUsersList()
 {
+    qDebug() << __FUNCTION__;
     auto table = ui->tableView;
     table->setModel(nullptr);
 }
 
 void MainWindow::enableToolbar(bool value)
 {
+    qDebug() << __FUNCTION__;
     for (auto btn : toolBar) {
         btn->setEnabled(value);
     }
@@ -507,6 +634,7 @@ void MainWindow::enableToolbar(bool value)
 
 void MainWindow::loadItemChilds(QTreeWidgetItem *item)
 {
+    qDebug() << __FUNCTION__;
     auto tableView = ui->tableView;
     tableView->setModel(nullptr);
     auto table = new QStandardItemModel(this);
@@ -528,11 +656,12 @@ void MainWindow::loadItemChilds(QTreeWidgetItem *item)
 
 void MainWindow::loadItemSpecific(QTreeWidgetItem *item)
 {
-
+qDebug() << __FUNCTION__;
 }
 
 void MainWindow::loadKeysOnRegistry(CertUser *usr)
 {
+    qDebug() << __FUNCTION__;
 //    QStringList keys = usr->containers();
 //    auto tableView = ui->tableView;
 //    tableView->setModel(nullptr);
@@ -569,6 +698,7 @@ void MainWindow::loadKeysOnRegistry(CertUser *usr)
 
 void MainWindow::loadOnlineUsers()
 {
+    qDebug() << __FUNCTION__;
     auto table = ui->tableView;
     table->setModel(nullptr);
 
@@ -599,6 +729,7 @@ void MainWindow::loadOnlineUsers()
 
 void MainWindow::disableToolBar()
 {
+    qDebug() << __FUNCTION__;
     ui->btnAdd->setEnabled(false);
     ui->btnEdit->setEnabled(false);
     ui->btnDelete->setEnabled(false);
@@ -608,6 +739,7 @@ void MainWindow::disableToolBar()
 
 bool MainWindow::isContainerExists(const QString &name)
 {
+    qDebug() << __FUNCTION__;
     if(db->isOpen()){
         QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers] WHERE [FirstField] = '%1'").arg(name), db->getDatabase());
         while (query.next()) {
@@ -620,6 +752,7 @@ bool MainWindow::isContainerExists(const QString &name)
 
 bool MainWindow::isCertUserExists(const QString &name, const QString& host)
 {
+    qDebug() << __FUNCTION__;
     if(db->isOpen()){
         QString _host;
         if(!host.isEmpty()){
@@ -638,6 +771,7 @@ bool MainWindow::isCertUserExists(const QString &name, const QString& host)
 
 bool MainWindow::isHostExists(const QString &name)
 {
+    qDebug() << __FUNCTION__;
     if(db->isOpen()){
         QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Servers] WHERE [FirstField] = '%1'").arg(name), db->getDatabase());
         while (query.next()) {
@@ -650,6 +784,7 @@ bool MainWindow::isHostExists(const QString &name)
 
 void MainWindow::userToDatabase(const QString &name)
 {
+    qDebug() << __FUNCTION__;
     if(isCertUserExists(name))
     {
         QMessageBox::information(this, "Пользователь", "Пользователь уже есть на севрвере!");
@@ -658,7 +793,7 @@ void MainWindow::userToDatabase(const QString &name)
 
 void MainWindow::loadCimputers()
 {
-
+    qDebug() << __FUNCTION__;
     ui->tableView->setModel(nullptr);
     auto queryModel = new QSqlQueryModel(this);
     queryModel->setQuery("SELECT [_id]\n"
@@ -686,6 +821,7 @@ void MainWindow::loadCimputers()
 }
 
 void MainWindow::UpdateRowIcons(){
+    qDebug() << __FUNCTION__;
    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
        QModelIndex index = ui->tableView->model()->index(i, 1);
        QLabel *lbl_item = new QLabel();
@@ -700,25 +836,38 @@ void MainWindow::UpdateRowIcons(){
 
 void MainWindow::connectToWsServer()
 {
-    if(!db->isOpen())
-        return;
+    qDebug() << __FUNCTION__;
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+    }
     if(!m_client)
         return;
+
     if(m_client->isStarted())
         return;
 
-    QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
-    if(result.lastError().type() == QSqlError::NoError){
-        while (result.next()){
-            QString _host = result.value(0).toString().trimmed();
-            int _port = result.value(1).toInt();
-            m_client->setHost(_host);
-            m_client->setPort(_port);
-            m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
-            break;
+    if(_sett->launch_mode() == mixed){
+        QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
+        if(result.lastError().type() == QSqlError::NoError){
+            while (result.next()){
+                QString _host = result.value(0).toString().trimmed();
+                int _port = result.value(1).toInt();
+                m_client->setHost(_host);
+                m_client->setPort(_port);
+                m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+                break;
+            }
         }
-
+    }else{
+        QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
+        int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
+        m_client->setHost(_host);
+        m_client->setPort(_port);
+        m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
     }
+
 
 }
 
@@ -866,6 +1015,7 @@ void MainWindow::on_mnuExit_triggered()
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
 
+    qDebug() << __FUNCTION__;
     if(item->childCount() > 0){
         loadItemChilds(item);
         disableToolBar();
@@ -934,8 +1084,10 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 
 }
 
-void MainWindow::onReconnect(settings *sett, const QString &pwd)
+void MainWindow::connectToDatabase(Settings *sett, const QString &pwd)
 {
+
+    qDebug() << __FUNCTION__;
 
     QString host = sett->server();
     QString database = "arcirk";
@@ -944,31 +1096,58 @@ void MainWindow::onReconnect(settings *sett, const QString &pwd)
 
     db->setSqlUser(userName);
     db->setSqlPwd(password);
-    db->setHost(sett->server());
+    db->setHost(host);
     db->setDatabaseName(database);
     db->connect();
 
-    connectToWsServer();
+    if(_sett->launch_mode() == mixed)
+        connectToWsServer();
 
     if (!isDbOpen()){
         QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
     }
-    sett->save();
 
+    sett->save();
 
 }
 
 void MainWindow::on_mnuConnect_triggered()
 {
-    auto dlg = new DialogConnection(_sett, this);
+    qDebug() << __FUNCTION__;
+    QMap<QString, QVariant> clientSett;
+    clientSett.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+    clientSett.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
+    clientSett.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
+    std::string dPwd = m_client->options()[bConfFieldsWrapper::Hash].toString().toStdString();
+    QString pass;
+    if (!dPwd.empty()){
+        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
+    }
+    clientSett.insert("Password", pass);
+
+    auto dlg = new DialogConnection(_sett, clientSett, this);
 
     dlg->setModal(true);
     dlg->exec();
 
-    if(dlg->result() == QDialog::Accepted){
-       onReconnect(_sett, dlg->pwd());
-       if(m_client->isStarted())
-           m_client->close();
+    if(dlg->result() == QDialog::Accepted){        
+        if(db->isOpen())
+            db->close();
+        if(m_client->isStarted())
+            m_client->close();
+
+        if(_sett->launch_mode() == mixed){
+            connectToDatabase(_sett, dlg->pwd());
+        }else{
+            QString pass;
+            QString pwd = clientSett["Password"].toString();
+            QString usr = clientSett["ServerUser"].toString();
+            QString  hash = bWebSocket::generateHash(usr, pwd);
+            m_client->options()[bConfFieldsWrapper::Hash] = hash;
+            m_client->options()[bConfFieldsWrapper::User] = usr;
+            m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+            m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+        }
 
        connectToWsServer();
 
@@ -979,6 +1158,7 @@ void MainWindow::on_mnuConnect_triggered()
 
 void MainWindow::on_btnAdd_clicked()
 {
+    qDebug() << __FUNCTION__;
 
 //    auto reg = Registry();
 //    QString admin = reg.currentWindowsName();
@@ -1150,6 +1330,7 @@ void MainWindow::on_btnToDatabase_clicked()
 
         }
     }
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::on_btnDelete_clicked()
@@ -1225,6 +1406,7 @@ void MainWindow::on_btnDelete_clicked()
         }
 
     }
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::on_btnInstallToUser_clicked()
@@ -1264,6 +1446,7 @@ void MainWindow::on_btnInstallToUser_clicked()
 //        }
 
     }
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::on_mnuOptions_triggered()
@@ -1277,6 +1460,7 @@ void MainWindow::on_mnuOptions_triggered()
 
     }
 
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::onConnectionSuccess()
@@ -1308,20 +1492,20 @@ void MainWindow::onCloseConnection()
         status = "SQL Server: " + _sett->server();
     }
     infoBar->setText(status);
-    //qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::onConnectedStatusChanged(bool status)
 {
-    //qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__;
     if(currentUser)
         currentUser->setOnline(status);
 }
 
 void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name)
 {
-//    qDebug() << __FUNCTION__ << qPrintable(resp);
-//    qDebug() << __FUNCTION__ << ip_address << " " << host_name << " " << app_name;
+    qDebug() << __FUNCTION__; // << qPrintable(resp);
+//  qDebug() << __FUNCTION__ << ip_address << " " << host_name << " " << app_name;
     //MainWindow::onClientJoinEx {"name": "admin", "uuid": "d1ca0bc6-b6cb-4b90-941c-85fb9faf70a9", "uuid_user": "e7429c10-8070-40da-ae2e-dea1cb9ae371", "active": true}
     //MainWindow::onClientJoinEx "192.168.10.14"   "VMBUHSVR"   "qt_cert_manager"
 
@@ -1334,6 +1518,8 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
     if(itr != m_actUsers.end())
         itr.value()->setOnline(true);
     else{
+        if(!currentUser)
+            return;
         CertUser * usr = nullptr;
         if(!currentUser->thisIsTheUser(name, host_name)){
             usr = new CertUser(this);
@@ -1342,6 +1528,18 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
         }
         else {
             usr = currentUser;
+            auto item = findTreeItem("currentUser");
+            if(item){
+                item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
+                if(item->childCount() == 0){
+                    auto Root = addTreeNode("Доступные контейнеры", "currentUserAvailableContainers", ":/img/key.svg");
+                    item->addChild(Root);
+                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry.ico");
+                    Root->addChild(reg);
+                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader.ico");
+                    Root->addChild(dev);
+                }
+            }
         }
         usr->setOnline(true);
         usr->setUuid(uuid);
@@ -1364,7 +1562,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    //qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__;
 
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
     auto obj = doc.object();
@@ -1512,6 +1710,9 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 //    ui->tableView->setModel(model);
 //    ui->tableView->resizeColumnsToContents();
 
+    if(!currentUser)
+        return;
+
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
     auto obj = doc.object();
 
@@ -1621,6 +1822,14 @@ void MainWindow::execute_command(QString param)
      ShExecInfo.hInstApp = NULL;
      ShellExecuteEx(&ShExecInfo);
      WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
+}
+
+void MainWindow::createConnectionsObjects()
+{
+    db = new SqlInterface(this);
+
+    createWsObject(/*usr, pwd */);
+
 }
 #endif
 

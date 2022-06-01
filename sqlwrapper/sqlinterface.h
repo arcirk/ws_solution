@@ -21,7 +21,7 @@ const QStringList tables = {
         "Certificates"
 };
 
-enum sqlCommand{
+enum SqlCommand{
     sqlInsert = 0,
     sqlUpdate,
     sqlDelete
@@ -47,6 +47,7 @@ public:
 
     bool connect(const QString& driver = "QODBC");
     bool isOpen();
+    void close();
 
     bool verifyDatabase();
     bool verifyTable(int tableIndex);
@@ -65,11 +66,12 @@ public:
     bool updateSqlTableRow(const QString& table, QMap<QString, QVariant> vals, const QString& ref);
     bool deleteSqlTableRow(const QString& table, const QString& ref);
     QString queryText(const QString& table, QMap<QString, QVariant>& values,
-                        sqlCommand command, const QString& not_ref);
+                        SqlCommand command, const QString& not_ref);
 
     QString lastError();
 
     QSqlDatabase getDatabase() const;
+
 
 private:
     QString _host;

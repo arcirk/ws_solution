@@ -30,5 +30,8 @@
         <file>img/installToRegistry.png</file>
         <file>img/online.png</file>
         <file>img/ofline.png</file>
+        <file>img/Card_Reader.ico</file>
+        <file>img/Card_Reader_16.ico</file>
+        <file>img/key.svg</file>
     </qresource>
 </RCC>

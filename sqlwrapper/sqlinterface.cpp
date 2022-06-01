@@ -138,6 +138,12 @@ bool SqlInterface::isOpen()
     return db.isOpen();
 }
 
+void SqlInterface::close()
+{
+    if(db.isOpen())
+        db.close();
+}
+
 bool SqlInterface::verifyDatabase() {
 
     if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
@@ -567,7 +573,7 @@ bool SqlInterface::insertSqlTableRow(const QString &table, QMap<QString, QVarian
 
     db.exec("USE arcirk;");
 
-    QString query = queryText(table, vals, sqlCommand::sqlInsert, ref);
+    QString query = queryText(table, vals, SqlCommand::sqlInsert, ref);
 
     QSqlQuery q = db.exec(query);
 
@@ -584,7 +590,7 @@ bool SqlInterface::insertSqlTableRow(const QString &table, QMap<QString, QVarian
 bool SqlInterface::updateSqlTableRow(const QString &table, QMap<QString, QVariant> vals, const QString& ref)
 {
 
-    QString query = queryText(table, vals, sqlCommand::sqlUpdate, ref);
+    QString query = queryText(table, vals, SqlCommand::sqlUpdate, ref);
 
     QSqlQuery q = db.exec(query);
 
@@ -601,7 +607,7 @@ bool SqlInterface::updateSqlTableRow(const QString &table, QMap<QString, QVarian
 bool SqlInterface::deleteSqlTableRow(const QString &table, const QString& ref)
 {
     QMap<QString, QVariant> vals;
-    QString query = queryText(table, vals, sqlCommand::sqlDelete, ref);
+    QString query = queryText(table, vals, SqlCommand::sqlDelete, ref);
 
     QSqlQuery q = db.exec(query);
 
@@ -616,12 +622,12 @@ bool SqlInterface::deleteSqlTableRow(const QString &table, const QString& ref)
 }
 
 QString SqlInterface::queryText(const QString& table, QMap<QString, QVariant>& values,
-                                sqlCommand command, const QString& not_ref)
+                                SqlCommand command, const QString& not_ref)
 {
     QString query;
 
 
-    if(command == sqlCommand::sqlInsert){
+    if(command == SqlCommand::sqlInsert){
 
         QString into = "\n(";
         QString values_ = "\n(";
@@ -665,7 +671,7 @@ QString SqlInterface::queryText(const QString& table, QMap<QString, QVariant>& v
 
         query.append(";");
 
-    }else if(command == sqlCommand::sqlUpdate){
+    }else if(command == SqlCommand::sqlUpdate){
         query = "UPDATE dbo." + table;
         QString _set = "\n SET ";
         QString _where = QString("\n WHERE Ref = '%1'").arg(not_ref);
@@ -689,7 +695,7 @@ QString SqlInterface::queryText(const QString& table, QMap<QString, QVariant>& v
         _where.append("\n");
         query.append(_set);
         query.append(_where + ";");
-    }else if(command == sqlCommand::sqlDelete){
+    }else if(command == SqlCommand::sqlDelete){
         query = QString("DELETE FROM [dbo].[Servers]\n"
                 "WHERE Ref = '%1'").arg(not_ref);
     }
