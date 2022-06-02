@@ -80,6 +80,10 @@ private slots:
 
     void on_btnContAdd_clicked();
 
+    void on_btnSendCommand_clicked();
+
+    void on_btnCurrentCopyToDisk_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -87,6 +91,7 @@ private:
     Settings * _sett;
 
     QJsonTableModel * modelSqlContainers;
+    QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
 
     SqlInterface * db;
@@ -116,7 +121,10 @@ private:
 
     void createTree();
     void createRootList();
+
     void getDataContainersList();
+    void getDataCertificatesList();
+
     void LoadUsersList();
     void loadCertList();
     void createUsersList();
@@ -134,7 +142,7 @@ private:
 
     void toolBarSetVisible(QWidget * bar, bool value);
 
-    void initToolBars();
+    void inVisibleToolBars();
     void setKeysToRegistry();
     bool isDbOpen();
     void formControl();
@@ -148,6 +156,7 @@ private:
 
     void treeSetCurrentContainers(QStringList data);
     void treeSetFromSqlContainers();
+    void treeSetFromSqlCertificates();
     void treeSetOnlineWSusers();
 };
 #endif // MAINWINDOW_H

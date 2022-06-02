@@ -20,6 +20,7 @@
 #include <QTextOption>
 #include "dialogselectfromdatabase.h"
 #include "serveresponse.h"
+#include <QStorageInfo>
 
 #ifdef _WINDOWS
 #include <Windows.h>
@@ -34,9 +35,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << __FUNCTION__;
 
+    //http://pushorigin.ru/cryptopro/cryptcp
+
     ui->setupUi(this);
 
     modelSqlContainers = new QJsonTableModel(this);
+    modelSqlCertificates = new QJsonTableModel(this);
     modelWsUsers = new QJsonTableModel(this);
 
     formControl();
@@ -57,8 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     connectToWsServer();
-
-
 
     //
 
@@ -166,19 +168,21 @@ void MainWindow::createTerminal()
 
 }
 
-void MainWindow::initToolBars()
+void MainWindow::inVisibleToolBars()
 {
     qDebug() << __FUNCTION__;
-    toolBar.append(ui->btnAdd);
-    toolBar.append(ui->btnEdit);
-    toolBar.append(ui->btnDelete);
-    toolBar.append(ui->btnImportFromDatabase);
-    toolBar.append(ui->btnInstallToUser);
-    toolBar.append(ui->btnToDatabase);
-    toolBarActiveUsers.append(ui->btnUserToDatabase);
-    toolBarActiveUsers.append(ui->btnCompToDatabase);
+//    toolBar.append(ui->btnAdd);
+//    toolBar.append(ui->btnEdit);
+//    toolBar.append(ui->btnDelete);
+//    toolBar.append(ui->btnImportFromDatabase);
+//    toolBar.append(ui->btnInstallToUser);
+//    toolBar.append(ui->btnToDatabase);
+//    toolBarActiveUsers.append(ui->btnUserToDatabase);
+//    toolBarActiveUsers.append(ui->btnCompToDatabase);
     toolBarSetVisible(ui->wToolBarAU, false);
     toolBarSetVisible(ui->wToolbarContainers, false);
+    toolBarSetVisible(ui->wToolBarCurrentUser, false);
+    toolBarSetVisible(ui->wToolBarMain, false);
 }
 
 void MainWindow::setKeysToRegistry()
@@ -252,7 +256,7 @@ bool MainWindow::isDbOpen()
 void MainWindow::formControl()
 {
     qDebug() << __FUNCTION__;
-    initToolBars();
+    inVisibleToolBars();
     createTree();
     infoBar = new QLabel(this);
     ui->statusbar->addWidget(infoBar);
@@ -373,8 +377,11 @@ QTreeWidgetItem * MainWindow::findTreeItem(const QString& key, QTreeWidgetItem* 
 
                 if (parent->child(i)->data(0, Qt::UserRole).toString() == key)
                     return parent->child(i);
-                else
-                    findTreeItem(key, parent->child(i));
+                else{
+                    auto ch = findTreeItem(key, parent->child(i));
+                    if(ch)
+                        return ch;
+                }
             }
 
         }
@@ -423,6 +430,16 @@ void MainWindow::treeSetFromSqlContainers()
     table->setModel(nullptr);
     if(modelSqlContainers){
         table->setModel(modelSqlContainers);
+        table->resizeColumnsToContents();
+    }
+}
+
+void MainWindow::treeSetFromSqlCertificates()
+{
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+    if(modelSqlCertificates){
+        table->setModel(modelSqlCertificates);
         table->resizeColumnsToContents();
     }
 }
@@ -633,6 +650,38 @@ void MainWindow::getDataContainersList()
     }
 }
 
+void MainWindow::getDataCertificatesList()
+{
+    qDebug() << __FUNCTION__;
+//    auto tableView = ui->tableView;
+//    tableView->setModel(nullptr);
+
+    if(_sett->launch_mode() == mixed){
+        if(!isDbOpen())
+            return;
+
+    }else{
+
+        if(!m_client->isStarted())
+            return;
+        QString query = "SELECT [_id]\n"
+                        ",[FirstField]\n"
+                        ",[SecondField]\n"
+                        ",[Ref]\n"
+                        ",[privateKey]\n"
+                        "FROM [dbo].[Certificates]";
+        auto obj = QJsonObject();
+        obj.insert("query", query);
+        obj.insert("header", true);
+        obj.insert("id_command", "DataCertificatesList");
+        auto doc = QJsonDocument();
+        doc.setObject(obj);
+        QString param = doc.toJson();
+        m_client->sendCommand("exec_query", "", param);
+
+    }
+}
+
 void MainWindow::LoadUsersList()
 {
     qDebug() << __FUNCTION__;
@@ -730,14 +779,15 @@ void MainWindow::loadItemChilds(QTreeWidgetItem *item)
     tableView->setModel(nullptr);
     auto table = new QStandardItemModel(this);
     table->setColumnCount(1);
-    table->setRowCount(item->childCount());
-    QStringList cols = {"root"};
+    table->setRowCount(item->childCount());    
+    QStringList cols = {item->text(0)};
     table->setHorizontalHeaderLabels(cols);
     for (int i = 0; i < item->childCount(); i++) {
         auto child = item->child(i);
         auto itemTable = new QStandardItem(child->text(0));
+        itemTable->setIcon(child->icon(0));
+        itemTable->setData(child->data(0, Qt::UserRole), Qt::UserRole);
         itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
         table->setItem(i, 0, itemTable);
     }
 
@@ -920,11 +970,10 @@ void MainWindow::connectToWsServer()
                 m_client->setPort(_port);
                 m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
                 break;
-            }
+            }            
         }
-
         getDataContainersList();
-
+        getDataCertificatesList();
     }else{
         QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
         int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
@@ -1080,70 +1129,78 @@ void MainWindow::on_mnuExit_triggered()
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
 
+
     qDebug() << __FUNCTION__;
+    inVisibleToolBars();
     if(item->childCount() > 0){
         loadItemChilds(item);
-        disableToolBar();
-        toolBarSetVisible(ui->wToolBarAU, false);
+        disableToolBar();       
         toolBarSetVisible(ui->wToolBarMain, true);
-        toolBarSetVisible(ui->wToolbarContainers, false);
     }else{
 
         QString key = item->data(0, Qt::UserRole).toString();
         if(key == "currentUserRegistry"){
+           toolBarSetVisible(ui->wToolBarCurrentUser, true);
            treeSetCurrentContainers(currentUser->getRigstryData());
         }else if(key == "currentUserDivace"){
+           toolBarSetVisible(ui->wToolBarCurrentUser, true);
            treeSetCurrentContainers(currentUser->getDivaceData());
         }else if(key == "SqlContainers"){
+            toolBarSetVisible(ui->wToolbarContainers, true);
             treeSetFromSqlContainers();
         }else if(key == "WsActiveUsers"){
-            treeSetOnlineWSusers();
-        }
-        return;
-
-        QString itemText = item->text(0);
-        if(itemText == "Реестр"){
-//            ui->btnAdd->setEnabled(true);
-
-//            if(item->parent()->text(0).compare("Текущий пользователь")){
-//                getAvailableContainers(currentUser);
-//            }else{
-
-//            }
-        }else if(itemText == "Контейнеры"){
-            toolBarSetVisible(ui->wToolBarAU, false);
-            toolBarSetVisible(ui->wToolBarMain, false);
-            toolBarSetVisible(ui->wToolbarContainers, true);
-            getDataContainersList();
-        }else if(itemText == "Пользователи"){
-            toolBarSetVisible(ui->wToolBarAU, false);
-            toolBarSetVisible(ui->wToolBarMain, true);
-            toolBarSetVisible(ui->wToolbarContainers, false);
-            LoadUsersList();
-        }else if(itemText == "Компьютеры"){
-            toolBarSetVisible(ui->wToolBarAU, false);
-            toolBarSetVisible(ui->wToolBarMain, true);
-            toolBarSetVisible(ui->wToolbarContainers, false);
-            loadCimputers();
-        }else if(itemText == "Активные пользователи"){
             toolBarSetVisible(ui->wToolBarAU, true);
-            toolBarSetVisible(ui->wToolBarMain, false);
-            toolBarSetVisible(ui->wToolbarContainers, false);
-            disableToolBar();
-            loadOnlineUsers();
-        }else if(itemText == "Сертификаты"){
-            loadCertList();
-            toolBarSetVisible(ui->wToolBarAU, false);
+            treeSetOnlineWSusers();
+        }else if(key == "SqlCertificates"){
             toolBarSetVisible(ui->wToolBarMain, true);
-            toolBarSetVisible(ui->wToolbarContainers, false);
-        }else{
-            toolBarSetVisible(ui->wToolBarAU, false);
-            toolBarSetVisible(ui->wToolBarMain, true);
-            toolBarSetVisible(ui->wToolbarContainers, false);
-            disableToolBar();
-            ui->tableView->setModel(nullptr);
+            treeSetFromSqlCertificates();
         }
     }
+//        return;
+
+//        QString itemText = item->text(0);
+//        if(itemText == "Реестр"){
+////            ui->btnAdd->setEnabled(true);
+
+////            if(item->parent()->text(0).compare("Текущий пользователь")){
+////                getAvailableContainers(currentUser);
+////            }else{
+
+////            }
+//        }else if(itemText == "Контейнеры"){
+//            toolBarSetVisible(ui->wToolBarAU, false);
+//            toolBarSetVisible(ui->wToolBarMain, false);
+//            toolBarSetVisible(ui->wToolbarContainers, true);
+//            //getDataContainersList();
+//        }else if(itemText == "Пользователи"){
+//            toolBarSetVisible(ui->wToolBarAU, false);
+//            toolBarSetVisible(ui->wToolBarMain, true);
+//            toolBarSetVisible(ui->wToolbarContainers, false);
+//            LoadUsersList();
+//        }else if(itemText == "Компьютеры"){
+//            toolBarSetVisible(ui->wToolBarAU, false);
+//            toolBarSetVisible(ui->wToolBarMain, true);
+//            toolBarSetVisible(ui->wToolbarContainers, false);
+//            loadCimputers();
+//        }else if(itemText == "Активные пользователи"){
+//            toolBarSetVisible(ui->wToolBarAU, true);
+//            toolBarSetVisible(ui->wToolBarMain, false);
+//            toolBarSetVisible(ui->wToolbarContainers, false);
+//            disableToolBar();
+//            loadOnlineUsers();
+//        }else if(itemText == "Сертификаты"){
+//            loadCertList();
+//            toolBarSetVisible(ui->wToolBarAU, false);
+//            toolBarSetVisible(ui->wToolBarMain, true);
+//            toolBarSetVisible(ui->wToolbarContainers, false);
+//        }else{
+//            toolBarSetVisible(ui->wToolBarAU, false);
+//            toolBarSetVisible(ui->wToolBarMain, true);
+//            toolBarSetVisible(ui->wToolbarContainers, false);
+//            disableToolBar();
+//            ui->tableView->setModel(nullptr);
+//        }
+//    }
 //    QString itemText = item->text(0);
 //    if(itemText == "root"){
 //        createRootList();
@@ -1196,12 +1253,8 @@ void MainWindow::on_mnuConnect_triggered()
     clientSett.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
     clientSett.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
     clientSett.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
-    std::string dPwd = m_client->options()[bConfFieldsWrapper::Hash].toString().toStdString();
-    QString pass;
-    if (!dPwd.empty()){
-        pass = QString::fromStdString(ClientSettings::crypt(dPwd, "my_key"));
-    }
-    clientSett.insert("Password", pass);
+    clientSett.insert("Password", "***");
+    clientSett.insert("pwdEdit", false);
 
     auto dlg = new DialogConnection(_sett, clientSett, this);
 
@@ -1220,8 +1273,10 @@ void MainWindow::on_mnuConnect_triggered()
             QString pass;
             QString pwd = clientSett["Password"].toString();
             QString usr = clientSett["ServerUser"].toString();
-            QString  hash = bWebSocket::generateHash(usr, pwd);
-            m_client->options()[bConfFieldsWrapper::Hash] = hash;
+            if(clientSett["pwdEdit"].toBool()){
+                QString  hash = bWebSocket::generateHash(usr, pwd);
+                m_client->options()[bConfFieldsWrapper::Hash] = hash;
+            }
             m_client->options()[bConfFieldsWrapper::User] = usr;
             m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
             m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
@@ -1682,50 +1737,59 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
 
 void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
 {
-//    auto item = ui->tableView-item(row, column);
-//    if(item){
-        QString itemText = index.data().toString();
-        QTreeWidgetItem * child = nullptr;
-
-        if(itemText == "Контейнеры"){
-            child = ui->treeWidget->topLevelItem(0)->child(0);
-        }else if(itemText == "Сертификаты"){
-            child = ui->treeWidget->topLevelItem(0)->child(1);
-        }else if(itemText == "Пользователи"){
-            child = ui->treeWidget->topLevelItem(0)->child(2);
+    QString key = index.data(Qt::UserRole).toString();
+    if(!key.isEmpty()){
+        auto item = findTreeItem(key);
+        if(item){
+            item->parent()->setExpanded(true);
+            ui->treeWidget->setCurrentItem(item);
+            emit ui->treeWidget->itemClicked(item, 0);
         }
+    }
+////    auto item = ui->tableView-item(row, column);
+////    if(item){
+//        QString itemText = index.data().toString();
+//        QTreeWidgetItem * child = nullptr;
 
-        if(child){
-            ui->treeWidget->setCurrentItem(child, 0);
-            emit ui->treeWidget->itemClicked(child, 0);
-        }
+//        if(itemText == "Контейнеры"){
+//            child = ui->treeWidget->topLevelItem(0)->child(0);
+//        }else if(itemText == "Сертификаты"){
+//            child = ui->treeWidget->topLevelItem(0)->child(1);
+//        }else if(itemText == "Пользователи"){
+//            child = ui->treeWidget->topLevelItem(0)->child(2);
+//        }
 
-    //}
+//        if(child){
+//            ui->treeWidget->setCurrentItem(child, 0);
+//            emit ui->treeWidget->itemClicked(child, 0);
+//        }
+
+//    //}
 }
 
 
 void MainWindow::on_tableView_clicked(const QModelIndex &index)
 {
-    auto treeItem = ui->treeWidget->currentItem();
-    if(!treeItem){
-        return;
-    }
+//    auto treeItem = ui->treeWidget->currentItem();
+//    if(!treeItem){
+//        return;
+//    }
 
-    QString currentNode = treeItem->text(0);
+//    QString currentNode = treeItem->text(0);
 
-    if(currentNode == "Реестр"){
-        ui->btnAdd->setEnabled(false);
-        ui->btnEdit->setEnabled(false);
-        ui->btnDelete->setEnabled(true);
-        ui->btnImportFromDatabase->setEnabled(true);
-        ui->btnToDatabase->setEnabled(true);
-    }else if(currentNode == "Компьютеры"){
-        ui->btnAdd->setEnabled(true);
-        ui->btnEdit->setEnabled(true);
-        ui->btnDelete->setEnabled(true);
-    }else{
-        disableToolBar();
-    }
+//    if(currentNode == "Реестр"){
+//        ui->btnAdd->setEnabled(false);
+//        ui->btnEdit->setEnabled(false);
+//        ui->btnDelete->setEnabled(true);
+//        ui->btnImportFromDatabase->setEnabled(true);
+//        ui->btnToDatabase->setEnabled(true);
+//    }else if(currentNode == "Компьютеры"){
+//        ui->btnAdd->setEnabled(true);
+//        ui->btnEdit->setEnabled(true);
+//        ui->btnDelete->setEnabled(true);
+//    }else{
+//        disableToolBar();
+//    }
 }
 
 
@@ -1900,17 +1964,45 @@ void MainWindow::onWsExecQuery(const QString &result)
         QString jsonConteiners = QByteArray::fromBase64(base64.toUtf8());
 
         modelSqlContainers->setJsonText(jsonConteiners);
-        qDebug() << jsonConteiners;
+        //qDebug() << jsonConteiners;
         modelSqlContainers->reset();
 
-        auto rootDb = findTreeItem("SqlServer");
-        if(rootDb){
-            if(rootDb->childCount() == 0){
-               auto itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/key_password_lock_800.ico");
+        auto itemContainers = findTreeItem("SqlContainers");
+        if(!itemContainers){
+            auto rootDb = findTreeItem("SqlServer");
+            if(rootDb){
+               itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/key_password_lock_800.ico");
                rootDb->addChild(itemContainers);
             }
         }
+        auto itemCertificates = findTreeItem("SqlCertificates");
+        if(!itemCertificates){
+            getDataCertificatesList();
+        }
 
+    }if(id_command == "DataCertificatesList"){
+
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString jsonCertificates = QByteArray::fromBase64(base64.toUtf8());
+
+        modelSqlCertificates->setJsonText(jsonCertificates);
+        //qDebug() << jsonCertificates;
+        modelSqlContainers->reset();
+
+        auto itemCertificates = findTreeItem("SqlCertificates");
+        if(!itemCertificates){
+            auto rootDb = findTreeItem("SqlServer");
+            if(rootDb){
+               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/certificate.ico");
+               rootDb->addChild(itemCertificates);
+            }
+        }
+//        auto itemContainers = findTreeItem("SqlContainers");
+//        if(!itemContainers){
+//            getDataContainersList();
+//        }
     }
 }
 
@@ -2122,6 +2214,49 @@ void MainWindow::on_btnContAdd_clicked()
         }else if(dlg->currentSelection() == 2){
 
         }
+    }
+}
+
+
+void MainWindow::on_btnSendCommand_clicked()
+{
+
+    if(terminal->listening()){
+        bool bOk;
+        QString str = QInputDialog::getText( 0,
+                                             "Ввод команды",
+                                             "Команда:",
+                                             QLineEdit::Normal,
+                                             "",
+                                             &bOk
+        );
+        if (bOk) {
+            ui->txtTerminal->setText("");
+            terminal->send(str + "\n", unknown);
+            return;
+        }
+    }
+}
+
+
+void MainWindow::on_btnCurrentCopyToDisk_clicked()
+{
+
+    QStringList volumes{};
+    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+         if (storage.isValid() && storage.isReady()) {
+             if (!storage.isReadOnly()) {
+                 volumes.append( storage.displayName() + " (" + storage.rootPath() + ")");
+             }
+         }
+     }
+
+    auto dlg = new DialogSelectInList(volumes, "Выбор устройства", this);
+    dlg->setModal(true);
+    dlg->exec();
+    if(dlg->result() == QDialog::Accepted){
+        QString volume = dlg->dialogResult();
+        qDebug() << volume;
     }
 }
 

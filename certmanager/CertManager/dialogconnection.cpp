@@ -45,6 +45,9 @@ void DialogConnection::accept()
     _clientSett["Password"] = ui->lineWsPwd->text();
     _clientSett["ServerHost"] = ui->lineWsServer->text();
     _clientSett["ServerPort"] = ui->spinPort->value();
+
+    _clientSett["pwdEdit"] = ui->pwdEdit->isChecked();
+
     QDialog::accept();
 
 }
@@ -62,6 +65,9 @@ void DialogConnection::formControl()
     ui->linePwd->setEnabled(en);
     ui->lineWsServer->setEnabled(!en);
     ui->spinPort->setEnabled(!en);
+    ui->btnViewPwd->setEnabled(en);
+    ui->pwdEdit->setEnabled(!en);
+
 }
 
 void DialogConnection::on_lineServer_textChanged(const QString &arg1)
@@ -87,14 +93,6 @@ void DialogConnection::on_linePwd_textChanged(const QString &arg1)
 }
 
 
-void DialogConnection::on_checkMode_stateChanged(int arg1)
-{
-    int val = arg1 >= 1 ? 1 : 0;
-    bool en = val > 0;
-
-}
-
-
 void DialogConnection::on_btnWsPwd_toggled(bool checked)
 {
     auto echoMode = checked ? QLineEdit::Normal : QLineEdit::Password;
@@ -110,6 +108,15 @@ void DialogConnection::on_checkMode_toggled(bool checked)
 
     _sett->setLanchMode((launchMode)checked);
     formControl();
+    if(!checked)
+        ui->pwdEdit->setChecked(false);
 
+}
+
+
+void DialogConnection::on_pwdEdit_toggled(bool checked)
+{
+    ui->btnWsPwd->setEnabled(checked);
+    ui->lineWsPwd->setEnabled(checked);
 }
 

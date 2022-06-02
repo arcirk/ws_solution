@@ -29,6 +29,8 @@ void DialogSelectInList::accept()
     }
 
     _result = index.data().toString();
+
+    QDialog::accept();
 }
 
 QString DialogSelectInList::dialogResult()

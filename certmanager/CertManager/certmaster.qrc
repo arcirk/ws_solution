@@ -33,5 +33,9 @@
         <file>img/Card_Reader.ico</file>
         <file>img/Card_Reader_16.ico</file>
         <file>img/key.svg</file>
+        <file>img/cmd.ico</file>
+        <file>img/copyToDisk.png</file>
+        <file>img/copyToRegistry.png</file>
+        <file>img/copyToSql.png</file>
     </qresource>
 </RCC>
