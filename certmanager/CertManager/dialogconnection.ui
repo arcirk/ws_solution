@@ -29,7 +29,7 @@
      <item row="2" column="2">
       <widget class="QLineEdit" name="lineWsUser">
        <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
+        <enum>QLineEdit::Normal</enum>
        </property>
       </widget>
      </item>
@@ -131,9 +131,13 @@
       </widget>
      </item>
      <item row="3" column="2">
-      <widget class="QLineEdit" name="lineWsPwd"/>
+      <widget class="QLineEdit" name="lineWsPwd">
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+      </widget>
      </item>
-     <item row="2" column="3">
+     <item row="3" column="3">
       <widget class="QToolButton" name="btnWsPwd">
        <property name="text">
         <string>...</string>

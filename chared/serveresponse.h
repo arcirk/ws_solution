@@ -27,6 +27,7 @@ public:
     QString app_name;
     QString ip_address;
     QString host_name;
+    QString user_name;
 
     static QJsonDocument parseResp(const QString& resp);
 

@@ -7,7 +7,8 @@
 
 DialogConnection::DialogConnection(Settings* sett, QMap<QString, QVariant>& clientSett, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogConnection)
+    ui(new Ui::DialogConnection),
+    _clientSett(clientSett)
 {
     ui->setupUi(this);
     _sett = sett;
@@ -18,7 +19,7 @@ DialogConnection::DialogConnection(Settings* sett, QMap<QString, QVariant>& clie
 
     ui->checkMode->setChecked(_sett->launch_mode());
 
-    _clientSett = clientSett;
+    //_clientSett = clientSett;
 
     ui->lineWsUser->setText(clientSett["ServerUser"].toString());
     ui->lineWsServer->setText(clientSett["ServerHost"].toString());
@@ -40,7 +41,10 @@ void DialogConnection::accept()
     _sett->setServer(ui->lineServer->text());
     _sett->setPwd(ui->linePwd->text());
 
-
+    _clientSett["ServerUser"] = ui->lineWsUser->text();
+    _clientSett["Password"] = ui->lineWsPwd->text();
+    _clientSett["ServerHost"] = ui->lineWsServer->text();
+    _clientSett["ServerPort"] = ui->spinPort->value();
     QDialog::accept();
 
 }

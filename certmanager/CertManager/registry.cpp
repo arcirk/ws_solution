@@ -66,6 +66,7 @@ bool Registry::importKeysFromLocalCatalog(CertUser * usr, const QString &folder,
     if(reg.status() != QSettings::NoError){
         return false;
     }
+    return true;
 }
 
 Registry::Registry(QObject *parent)

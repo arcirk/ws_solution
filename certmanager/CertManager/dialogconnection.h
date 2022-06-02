@@ -24,7 +24,7 @@ private:
     Ui::DialogConnection *ui;
     Settings* _sett;
     QString _pwd;
-    QMap<QString, QVariant> _clientSett;
+    QMap<QString, QVariant>& _clientSett;
     void formControl();
 
 signals:

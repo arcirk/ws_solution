@@ -121,6 +121,7 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _message.role = session->get_role();
     _message.ip_address = session->ip_address();
     _message.host_name = session->host_name();
+    _message.user_name = session->get_user_name();
     std::cout << _message.uuid << std::endl;
     return _message;
 }
@@ -418,7 +419,7 @@ void shared_state::on_start() {
 
 bool shared_state::is_valid_param_count(const std::string &command, unsigned int params) {
     if (command == "set_client_param")
-        return params == 6;
+        return params == 7;
     else if (command == "get_active_users")
         return true;//params == 1; //динамически
     else if (command == "send_all_message")
@@ -454,7 +455,7 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
     else if (command == "set_app_name")
         return params == 2;
     else if (command == "exec_query")
-        return params == 1;
+        return true;// params == 1;
     else if (command == "get_users_catalog")
         return params == 1;
     else if (command == "get_user_cache")
@@ -614,6 +615,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
         boost::uuids::uuid new_uuid = params->get_member("uuid").get_uuid();
         std::string name = params->get_member("name").get_string();
         std::string user_name = params->get_member("user_name").get_string();
+        std::string host_name = params->get_member("host_name").get_string();
         std::string pwd = params->get_member("pwd").get_string();
         std::string hash = params->get_member("hash").get_string(); //если указан хеш пароль игронится
         if (hash.empty())
@@ -671,6 +673,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
                         user_uuid = arcirk::string_to_uuid(ref, true);
                     session->deadline_cancel();
                     session->set_host_name(msg->message().host_name);
+                    session->set_user_name(msg->message().user_name);
                 }
             }
 
@@ -685,6 +688,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
             session->set_app_name(app_name);
             session->set_role(role);
             session->set_user_name(user_name);
+            session->set_host_name(host_name);
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
             // Оповещаем всех клиентов о регистрации нового клиент
@@ -1622,16 +1626,36 @@ bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, w
     }
 
     std::string query = params->get_member("query").get_string();
+    bool header = params->get_member("header").get_bool();
+    std::string id_command = params->get_member("id_command").get_string();
+
     if (query.empty())
         return false;
 
     err = "";
     std::string szResult;
-    sqlite3Db->execute(query, "", szResult, err);
-    if (err.empty() || err == "no error")
-        custom_result = szResult;
-    else
-        return false;
+    sqlite3Db->execute(query, "", szResult, err, header);
+
+    if(id_command.length() == 0){
+        if (err.empty() || err == "no error"){
+            custom_result =  arcirk::base64_encode(szResult);
+        }
+        else
+            return false;
+    }else
+    {
+        if (err.empty() || err == "no error"){
+            std::string base64 = arcirk::base64_encode(szResult);
+            auto json = arcirk::bJson();
+            json.set_object();
+            json.addMember("id_command", id_command);
+            json.addMember("table", base64);
+            custom_result = json.to_string();
+        }
+        else{
+            return false;
+        }
+    }
 
     return true;
 

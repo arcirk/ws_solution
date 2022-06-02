@@ -26,11 +26,12 @@ namespace arcirk{
                 , msg_ref(nil_string_uuid())
                 , ip_address("0.0.0.0")
                 , host_name(boost::asio::ip::host_name())
+                , user_name("")
         {
         }
         std::vector<std::string> _ws_message::get_fields(){
             return {"uuid", "name", "uuid_channel", "message", "uuid_form", "command"
-                    , "hash", "app_name", "result", "role", "presentation", "uuid_user", "object_name", "host_name"};
+                    , "hash", "app_name", "result", "role", "presentation", "uuid_user", "object_name", "host_name", "user_name"};
         }
         void _ws_message::set_value(const std::string& nameField, bVariant& val){
 
@@ -111,6 +112,11 @@ namespace arcirk{
             if (val.is_string())
                 host_name = val.get_string();
         }
+        void _ws_message::set_user_name(bVariant& val){
+            if (val.is_string())
+                host_name = val.get_string();
+        }
+
         setFun _ws_message::get_set_function(const std::string& nameField){
             if (nameField == "uuid")
             {
@@ -166,6 +172,9 @@ namespace arcirk{
             }else if (nameField == "host_name")
             {
                 return std::bind(&_ws_message::set_host_name, this, std::placeholders::_1);
+            }else if (nameField == "user_name")
+            {
+                return std::bind(&_ws_message::set_user_name, this, std::placeholders::_1);
             }else
                 return nullptr;
 
@@ -215,6 +224,7 @@ namespace arcirk{
             m_doc.addMember(content_value("msg_ref", m_message.msg_ref));
             m_doc.addMember(content_value("ip_address", m_message.ip_address));
             m_doc.addMember(content_value("host_name", m_message.host_name));
+            m_doc.addMember(content_value("user_name", m_message.user_name));
 
             std::string result = m_doc.to_string();
 

@@ -390,6 +390,7 @@ void IClient::open(bool new_thread){
     pt.add("app_name", app_name);
     pt.add("user_uuid", user_uuid);
     pt.add("user_name", user_name);
+    pt.add("host_name", boost::asio::ip::host_name());
 
     std::stringstream _ss;
     boost::property_tree::json_parser::write_json(_ss, pt);

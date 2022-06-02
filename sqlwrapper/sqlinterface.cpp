@@ -429,11 +429,14 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
         auto rows = QJsonArray();
         auto cols = QJsonArray();
 
+        for (int i = 0; i < count; ++i) {
+            QString key = m_query.record().fieldName(i);
+            cols.push_back(key);
+        }
         while (m_query.next()) {
             QJsonObject obj = QJsonObject();
             for (int i = 0; i < count; ++i) {
                 QString key = m_query.record().fieldName(i);
-                cols.push_back(key);
                 QVariant val = m_query.value(i);
                 if (val.typeId() == QMetaType::QString)
                     obj.insert(key, val.toString().trimmed());

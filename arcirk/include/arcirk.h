@@ -214,6 +214,7 @@ namespace arcirk{
         std::string         msg_ref;
         std::string         ip_address;
         std::string         host_name;
+        std::string         user_name;
 
         _ws_message();
 
@@ -239,6 +240,7 @@ namespace arcirk{
         void set_msg_ref(bVariant& val);
         void set_ip_address(bVariant& val);
         void set_host_name(bVariant& val);
+        void set_user_name(bVariant& val);
 
         setFun get_set_function(const std::string& nameField);
 
@@ -293,7 +295,8 @@ namespace arcirk{
         SQLPassword,
         HSHost,
         HSUser,
-        HSPassword
+        HSPassword,
+        UserName
     };
 
     class bConf{

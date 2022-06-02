@@ -150,6 +150,8 @@ on_connect(session * sess){
         _msg.message().name = get_name();
         _msg.message().app_name = _app_name;
         _msg.message().command = "connect_unknown_user";
+        _msg.message().user_name = _user_name;
+        _msg.message().host_name = boost::asio::ip::host_name();
 
         std::string msg = _msg.get_json(true);
         _callback_msg(msg);
@@ -176,6 +178,7 @@ ws_client::on_stop() {
         _msg.message().name = get_name();
         _msg.message().app_name = get_app_name();
         _msg.message().command = "close_connections";
+        _msg.message().user_name = _user_name;
 
         _callback_msg(_msg.get_json(true));
 
@@ -276,6 +279,10 @@ void ws_client::set_name(const std::string& name) {
     name_ = name;
 }
 
+std::string ws_client::get_sys_user_name() const{
+    return _user_name;
+}
+
 void ws_client::set_param(ptree &pt) {
     try {
         std::string uuid = bJson::get_pt_member(pt, "uuid");
@@ -287,6 +294,10 @@ void ws_client::set_param(ptree &pt) {
         std::string name = bJson::get_pt_member(pt, "name");
         if (!name.empty())
             set_name(name);
+
+        std::string user_name = bJson::get_pt_member(pt, "user_name");
+        if (!name.empty())
+            _user_name = user_name;
 
     }catch (std::exception&){
         _callback_msg("Ошибка установки параметров сеанса!");
@@ -444,6 +455,7 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
         _msg.message().app_name = get_app_name();
         _msg.message().command = cmd;
         _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+        _msg.message().user_name = _user_name;
 
         std::string msg = "cmd " + _msg.get_json(true);
 

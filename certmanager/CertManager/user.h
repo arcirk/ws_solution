@@ -22,6 +22,9 @@ public:
     void setOnline(bool value);
     QTreeWidgetItem * treeItem();
 
+    QStringList getRigstryData();
+    QStringList getDivaceData();
+
     QString domain();
     QString name();
     QString sid();

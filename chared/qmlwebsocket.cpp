@@ -240,7 +240,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #ifndef QT_CERT_MANAGER
             emit clientJoin(resp->message);
 #else
-            emit clientJoinEx(resp->message, resp->ip_address, resp->host_name, resp->app_name);
+            emit clientJoinEx(resp->message, resp->ip_address, resp->host_name, resp->app_name, resp->user_name);
 #endif
         }else if(resp->command == "client_leave"){
             emit clientLeave(resp->message);
@@ -300,6 +300,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #ifdef QT_AGENT_APP
             responseCommand(resp);
 #endif
+        }else if (resp->command == "exec_query"){
+            emit execQuery(resp->message);
         }
         else
            qDebug() << "Не известная команда: " << resp->command;

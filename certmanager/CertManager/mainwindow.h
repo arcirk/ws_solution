@@ -15,6 +15,7 @@
 #include <commandline.h>
 #include <sqlinterface.h>
 #include <QUuid>
+#include <qjsontablemodel.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,13 +52,14 @@ private slots:
     void onConnectionSuccess();
     void onCloseConnection();
     void onConnectedStatusChanged(bool status);
-    void onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name);
+    void onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name, const QString& user_name);
     void onClientLeave(const QString& resp);
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
     void UpdateRowIcons();
     void onGetActiveUsers(const QString& resp);
     void onParseCommand(const QString& result, int command);
+    void onWsExecQuery(const QString& result);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -83,7 +85,10 @@ private:
     QList<QToolButton*> toolBar;
     QList<QToolButton*> toolBarActiveUsers;
     Settings * _sett;
-    //QSqlDatabase db;
+
+    QJsonTableModel * modelSqlContainers;
+    QJsonTableModel * modelWsUsers;
+
     SqlInterface * db;
     QLabel * infoBar;
     CertUser * currentUser;
@@ -111,14 +116,14 @@ private:
 
     void createTree();
     void createRootList();
-    void loadContainersList();
+    void getDataContainersList();
     void LoadUsersList();
     void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
     void loadItemChilds(QTreeWidgetItem *item);
     void loadItemSpecific(QTreeWidgetItem *item);
-    void loadKeysOnRegistry(CertUser * usr);
+    void getAvailableContainers(CertUser * usr);
     void loadOnlineUsers();
     void disableToolBar();
     bool isContainerExists(const QString& name);
@@ -135,11 +140,14 @@ private:
     void formControl();
     void initCsptest();
 
-    void csptestGetContainers(const QString& result);
+    void csptestCurrentUserGetContainers(const QString& result);
 
     QTreeWidgetItem * addTreeNode(const QString &text, const QVariant &key, const QString &imagePath);
     QTreeWidgetItem * findTreeItem(const QString& key);
     QTreeWidgetItem * findTreeItem(const QString& key, QTreeWidgetItem * parent);
 
+    void treeSetCurrentContainers(QStringList data);
+    void treeSetFromSqlContainers();
+    void treeSetOnlineWSusers();
 };
 #endif // MAINWINDOW_H

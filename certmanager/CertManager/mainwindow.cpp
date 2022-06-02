@@ -36,9 +36,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
 
-    initCsptest(); // init CriptoPro
+    modelSqlContainers = new QJsonTableModel(this);
+    modelWsUsers = new QJsonTableModel(this);
 
     formControl();
+
+    initCsptest(); // init CriptoPro
 
     _sett = new Settings(this);
 
@@ -54,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     connectToWsServer();
+
+
 
     //
 
@@ -97,7 +102,7 @@ void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
 void MainWindow::createWsObject()
 {
     qDebug() << __FUNCTION__;
-    m_client = new bWebSocket(this, "conf_qt_cert_manager.json");
+    m_client = new bWebSocket(this, "conf_qt_cert_manager.json", currentUser->name());
 //    m_client->options()[bConfFieldsWrapper::AppName] = "qt_cert_manager";
 //    m_client->options()[bConfFieldsWrapper::User] = "admin";
 //    QString hash = bWebSocket::generateHash("admin", "admin");
@@ -116,6 +121,7 @@ void MainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::displayError, this, &MainWindow::onDisplayError);
     connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
+    connect(m_client, &bWebSocket::execQuery, this, &MainWindow::onWsExecQuery);
 }
 
 void MainWindow::createTerminal()
@@ -149,6 +155,7 @@ void MainWindow::createTerminal()
         QByteArray data(std::getenv(envUSER.c_str()));
         QString uname = QString::fromLocal8Bit(data);
         currentUser->setName(uname);
+
 #else
         std::string envUSER = "USER";
         QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
@@ -266,56 +273,70 @@ void MainWindow::initCsptest()
 #endif
 
     QFile csptest(_cprocsp_exe);
-    if(!csptest.exists())
-        qCritical() << __FUNCTION__ << "Утилита csptest не найдена!";
+    QString inf;
+    if(!csptest.exists()){
+        inf = "Ошибка: КриптоПро не найден в каталоге установки по умолчанию!";
+        qCritical() << __FUNCTION__ << inf;
+
+    }
     else{
+        inf = "КриптоПро найден в каталоге установки по умолчанию.";
         //qDebug() << __FUNCTION__ << "Утилита csptest установлена на компьютере!";
         isUseCsptest = true;
+
     }
+
+    ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + inf + "\n");
     //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
 
 }
 
-void MainWindow::csptestGetContainers(const QString &result)
+void MainWindow::csptestCurrentUserGetContainers(const QString &result)
 {
     qDebug() << __FUNCTION__;
 
     if(result.isEmpty())
         return;
 
-    QStringList keys = result.split("\n");
-    auto tableView = ui->tableView;
-    tableView->setModel(nullptr);
-    auto table = new QStandardItemModel(this);
-    table->setColumnCount(2);
-    //table->setRowCount(keys.size());
-    QStringList cols = {"","Наименование"};
-    table->setHorizontalHeaderLabels(cols);
-    auto colDb = table->horizontalHeaderItem(0);
-    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
-    //int i = 0;
-    foreach(const QString& key, keys){
-        if(key.isEmpty())
-            continue;
-        table->setRowCount(table->rowCount() + 1);
-        auto itemTable = new QStandardItem(key);
-        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-        table->setItem(table->rowCount() - 1, 1, itemTable);
-        if(isContainerExists(key)){
-            auto itemIco = new QStandardItem();
-            itemIco->setIcon(QIcon(":/img/checked.png"));
-            table->setItem(table->rowCount() - 1, 0, itemIco);
+    if(!currentUser)
+        return;
 
-//            QLabel *lbl_item = new QLabel();
-//            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-//            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-//            tableView->setCellWidget(i, 0, lbl_item);
-        }
-        //i++;
-    }
-    tableView->setModel(table);
-    tableView->resizeColumnsToContents();
+    QStringList keys = result.split("\n");
+    currentUser->setContainers(keys);
+
+//    QStringList keys = result.split("\n");
+//    auto tableView = ui->tableView;
+//    tableView->setModel(nullptr);
+//    auto table = new QStandardItemModel(this);
+//    table->setColumnCount(2);
+//    //table->setRowCount(keys.size());
+//    QStringList cols = {"","Наименование"};
+//    table->setHorizontalHeaderLabels(cols);
+//    auto colDb = table->horizontalHeaderItem(0);
+//    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
+//    //int i = 0;
+//    foreach(const QString& key, keys){
+//        if(key.isEmpty())
+//            continue;
+//        table->setRowCount(table->rowCount() + 1);
+//        auto itemTable = new QStandardItem(key);
+//        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+//        table->setItem(table->rowCount() - 1, 1, itemTable);
+//        if(isContainerExists(key)){
+//            auto itemIco = new QStandardItem();
+//            itemIco->setIcon(QIcon(":/img/checked.png"));
+//            table->setItem(table->rowCount() - 1, 0, itemIco);
+
+////            QLabel *lbl_item = new QLabel();
+////            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+////            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+////            tableView->setCellWidget(i, 0, lbl_item);
+//        }
+//        //i++;
+//    }
+//    tableView->setModel(table);
+//    tableView->resizeColumnsToContents();
 
 
 }
@@ -359,7 +380,61 @@ QTreeWidgetItem * MainWindow::findTreeItem(const QString& key, QTreeWidgetItem* 
         }
     }
 
-   return nullptr;
+    return nullptr;
+}
+
+void MainWindow::treeSetCurrentContainers(QStringList keys)
+{
+        //QStringList keys = usr->containers();
+        auto tableView = ui->tableView;
+        tableView->setModel(nullptr);
+        auto table = new QStandardItemModel(this);
+        table->setColumnCount(2);
+        table->setRowCount(keys.size());
+        QStringList cols = {"","Наименование"};
+        table->setHorizontalHeaderLabels(cols);
+        auto colDb = table->horizontalHeaderItem(0);
+        colDb->setIcon(QIcon(":/img/externalDataTable.png"));
+        int i = 0;
+        foreach(const QString& key, keys){
+            auto itemTable = new QStandardItem(key);
+            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+            //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+            table->setItem(i, 1, itemTable);
+            if(isContainerExists(key)){
+                auto itemIco = new QStandardItem();
+                itemIco->setIcon(QIcon(":/img/checked.png"));
+                table->setItem(i, 0, itemIco);
+
+    //            QLabel *lbl_item = new QLabel();
+    //            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+    //            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    //            tableView->setCellWidget(i, 0, lbl_item);
+            }
+            i++;
+        }
+        tableView->setModel(table);
+        tableView->resizeColumnsToContents();
+}
+
+void MainWindow::treeSetFromSqlContainers()
+{
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+    if(modelSqlContainers){
+        table->setModel(modelSqlContainers);
+        table->resizeColumnsToContents();
+    }
+}
+
+void MainWindow::treeSetOnlineWSusers()
+{
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+    if(modelWsUsers){
+        table->setModel(modelWsUsers);
+        table->resizeColumnsToContents();
+    }
 }
 
 void MainWindow::onOutputCommandLine(const QString &data, int command)
@@ -505,41 +580,57 @@ void MainWindow::createRootList()
 
 }
 
-void MainWindow::loadContainersList()
+void MainWindow::getDataContainersList()
 {
 
     qDebug() << __FUNCTION__;
-    auto tableView = ui->tableView;
-    tableView->setModel(nullptr);
+//    auto tableView = ui->tableView;
+//    tableView->setModel(nullptr);
 
-    if(!isDbOpen())
-        return;
+    if(_sett->launch_mode() == mixed){
+        if(!isDbOpen())
+            return;
 
-    auto table = new QStandardItemModel(this);
-    table->setColumnCount(2);
-    QStringList cols = {"Наименование", "id"};
-    table->setHorizontalHeaderLabels(cols);
+//        auto table = new QStandardItemModel(this);
+//        table->setColumnCount(2);
+//        QStringList cols = {"Наименование", "id"};
+//        table->setHorizontalHeaderLabels(cols);
 
 
-    QSqlQuery query("SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]", db->getDatabase());
-    int i = 0;
-    while (query.next()) {
-        table->setRowCount(table->rowCount()+ 1);
-        int id = query.value(0).toInt();
-        QString name = query.value(1).toString().trimmed();
-        auto itemTable = new QStandardItem(name);
-        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-        table->setItem(i, 0, itemTable);
-        auto itemId = new QStandardItem(QString::number(id));
-        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        table->setItem(i, 1, itemId);
-        i++;
+//        QSqlQuery query("SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]", db->getDatabase());
+//        int i = 0;
+//        while (query.next()) {
+//            table->setRowCount(table->rowCount()+ 1);
+//            int id = query.value(0).toInt();
+//            QString name = query.value(1).toString().trimmed();
+//            auto itemTable = new QStandardItem(name);
+//            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//            //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+//            table->setItem(i, 0, itemTable);
+//            auto itemId = new QStandardItem(QString::number(id));
+//            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//            table->setItem(i, 1, itemId);
+//            i++;
+//        }
+
+//        tableView->setModel(table);
+//        tableView->setColumnHidden(1, true);
+//        tableView->resizeColumnsToContents();
+    }else{
+
+        if(!m_client->isStarted())
+            return;
+        QString query = "SELECT [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]";
+        auto obj = QJsonObject();
+        obj.insert("query", query);
+        obj.insert("header", true);
+        obj.insert("id_command", "DataContainersList");
+        auto doc = QJsonDocument();
+        doc.setObject(obj);
+        QString param = doc.toJson();
+        m_client->sendCommand("exec_query", "", param);
+
     }
-
-    tableView->setModel(table);
-    tableView->setColumnHidden(1, true);
-    tableView->resizeColumnsToContents();
 }
 
 void MainWindow::LoadUsersList()
@@ -659,41 +750,12 @@ void MainWindow::loadItemSpecific(QTreeWidgetItem *item)
 qDebug() << __FUNCTION__;
 }
 
-void MainWindow::loadKeysOnRegistry(CertUser *usr)
+void MainWindow::getAvailableContainers(CertUser *usr)
 {
     qDebug() << __FUNCTION__;
-//    QStringList keys = usr->containers();
-//    auto tableView = ui->tableView;
-//    tableView->setModel(nullptr);
-//    auto table = new QStandardItemModel(this);
-//    table->setColumnCount(2);
-//    table->setRowCount(keys.size());
-//    QStringList cols = {"","Наименование"};
-//    table->setHorizontalHeaderLabels(cols);
-//    auto colDb = table->horizontalHeaderItem(0);
-//    colDb->setIcon(QIcon(":/img/externalDataTable.png"));
-//    int i = 0;
-//    foreach(const QString& key, keys){
-//        auto itemTable = new QStandardItem(key);
-//        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-//        //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-//        table->setItem(i, 1, itemTable);
-//        if(isContainerExists(key)){
-//            auto itemIco = new QStandardItem();
-//            itemIco->setIcon(QIcon(":/img/checked.png"));
-//            table->setItem(i, 0, itemIco);
 
-////            QLabel *lbl_item = new QLabel();
-////            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-////            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-////            tableView->setCellWidget(i, 0, lbl_item);
-//        }
-//        i++;
-//    }
-//    tableView->setModel(table);
-//    tableView->resizeColumnsToContents();
-
-   terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
+    if(usr == currentUser)
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
 }
 
 void MainWindow::loadOnlineUsers()
@@ -860,6 +922,9 @@ void MainWindow::connectToWsServer()
                 break;
             }
         }
+
+        getDataContainersList();
+
     }else{
         QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
         int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
@@ -1023,20 +1088,33 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
         toolBarSetVisible(ui->wToolBarMain, true);
         toolBarSetVisible(ui->wToolbarContainers, false);
     }else{
+
+        QString key = item->data(0, Qt::UserRole).toString();
+        if(key == "currentUserRegistry"){
+           treeSetCurrentContainers(currentUser->getRigstryData());
+        }else if(key == "currentUserDivace"){
+           treeSetCurrentContainers(currentUser->getDivaceData());
+        }else if(key == "SqlContainers"){
+            treeSetFromSqlContainers();
+        }else if(key == "WsActiveUsers"){
+            treeSetOnlineWSusers();
+        }
+        return;
+
         QString itemText = item->text(0);
         if(itemText == "Реестр"){
-            ui->btnAdd->setEnabled(true);
+//            ui->btnAdd->setEnabled(true);
 
-            if(item->parent()->text(0).compare("Текущий пользователь")){
-                loadKeysOnRegistry(currentUser);
-            }else{
+//            if(item->parent()->text(0).compare("Текущий пользователь")){
+//                getAvailableContainers(currentUser);
+//            }else{
 
-            }
+//            }
         }else if(itemText == "Контейнеры"){
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, false);
             toolBarSetVisible(ui->wToolbarContainers, true);
-            loadContainersList();
+            getDataContainersList();
         }else if(itemText == "Пользователи"){
             toolBarSetVisible(ui->wToolBarAU, false);
             toolBarSetVisible(ui->wToolBarMain, true);
@@ -1465,6 +1543,8 @@ void MainWindow::on_mnuOptions_triggered()
 
 void MainWindow::onConnectionSuccess()
 {
+    qDebug() << __FUNCTION__;
+
     if(m_client->isStarted())
     {
         QString status;
@@ -1480,9 +1560,12 @@ void MainWindow::onConnectionSuccess()
         doc.setObject(obj);
         QString param = doc.toJson();
         m_client->sendCommand("get_active_users", "", param);
+
+        if(_sett->launch_mode() != mixed){
+            getDataContainersList();
+        }
     }
 
-    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::onCloseConnection()
@@ -1502,7 +1585,7 @@ void MainWindow::onConnectedStatusChanged(bool status)
         currentUser->setOnline(status);
 }
 
-void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name)
+void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name, const QString& user_name)
 {
     qDebug() << __FUNCTION__; // << qPrintable(resp);
 //  qDebug() << __FUNCTION__ << ip_address << " " << host_name << " " << app_name;
@@ -1512,7 +1595,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
     auto obj = doc.object();
     QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
-    QString name = obj.value("name").toString();
+    //QString name = obj.value("user_name").toString();
 
     auto itr = m_actUsers.find(uuid);
     if(itr != m_actUsers.end())
@@ -1521,9 +1604,9 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
         if(!currentUser)
             return;
         CertUser * usr = nullptr;
-        if(!currentUser->thisIsTheUser(name, host_name)){
+        if(!currentUser->thisIsTheUser(user_name, host_name)){
             usr = new CertUser(this);
-            usr->setName(name);
+            usr->setName(user_name);
             usr->setDomain(host_name);
         }
         else {
@@ -1538,6 +1621,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
                     Root->addChild(reg);
                     auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader.ico");
                     Root->addChild(dev);
+                    getAvailableContainers(usr);
                 }
             }
         }
@@ -1710,6 +1794,19 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 //    ui->tableView->setModel(model);
 //    ui->tableView->resizeColumnsToContents();
 
+    if(_sett->launch_mode() != mixed){
+        auto onlineItem = findTreeItem("WsActiveUsers");
+        if(!onlineItem){
+            auto root = findTreeItem("WsServer");
+            if(root){
+                onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers.png");
+                root->addChild(onlineItem);
+            }
+        }
+        modelWsUsers->setJsonText(resp);
+        modelWsUsers->reset();
+     }
+
     if(!currentUser)
         return;
 
@@ -1731,28 +1828,30 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         }
         else{
              user = currentUser;
-             if(db->isOpen()){
-                 QString str = QString("select [Ref], [sid], [uuid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(name, host);
-                 QSqlQuery query = QSqlQuery(str, db->getDatabase());
-                 QString ref;
-                 QString sid;
-                 QString uuid;
-                 QMap<QString, QVariant> _row;
+             if(_sett->launch_mode() == mixed){
+                 if(db->isOpen()){
+                     QString str = QString("select [Ref], [sid], [uuid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(name, host);
+                     QSqlQuery query = QSqlQuery(str, db->getDatabase());
+                     QString ref;
+                     QString sid;
+                     QString uuid;
+                     QMap<QString, QVariant> _row;
 
-                 while (query.next()) {
-                     ref = query.value(0).toString();
-                     sid = query.value(1).toString();
-                     uuid = query.value(2).toString();
-                     if(sid.isEmpty())
-                         _row.insert("sid", currentUser->sid());
-                     if(uuid.isEmpty())
-                         _row.insert("uuid", user_uuid.toString());
-                     break;
-                 }
-                 if(!ref.isEmpty() && _row.size() > 0){
-                     currentUser->setRef(ref);
-                     //update sid
-                     db->updateSqlTableRow("CertUsers", _row, ref);
+                     while (query.next()) {
+                         ref = query.value(0).toString();
+                         sid = query.value(1).toString();
+                         uuid = query.value(2).toString();
+                         if(sid.isEmpty())
+                             _row.insert("sid", currentUser->sid());
+                         if(uuid.isEmpty())
+                             _row.insert("uuid", user_uuid.toString());
+                         break;
+                     }
+                     if(!ref.isEmpty() && _row.size() > 0){
+                         currentUser->setRef(ref);
+                         //update sid
+                         db->updateSqlTableRow("CertUsers", _row, ref);
+                     }
                  }
              }
         }
@@ -1770,7 +1869,6 @@ void MainWindow::onParseCommand(const QString &result, int command)
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
 #ifdef _WINDOWS
         terminal->send(QString("WHOAMI /USER\n").arg(result), cmdCommand::wmicGetSID);
-        m_client->setOsUserName(currentUser->name());
 #endif
     }else if(command == cmdCommand::wmicGetSID){
         currentUser->setSid(result);
@@ -1780,7 +1878,39 @@ void MainWindow::onParseCommand(const QString &result, int command)
             currentUser->setContainers(curContainers);
         }
     }else if(command == csptestGetConteiners){
-        csptestGetContainers(result);
+        csptestCurrentUserGetContainers(result);
+    }
+}
+
+void MainWindow::onWsExecQuery(const QString &result)
+{
+    qDebug() << __FUNCTION__;// << result;
+
+    auto doc = QJsonDocument::fromJson(result.toUtf8());
+    auto obj = doc.object();
+    if(doc.isEmpty())
+        return;
+
+    QString id_command = obj.value("id_command").toString();
+    if(id_command == "DataContainersList"){
+
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString jsonConteiners = QByteArray::fromBase64(base64.toUtf8());
+
+        modelSqlContainers->setJsonText(jsonConteiners);
+        qDebug() << jsonConteiners;
+        modelSqlContainers->reset();
+
+        auto rootDb = findTreeItem("SqlServer");
+        if(rootDb){
+            if(rootDb->childCount() == 0){
+               auto itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/key_password_lock_800.ico");
+               rootDb->addChild(itemContainers);
+            }
+        }
+
     }
 }
 

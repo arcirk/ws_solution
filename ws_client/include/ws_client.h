@@ -48,6 +48,7 @@ public:
     boost::uuids::uuid& get_uuid();
     boost::uuids::uuid& get_user_uuid();
     std::string get_name() const;
+    std::string get_sys_user_name() const;
     void set_name(const std::string& name);
     std::string& get_app_name();
     void set_uuid(const std::string& uuid);
@@ -99,6 +100,8 @@ private:
     std::string _app_name;
     boost::uuids::uuid  _user_uuid{};
     bool _is_login;
+    std::string _user_name;
+
 //    bool _is_synch;
 //    sync_session _ws_synh;
 
