@@ -37,6 +37,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     //http://pushorigin.ru/cryptopro/cryptcp
 
+    //список контейнеров
+    //csptest.exe -keyset -enum_cont -verifycontext -fqcn
+    //Копирование контейнера
+    //csptest.exe -keycopy -src «Имя исходного контейнера» -pinsrc=пароль -dest «Имя конечного контейнера» -pindest=пароль
+//    -src — имя контейнера. Имена контейнеров уникальны, поэтому можно не указывать путь к носителю, КриптоПро сама найдет путь к контейнеру.
+//    -dest — имя скопированного контейнера, оно должно отличаться от исходного имени. Так же можно указать путь к контейнеру, например, если указать -dest "\\.\FAT12_H\2015ZAO_3", то контейнер будет скопирован на флэшку. Если не указать путь к носителю, а просто задать название контейнеру, то крипто про выведет графический диалог выбора носителя для копирования.
+//    -pinsrc — пароль от исходного контейнера, если пинкода нет, то данный параметр можно не указывать.
+//    -pindest — пароль на скопированный контейнер. Чтобы подавить графический диалог установки пароля при автоматическом копировании контейнеров, можно указать пустой пароль, выполнив -pindest=""
+    //копирование рутокена в реестр
+    //csptest.exe -keycopy -src 2015ZAO -pinsrc=12345678 -dest "\\.\REGISTRY\2015ZAO_3" -pindest=""
+
+    //Установка сертификатов
+    //csptest.exe -property -cinstall -cont "Имя контейнера"
+
     ui->setupUi(this);
 
     modelSqlContainers = new QJsonTableModel(this);
@@ -398,26 +412,34 @@ void MainWindow::treeSetCurrentContainers(QStringList keys)
         auto table = new QStandardItemModel(this);
         table->setColumnCount(2);
         table->setRowCount(keys.size());
-        QStringList cols = {"","Наименование"};
+        QStringList cols = {"", "Устройство", "Наименование"};
         table->setHorizontalHeaderLabels(cols);
         auto colDb = table->horizontalHeaderItem(0);
         colDb->setIcon(QIcon(":/img/externalDataTable.png"));
         int i = 0;
         foreach(const QString& key, keys){
-            auto itemTable = new QStandardItem(key);
-            itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-            //itemTable->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-            table->setItem(i, 1, itemTable);
-            if(isContainerExists(key)){
-                auto itemIco = new QStandardItem();
-                itemIco->setIcon(QIcon(":/img/checked.png"));
-                table->setItem(i, 0, itemIco);
+            QStringList m_data = key.split("\\");
+            if(m_data.size() == 5){
+                auto itemTable = new QStandardItem(m_data[3]);
+                itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                table->setItem(i, 1, itemTable);
+                QString name = m_data[4];
+                itemTable = new QStandardItem(name);
+                itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                table->setItem(i, 2, itemTable);
 
-    //            QLabel *lbl_item = new QLabel();
-    //            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-    //            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    //            tableView->setCellWidget(i, 0, lbl_item);
+                if(isContainerExists(name)){
+                    auto itemIco = new QStandardItem();
+                    itemIco->setIcon(QIcon(":/img/checked.png"));
+                    table->setItem(i, 0, itemIco);
+
+        //            QLabel *lbl_item = new QLabel();
+        //            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+        //            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        //            tableView->setCellWidget(i, 0, lbl_item);
+                }
             }
+
             i++;
         }
         tableView->setModel(table);
@@ -1280,6 +1302,7 @@ void MainWindow::on_mnuConnect_triggered()
             m_client->options()[bConfFieldsWrapper::User] = usr;
             m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
             m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+            m_client->options().save();
         }
 
        connectToWsServer();
@@ -1732,6 +1755,7 @@ void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, cons
 void MainWindow::onDisplayError(const QString &what, const QString &err)
 {
     qCritical() << __FUNCTION__ << what << ": " << err ;
+
 }
 
 
@@ -2257,6 +2281,13 @@ void MainWindow::on_btnCurrentCopyToDisk_clicked()
     if(dlg->result() == QDialog::Accepted){
         QString volume = dlg->dialogResult();
         qDebug() << volume;
+
     }
+}
+
+
+void MainWindow::on_btnCurrentCopyToRegistry_clicked()
+{
+
 }
 

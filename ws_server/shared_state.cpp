@@ -2242,6 +2242,11 @@ bool shared_state::set_sql_settings(boost::uuids::uuid &uuid, arcirk::bJson *par
 
 }
 
+bool shared_state::insert_file_to_data(boost::uuids::uuid &uuid, bJson *params, ws_message *msg, std::string &err, std::string &custom_result)
+{
+
+}
+
 bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                                         std::string &err, std::string &custom_result){
 
