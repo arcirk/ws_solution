@@ -59,6 +59,7 @@ public:
 
     int exec(const QString& query, QString& err);
     int execute(const std::string &query, QString &table, QString &error, bool header = false);
+    bool insert(const QString& tableName, const QString& jsonObject, const QString& jsonObjectRef = "");
 
     bool exportTablesToSqlServer();
 
@@ -73,6 +74,8 @@ public:
     QSqlDatabase getDatabase() const;
 
     bool insert_file(const QString& data);
+
+    static QStringList getParametersFromString(const QString& str);
 
 private:
     QString _host;

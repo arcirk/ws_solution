@@ -9,6 +9,7 @@
 #include <QSqlRecord>
 #include <QJsonArray>
 #include <QSqlField>
+#include <QRegExp>
 
 SqlInterface::SqlInterface(QObject *parent)
     : QObject{parent}
@@ -470,6 +471,72 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
 
 }
 
+bool SqlInterface::insert(const QString &tableName, const QString &jsonObject, const QString& jsonObjectRef)
+{
+    auto doc = QJsonDocument::fromJson(jsonObject.toUtf8());
+    auto obj = doc.object();
+    QString query;
+    QString into = "\n(";
+    QString values_ = "\n(";
+    QList<QVariant> values;
+
+    query = "INSERT INTO ";
+    query.append("dbo." + tableName);
+    for (auto iter = obj.begin(); iter != obj.end(); iter++) {
+        into.append(iter.key());
+        if (iter != --obj.end())
+            into.append(",\n");
+
+        values_.append("?");
+        if (iter != --obj.end())
+            values_.append(",\n");
+
+        if(iter.key() != "data")
+            values.push_back(iter.value().toVariant());
+        else{
+            values.push_back(QByteArray::fromBase64(iter.value().toString().toUtf8()));
+        }
+
+    }
+    into.append("\n)");
+    values_.append("\n)");
+    query.append(into);
+    query.append("VALUES\n");
+    query.append(values_);
+
+    if(!jsonObjectRef.isEmpty()){
+        auto docRef = QJsonDocument::fromJson(jsonObjectRef.toUtf8());
+        auto ref = docRef.object();
+        auto itr = ref.begin();
+        QString query_ = QString("IF NOT EXISTS \n"
+                                 "    (   SELECT  [%1]\n"
+                                 "        FROM    dbo.%2 \n"
+                                 "        WHERE   [%1]='%3' \n"
+                                 "    )\n"
+                                 "BEGIN\n").arg(itr.key(), tableName, itr.value().toString());
+        query_.append(query);
+        query_.append("\nEND");
+        query = query_;
+    }
+
+    auto sql = QSqlQuery(getDatabase());
+    sql.prepare(query);
+
+    foreach(auto value , values){
+        sql.addBindValue(value);
+    }
+
+    bool result = sql.exec();
+    if(!result){
+        std::cerr << query.toStdString() << std::endl;
+        std::cerr << sql.lastError().text().toStdString() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+
 bool SqlInterface::exportTablesToSqlServer()
 {
     if(driver() != "QODBC")
@@ -740,5 +807,22 @@ bool SqlInterface::insert_file(const QString &data)
 //        if(val.toVariant().typeId() == QMetaType::QBitArray){
 //            _query.addBindValue(val.is);
 //        }
-//    }
+    //    }
+
+    return false;
 }
+
+QStringList SqlInterface::getParametersFromString(const QString &str)
+{
+    QStringList result;
+    QRegularExpression re("\\[(.*?)\\]");
+    auto it = re.globalMatch( str );
+    while( it.hasNext() ) {
+        auto match = it.next();
+        //qDebug() << match.captured( 0 ) << ":" << match.captured( 1 );
+        result.append( match.captured( 1 ));
+    }
+    return result;
+
+}
+

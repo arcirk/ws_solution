@@ -11,7 +11,14 @@
     #pragma warning(disable:4100)
 #endif
 
-
+QStringList KeyFiles = {
+    "header.key",
+    "masks.key",
+    "masks2.key",
+    "name.key",
+    "primary.key",
+    "primary2.key"
+};
 
 KeysContainer::KeysContainer(QObject *parent)
     : QObject{parent}
@@ -114,62 +121,44 @@ void KeysContainer::fromDatabase()
 
 bool KeysContainer::toDataBase()
 {
-    //QTemporaryFile file("ini");
+    if(!_db){
+        qCritical() << __FUNCTION__ <<  "База данных не открыта!";
+        return false;
+
+    }
+
+    if(!_db->getDatabase().isOpen()){
+        qCritical() << __FUNCTION__ <<  "База данных не открыта!";
+        return false;
+
+    }
+
     QTemporaryDir temp;
     if(!temp.isValid())
         return false;
 
+
     QString uuid = QUuid::createUuid().toString();
     uuid = uuid.mid(1, uuid.length() - 2);
+    QByteArray data = toByteArray();
+    if(data == "")
+        return false;
 
-    QString tempFile = QDir::toNativeSeparators(temp.path() + QDir::separator() + uuid + ".ini");
-    QSettings settings = QSettings(tempFile, QSettings::IniFormat, this);
-//        qDebug() << __FUNCTION__ << settings.status();
-//        qDebug() << __FUNCTION__ << settings.isWritable();
-//        qDebug() << __FUNCTION__<< tempFile;
+    QSqlQuery query(_db->getDatabase());
+    query.prepare("INSERT INTO [dbo].[Containers] ([Ref], [FirstField], [data]) "
+                  "VALUES (?, ?, ?)");
+    query.addBindValue(uuid);
+    query.addBindValue(name().trimmed());
+    query.addBindValue(data);
+    query.exec();
 
-    settings.beginGroup(name());
-    settings.setValue("header.key", header_key());
-    settings.setValue("masks.key", masks_key());
-    settings.setValue("masks2.key", masks2_key());
-    settings.setValue("name.key", name_key());
-    settings.setValue("primary.key", primary_key());
-    settings.setValue("primary2.key", primary2_key());
-    settings.endGroup();
-    settings.sync();
-
-    if(settings.status() != QSettings::NoError){
-        qDebug() << __FUNCTION__ << settings.status();
+    if (query.lastError().type() != QSqlError::NoError)
+    {
+        qDebug() << __FUNCTION__ << query.lastError();
         return false;
     }
 
-    QFile fdata(tempFile);
-   if(fdata.open(QIODevice::ReadOnly)){
-        QByteArray data = fdata.readAll();
-        fdata.close();
-
-        QUuid _uuid = QUuid::createUuid();
-        QString uuid = _uuid.toString().mid(1, 36);
-
-        QSqlQuery query(_db->getDatabase());
-        query.prepare("INSERT INTO [dbo].[Containers] ([Ref], [FirstField] ,[data]) "
-                      "VALUES (?, ?, ?)");
-        query.addBindValue(uuid);
-        query.addBindValue(name().trimmed());
-        query.addBindValue(data);
-        query.exec();
-
-        if (query.lastError().type() != QSqlError::NoError)
-        {
-            qDebug() << __FUNCTION__ << query.lastError();
-            return false;
-        }
-
-        return true;
-
-    }else
-       return false;
-
+    return true;
 
 }
 
@@ -185,7 +174,13 @@ void KeysContainer::fromQSettings(const QSettings &value)
 
 QByteArray KeysContainer::toByteArray()
 {
-    if(_isValid){
+    if(!_isValid){
+        qCritical() << __FUNCTION__ <<  "Данные не инициализированы!";
+        return "";
+    }
+
+    if(_name.isEmpty()){
+        qCritical() << __FUNCTION__ <<  "Не указано наименование контейнера!";
         return "";
     }
 
@@ -200,12 +195,9 @@ QByteArray KeysContainer::toByteArray()
     QSettings settings = QSettings(tempFile, QSettings::IniFormat, this);
 
     settings.beginGroup(name());
-    settings.setValue("header.key", header_key());
-    settings.setValue("masks.key", masks_key());
-    settings.setValue("masks2.key", masks2_key());
-    settings.setValue("name.key", name_key());
-    settings.setValue("primary.key", primary_key());
-    settings.setValue("primary2.key", primary2_key());
+    for (int i = 0; i < KeyFiles.size(); ++i) {
+        settings.setValue(KeyFiles[i], get_get_function(i)());
+    }
     settings.endGroup();
     settings.sync();
 
@@ -215,26 +207,131 @@ QByteArray KeysContainer::toByteArray()
     }
 
     QFile fdata(tempFile);
-   if(fdata.open(QIODevice::ReadOnly)){
+    if(fdata.open(QIODevice::ReadOnly)){
         QByteArray data = fdata.readAll();
         fdata.close();
         fdata.remove();
         return data;
     }
 
-   return "";
+    return "";
+}
+
+QJsonObject KeysContainer::toJsonObject(JsonFormat format, const QUuid& uuid)
+{
+
+    QJsonObject obj = QJsonObject();
+    if(format == nameData){
+        QByteArray data = toByteArray();
+        if(data == "")
+            return obj;
+
+        obj.insert("name", name());
+        obj.insert("data",  QJsonValue::fromVariant(data));
+
+    }else if(format == forDatabase){
+        QUuid _uuid = uuid;
+        if(_uuid.isNull()){
+            _uuid = QUuid::createUuid();
+        }
+
+        QString sz_uuid = _uuid.toString();
+        sz_uuid = sz_uuid.mid(1, sz_uuid.length() - 2);
+
+        QByteArray data = toByteArray();
+        if(data == "")
+            return obj;
+
+        obj.insert("Ref", sz_uuid);
+        obj.insert("name", name());
+        obj.insert("data",  QJsonValue::fromVariant(data));
+
+    }else if(format == serialization){
+        for(int i = 0; i < KeyFiles.size(); ++i){
+            QString key = KeyFiles[i];
+            QByteArray data = get_get_function(i)();
+            QJsonValue val = QJsonValue::fromVariant(data);
+            obj.insert(key, val);
+        }
+    }
+
+    return obj;
+
 }
 
 std::map<std::string, set_keys> KeysContainer::set_function()
 {
     std::map<std::string, set_keys> f;
 
-    f.emplace(KeyFiles[0], &KeysContainer::set_header_key);
-    f.emplace(KeyFiles[1], &KeysContainer::set_masks_key);
-    f.emplace(KeyFiles[2], &KeysContainer::set_masks2_key);
-    f.emplace(KeyFiles[3], &KeysContainer::set_name_key);
-    f.emplace(KeyFiles[4], &KeysContainer::set_primary_key);
-    f.emplace(KeyFiles[5], &KeysContainer::set_primary2_key);
+    for (int i = 0; i < KeyFiles.size(); ++i) {
+        f.emplace(KeyFiles[i].toStdString(), get_set_function(i));
+    }
+
+    return f;
+}
+
+set_keys KeysContainer::get_set_function(int index)
+{
+    set_keys f;
+    switch (index) {
+        case 0:{
+            f = std::bind(&KeysContainer::set_header_key, this, std::placeholders::_1);
+            break;
+        }
+        case 1:{
+            f = std::bind(&KeysContainer::set_masks_key, this, std::placeholders::_1);
+            break;
+        }
+        case 2:{
+            f = std::bind(&KeysContainer::set_masks2_key, this, std::placeholders::_1);
+            break;
+        }
+        case 3:{
+            f = std::bind(&KeysContainer::set_name_key, this, std::placeholders::_1);
+            break;
+        }
+        case 4:{
+            f = std::bind(&KeysContainer::set_primary_key, this, std::placeholders::_1);
+            break;
+        }
+        case 5:{
+            f = std::bind(&KeysContainer::set_primary2_key, this, std::placeholders::_1);
+            break;
+        }
+    }
+
+    return f;
+}
+
+get_keys KeysContainer::get_get_function(int index)
+{
+    get_keys f;
+    switch (index) {
+        case 0:{
+            f = std::bind(&KeysContainer::header_key, this);
+            break;
+        }
+        case 1:{
+            f = std::bind(&KeysContainer::masks_key, this);
+            break;
+        }
+        case 2:{
+            f = std::bind(&KeysContainer::masks2_key, this);
+            break;
+        }
+        case 3:{
+            f = std::bind(&KeysContainer::name_key, this);
+            break;
+        }
+        case 4:{
+            f = std::bind(&KeysContainer::primary_key, this);
+            break;
+        }
+        case 5:{
+            f = std::bind(&KeysContainer::primary2_key, this);
+            break;
+        }
+    }
 
     return f;
 }
@@ -248,9 +345,14 @@ void KeysContainer::fromFolder(const QString &folder)
         QString key = KeyFiles[i];
         QFile file(folder + QDir::separator() + key);
         if(file.open(QIODevice::ReadOnly)){
-            func[key.toStdString()](file.readAll());
+            //func[key.toStdString()](file.readAll());
         }else
             return;
     }
     _isValid = true;
+}
+
+bool KeysContainer::isValid()
+{
+    return _isValid;
 }

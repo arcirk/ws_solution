@@ -4,17 +4,13 @@
 #include <QObject>
 #include <QSettings>
 #include <sqlinterface.h>
+#include <QJsonObject>
+#include <QJsonValue>
 
-const QStringList KeyFiles = {
-    "header.key",
-    "masks.key",
-    "masks2.key",
-    "name.key",
-    "primary.key",
-    "primary2.key"
-};
+class KeysContainer;
 
 typedef std::function<void(const QByteArray&)> set_keys;
+typedef std::function<QByteArray()> get_keys;
 
 class KeysContainer : public QObject
 {
@@ -22,6 +18,12 @@ class KeysContainer : public QObject
 public:
     explicit KeysContainer(QObject *parent = nullptr);
     explicit KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent = nullptr);
+
+    enum JsonFormat{
+        nameData = 0,
+        forDatabase,
+        serialization
+    };
 
     void fromFolder(const QString& folder);
 
@@ -50,6 +52,8 @@ public:
     void fromQSettings(const QSettings& value);
 
     QByteArray toByteArray();
+    QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
+
 
 private:
     QByteArray _header_key;
@@ -64,7 +68,10 @@ private:
 
     bool _isValid;
 
+
     std::map<std::string, set_keys> set_function();
+    set_keys get_set_function(int index);
+    get_keys get_get_function(int index);
 
 signals:
 

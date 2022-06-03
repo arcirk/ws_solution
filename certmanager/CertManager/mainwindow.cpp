@@ -2304,10 +2304,10 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
         return;
     }
 
-    QString container = table->model()->index(index.row(), 1).data(Qt::UserRole+1).toString();
+    //QString container = table->model()->index(index.row(), 1).data(Qt::UserRole+1).toString();
     QString volume = table->model()->index(index.row(), 1).data().toString();
     QString name = table->model()->index(index.row(), 2).data().toString();
-    QString keySetInfo = "csptest -keyset -container \"%1\" -info";
+    //QString keySetInfo = "csptest -keyset -container \"%1\" -info";
 
     if(volume == "HDIMAGE"){
         //
@@ -2334,7 +2334,44 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                 return;
             }
 
+            KeysContainer cnt = KeysContainer(this);
+            cnt.setName(name);
+            cnt.fromFolder(folder.path());
+            if(!cnt.isValid())
+            {
+                qCritical() <<__FUNCTION__ << "Ошибка: Ошибка загрузки данных контейнера с устройства!";
+                return;
+            }else{
 
+                QJsonDocument doc = QJsonDocument();
+                QJsonObject obj = QJsonObject();
+                QString uuid = QUuid::createUuid().toString();
+                uuid = uuid.mid(1, uuid.length() - 2);
+                QByteArray data = cnt.toByteArray();
+
+                obj.insert("Ref", uuid);
+                obj.insert("FirstField", name);
+                obj.insert("data", QString(data.toBase64()));
+
+                doc.setObject(obj);
+                QString jsonObject = doc.toJson();
+
+                QJsonDocument docRef = QJsonDocument();
+                QJsonObject objRef = QJsonObject();
+                objRef.insert("FirstField", name);
+                docRef.setObject(objRef);
+                QString jsonObjectRef = docRef.toJson();
+
+                if(_sett->launch_mode() == mixed){
+                    db->insert("Containers", jsonObject, jsonObjectRef);
+                }
+
+//                qDebug() << SqlInterface::getParametersFromString("INSERT INTO [dbo].[Containers] ([Ref], [FirstField], [data]) "
+//                                                                  "VALUES (?, ?, ?)");
+
+
+
+            }
         }
 
     }
