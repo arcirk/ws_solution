@@ -86,6 +86,8 @@ private slots:
 
     void on_btnCurrentCopyToRegistry_clicked();
 
+    void on_btnCurrentCopyToSql_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;

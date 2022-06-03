@@ -261,14 +261,19 @@ void CommandLine::stop() {
 
 void CommandLine::send(const QString &commandText, int command)
 {
-    _lastCommand = commandText;
+    QString _commandText = commandText;
+    if(QString(commandText).right(1) != "\n")
+        _commandText = commandText + "\n";
+
+    _lastCommand = _commandText;
+
     _command = command;
     if(!useSystem()){
         if(m_listening){
-            m_process.write(commandText.toUtf8());
+            m_process.write(_commandText.toUtf8());
         }
     }else{
-        std::string _result = executeSystem(commandText.toStdString());
+        std::string _result = executeSystem(_commandText.toStdString());
         emit output(QString::fromStdString(_result), command);
     }
 }

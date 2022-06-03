@@ -5,12 +5,27 @@
 #include <QSettings>
 #include <sqlinterface.h>
 
+const QStringList KeyFiles = {
+    "header.key",
+    "masks.key",
+    "masks2.key",
+    "name.key",
+    "primary.key",
+    "primary2.key"
+};
+
+typedef std::function<void(const QByteArray&)> set_keys;
+
 class KeysContainer : public QObject
 {
     Q_OBJECT
 public:
     explicit KeysContainer(QObject *parent = nullptr);
     explicit KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent = nullptr);
+
+    void fromFolder(const QString& folder);
+
+    bool isValid();
 
     void setName(const QString& value);
     QString name();
@@ -34,6 +49,8 @@ public:
     QSettings toQSettings();
     void fromQSettings(const QSettings& value);
 
+    QByteArray toByteArray();
+
 private:
     QByteArray _header_key;
     QByteArray _masks_key;
@@ -44,6 +61,10 @@ private:
 
     SqlInterface * _db;
     QString _name;
+
+    bool _isValid;
+
+    std::map<std::string, set_keys> set_function();
 
 signals:
 

@@ -422,6 +422,7 @@ void MainWindow::treeSetCurrentContainers(QStringList keys)
             if(m_data.size() == 5){
                 auto itemTable = new QStandardItem(m_data[3]);
                 itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+                itemTable->setData(key);
                 table->setItem(i, 1, itemTable);
                 QString name = m_data[4];
                 itemTable = new QStandardItem(name);
@@ -1966,6 +1967,8 @@ void MainWindow::onParseCommand(const QString &result, int command)
             currentUser->setContainers(curContainers);
         }
     }else if(command == csptestGetConteiners){
+        QString res = result;
+        res.replace("\r", "");
         csptestCurrentUserGetContainers(result);
     }
 }
@@ -2288,6 +2291,53 @@ void MainWindow::on_btnCurrentCopyToDisk_clicked()
 
 void MainWindow::on_btnCurrentCopyToRegistry_clicked()
 {
+
+}
+
+
+void MainWindow::on_btnCurrentCopyToSql_clicked()
+{
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+        return;
+    }
+
+    QString container = table->model()->index(index.row(), 1).data(Qt::UserRole+1).toString();
+    QString volume = table->model()->index(index.row(), 1).data().toString();
+    QString name = table->model()->index(index.row(), 2).data().toString();
+    QString keySetInfo = "csptest -keyset -container \"%1\" -info";
+
+    if(volume == "HDIMAGE"){
+        //
+    }else if(volume == "REGISTRY"){
+        //
+    }else{
+        if(QString(volume).left(6) == "FAT12_"){
+            QString tom = QString(volume).right(volume.length() - 6);
+
+            QStorageInfo storage(tom + ":" + QDir::separator());
+            if(!storage.isReady())
+            {
+                QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
+                return;
+            }
+
+            ////Для теста
+            //terminal->send(keySetInfo.arg(container), unknown);
+
+            QStringList lst = name.split("@");
+            QDir folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
+
+            if(!folder.exists()){
+                return;
+            }
+
+
+        }
+
+    }
 
 }
 

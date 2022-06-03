@@ -11,10 +11,12 @@
     #pragma warning(disable:4100)
 #endif
 
+
+
 KeysContainer::KeysContainer(QObject *parent)
     : QObject{parent}
 {
-
+    _isValid = false;
 }
 
 KeysContainer::KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent)
@@ -31,6 +33,8 @@ KeysContainer::KeysContainer(const QString& sid, const QString& localName, SqlIn
     _name = localName;
 
     _db = db;
+
+    _isValid = true;
 }
 
 void KeysContainer::setName(const QString &value)
@@ -177,4 +181,76 @@ QSettings KeysContainer::toQSettings()
 void KeysContainer::fromQSettings(const QSettings &value)
 {
 
+}
+
+QByteArray KeysContainer::toByteArray()
+{
+    if(_isValid){
+        return "";
+    }
+
+    QTemporaryDir temp;
+    if(!temp.isValid())
+        return "";
+
+    QString uuid = QUuid::createUuid().toString();
+    uuid = uuid.mid(1, uuid.length() - 2);
+
+    QString tempFile = QDir::toNativeSeparators(temp.path() + QDir::separator() + uuid + ".ini");
+    QSettings settings = QSettings(tempFile, QSettings::IniFormat, this);
+
+    settings.beginGroup(name());
+    settings.setValue("header.key", header_key());
+    settings.setValue("masks.key", masks_key());
+    settings.setValue("masks2.key", masks2_key());
+    settings.setValue("name.key", name_key());
+    settings.setValue("primary.key", primary_key());
+    settings.setValue("primary2.key", primary2_key());
+    settings.endGroup();
+    settings.sync();
+
+    if(settings.status() != QSettings::NoError){
+        qCritical() << __FUNCTION__ << settings.status();
+        return "";
+    }
+
+    QFile fdata(tempFile);
+   if(fdata.open(QIODevice::ReadOnly)){
+        QByteArray data = fdata.readAll();
+        fdata.close();
+        fdata.remove();
+        return data;
+    }
+
+   return "";
+}
+
+std::map<std::string, set_keys> KeysContainer::set_function()
+{
+    std::map<std::string, set_keys> f;
+
+    f.emplace(KeyFiles[0], &KeysContainer::set_header_key);
+    f.emplace(KeyFiles[1], &KeysContainer::set_masks_key);
+    f.emplace(KeyFiles[2], &KeysContainer::set_masks2_key);
+    f.emplace(KeyFiles[3], &KeysContainer::set_name_key);
+    f.emplace(KeyFiles[4], &KeysContainer::set_primary_key);
+    f.emplace(KeyFiles[5], &KeysContainer::set_primary2_key);
+
+    return f;
+}
+
+void KeysContainer::fromFolder(const QString &folder)
+{
+
+    auto func = set_function();
+    _isValid = false;
+    for(int i = 0; i < KeyFiles.size(); ++i){
+        QString key = KeyFiles[i];
+        QFile file(folder + QDir::separator() + key);
+        if(file.open(QIODevice::ReadOnly)){
+            func[key.toStdString()](file.readAll());
+        }else
+            return;
+    }
+    _isValid = true;
 }
