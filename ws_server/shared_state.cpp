@@ -2245,6 +2245,19 @@ bool shared_state::set_sql_settings(boost::uuids::uuid &uuid, arcirk::bJson *par
 bool shared_state::insert_file_to_data(boost::uuids::uuid &uuid, bJson *params, ws_message *msg, std::string &err, std::string &custom_result)
 {
 
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+    }
+
+
+    if()
+
 }
 
 bool shared_state::set_webdav_settings(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,

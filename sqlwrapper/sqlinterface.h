@@ -72,6 +72,7 @@ public:
 
     QSqlDatabase getDatabase() const;
 
+    bool insert_file(const QString& data);
 
 private:
     QString _host;

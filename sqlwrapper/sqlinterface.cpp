@@ -716,3 +716,29 @@ QSqlDatabase SqlInterface::getDatabase() const
 {
     return db;
 }
+
+bool SqlInterface::insert_file(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    auto obj = doc.object();
+
+    QString query = obj.value("query").toString();
+    if(query.isEmpty())
+        return false;
+
+    if(!db.isOpen())
+        return false;
+
+    auto _query = QSqlQuery();
+    _query.prepare(query);
+
+    auto values = obj.value("vaues").toArray();
+    if(values.size() == 0)
+        return false;
+
+//    for(auto val : values){
+//        if(val.toVariant().typeId() == QMetaType::QBitArray){
+//            _query.addBindValue(val.is);
+//        }
+//    }
+}
