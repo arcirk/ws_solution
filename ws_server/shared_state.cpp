@@ -486,6 +486,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 1;
     else if (command == "sync_users")
         return params == 2;
+    else if (command == "exec_query_qt")
+        return true; //return params == 1;
     else
         return false;
 }
@@ -528,6 +530,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("set_sql_settings");
     commands.emplace_back("export_tables_to_ext");
     commands.emplace_back("sync_users");
+    commands.emplace_back("exec_query_qt");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -601,6 +604,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::export_tables_to_ext, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "sync_users")
         return  std::bind(&shared_state::sync_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+    else if (command == "exec_query_qt")
+        return  std::bind(&shared_state::exec_query_qt, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
     else
        return nullptr;
@@ -1610,6 +1615,43 @@ bool shared_state::set_app_name(boost::uuids::uuid &uuid, arcirk::bJson *params,
     return true;
 
 }
+bool shared_state::exec_query_qt(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
+                              std::string &err, std::string &custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    std::string query = params->get_member("query").get_string();
+    std::string id_command = params->get_member("id_command").get_string();
+    err = "";
+    if (query.empty())
+        return false;   //std::string szResult;
+    bool result = sqlite3Db->exec_qt(query, err);
+
+    if(result){
+        custom_result = "Запрос успешно выполнен!";
+    }
+
+    if (err.empty() || err == "no error"){
+        //std::string base64 = arcirk::base64_encode(szResult);
+        auto json = arcirk::bJson();
+        json.set_object();
+        json.addMember("id_command", id_command);
+        //json.addMember("table", base64);
+        custom_result = json.to_string();
+    }
+
+    return result;
+
+}
 
 bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, ws_message *msg,
                               std::string &err, std::string &custom_result) {
@@ -2255,8 +2297,9 @@ bool shared_state::insert_file_to_data(boost::uuids::uuid &uuid, bJson *params, 
         return false;
     }
 
+    err = "команда не доступна!";
 
-    if()
+    return false;
 
 }
 

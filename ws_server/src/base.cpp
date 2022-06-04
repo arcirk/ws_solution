@@ -246,6 +246,19 @@ namespace arc_sqlite {
         return i;
     }
 
+    int sqlite3_db::exec_qt(const std::string &i_query, std::string &err)
+    {
+        int result = 0;
+        if(useWrapper){
+            QString error;
+            result = qtWrapper->exec_qt(QString::fromStdString(i_query), error);
+            err = error.toStdString();
+            return result;
+        }
+
+        return result;
+    }
+
 
     int sqlite3_db::execute(const std::string &query, const std::string &table_name, std::string &json, std::string &error
                             , bool header, std::map<std::string, arcirk::bVariant> fields ) {

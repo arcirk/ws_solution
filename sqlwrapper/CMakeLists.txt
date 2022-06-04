@@ -26,7 +26,7 @@ add_library(sqlwrapper SHARED
         sqlwrapper.cpp
         sqlinterface.h
         sqlinterface.cpp
-        )
+        sqlqueryinterface.h sqlqueryinterface.cpp)
 
 target_link_libraries(sqlwrapper PRIVATE
         Qt${QT_VERSION_MAJOR}::Core

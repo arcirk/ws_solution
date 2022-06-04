@@ -9,7 +9,8 @@
 #include <QSqlRecord>
 #include <QJsonArray>
 #include <QSqlField>
-#include <QRegExp>
+//#include <QRegExp>
+#include "sqlqueryinterface.h"
 
 SqlInterface::SqlInterface(QObject *parent)
     : QObject{parent}
@@ -210,6 +211,21 @@ int SqlInterface:: exec(const QString &query, QString& err) {
 
 }
 
+int SqlInterface::exec_qt(const QString &i_query, QString &err)
+{
+
+    auto bindQuery = QBSqlQuery();
+    bindQuery.fromJson(i_query);
+    QSqlQuery sql = bindQuery.query(db);
+    bool res = sql.exec();
+
+    if(sql.lastError().type() != QSqlError::NoError){
+        err = sql.lastError().text();
+    }
+
+    return res;
+}
+
 bool SqlInterface::verifyTable(int tableIndex) {
 
     if(!isOpen() || _driverType != "QODBC" || databaseName().isEmpty())
@@ -396,32 +412,21 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
 
         error = "no error";
 
-        QSqlQuery m_query;// = QSqlQuery(QString::fromStdString(query), db);
-        bool result = false;
+        QSqlQuery m_query;
         try {
-            //result = m_query.exec();
             m_query = db.exec(QString::fromStdString(query));
             if(m_query.lastError().type() != QSqlError::NoError){
-                result = false;
-                error = m_query.lastError().text();
-                return 0;
-            }
-            result = true;
-        } catch (std::exception &e) {
-            std::cerr << e.what() << std::endl;
-            error = QString(e.what());
-            return 0;
-        }
-
-        if(!result){
-            if (m_query.lastError().isValid()) {
                 error = m_query.lastError().text();
                 std::cerr << "SqlInterface::execute: " << query << std::endl;
                 std::cerr << "SqlInterface::execute: " << "Ошибка SQL запроса : " << error.toStdString() << std::endl;
                 std::cerr << m_query.lastError().databaseText().toStdString() << std::endl;
                 std::cerr << m_query.lastError().driverText().toStdString() << std::endl;
                 std::cerr << m_query.lastQuery().toStdString() << std::endl;
+                return 0;
             }
+        } catch (std::exception &e) {
+            std::cerr << e.what() << std::endl;
+            error = QString(e.what());
             return 0;
         }
 
@@ -528,7 +533,7 @@ bool SqlInterface::insert(const QString &tableName, const QString &jsonObject, c
 
     bool result = sql.exec();
     if(!result){
-        std::cerr << query.toStdString() << std::endl;
+        std::cerr << sql.lastQuery().toStdString() << std::endl;
         std::cerr << sql.lastError().text().toStdString() << std::endl;
         return false;
     }

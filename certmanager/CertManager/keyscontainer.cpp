@@ -259,6 +259,11 @@ QJsonObject KeysContainer::toJsonObject(JsonFormat format, const QUuid& uuid)
 
 }
 
+QString KeysContainer::path()
+{
+    return _path;
+}
+
 std::map<std::string, set_keys> KeysContainer::set_function()
 {
     std::map<std::string, set_keys> f;
@@ -345,10 +350,38 @@ void KeysContainer::fromFolder(const QString &folder)
         QString key = KeyFiles[i];
         QFile file(folder + QDir::separator() + key);
         if(file.open(QIODevice::ReadOnly)){
-            //func[key.toStdString()](file.readAll());
+            func[key.toStdString()](file.readAll());
         }else
             return;
     }
+    _isValid = true;
+}
+
+void KeysContainer::fromRegistry(const QString &name, const QString &sid)
+{
+    _isValid = false;
+    auto func = set_function();
+
+
+    const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, name);
+    QSettings reg = QSettings(root, QSettings::NativeFormat);
+    for(int i = 0; i < KeyFiles.size(); ++i){
+        QString key = KeyFiles[i];
+        func[key.toStdString()](reg.value(key).toByteArray());
+        auto funcGet = get_get_function(i);
+        QByteArray data = funcGet();
+        if(data.isEmpty())
+            return;
+    }
+
+//    _header_key = reg.value("header.key").toByteArray();
+//    _masks_key = reg.value("masks.key").toByteArray();
+//    _masks2_key = reg.value("masks2.key").toByteArray();
+//    _name_key = reg.value("name.key").toByteArray();
+//    _primary_key = reg.value("primary.key").toByteArray();
+//    _primary2_key = reg.value("primary2.key").toByteArray();
+    _path = root;
+    _name = name;
     _isValid = true;
 }
 

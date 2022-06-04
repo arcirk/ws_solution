@@ -26,6 +26,7 @@ public:
     };
 
     void fromFolder(const QString& folder);
+    void fromRegistry(const QString& name, const QString& sid);
 
     bool isValid();
 
@@ -54,8 +55,10 @@ public:
     QByteArray toByteArray();
     QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
 
+    QString path();
 
 private:
+    QString _path;
     QByteArray _header_key;
     QByteArray _masks_key;
     QByteArray _masks2_key;

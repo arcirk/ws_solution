@@ -88,6 +88,10 @@ private slots:
 
     void on_btnCurrentCopyToSql_clicked();
 
+    void on_btnConDel_clicked();
+
+    void on_btnConInfo_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -162,5 +166,8 @@ private:
     void treeSetFromSqlContainers();
     void treeSetFromSqlCertificates();
     void treeSetOnlineWSusers();
+
+    QModelIndex findInTable(QAbstractItemModel * model, const QString& value, int column, bool findData = true);
+
 };
 #endif // MAINWINDOW_H

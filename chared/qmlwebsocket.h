@@ -142,6 +142,9 @@ public:
 
     QString get_system_info();
 
+    static std::vector<unsigned char> byteArrayToVector(const QByteArray& ba);
+    static QByteArray vectorToByteArray(std::vector<unsigned char> v);
+
 private:
     IClient * client;
     ClientSettings settings;

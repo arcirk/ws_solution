@@ -39,7 +39,7 @@ add_library(arcirk
         src/arcirk_json.cpp
         src/arcirk_ip.cpp
         src/arcirk_message.cpp
-        src/arcirk_settings.cpp)
+        src/arcirk_settings.cpp src/arcirk_sqlquery.cpp)
 
 
 if (UNIX)

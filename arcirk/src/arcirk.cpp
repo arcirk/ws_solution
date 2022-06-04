@@ -45,6 +45,17 @@ namespace arcirk{
         return value.type() == typeid(boost::uuids::uuid);
     }
 
+    bool bVariant::is_byte(){
+        return value.type() == typeid(std::vector<BYTE>);
+    }
+
+    std::vector<BYTE> bVariant::get_byte() {
+        if (is_byte())
+            return boost::get<std::vector<BYTE>>(value);
+        else
+            return {};
+    }
+
     boost::uuids::uuid bVariant::get_uuid(){
         if (is_uuid())
             return boost::get<boost::uuids::uuid>(value);
@@ -75,8 +86,11 @@ namespace arcirk{
             return std::to_string(get_double());
         else if (is_uuid()){
             return uuid_to_string(get_uuid());
+        } else if (is_byte()){
+            std::vector<BYTE> val = get_byte();
+            return byte_to_base64(&val[0], val.size());
         } else
-            return std::string();
+            return {};
     }
 
 }

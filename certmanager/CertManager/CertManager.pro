@@ -17,6 +17,7 @@ SOURCES += \
     ../../chared/qwebdav.cpp \
     ../../chared/serveresponse.cpp \
     ../../sqlwrapper/sqlinterface.cpp \
+    ../../sqlwrapper/sqlqueryinterface.cpp \
     commandline.cpp \
     databasemanager.cpp \
     dialogcomputer.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     ../../chared/qwebdav.h \
     ../../chared/serveresponse.h \
     ../../sqlwrapper/sqlinterface.h \
+    ../../sqlwrapper/sqlqueryinterface.h \
     commandline.h \
     databasemanager.h \
     dialogcomputer.h \

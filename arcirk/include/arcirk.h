@@ -46,14 +46,10 @@ using namespace rapidjson;
 static constexpr time_t const NULL_TIME = -1;
 
 namespace arcirk{
-
-    typedef boost::variant<std::string, long int, bool, double, boost::uuids::uuid> _Variant;
+    typedef unsigned char BYTE;
+    typedef boost::variant<std::string, long int, bool, double, boost::uuids::uuid, std::vector<BYTE>> _Variant;
     typedef std::string             T_str;
     typedef std::vector<T_str>      T_vec;
-
-//    std::string string_utf_to_utf(const std::string& source);
-//    std::string string_to_utf(const char* source, const char* charset);
-//    std::string string_from_utf(const std::string& source, const char* charset);
 
     bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result);
     std::string get_sha1(const std::string& p_arg);
@@ -62,8 +58,16 @@ namespace arcirk{
     std::string nil_string_uuid();
     boost::uuids::uuid nil_uuid();
     std::string uuid_to_string(const boost::uuids::uuid& uuid);
+
     std::string base64_encode(const std::string &s);
     std::string base64_decode(const std::string &s);
+
+    std::string byte_to_base64(BYTE const* buf, unsigned int bufLen);
+    std::vector<BYTE> base64_to_byte(std::string const& encoded_string);
+    static inline bool byte_is_base64(BYTE c) {
+        return (isalnum(c) || (c == '+') || (c == '/'));
+    }
+
     int split_str_to_vec(const T_str s, const T_str DELIM, T_vec& v);
     T_vec split(T_str line, T_str sep);
     long int current_date_seconds();
@@ -86,13 +90,14 @@ namespace arcirk{
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     class bVariant{
         public:
-            bVariant(const std::string& val):value(std::move(val)){}
-            bVariant(const char* val):value(std::string(std::move(val))){}
+            bVariant(const std::string& val):value(val){}
+            bVariant(const char* val):value(std::string(val)){}
             bVariant(long int val):value((long int)val){}
             bVariant(double val):value((double)val){}
             bVariant(int val):value((long int)val){}
             bVariant(bool val):value((bool)val){}
             bVariant(boost::uuids::uuid val):value(val){}
+            bVariant(std::vector<BYTE> val):value(val){}
             bVariant() = default;
 
             std::string get_string();
@@ -105,6 +110,10 @@ namespace arcirk{
             bool is_uuid();
             boost::uuids::uuid get_uuid();
             bool is_double();
+
+            bool is_byte();
+            std::vector<BYTE> get_byte();
+
             std::string to_string();
 
         private:
@@ -332,6 +341,80 @@ namespace arcirk{
         std::vector<bVariant> m_vec;
 
         static void* _crypt(void* data, unsigned data_size, void* key, unsigned key_size);
+    };
+
+//    enum bSqlParam{
+//        fieldType = 0,
+//        fieldValue
+//    };
+//
+//    enum bSqlType{
+//        typeString,
+//        typeInt,
+//        typeBase64
+//    };
+//
+//    class bSqlValue{
+//    public:
+//        explicit bSqlValue(const bVariant& value);
+//
+//    private:
+//
+//    };
+
+    enum bSqlCommand{
+        SqlInsert = 0,
+        SqlUpdate,
+        SqlDelete
+    };
+
+    enum bSqlTypeOfComparison{
+        Equals = 0,
+        No_Equals,
+        More,
+        More_Or_Equal,
+        Less_Or_Equal,
+        Less,
+        On_List,
+        Not_In_List
+    };
+
+    struct bSqlValue{
+        bSqlTypeOfComparison typeOfComparison;
+        content_value field;
+        explicit bSqlValue(bSqlTypeOfComparison _typeOfComparison, content_value _field);
+    };
+
+    typedef std::map<bSqlTypeOfComparison, content_value> _whereValue;
+
+    class bSqlQuery{
+
+    public:
+        explicit bSqlQuery(bSqlCommand command, const std::string& tableName);
+
+        void add_field(const content_value& field);
+
+        void add_where(const content_value& val, bSqlTypeOfComparison typeOfComparison);
+
+        void set_where_sample(const std::string& str);
+
+        void add_field_is_exists(const content_value& field);
+
+        [[nodiscard]] std::string query() const;
+
+        void fromJson(const std::string& json);
+
+    private:
+        bSqlCommand _command;
+        std::vector<content_value> _fields;
+        std::vector<content_value> _fieldsIsExists;
+        std::string _whereSample;
+        std::vector<bSqlValue> _where;
+        std::string _table;
+
+        std::string bindQueryInsert() const;
+        std::string bindQueryUpdate() const;
+        std::string bindQueryDelete() const;
     };
 
 }

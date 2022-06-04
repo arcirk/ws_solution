@@ -8,7 +8,7 @@
 #include <QBuffer>
 #include <QMimeDatabase>
 #include <QProcess>
-//#include <QTextCodec>
+#include <QByteArray>
 
 bWebSocket::bWebSocket(QObject *parent, const QString& confFile, const QString& sysUser)
 : QObject(parent),
@@ -301,6 +301,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             responseCommand(resp);
 #endif
         }else if (resp->command == "exec_query"){
+            emit execQuery(resp->message);
+        }else if (resp->command == "exec_query_qt"){
             emit execQuery(resp->message);
         }
         else
@@ -731,102 +733,38 @@ QString bWebSocket::get_system_info()
     return doc.toJson();
 }
 
-//std::string bWebSocket::string_utf_to_utf(const std::string &s)
-//{
-//    return IClient::string_utf_to_utf(s);
-//}
+std::vector<unsigned char> bWebSocket::byteArrayToVector(const QByteArray &ba)
+{
+    return std::vector<unsigned char>(ba.begin(), ba.end());
+}
 
-//std::string bWebSocket::string_to_utf(const std::string& source, const char* charset)
-//{
-//    return IClient::string_to_utf(source, charset);
-//}
+QByteArray bWebSocket::vectorToByteArray(std::vector<unsigned char> v)
+{
+    return QByteArray(reinterpret_cast<const char*>(v.data()), v.size());
+}
 
-//std::string bWebSocket::string_from_utf(const std::string& source, const char* charset)
-//{
-//    return IClient::string_from_utf(source, charset);
-//}
-
-//QString bWebSocket::osUserName()
-//{
-//    QString result;
-
-//#ifdef _WINDOWS
-//    QProcess cmd;
-//    QString program;
-//    program.append("powershell");
-//    try {
-//        QStringList lstResult;
-//        QString commandLine = "WHOAMI /USER";
-//        commandLine.append("\n");
-
-//        cmd.start(program);
-//        cmd.write(commandLine.toUtf8());
-
-//        if(!cmd.waitForStarted(500))
-//        {
-//            qCritical() << __FUNCTION__ << "Cannot execute:" << program;
-//        }
-//        cmd.waitForFinished(500);
-//        cmd.setProcessChannelMode(QProcess::MergedChannels);
-
-//        if(cmd.exitStatus() == QProcess::NormalExit
-//           && cmd.exitCode() == QProcess::NormalExit){;
-//            QString r = QTextCodec::codecForName("CP866")->toUnicode(cmd.readAllStandardOutput());
-//            r.replace("\r", "");
-//            lstResult = r.split("\n");
-//            QString result = lstResult[lstResult.size() - 2];
-//            result.replace("\\", " ");
-//            QStringList mResult = result.split(" ");
-//            //usr->setDomain(mResult[0]);
-//            result = mResult[1];
-//           // usr->setSid(mResult[2]);
-//        } else {
-//            qCritical() << __FUNCTION__ << qPrintable(QString::fromStdString(cmd.readAllStandardError().toStdString()));
-//        }
-//    }  catch (std::exception& e) {
-//        qCritical() << e.what();
-//    }
-
-//    cmd.close();
-//#endif
-
-//    return result;
-//}
 
 void bWebSocket::registerToAgent(const QString &uuid) {
     qDebug() << "bWebSocket::registerToAgent: " << uuid;
 }
 
-//void bWebSocket::registerClientForAgent(const QString &uuid) {
-
-////    QJsonObject param = QJsonObject();
-////    param.insert("uuid_client", uuid);
-////    param.insert("command", "setClient");
-
-////    QString _param = QJsonDocument(param).toJson(QJsonDocument::Indented);
-
-////    if(client->started()){
-////        client->send_command("command_to_qt_agent", "", _param.toStdString());
-////    }
-
-//}
 
 void bWebSocket::uploadFile(const QString &token, const QString &fileName, const QString &ref)
 {
-    qDebug() << "bWebSocket::uploadFile: " << token << " " << fileName;
+    qDebug() << __FUNCTION__ << token << " " << fileName;
 
     if(token.isEmpty())
     {
-        qDebug() << "bWebSocket::uploadFile: не указан токен чата!";
+        qCritical() << __FUNCTION__ << "Не указан токен чата!";
         return;
     }
 
     if(!qWebdav->exists(token)){
-        qDebug() << "bWebSocket::uploadFile::createDirectory: " <<  token;
+        //qDebug() << "bWebSocket::uploadFile::createDirectory: " <<  token;
         bool result = qWebdav->mkdirSynch(token);
         if(!result)
         {
-            qDebug() << "error create chat cache folder!";
+            qDebug() << __FUNCTION__ << "error create chat cache folder!";
             return;
         }
     }
@@ -1103,3 +1041,4 @@ void bWebSocket::setHidden(bool val) {
 bool bWebSocket::isHidden() {
     return m_hidden;
 }
+

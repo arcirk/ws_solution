@@ -58,7 +58,9 @@ public:
     bool verifyTables();
 
     int exec(const QString& query, QString& err);
+    int exec_qt(const QString& i_query, QString& err);
     int execute(const std::string &query, QString &table, QString &error, bool header = false);
+
     bool insert(const QString& tableName, const QString& jsonObject, const QString& jsonObjectRef = "");
 
     bool exportTablesToSqlServer();

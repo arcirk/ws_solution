@@ -7,13 +7,8 @@
 
 #include "iws_client_global.h"
 
-//#include <boost/thread.hpp>
-//#include <boost/thread/mutex.hpp>
-//#include <boost/thread/condition_variable.hpp>
-
 class  ws_client;
 
-//typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
 

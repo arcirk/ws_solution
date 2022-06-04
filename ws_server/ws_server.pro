@@ -11,6 +11,7 @@ CONFIG -= app_bundle
 
 SOURCES += \
         ../sqlwrapper/sqlinterface.cpp \
+        ../sqlwrapper/sqlqueryinterface.cpp \
         http_session.cpp \
         listener.cpp \
         main.cpp \
@@ -26,6 +27,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     ../sqlwrapper/sqlinterface.h \
+    ../sqlwrapper/sqlqueryinterface.h \
     include/base.h \
     include/beast.hpp \
     include/http_session.hpp \
