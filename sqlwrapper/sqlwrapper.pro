@@ -12,10 +12,12 @@ CONFIG += c++11
 
 SOURCES += \
     sqlinterface.cpp \
+    sqlqueryinterface.cpp \
     sqlwrapper.cpp
 
 HEADERS += \
     sqlinterface.h \
+    sqlqueryinterface.h \
     sqlwrapper_global.h \
     sqlwrapper.h
 

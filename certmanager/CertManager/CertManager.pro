@@ -86,7 +86,7 @@ unix:LIBS += -lboost_thread
 INCLUDEPATH += $$PWD/../../ws_client/include
 DEPENDPATH += $$PWD/../../ws_client
 INCLUDEPATH += $$PWD/../../chared
-INCLUDEPATH += $$PWD/../../sqlwrapper/
+INCLUDEPATH += $$PWD/../../sqlwrapper
 
 DEFINES += USE_QT_CREATOR
 DEFINES += QT_CERT_MANAGER

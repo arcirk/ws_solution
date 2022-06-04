@@ -22,6 +22,7 @@
 #include "serveresponse.h"
 #include <QStorageInfo>
 #include <sqlqueryinterface.h>
+#include <sqlinterface.h>
 #include <QScrollBar>
 
 #ifdef _WINDOWS
@@ -2567,13 +2568,18 @@ void MainWindow::on_btnConInfo_clicked()
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
     QModelIndex _index = table->model()->index(index.row(), 1);
-    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", ""); //| iconv -f cp1251
 
-    QString cmd = QString("csptest -keyset -container \"%1\" -info | iconv -f cp1251").arg(device);
+    QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
     QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
-    QByteArray encodedString = codec->fromUnicode(cmd);
-
-    terminal->send(encodedString, unknown);
+//    QByteArray encodedString = codec->fromUnicode(cmd);
+    //QTextCodec *codec = QTextCodec::codecForName( "KOI8-R" );
+    //QTextCodec::setCodecForLocale(codec);
+    //QTextCodec *codec1 = QTextCodec::codecForName( "CP1251" );
+    //QByteArray text = cmd.toUtf8();
+    //text = codec->toUnicode(text).toUtf8();
+    //QByteArray text = codec->fromUnicode( cmd.toUtf8() );
+    terminal->send(cmd, unknown);
 
 }
 
