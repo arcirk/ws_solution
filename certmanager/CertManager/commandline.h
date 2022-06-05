@@ -14,7 +14,8 @@
 //#include <windows.h>
 
 #ifdef _WINDOWS
-static const QString program = "cmd";
+//static const QString program = "cmd";
+static const QString program = "powershell";
 #else
 static const QString program = "/bin/bash";
 #endif
@@ -25,6 +26,7 @@ enum cmdCommand{
     wmicGetSID,
     echoGetEncoding,
     csptestGetConteiners,
+    csptestContainerCopy,
     unknown
 };
 
@@ -47,6 +49,7 @@ public slots:
     void stop();
 
     void send(const QString& commandText, int);
+    //void send(const QByteArray& commandText, int);
 
     void clearBuffer();
 
@@ -66,6 +69,8 @@ public slots:
 signals:
     void output(const QString& data, int command);
     void endParse(const QString& result, int command);
+    void error(const QString& data, int command);
+
 private slots:
     void errorOccured(QProcess::ProcessError error);
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
@@ -86,6 +91,8 @@ private:
     bool _verefyEncoding;
     int _method;
     bool _useSystem;
+
+    //QString _program;
 
     QString encodeData(const QByteArray& data, int m);
     std::string executeSystem(const std::string& cmd);

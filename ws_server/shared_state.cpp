@@ -762,6 +762,7 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
                     continue;
             }
             _Value doc(rapidjson::Type::kObjectType);
+            json_arr.addMember(&doc, arcirk::content_value("Empty", ""));
             json_arr.addMember(&doc, arcirk::content_value("uuid", to_string(p.second->get_uuid())));
             json_arr.addMember(&doc, arcirk::content_value("name", p.second->get_name()));
             json_arr.addMember(&doc, arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
@@ -782,6 +783,7 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
                     continue;
             }
             std::vector<content_value> object;
+            object.emplace_back("Empty", "");
             object.emplace_back("uuid", to_string(p.second->get_uuid()));
             object.emplace_back(arcirk::content_value("name", p.second->get_name()));
             object.emplace_back(arcirk::content_value("user_uuid", to_string(p.second->get_user_uuid())));
@@ -810,6 +812,8 @@ bool shared_state::get_active_users(boost::uuids::uuid &uuid, arcirk::bJson* par
         _Value rows = json_arr.GetArray();
         mainDoc.addMember("rows", rows);
         _Value cols(rapidjson::Type::kArrayType);
+        cols.PushBack("Empty", mainDoc.GetAllocator());
+        cols.PushBack("uuid", mainDoc.GetAllocator());
         cols.PushBack("name", mainDoc.GetAllocator());
         cols.PushBack("user_uuid", mainDoc.GetAllocator());
         cols.PushBack("app_name", mainDoc.GetAllocator());

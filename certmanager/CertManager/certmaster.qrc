@@ -37,5 +37,14 @@
         <file>img/copyToDisk.png</file>
         <file>img/copyToRegistry.png</file>
         <file>img/copyToSql.png</file>
+        <file>img/registry16.png</file>
+        <file>img/key16.svg</file>
+        <file>img/key16.png</file>
+        <file>img/zamok.png</file>
+        <file>img/cert.png</file>
+        <file>img/activeUesers16.png</file>
+        <file>img/user.png</file>
+        <file>img/certUsers.png</file>
+        <file>img/keyUser16.png</file>
     </qresource>
 </RCC>

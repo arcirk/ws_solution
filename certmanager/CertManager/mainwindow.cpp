@@ -24,6 +24,8 @@
 #include <sqlqueryinterface.h>
 #include <sqlinterface.h>
 #include <QScrollBar>
+#include "tabledelegate.h"
+#include "dialogcontainername.h"
 
 #ifdef _WINDOWS
 #include <Windows.h>
@@ -61,9 +63,22 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
 
+    ui->tableView->setItemDelegate(new TableDelegate);
+    ui->tableView->setIconSize(QSize(16,16));
+
+    createColumnAliases();
+
     modelSqlContainers = new QJsonTableModel(this);
+    modelSqlContainers->setColumnAliases(m_colAliases);
+    modelSqlContainers->setRowsIcon(QIcon(":/img/keyUser16.png"));
     modelSqlCertificates = new QJsonTableModel(this);
+    modelSqlCertificates->setColumnAliases(m_colAliases);
     modelWsUsers = new QJsonTableModel(this);
+    modelWsUsers->setColumnAliases(m_colAliases);
+    modelWsUsers->setRowsIcon(QIcon(":/img/user.png"));
+    modelSqlUsers = new QJsonTableModel(this);
+    modelSqlUsers->setColumnAliases(m_colAliases);
+    modelSqlUsers->setRowsIcon(QIcon(":/img/user.png"));
 
     formControl();
 
@@ -165,10 +180,11 @@ void MainWindow::createTerminal()
 
     connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
     connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
+    connect(terminal, &CommandLine::error, this, &MainWindow::onCmdCommand);
 
     terminal->start();
     if(isUseCsptest)
-        terminal->send(QString("cd %1\n").arg(_cprocsp_dir), cmdCommand::unknown);
+        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), cmdCommand::unknown);
 
 #ifdef _WINDOWS
         std::string envUSER = "username";
@@ -445,11 +461,10 @@ void MainWindow::treeSetCurrentContainers(QStringList keys)
                     auto itemIco = new QStandardItem();
                     itemIco->setIcon(QIcon(":/img/checked.png"));
                     table->setItem(i, 0, itemIco);
-
-        //            QLabel *lbl_item = new QLabel();
-        //            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-        //            lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-        //            tableView->setCellWidget(i, 0, lbl_item);
+//                    QLabel *lbl_item = new QLabel();
+//                    lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
+//                    lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+//                    table->setCellWidget(i, 0, lbl_item);
                 }
             }
 
@@ -465,6 +480,61 @@ void MainWindow::treeSetFromSqlContainers()
     table->setModel(nullptr);
     if(modelSqlContainers){
         table->setModel(modelSqlContainers);
+        int index = modelSqlContainers->getColumnIndex("Ref");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        table->resizeColumnsToContents();
+    }
+}
+
+void MainWindow::treeSetFromSqlUsers()
+{
+    auto table = ui->tableView;
+    table->setModel(nullptr);
+    if(modelSqlUsers){
+        table->setModel(modelSqlUsers);
+        int index = modelSqlUsers->getColumnIndex("Ref");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlUsers->getColumnIndex("uuid");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlUsers->getColumnIndex("sid");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+
+        int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
+        int nameHost = modelSqlUsers->getColumnIndex("host");
+
+
+        for (int i = 0; i < modelSqlUsers->rowCount(); ++i) {
+
+            QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
+            QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
+            auto index = modelSqlUsers->index(i, 1);
+
+            if(isWsUserExists(name, host)){
+                modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+            }else{
+                modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+            }
+
+
+
+//            if(index.isValid()){
+//                if(modelWsUsers){
+//                    int col = modelWsUsers->getColumnIndex("user_uuid");
+//                    QString val = modelSqlUsers->index(i, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
+
+//                    auto ind = findInTable(modelWsUsers, validUuid(val), col, false);
+//                    if(ind.isValid())
+//                        modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+//                    else
+//                        modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+//                }
+//            }
+        }
+
         table->resizeColumnsToContents();
     }
 }
@@ -479,21 +549,28 @@ void MainWindow::treeSetFromSqlCertificates()
     }
 }
 
-void MainWindow::treeSetOnlineWSusers()
+void MainWindow::treeSetOnlineWsUsers()
 {
     auto table = ui->tableView;
     table->setModel(nullptr);
     if(modelWsUsers){
         table->setModel(modelWsUsers);
+        int index = modelWsUsers->getColumnIndex("uuid");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelWsUsers->getColumnIndex("user_uuid");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+
         table->resizeColumnsToContents();
+
     }
 }
 
 QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &value, int column, bool findData)
 {
-    //auto model = ui->tableView->model();
     int rows =  model->rowCount();
-    for (int i = 0; i < model->rowCount(); ++i) {
+    for (int i = 0; i < rows; ++i) {
         auto index = model->index(i, column);
         if(findData){
             if(value == index.data(Qt::UserRole + 1).toString())
@@ -508,6 +585,14 @@ QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &v
     return QModelIndex();
 }
 
+QString MainWindow::validUuid(const QString &uuid)
+{
+    QString _uuid = uuid;
+    _uuid.replace("{", "");
+    _uuid.replace("}", "");
+    return _uuid;
+}
+
 void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
     //qDebug() << __FUNCTION__;
@@ -516,6 +601,10 @@ void MainWindow::onOutputCommandLine(const QString &data, int command)
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
     qDebug() << __FUNCTION__ << "commant: " << command;
+
+    if(data.indexOf("Error:") > 0)
+        return;
+
     terminal->parseCommand(data, command);
 }
 
@@ -693,7 +782,7 @@ void MainWindow::getDataContainersList()
 
         if(!m_client->isStarted())
             return;
-        QString query = "SELECT NULL AS Image, [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]";
+        QString query = "SELECT NULL AS EmptyTitle, [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]";
         auto obj = QJsonObject();
         obj.insert("query", query);
         obj.insert("header", true);
@@ -709,8 +798,6 @@ void MainWindow::getDataContainersList()
 void MainWindow::getDataCertificatesList()
 {
     qDebug() << __FUNCTION__;
-//    auto tableView = ui->tableView;
-//    tableView->setModel(nullptr);
 
     if(_sett->launch_mode() == mixed){
         if(!isDbOpen())
@@ -720,7 +807,7 @@ void MainWindow::getDataCertificatesList()
 
         if(!m_client->isStarted())
             return;
-        QString query = "SELECT [_id]\n"
+        QString query = "SELECT NULL AS Empty\n"
                         ",[FirstField]\n"
                         ",[SecondField]\n"
                         ",[Ref]\n"
@@ -730,6 +817,38 @@ void MainWindow::getDataCertificatesList()
         obj.insert("query", query);
         obj.insert("header", true);
         obj.insert("id_command", "DataCertificatesList");
+        auto doc = QJsonDocument();
+        doc.setObject(obj);
+        QString param = doc.toJson();
+        m_client->sendCommand("exec_query", "", param);
+
+    }
+}
+
+void MainWindow::getDataUsersList()
+{
+    qDebug() << __FUNCTION__;
+
+    if(_sett->launch_mode() == mixed){
+        if(!isDbOpen())
+            return;
+
+    }else{
+
+        if(!m_client->isStarted())
+            return;
+        QString query = "SELECT NULL AS Empty\n"
+                        ", NULL AS EmptyisOnline\n"
+                        ",[FirstField]\n"
+                        ",[Ref]\n"
+                        ",[uuid]\n"
+                        ",[sid]\n"
+                        ",[host]\n"
+                        "FROM [dbo].[CertUsers]";
+        auto obj = QJsonObject();
+        obj.insert("query", query);
+        obj.insert("header", true);
+        obj.insert("id_command", "DataUsersList");
         auto doc = QJsonDocument();
         doc.setObject(obj);
         QString param = doc.toJson();
@@ -836,15 +955,19 @@ void MainWindow::loadItemChilds(QTreeWidgetItem *item)
     auto table = new QStandardItemModel(this);
     table->setColumnCount(1);
     table->setRowCount(item->childCount());    
-    QStringList cols = {item->text(0)};
+    QStringList cols = {"", item->text(0)};
     table->setHorizontalHeaderLabels(cols);
     for (int i = 0; i < item->childCount(); i++) {
         auto child = item->child(i);
-        auto itemTable = new QStandardItem(child->text(0));
+        auto itemTable = new QStandardItem();
         itemTable->setIcon(child->icon(0));
+//        itemTable->setData(child->data(0, Qt::UserRole), Qt::UserRole);
+//        itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+        table->setItem(i, 0, itemTable);
+        itemTable = new QStandardItem(child->text(0));
         itemTable->setData(child->data(0, Qt::UserRole), Qt::UserRole);
         itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-        table->setItem(i, 0, itemTable);
+        table->setItem(i, 1, itemTable);
     }
 
     tableView->setModel(table);
@@ -939,6 +1062,19 @@ bool MainWindow::isCertUserExists(const QString &name, const QString& host)
         }
     }
 
+    return false;
+}
+
+bool MainWindow::isWsUserExists(const QString &name, const QString &host)
+{
+
+    if(modelWsUsers){
+        QString findKey = name + host;
+        for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
+            if(modelWsUsers->rowKey(i) == findKey)
+                return true;
+        }
+    }
     return false;
 }
 
@@ -1211,10 +1347,13 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             treeSetFromSqlContainers();
         }else if(key == "WsActiveUsers"){
             toolBarSetVisible(ui->wToolBarAU, true);
-            treeSetOnlineWSusers();
+            treeSetOnlineWsUsers();
         }else if(key == "SqlCertificates"){
             toolBarSetVisible(ui->wToolBarMain, true);
             treeSetFromSqlCertificates();
+        }else if(key == "SqlUsers"){
+            toolBarSetVisible(ui->wToolBarMain, true);
+            treeSetFromSqlUsers();
         }
     }
 //        return;
@@ -1733,11 +1872,11 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
             if(item){
                 item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
                 if(item->childCount() == 0){
-                    auto Root = addTreeNode("Доступные контейнеры", "currentUserAvailableContainers", ":/img/key.svg");
+                    auto Root = addTreeNode("Доступные контейнеры", "currentUserAvailableContainers", ":/img/key16.png");
                     item->addChild(Root);
-                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry.ico");
+                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
                     Root->addChild(reg);
-                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader.ico");
+                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
                     Root->addChild(dev);
                     getAvailableContainers(usr);
                 }
@@ -1801,7 +1940,9 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
 
 void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
 {
-    QString key = index.data(Qt::UserRole).toString();
+    int row = index.row();
+    QModelIndex _index = ui->tableView->model()->index(row, 1);
+    QString key = _index.data(Qt::UserRole).toString();
     if(!key.isEmpty()){
         auto item = findTreeItem(key);
         if(item){
@@ -1854,6 +1995,8 @@ void MainWindow::on_tableView_clicked(const QModelIndex &index)
 //    }else{
 //        disableToolBar();
 //    }
+
+      qDebug() <<__FUNCTION__;
 }
 
 
@@ -1922,18 +2065,25 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 //    ui->tableView->setModel(model);
 //    ui->tableView->resizeColumnsToContents();
 
-    if(_sett->launch_mode() != mixed){
+    //if(_sett->launch_mode() != mixed){
         auto onlineItem = findTreeItem("WsActiveUsers");
         if(!onlineItem){
             auto root = findTreeItem("WsServer");
             if(root){
-                onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers.png");
+                onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers16.png");
                 root->addChild(onlineItem);
             }
         }
         modelWsUsers->setJsonText(resp);
         modelWsUsers->reset();
-     }
+        int colHost = modelWsUsers->getColumnIndex("host_name");
+        int colName = modelWsUsers->getColumnIndex("user_name");
+        for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
+            auto user = modelWsUsers->index(i, colName).data(Qt::UserRole + colName).toString();
+            auto host = modelWsUsers->index(i, colHost).data(Qt::UserRole + colHost).toString();
+            modelWsUsers->setRowKey(i, user+host);
+        }
+     //}
 
     if(!currentUser)
         return;
@@ -2012,6 +2162,12 @@ void MainWindow::onParseCommand(const QString &result, int command)
     }
 }
 
+void MainWindow::onCmdCommand(const QString &result, int command)
+{
+    qCritical() << __FUNCTION__ << "error:" <<  result;
+    ui->txtTerminal->setText(ui->txtTerminal->toPlainText() +  "\nerror:"  + result);
+}
+
 void MainWindow::onWsExecQuery(const QString &result)
 {
     qDebug() << __FUNCTION__;// << result;
@@ -2037,7 +2193,7 @@ void MainWindow::onWsExecQuery(const QString &result)
         if(!itemContainers){
             auto rootDb = findTreeItem("SqlServer");
             if(rootDb){
-               itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/key_password_lock_800.ico");
+               itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/zamok.png");
                rootDb->addChild(itemContainers);
             }
         }
@@ -2046,7 +2202,7 @@ void MainWindow::onWsExecQuery(const QString &result)
             getDataCertificatesList();
         }
 
-    }if(id_command == "DataCertificatesList"){
+    }else if(id_command == "DataCertificatesList"){
 
         QString base64 = obj.value("table").toString();
         if(base64.isEmpty())
@@ -2061,20 +2217,43 @@ void MainWindow::onWsExecQuery(const QString &result)
         if(!itemCertificates){
             auto rootDb = findTreeItem("SqlServer");
             if(rootDb){
-               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/certificate.ico");
+               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/cert.png");
                rootDb->addChild(itemCertificates);
+            }
+        }
+        auto itemUsers = findTreeItem("SqlUsers");
+        if(!itemUsers){
+            getDataUsersList();
+        }
+    }else if(id_command == "insertContainerToData"){
+        qDebug() << __FUNCTION__ << "Контейнер успешно импортирован в на сервер!";
+        getDataContainersList();
+    }else if(id_command == "deleteContainerFromData"){
+        qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
+        getDataContainersList();
+    }else if(id_command == "DataUsersList"){
+
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString jsonUsers = QByteArray::fromBase64(base64.toUtf8());
+
+        modelSqlUsers->setJsonText(jsonUsers);
+
+        modelSqlUsers->reset();
+
+        auto itemUsers = findTreeItem("SqlUsers");
+        if(!itemUsers){
+            auto rootDb = findTreeItem("SqlServer");
+            if(rootDb){
+               itemUsers = addTreeNode("Пользователи", "SqlUsers", ":/img/certUsers.png");
+               rootDb->addChild(itemUsers);
             }
         }
 //        auto itemContainers = findTreeItem("SqlContainers");
 //        if(!itemContainers){
 //            getDataContainersList();
 //        }
-    }if(id_command == "insertContainerToData"){
-        qDebug() << __FUNCTION__ << "Контейнер успешно импортирован в на сервер!";
-        getDataContainersList();
-    }if(id_command == "deleteContainerFromData"){
-        qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
-        getDataContainersList();
     }
 }
 
@@ -2345,6 +2524,12 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
     }
     //QStringList regData = currentUser->getRigstryData();
     QString name = table->model()->index(index.row(), 2).data().toString();
+
+    auto dlg = new DialogContainerName(name,this);
+    dlg->setModal(true);
+    dlg->exec();
+
+
     QModelIndex _index = table->model()->index(index.row(), 1);
     QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
 
@@ -2365,7 +2550,6 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
     }
 
 }
-
 
 void MainWindow::on_btnCurrentCopyToSql_clicked()
 {
@@ -2570,8 +2754,28 @@ void MainWindow::on_btnConInfo_clicked()
     QModelIndex _index = table->model()->index(index.row(), 1);
     QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", ""); //| iconv -f cp1251
 
-    QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
-    QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
+    //QString pathCmd = "\"" + QDir::toNativeSeparators(QDir::currentPath() + QDir::separator()) + "syswrapper.exe\" ";
+
+    //syswrapper csptest -keyset -container '\"\\.\FAT12_D\58125054@2021-12-06-ООО ГРИНДА ДАЛВЕСТ\"' -info
+
+    QString cmd = QString("syswrapper csptest -keyset -container \"%1\" -info").arg(device);
+
+    //std::cout << cmd.toStdString() << std::endl;
+
+    //QTextCodec *codec = QTextCodec::codecForName("CP866");
+
+    //QTextCodec *codec = QTextCodec::codecForName("KOI8-R");
+
+    //QTextCodec *codec = QTextCodec::codecForName("IBM 866");
+    //QString _cmd = codec->toUnicode(cmd.toUtf8());
+
+    //QByteArray _cmd = codec->fromUnicode(cmd);
+
+    //QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    //QByteArray _cmd = codec->fromUnicode(cmd);
+   //QByteArray _cmd = codec->toUnicode(cmd.toUtf8());
+
+//    QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
 //    QByteArray encodedString = codec->fromUnicode(cmd);
     //QTextCodec *codec = QTextCodec::codecForName( "KOI8-R" );
     //QTextCodec::setCodecForLocale(codec);
@@ -2579,7 +2783,28 @@ void MainWindow::on_btnConInfo_clicked()
     //QByteArray text = cmd.toUtf8();
     //text = codec->toUnicode(text).toUtf8();
     //QByteArray text = codec->fromUnicode( cmd.toUtf8() );
-    terminal->send(cmd, unknown);
+    //terminal->setUseSystem(true);
 
+    terminal->send(cmd, csptestContainerCopy);
+    //terminal->setUseSystem(false);
+
+}
+
+void MainWindow::createColumnAliases()
+{
+    m_colAliases.insert("uuid", "ID");
+    m_colAliases.insert("name", "Имя");
+    m_colAliases.insert("uuid_user", "ID пользователя");
+    m_colAliases.insert("user_uuid", "ID пользователя");
+    m_colAliases.insert("app_name", "Приложение");
+    m_colAliases.insert("user_name", "Имя пользователя");
+    m_colAliases.insert("ip_address", "IP адрес");
+    m_colAliases.insert("host_name", "Host");
+    m_colAliases.insert("Ref", "Ссылка");
+    m_colAliases.insert("FirstField", "Имя");
+    m_colAliases.insert("SecondField", "Представление");
+    m_colAliases.insert("privateKey", "Ключ");
+    m_colAliases.insert("_id", "Иднекс");
+    m_colAliases.insert("sid", "SID");
 }
 

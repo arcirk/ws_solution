@@ -12,7 +12,6 @@
 #include <QFileInfo>
 #include <QDir>
 
-
 QJsonTableModel::QJsonTableModel(QObject *parent)
         : QAbstractTableModel(parent)
 {
@@ -21,6 +20,9 @@ QJsonTableModel::QJsonTableModel(QObject *parent)
     m_header = header;
     m_json = QJsonArray();
     _header = QJsonArray();
+    _rowsIcon = QIcon();
+    m_rowIcon = {};
+    m_rowKeys = {};
 }
 
 bool QJsonTableModel::setJson(const QJsonDocument &json)
@@ -34,7 +36,7 @@ bool QJsonTableModel::setJson(const QJsonDocument &json)
     m_header.clear();
 
     int i = 0;
-    for (auto itr : _header) {
+    foreach (const auto& itr , _header) {
         QString column = itr.toString();
         m_header.push_back( QJsonTableModel::Heading( { {"title",column},    {"index",column} }) );
         i++;
@@ -66,8 +68,18 @@ QVariant QJsonTableModel::headerData(int section, Qt::Orientation orientation, i
 
     switch( orientation )
     {
-        case Qt::Horizontal:
-            return m_header[section]["title"];
+        case Qt::Horizontal:{
+            QString hData = m_header[section]["title"];
+            if(hData.left(5) == "Empty")
+                return QVariant();
+            else{
+                auto alias = m_colAliases.find(hData);
+                if(alias != m_colAliases.end()){
+                    return alias.value();
+                }else
+                    return hData;
+            }
+        }
         case Qt::Vertical:
             //return section + 1;
             return QVariant();
@@ -100,7 +112,8 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
 
     if (role >= Qt::UserRole){
         QJsonObject obj = getJsonObject( index );
-        QString key = QString::fromStdString(roleNames()[role].toStdString());
+        QHash<int, QByteArray> roles = roleNames();
+        QString key = roles[role]; //QString::fromStdString(roleNames()[role].toStdString());
         if( obj.contains( key ))
         {
             QJsonValue v = obj[ key ];
@@ -110,12 +123,27 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
                 return v.toString();
             }
             else if( v.isDouble() )
-            {
-                return QString::number( v.toDouble() );
+            {               
+                if(v.toDouble() != 0)
+                    return QString::number( v.toDouble() );
+                else
+                    return QVariant();
             }
             else if( v.isBool() )
             {
-                return QString::number( v.toBool());
+                //return QString::number( v.toBool());
+                return v.toBool();
+            }
+        }
+    }if ( role == Qt::DecorationRole ) {
+        if(index.column() == 0){
+            if(!_rowsIcon.isNull())
+                return _rowsIcon;
+        }else{
+            auto pair = qMakePair(index.row(), index.column());
+            auto iter = m_rowIcon.constFind(pair);
+            if(iter !=  m_rowIcon.end()){
+                return iter.value();////m_rowIcon[pair];
             }
         }
     }
@@ -136,7 +164,15 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
                 }
                 else if( v.isDouble() )
                 {
-                    return QString::number( v.toDouble() );
+                    //return QString::number( v.toDouble() );
+                    if(v.toDouble() != 0)
+                        return QString::number( v.toDouble() );
+                    else
+                        return QVariant();
+                }else if( v.isBool() )
+                {
+                    //return QString::number( v.toBool());
+                    return v.toBool();
                 }
                 else
                 {
@@ -178,7 +214,7 @@ int QJsonTableModel::getColumnIndex(const QString &name) {
     if (names.size() == 0)
         return 0;
 
-    for (auto key : names.keys()) {
+    foreach (const auto& key , names.keys()) {
 
         if (names[key] == name.toUtf8()){
             return key - Qt::UserRole;
@@ -213,7 +249,36 @@ void QJsonTableModel::setJsonText(const QString &source) {
 
 }
 
+void QJsonTableModel::setColumnAliases(const QMap<QString, QString> &columnAliases)
+{
+    m_colAliases = columnAliases;
+}
+
 void QJsonTableModel::reset() {
     beginResetModel();
     endResetModel();
+}
+
+void QJsonTableModel::setRowsIcon(const QIcon &ico)
+{
+    _rowsIcon = ico;
+}
+
+void QJsonTableModel::setIcon(const QModelIndex& index, const QIcon &ico)
+{
+    m_rowIcon.insert(qMakePair(index.row(), index.column()), ico);
+}
+
+void QJsonTableModel::setRowKey(int row, const QString &key)
+{
+    m_rowKeys.insert(row, key);
+}
+
+QString QJsonTableModel::rowKey(int index)
+{
+    auto iter = m_rowKeys.find(index);
+    if(iter != m_rowKeys.end())
+        return iter.value();
+    else
+        return "";
 }

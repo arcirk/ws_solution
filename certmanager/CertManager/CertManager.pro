@@ -22,6 +22,7 @@ SOURCES += \
     databasemanager.cpp \
     dialogcomputer.cpp \
     dialogconnection.cpp \
+    dialogcontainername.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
     dialogselectfromdatabase.cpp \
@@ -32,6 +33,7 @@ SOURCES += \
     mainwindow.cpp \
     registry.cpp \
     settings.cpp \
+    tabledelegate.cpp \
     user.cpp
 
 HEADERS += \
@@ -46,6 +48,7 @@ HEADERS += \
     databasemanager.h \
     dialogcomputer.h \
     dialogconnection.h \
+    dialogcontainername.h \
     dialogoptions.h \
     dialogselectdevice.h \
     dialogselectfromdatabase.h \
@@ -55,11 +58,13 @@ HEADERS += \
     mainwindow.h \
     registry.h \
     settings.h \
+    tabledelegate.h \
     user.h
 
 FORMS += \
     dialogcomputer.ui \
     dialogconnection.ui \
+    dialogcontainername.ui \
     dialogoptions.ui \
     dialogselectdevice.ui \
     dialogselectfromdatabase.ui \

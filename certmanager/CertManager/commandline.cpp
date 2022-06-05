@@ -52,9 +52,14 @@ void CommandLine::readyReadStandardError() {
     if(!m_listening) return;
     //qInfo() << Q_FUNC_INFO;
     QByteArray data = m_process.readAllStandardError();
-    QString message = "Standard Error: ";
-    message.append(data);
-    emit output(message, _command);
+    QString message = encodeData(data, _method);
+    //QString message = "Standard Error: ";
+    //message.append(data);
+    //    emit output("Standard Error: " + message, _command);
+
+    emit error(message, _command);
+
+    //emit output(message, _command);
 }
 
 void CommandLine::readyReadStandardOutput() {
@@ -150,7 +155,7 @@ QString CommandLine::encodeData(const QByteArray &data, int m)
 
 std::string CommandLine::executeSystem(const std::string &cmd)
 {
-    std::string file_name = "C:\\temp\\result.txt" ;
+    std::string file_name = "result.txt" ;
     std::string _cmd = cmd;
     _cmd.append(" > " + file_name);
     int r = std::system( _cmd.c_str());
@@ -265,6 +270,13 @@ void CommandLine::send(const QString &commandText, int command)
     if(QString(commandText).right(1) != "\n")
         _commandText = commandText + "\n";
 
+    if(program == "powershell"){
+        _commandText.replace("\"", "'");
+        if(_commandText.left(QString("csptest").length()) == "csptest"){
+            _commandText = ".\\" + _commandText;
+        }
+    }
+
     _lastCommand = _commandText;
 
     _command = command;
@@ -277,6 +289,25 @@ void CommandLine::send(const QString &commandText, int command)
         emit output(QString::fromStdString(_result), command);
     }
 }
+
+//void CommandLine::send(const QByteArray &commandText, int command)
+//{
+////    QString _commandText = commandText;
+////    if(QString(commandText).right(1) != "\n")
+////        _commandText = commandText + "\n";
+
+//    _lastCommand = commandText;
+
+//    _command = command;
+//    if(!useSystem()){
+//        if(m_listening){
+//            m_process.write(commandText);
+//        }
+//    }else{
+////        std::string _result = executeSystem(_commandText.toStdString());
+////        emit output(QString::fromStdString(_result), command);
+//    }
+//}
 
 void CommandLine::clearBuffer()
 {

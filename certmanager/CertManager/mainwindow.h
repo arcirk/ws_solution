@@ -59,6 +59,7 @@ private slots:
     void UpdateRowIcons();
     void onGetActiveUsers(const QString& resp);
     void onParseCommand(const QString& result, int command);
+    void onCmdCommand(const QString& result, int command);
     void onWsExecQuery(const QString& result);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
@@ -101,6 +102,7 @@ private:
     QJsonTableModel * modelSqlContainers;
     QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
+    QJsonTableModel * modelSqlUsers;
 
     SqlInterface * db;
     QLabel * infoBar;
@@ -116,6 +118,10 @@ private:
     QString _launch_mode;
 
     QMap<QUuid, CertUser*> m_actUsers;
+    QMap<QString, QString> m_colAliases;
+
+    void createColumnAliases();
+
 #ifdef _WINDOWS
     void execute_command(QString param);
 #endif
@@ -132,6 +138,7 @@ private:
 
     void getDataContainersList();
     void getDataCertificatesList();
+    void getDataUsersList();
 
     void LoadUsersList();
     void loadCertList();
@@ -144,6 +151,7 @@ private:
     void disableToolBar();
     bool isContainerExists(const QString& name);
     bool isCertUserExists(const QString& name, const QString& host = "");
+    bool isWsUserExists(const QString& name, const QString& host = "");
     bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
     void loadCimputers();
@@ -164,10 +172,13 @@ private:
 
     void treeSetCurrentContainers(QStringList data);
     void treeSetFromSqlContainers();
+    void treeSetFromSqlUsers();
     void treeSetFromSqlCertificates();
-    void treeSetOnlineWSusers();
+    void treeSetOnlineWsUsers();
 
     QModelIndex findInTable(QAbstractItemModel * model, const QString& value, int column, bool findData = true);
+
+    QString validUuid(const QString& uuid);
 
 };
 #endif // MAINWINDOW_H

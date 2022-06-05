@@ -10,7 +10,7 @@
 #include <QAbstractTableModel>
 #include <QJsonDocument>
 #include <QJsonArray>
-//#include <QSortFilterProxyModel>
+#include <QIcon>
 
 class QJsonTableModel : public QAbstractTableModel{
 
@@ -35,8 +35,14 @@ public:
 
     QString jsonText() const;
     void setJsonText(const QString& source);
+    void setColumnAliases(const QMap<QString, QString>& columnAliases);
 
     Q_INVOKABLE void reset();
+
+    void setRowsIcon(const QIcon& ico);
+    void setIcon(const QModelIndex& index, const QIcon& ico);
+    void setRowKey(int row, const QString& key);
+    QString rowKey(int index);
 
 signals:
     void jsonTextChanged();
@@ -47,5 +53,10 @@ private:
     Header m_header{};
     QJsonArray m_json;
     QJsonArray _header;
+    QMap<QString, QString> m_colAliases;
+    QIcon _rowsIcon;
+    QMap<QPair<int,int>, QIcon> m_rowIcon;
+    QMap<int, QString> m_rowKeys;
+
 };
 #endif //WS_SOLUTION_QJSONTABLEMODEL_H
