@@ -51,12 +51,22 @@ void DialogSelectInList::accept()
         return;
     }
 
-    _result = index.data().toString();
+    auto model = ui->tableView->model();
+
+    for (int i = 0; i < model->columnCount(); ++i) {
+        _result.append(model->index(index.row(), i).data().toString());
+    }
 
     QDialog::accept();
 }
 
-QString DialogSelectInList::dialogResult()
+QStringList DialogSelectInList::dialogResult()
 {
     return _result;
 }
+
+void DialogSelectInList::on_tableView_doubleClicked(const QModelIndex &index)
+{
+    accept();
+}
+

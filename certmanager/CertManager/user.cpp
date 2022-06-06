@@ -61,11 +61,11 @@ QStringList CertUser::getRigstryData()
 {
     QStringList result;
     QRegularExpression ex("REGISTRY");
-    for(auto str : _containers){
+    foreach(auto str , _containers){
         if(str.isEmpty())
             continue;
         if(str.indexOf(ex) > 0)
-            result.append(str);
+            result.append(str.replace("\r", ""));
     }
     return result;
 }
@@ -74,11 +74,11 @@ QStringList CertUser::getDivaceData()
 {
     QStringList result;
     QRegularExpression ex("REGISTRY");
-    for(auto str : _containers){
+    foreach(auto str , _containers){
         if(str.isEmpty())
             continue;
         if(str.indexOf(ex) < 0)
-            result.append(str);
+            result.append(str.replace("\r", ""));
     }
     return result;
 }

@@ -34,6 +34,9 @@
     #pragma warning(disable:4100)
 #endif
 
+const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
+        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -181,7 +184,7 @@ void MainWindow::createTerminal()
 
     connect(terminal, &CommandLine::output, this, &MainWindow::onOutputCommandLine);
     connect(terminal, &CommandLine::endParse, this, &MainWindow::onParseCommand);
-    connect(terminal, &CommandLine::error, this, &MainWindow::onCmdCommand);
+    connect(terminal, &CommandLine::error, this, &MainWindow::onCommandError);
 
     terminal->start();
     if(isUseCsptest)
@@ -436,6 +439,27 @@ QTreeWidgetItem * MainWindow::findTreeItem(const QString& key, QTreeWidgetItem* 
     return nullptr;
 }
 
+QJsonObject MainWindow::parseDeviceString(const QString& key){
+    QJsonObject obj = QJsonObject();
+    QStringList m_data = key.split("\\");
+
+    QString device =  m_data[3].replace("\r", "");
+    QString volume =  device;
+    volume.replace("FAT12_", "");
+    QString nameBase64 =  m_data[4].replace("\r", "");
+    QString name = fromBase64(nameBase64);
+    int ind =  name.indexOf("@");
+    QString key_name = name.left(ind);
+
+    obj.insert("device", device);
+    obj.insert("nameBase64", nameBase64);
+    obj.insert("name", name);
+    obj.insert("key_name", key_name);
+    obj.insert("volume", volume);
+
+    return obj;
+}
+
 void MainWindow::treeSetCurrentContainers(QStringList keys)
 {
         //QStringList keys = usr->containers();
@@ -452,8 +476,8 @@ void MainWindow::treeSetCurrentContainers(QStringList keys)
         foreach(const QString& key, keys){
             QStringList m_data = key.split("\\");
             if(m_data.size() == 5){
-                QString divace = m_data[3].replace("\r", "");
-                auto itemTable = new QStandardItem(divace);
+                QString device = m_data[3].replace("\r", "");
+                auto itemTable = new QStandardItem(device);
                 itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
                 itemTable->setData(key);
                 table->setItem(i, 1, itemTable);
@@ -677,6 +701,19 @@ QString MainWindow::fromBase64(const QString &value)
         return value;
     }
 }
+
+bool MainWindow::isCyrillic(const QString &source)
+{
+    for (int i = 0; i < source.length();  ++i) {
+
+        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
+            return true;
+    }
+
+    return false;
+}
+
+
 
 void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
@@ -1642,7 +1679,7 @@ void MainWindow::on_btnAdd_clicked()
         dlg->setModal(true);
         dlg->exec();
         if(dlg->result() == QDialog::Accepted){
-            QString userName = dlg->dialogResult();
+            QString userName = dlg->dialogResult()[0];
         }
     }else if(currentNode == "Компьютеры"){
         auto dlg = new DialogComputer(this);
@@ -2256,9 +2293,10 @@ void MainWindow::onParseCommand(const QString &result, int command)
     }
 }
 
-void MainWindow::onCmdCommand(const QString &result, int command)
+void MainWindow::onCommandError(const QString &result, int command)
 {
-    qCritical() << __FUNCTION__ << "error:" <<  result;
+    //qCritical() << __FUNCTION__ << "error: " <<  result;
+    QMessageBox::critical(this, "Ошибка", result);
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() +  "\nerror:"  + result);
 }
 
@@ -2588,17 +2626,23 @@ void MainWindow::on_btnSendCommand_clicked()
 void MainWindow::on_btnCurrentCopyToDisk_clicked()
 {
 
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+        return;
+    }
+
     auto model = new QStandardItemModel(this);
     model->setColumnCount(2);
     model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
 
-    //QStringList volumes{};
     foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
          if (storage.isValid() && storage.isReady()) {
              model->setRowCount(model->rowCount() +1);
              if (!storage.isReadOnly()) {
                  QStringList v = storage.rootPath().split(":");
-                 QString vol = QString("\\\\.\\FAT12_%1").arg(v[0]);
+                 QString vol = QString("\\\\.\\FAT12_%1\\").arg(v[0]);
 
                  int row = model->rowCount()-1;
                  auto item = new QStandardItem(vol);
@@ -2607,19 +2651,67 @@ void MainWindow::on_btnCurrentCopyToDisk_clicked()
                  model->setItem(row, 1, item);
                  item = new QStandardItem(storage.displayName());
                  model->setItem(row, 2, item);
-
-                 //volumes.append( storage.displayName() + " (" + storage.rootPath() + ")");
              }
          }
      }
+    model->setRowCount(model->rowCount() +1);
+    int row = model->rowCount()-1;
+    auto item = new QStandardItem("\\\\.\\REGISTRY\\");
+    model->setItem(row, 0, item);
+    item = new QStandardItem("Реестр");
+    model->setItem(row, 1, item);
 
-    auto dlg = new DialogSelectInList(model, "Выбор устройства", this);
-    dlg->setModal(true);
-    dlg->exec();
-    if(dlg->result() == QDialog::Accepted){
-        QString volume = dlg->dialogResult();
-        qDebug() << volume;
+    auto dlgSel = new DialogSelectInList(model, "Выбор устройства", this);
+    dlgSel->setModal(true);
+    dlgSel->exec();
+    if(dlgSel->result() == QDialog::Accepted){
+        QString volume = dlgSel->dialogResult()[0];
+        QString path = dlgSel->dialogResult()[1];
 
+        QString name = table->model()->index(index.row(), 2).data().toString();
+        int ind = name.indexOf("@");
+        QString key_name = name.left(ind + 1) + ".000";
+
+        if(path != "Реестр"){
+            QDir dir(path + key_name);
+            if(dir.exists()){
+                QMessageBox::critical(this, "Ошибка", QString("Каталог с именем %1 уже существует на устройстве!").arg(key_name));
+                return;
+            }
+        }
+
+        auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер: \n%1 \n на устройство?").arg(volume));
+
+        if(result != QMessageBox::Yes){
+            return;
+        }
+
+        auto dlg = new DialogContainerName(name,this);
+        dlg->setModal(true);
+        dlg->exec();
+
+        if(dlg->result() != QDialog::Accepted)
+            return;
+
+        QString newName = dlg->keyName() + dlg->name();
+        QString nameBase64 = volume + QByteArray(newName.toUtf8()).toBase64();
+
+        if(path == "Реестр"){
+            QStringList lst = currentUser->getRigstryData();
+
+            if(lst.lastIndexOf(newName) != -1 || lst.lastIndexOf(nameBase64) != -1){
+                QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
+                return;
+            }
+        }
+
+
+
+        QModelIndex _index = table->model()->index(index.row(), 1);
+        QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+
+        QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+        terminal->send(cmd, csptestContainerCopy);
     }
 }
 
@@ -2648,29 +2740,58 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
     if(dlg->result() != QDialog::Accepted)
         return;
 
-    QString newName = dlg->keyName() + "@" + dlg->name();
+    QString newName = dlg->keyName() + dlg->name();
+
+    QString nameBase64 = QString("\\\\.\\REGISTRY\\%1").arg(QByteArray(newName.toUtf8()).toBase64());
+
     QStringList lst = currentUser->getRigstryData();
-    if(lst.indexOf(newName)){
+    QString tmp =  QString("\\\\.\\REGISTRY\\%1").arg(newName);
+    if(lst.indexOf(tmp) != -1 || lst.indexOf(nameBase64) != -1){
         QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
         return;
     }
-    QString nameBase64 = QByteArray(newName.toUtf8()).toBase64();
 
+#ifdef _WINDOWS
     QModelIndex _index = table->model()->index(index.row(), 1);
     QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
-
-    if(!currentUser->sid().isEmpty()){
-        QStringList lst = Registry::currentUserContainers(currentUser->sid());
-        if(lst.indexOf(newName) > 0 || lst.indexOf(nameBase64) > 0){
-            qDebug() << __FUNCTION__ << "Контейнер уже загружен в реестр!";
-        }else{
-            qDebug() << __FUNCTION__ << "Контейнера нет в реестре!"; //-pinsrc=\"\"
-            qDebug() << device;
-            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"\\\\.\\REGISTRY\\%2\" -pindest=\"\"").arg(device, nameBase64);
-            terminal->send(cmd, csptestContainerCopy);
+    if(isCyrillic(device)){
+        if(currentUser->sid().isEmpty()){
+            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
+            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+            return;
         }
+        auto m_device = parseDeviceString(device);
+        QString volume = m_device.value("volume").toString();
+        if(volume.length() == 1){
+            volume = volume + ":\\";
+        }
+        QDir dir(volume + m_device.value("key_name").toString() + ".000");
+        if(dir.exists()){
+            auto keyCon = KeysContainer();
+            keyCon.fromFolder(dir.path());
+            if(keyCon.isValid()){
+                keyCon.setPath(currentUser->sid(), QByteArray(newName.toUtf8()).toBase64());
+                bool result = keyCon.syncRegystry();
+                if(result){
+                    QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
+                    getAvailableContainers(currentUser);
+                }else{
+                    QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
+                    terminal->send(cmd, cmdCommand::csptestContainerDelete);
+                }
+            }
+        }else{
+            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
+            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+        }
+    }else{
+        QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+        terminal->send(cmd, csptestContainerCopy);
     }
-
+#else
+    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+    terminal->send(cmd, csptestContainerCopy);
+#endif
 }
 
 void MainWindow::on_btnCurrentCopyToSql_clicked()
@@ -2949,9 +3070,11 @@ void MainWindow::on_btnCurrentDelete_clicked()
     auto tree = ui->treeWidget;
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
-    if(node == "currentUserRegistry"){
+    QString deleteKey = node == "currentUserRegistry" ? "из реестра" : "с устройства";
+
+    //if(node == "currentUserRegistry"){
         QString name = table->model()->index(index.row(), 2).data().toString();
-        auto result =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить контейнер: \n%1 \nиз реестра?").arg(name));
+        auto result =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить контейнер: \n%1 \n%2?").arg(name, deleteKey));
 
         if(result != QMessageBox::Yes){
             return;
@@ -2960,9 +3083,44 @@ void MainWindow::on_btnCurrentDelete_clicked()
         QModelIndex _index = table->model()->index(index.row(), 1);
         QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
 
-        //QString containerFullName =
+#ifdef _WINDOWS
+        if(isCyrillic(device)){
+            bool isDisk = false;
+            auto m_device = parseDeviceString(device);
+            QString volume = m_device.value("volume").toString();
+            if(volume.length() == 1){
+                volume = volume + ":\\";
+                isDisk = true;
+            }
+            if(isDisk){
+                QDir dir(volume + m_device.value("key_name").toString() + ".000");
+                if(dir.exists()){
+                    dir.removeRecursively();
+                    QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
+                    return;
+                }
+            }else{
+                if(currentUser->sid().isEmpty()){
+                    QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
+                    terminal->send(cmd, cmdCommand::csptestContainerDelete);
+                    return;
+                }
+                auto keyCon = KeysContainer();
+                keyCon.setPath(m_device.value("fullName").toString(), currentUser->sid());
+                bool result = keyCon.removeContainer(currentUser->sid(), m_device.value("name").toString());
+                if(result){
+                    QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
+                    getAvailableContainers(currentUser);
+                }
+            }
+
+        }else{
+            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
+            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+        }
+#else
         QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
         terminal->send(cmd, cmdCommand::csptestContainerDelete);
-    }
+#endif
 }
 

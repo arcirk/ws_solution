@@ -394,13 +394,6 @@ QString CommandLine::parseCommand(const QString &result, int command)
                         break;
                     }
                 }else{
-//                    if(tmp.left(1) == "S")
-//                        continue;
-//                    QString _res = tmp.replace("\r", "").trimmed();
-//                    //emit endParse(_res, command);
-//                    //m_process.setReadChannel(QProcess::StandardOutput);
-//                    currentEncoding = _res;
-//                    break;
                     continue;
                 }
             }
@@ -424,17 +417,22 @@ QString CommandLine::parseCommand(const QString &result, int command)
             QString _info = _str.left(pKey);
             QString tmp = _str.mid(pKey, endpKey - pKey);
             _info.append("\n" + tmp);
-//            QString tmp;
-//            for (int i = pKey; i < _str.length(); ++i) {
-//                if(_str.mid(i, 1) != "\n")
-//                    tmp.append()
-//            }
             emit endParse(_info.replace("\r", ""), command);
         }
     }else if(command == csptestContainerCopy){
-        emit endParse("OK", command);
+//       qDebug() << qPrintable(result);
+//       QString cur = "csptest -keycopy";
+//       if(result.left(cur.length()) != cur){
+           int ind = result.indexOf("[ErrorCode: 0x00000000]");
+           if(ind > 0){
+                emit endParse("OK", command);
+           }
+       //}
     }else if(command == csptestContainerDelete){
-        emit endParse("OK", command);
+        int ind = result.indexOf("[ErrorCode: 0x00000000]");
+        if(ind > 0){
+             emit endParse("OK", command);
+        }
     }
     return result;
 }

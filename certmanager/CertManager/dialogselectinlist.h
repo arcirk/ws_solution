@@ -23,11 +23,14 @@ public:
 
     void accept() override;
 
-    QString dialogResult();
+    QStringList dialogResult();
+
+private slots:
+    void on_tableView_doubleClicked(const QModelIndex &index);
 
 private:
     Ui::DialogSelectInList *ui;
-    QString _result;
+    QStringList _result;
 };
 
 #endif // DIALOGSELECTINLIST_H

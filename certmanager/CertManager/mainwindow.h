@@ -59,7 +59,7 @@ private slots:
     void UpdateRowIcons();
     void onGetActiveUsers(const QString& resp);
     void onParseCommand(const QString& result, int command);
-    void onCmdCommand(const QString& result, int command);
+    void onCommandError(const QString& result, int command);
     void onWsExecQuery(const QString& result);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
@@ -185,8 +185,11 @@ private:
 
     QString fromBase64(const QString& value);
 
-    static inline bool byte_is_base64(unsigned char c) {
-        return (isalnum(c) || (c == '+') || (c == '/'));
-    }
+//    static inline bool byte_is_base64(unsigned char c) {
+//        return (isalnum(c) || (c == '+') || (c == '/'));
+//    }
+
+    bool isCyrillic(const QString& source);
+    QJsonObject parseDeviceString(const QString& key);
 };
 #endif // MAINWINDOW_H

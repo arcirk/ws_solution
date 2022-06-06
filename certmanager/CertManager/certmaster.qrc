@@ -46,5 +46,6 @@
         <file>img/user.png</file>
         <file>img/certUsers.png</file>
         <file>img/keyUser16.png</file>
+        <file>img/!.png</file>
     </qresource>
 </RCC>

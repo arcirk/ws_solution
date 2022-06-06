@@ -56,9 +56,13 @@ public:
     QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
 
     QString path();
+    void setPath(const QString& sid, const QString& containerName);
 
     QString containerInfo();
     void parseCsptestInfo(const QString& info);
+
+    bool syncRegystry();
+    bool removeContainer(const QString& sid, const QString& containerName);
 
 private:
     QString _path;

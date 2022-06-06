@@ -86,7 +86,7 @@ QByteArray KeysContainer::primary2_key()
 
 void KeysContainer::set_header_key(const QByteArray &value)
 {
-
+    _header_key = value;
 }
 
 void KeysContainer::set_masks_key(const QByteArray &value)
@@ -264,6 +264,11 @@ QString KeysContainer::path()
     return _path;
 }
 
+void KeysContainer::setPath(const QString &sid, const QString& containerName)
+{
+    _path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, containerName);
+}
+
 void KeysContainer::parseCsptestInfo(const QString &info)
 {
     int ind = info.indexOf("KP_CERTIFICATE:");
@@ -271,6 +276,37 @@ void KeysContainer::parseCsptestInfo(const QString &info)
         int pKey = info.indexOf("PrivKey", ind);
         QString _info = info.mid(ind, pKey);
     }
+}
+
+bool KeysContainer::syncRegystry()
+{
+    if(!isValid()){
+        qCritical() << __FUNCTION__ << "класс не инициализирован!";
+        return false;
+    }
+    auto reg = QSettings(_path, QSettings::NativeFormat);
+    for(int i = 0; i < KeyFiles.size(); ++i){
+        QString key = KeyFiles[i];
+        auto funcGet = get_get_function(i);
+        QByteArray data = funcGet();
+        if(data.isEmpty())
+            return false;
+        reg.setValue(key, data);
+    }
+
+    reg.sync();
+
+    return true;
+}
+
+bool KeysContainer::removeContainer(const QString &sid, const QString &containerName)
+{
+    QString s_path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys").arg(sid);
+    QSettings reg = QSettings(s_path, QSettings::NativeFormat);
+    reg.beginGroup(containerName);
+    reg.remove("");
+    reg.endGroup();
+    return true;
 }
 
 std::map<std::string, set_keys> KeysContainer::set_function()
@@ -371,7 +407,6 @@ void KeysContainer::fromRegistry(const QString &name, const QString &sid)
     _isValid = false;
     auto func = set_function();
 
-
     const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, name);
     QSettings reg = QSettings(root, QSettings::NativeFormat);
     for(int i = 0; i < KeyFiles.size(); ++i){
@@ -383,12 +418,6 @@ void KeysContainer::fromRegistry(const QString &name, const QString &sid)
             return;
     }
 
-//    _header_key = reg.value("header.key").toByteArray();
-//    _masks_key = reg.value("masks.key").toByteArray();
-//    _masks2_key = reg.value("masks2.key").toByteArray();
-//    _name_key = reg.value("name.key").toByteArray();
-//    _primary_key = reg.value("primary.key").toByteArray();
-//    _primary2_key = reg.value("primary2.key").toByteArray();
     _path = root;
     _name = name;
     _isValid = true;

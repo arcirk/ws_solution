@@ -374,6 +374,10 @@
            <property name="text">
             <string>...</string>
            </property>
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/!.png</normaloff>:/img/!.png</iconset>
+           </property>
           </widget>
          </item>
          <item>
