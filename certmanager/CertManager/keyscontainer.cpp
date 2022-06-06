@@ -264,6 +264,15 @@ QString KeysContainer::path()
     return _path;
 }
 
+void KeysContainer::parseCsptestInfo(const QString &info)
+{
+    int ind = info.indexOf("KP_CERTIFICATE:");
+    if(ind > 0){
+        int pKey = info.indexOf("PrivKey", ind);
+        QString _info = info.mid(ind, pKey);
+    }
+}
+
 std::map<std::string, set_keys> KeysContainer::set_function()
 {
     std::map<std::string, set_keys> f;

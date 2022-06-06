@@ -43,11 +43,13 @@ public:
     void setIcon(const QModelIndex& index, const QIcon& ico);
     void setRowKey(int row, const QString& key);
     QString rowKey(int index);
+    void setFormatColumn(int column, const QString& fmt);
 
 signals:
     void jsonTextChanged();
 private:
     bool setJson( const QJsonArray& array );
+    static QString fromBase64(const QString& str);
     virtual QJsonObject getJsonObject( const QModelIndex &index ) const;
 
     Header m_header{};
@@ -57,6 +59,8 @@ private:
     QIcon _rowsIcon;
     QMap<QPair<int,int>, QIcon> m_rowIcon;
     QMap<int, QString> m_rowKeys;
+   // QList<QModelIndex> m_fmtText;
+    QMap<int, QString> m_fmtText;
 
 };
 #endif //WS_SOLUTION_QJSONTABLEMODEL_H

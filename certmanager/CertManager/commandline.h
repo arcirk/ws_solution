@@ -14,8 +14,8 @@
 //#include <windows.h>
 
 #ifdef _WINDOWS
-//static const QString program = "cmd";
-static const QString program = "powershell";
+static const QString program = "cmd";
+//static const QString program = "powershell";
 #else
 static const QString program = "/bin/bash";
 #endif
@@ -27,6 +27,8 @@ enum cmdCommand{
     echoGetEncoding,
     csptestGetConteiners,
     csptestContainerCopy,
+    csptestContainerFnfo,
+    csptestContainerDelete,
     unknown
 };
 

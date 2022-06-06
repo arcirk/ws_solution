@@ -23,6 +23,7 @@ QJsonTableModel::QJsonTableModel(QObject *parent)
     _rowsIcon = QIcon();
     m_rowIcon = {};
     m_rowKeys = {};
+    m_fmtText = {};
 }
 
 bool QJsonTableModel::setJson(const QJsonDocument &json)
@@ -54,6 +55,22 @@ bool QJsonTableModel::setJson( const QJsonArray& array )
     m_json = array;
     endResetModel();
     return true;
+}
+
+QString QJsonTableModel::fromBase64(const QString &str)
+{
+    QString s = str.trimmed();
+    QRegularExpression re("^[a-zA-Z0-9\\+/]*={0,3}$");
+    bool isBase64 = (s.length() % 4 == 0) && re.match(s).hasMatch();
+    if(!isBase64)
+       return str;
+
+    QString result;
+    try {
+        return QByteArray::fromBase64(str.toUtf8());
+    }  catch (std::exception &e) {
+        return str;
+    }
 }
 
 QVariant QJsonTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -120,7 +137,14 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
 
             if( v.isString() )
             {
-                return v.toString();
+                auto itr = m_fmtText.find(index.column());
+                if(itr != m_fmtText.end()){
+                    if(itr.value() == "base64"){
+                        return fromBase64(v.toString());
+                    }else
+                        return v.toString();
+                }else
+                    return v.toString();
             }
             else if( v.isDouble() )
             {               
@@ -160,7 +184,14 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
 
                 if( v.isString() )
                 {
-                    return v.toString();
+                    auto itr = m_fmtText.find(index.column());
+                    if(itr != m_fmtText.end()){
+                        if(itr.value() == "base64"){
+                            return fromBase64(v.toString());
+                        }else
+                            return v.toString();
+                    }else
+                        return v.toString();
                 }
                 else if( v.isDouble() )
                 {
@@ -281,4 +312,9 @@ QString QJsonTableModel::rowKey(int index)
         return iter.value();
     else
         return "";
+}
+
+void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
+{
+    m_fmtText.insert(column, fmt);
 }

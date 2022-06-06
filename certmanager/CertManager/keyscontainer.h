@@ -57,6 +57,9 @@ public:
 
     QString path();
 
+    QString containerInfo();
+    void parseCsptestInfo(const QString& info);
+
 private:
     QString _path;
     QByteArray _header_key;

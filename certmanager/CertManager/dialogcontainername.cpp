@@ -9,7 +9,8 @@ DialogContainerName::DialogContainerName(const QString& currName, QWidget *paren
 
     int ind = currName.indexOf("@");
 
-    ui->lineKeyName->setText(currName.left(ind + 1));
+    key_name = currName.left(ind + 1);
+    ui->lineKeyName->setText(key_name);
     ui->lineContainerName->setText(currName.right(currName.length() - (ind+1)));
 
     setWindowTitle("Имя контейнера");
@@ -18,6 +19,22 @@ DialogContainerName::DialogContainerName(const QString& currName, QWidget *paren
 DialogContainerName::~DialogContainerName()
 {
     delete ui;
+}
+
+void DialogContainerName::accept()
+{
+    new_name = ui->lineContainerName->text();
+    QDialog::accept();
+}
+
+QString DialogContainerName::name() const
+{
+    return new_name;
+}
+
+QString DialogContainerName::keyName()
+{
+    return key_name;
 }
 
 void DialogContainerName::on_lineContainerName_textChanged(const QString &arg1)

@@ -93,6 +93,8 @@ private slots:
 
     void on_btnConInfo_clicked();
 
+    void on_btnCurrentDelete_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -175,10 +177,16 @@ private:
     void treeSetFromSqlUsers();
     void treeSetFromSqlCertificates();
     void treeSetOnlineWsUsers();
+    void updateContainerInfoOnData(const QString& info);
 
     QModelIndex findInTable(QAbstractItemModel * model, const QString& value, int column, bool findData = true);
 
     QString validUuid(const QString& uuid);
 
+    QString fromBase64(const QString& value);
+
+    static inline bool byte_is_base64(unsigned char c) {
+        return (isalnum(c) || (c == '+') || (c == '/'));
+    }
 };
 #endif // MAINWINDOW_H
