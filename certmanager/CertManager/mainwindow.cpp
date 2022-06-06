@@ -2588,16 +2588,32 @@ void MainWindow::on_btnSendCommand_clicked()
 void MainWindow::on_btnCurrentCopyToDisk_clicked()
 {
 
-    QStringList volumes{};
+    auto model = new QStandardItemModel(this);
+    model->setColumnCount(2);
+    model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
+
+    //QStringList volumes{};
     foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
          if (storage.isValid() && storage.isReady()) {
+             model->setRowCount(model->rowCount() +1);
              if (!storage.isReadOnly()) {
-                 volumes.append( storage.displayName() + " (" + storage.rootPath() + ")");
+                 QStringList v = storage.rootPath().split(":");
+                 QString vol = QString("\\\\.\\FAT12_%1").arg(v[0]);
+
+                 int row = model->rowCount()-1;
+                 auto item = new QStandardItem(vol);
+                 model->setItem(row, 0, item);
+                 item = new QStandardItem(storage.rootPath());
+                 model->setItem(row, 1, item);
+                 item = new QStandardItem(storage.displayName());
+                 model->setItem(row, 2, item);
+
+                 //volumes.append( storage.displayName() + " (" + storage.rootPath() + ")");
              }
          }
      }
 
-    auto dlg = new DialogSelectInList(volumes, "Выбор устройства", this);
+    auto dlg = new DialogSelectInList(model, "Выбор устройства", this);
     dlg->setModal(true);
     dlg->exec();
     if(dlg->result() == QDialog::Accepted){

@@ -9,8 +9,31 @@ DialogSelectInList::DialogSelectInList(const QStringList& list, const QString& t
 {
     ui->setupUi(this);
     auto  m_list = new QStringListModel(list);
-    ui->listView->setModel(m_list);
-    ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableView->setModel(m_list);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setWindowTitle(title);
+}
+
+DialogSelectInList::DialogSelectInList(QAbstractTableModel *list, const QString &title, QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::DialogSelectInList)
+
+{
+    ui->setupUi(this);
+
+    ui->tableView->setModel(list);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setWindowTitle(title);
+}
+
+DialogSelectInList::DialogSelectInList(QAbstractItemModel *list, const QString &title, QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::DialogSelectInList)
+{
+    ui->setupUi(this);
+
+    ui->tableView->setModel(list);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     setWindowTitle(title);
 }
 
@@ -22,7 +45,7 @@ DialogSelectInList::~DialogSelectInList()
 void DialogSelectInList::accept()
 {
 
-    auto index = ui->listView->currentIndex();
+    auto index = ui->tableView->currentIndex();
     if(!index.isValid()){
         QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
         return;

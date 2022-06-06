@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <QAbstractTableModel>
+#include <QAbstractItemModel>
 
 namespace Ui {
 class DialogSelectInList;
@@ -15,6 +17,8 @@ class DialogSelectInList : public QDialog
 
 public:
     explicit DialogSelectInList(const QStringList& list, const QString& title, QWidget *parent = nullptr);
+    explicit DialogSelectInList(QAbstractTableModel* list, const QString& title, QWidget *parent = nullptr);
+    explicit DialogSelectInList(QAbstractItemModel* list, const QString& title, QWidget *parent = nullptr);
     ~DialogSelectInList();
 
     void accept() override;
