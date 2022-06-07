@@ -216,11 +216,65 @@ int SqlInterface::exec_qt(const QString &i_query, QString &err)
 
     auto bindQuery = QBSqlQuery();
     bindQuery.fromJson(i_query);
+
     QSqlQuery sql = bindQuery.query(db);
     bool res = sql.exec();
 
     if(sql.lastError().type() != QSqlError::NoError){
         err = sql.lastError().text();
+    }
+
+    return res;
+}
+
+int SqlInterface::exec_qt(const QString &i_query, QString &tableResult, QString &err)
+{
+    auto bindQuery = QBSqlQuery();
+    bindQuery.fromJson(i_query);
+    QSqlQuery m_query = bindQuery.query(db);
+
+    bool res = m_query.exec();
+
+    int rowCount = 0;
+
+    if(m_query.lastError().type() != QSqlError::NoError){
+        err = m_query.lastError().text();
+        std::cout << "SqlInterface::exec_qt:query_error: " << m_query.lastQuery().toStdString() << std::endl;
+    }else{
+
+        int count = m_query.record().count();
+
+        auto rows = QJsonArray();
+        auto cols = QJsonArray();
+
+        for (int i = 0; i < count; ++i) {
+            QString key = m_query.record().fieldName(i);
+            cols.push_back(key);
+        }
+        while (m_query.next()) {
+            QJsonObject obj = QJsonObject();
+            for (int i = 0; i < count; ++i) {
+                QString key = m_query.record().fieldName(i);
+                QVariant val = m_query.value(i);
+                if (val.typeId() == QMetaType::QString)
+                    obj.insert(key, val.toString().trimmed());
+                else if (val.typeId() == QMetaType::Double)
+                    obj.insert(key, val.toDouble());
+                else if (val.typeId() == QMetaType::Int)
+                    obj.insert(key, val.toInt());
+                else if (val.typeId() == QMetaType::QByteArray)
+                    obj.insert(key, QString(val.toByteArray().toBase64()));
+            }
+
+            rows.push_back(obj);
+            rowCount++;
+        }
+        QJsonDocument doc = QJsonDocument();
+        QJsonObject obj = QJsonObject();
+        obj.insert("columns", cols);
+        obj.insert("rows", rows);
+
+        tableResult = doc.toJson();
     }
 
     return res;
@@ -450,6 +504,8 @@ int SqlInterface::execute(const std::string &query, QString &table, QString &err
                     obj.insert(key, val.toDouble());
                 else if (val.typeId() == QMetaType::Int)
                     obj.insert(key, val.toInt());
+                else if (val.typeId() == QMetaType::QByteArray)
+                    obj.insert(key, QString(val.toByteArray().toBase64()));
             }
 
             rows.push_back(obj);

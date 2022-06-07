@@ -27,6 +27,8 @@
 #include "tabledelegate.h"
 #include "dialogcontainername.h"
 #include "dialogcontainerinfo.h"
+#include <QJsonArray>
+
 #ifdef _WINDOWS
 #include <Windows.h>
 #include <stdlib.h>
@@ -256,7 +258,7 @@ void MainWindow::setKeysToRegistry()
                         auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Найден контейнер: \n%1 \nИмпортировать?").arg(data));
                         if(result == QMessageBox::Yes){
                             QString error;
-                            bool result = Registry::importKeysFromLocalCatalog(currentUser, dir, data, error);
+                            bool result = srtmnr::Registry::importKeysFromLocalCatalog(currentUser, dir, data, error);
                             if(result)
                                 QMessageBox::information(this, "Успех", "Контейнер успешно импортирован в реестр!");
                             else{
@@ -904,7 +906,7 @@ void MainWindow::getDataContainersList()
 
         if(!m_client->isStarted())
             return;
-        QString query = "SELECT NULL AS EmptyTitle, [Ref] , [FirstField] AS name FROM [arcirk].[dbo].[Containers]";
+        QString query = "SELECT NULL AS EmptyTitle, [Ref] , [FirstField] , [cache] AS name FROM [arcirk].[dbo].[Containers]";
         auto obj = QJsonObject();
         obj.insert("query", query);
         obj.insert("header", true);
@@ -1673,7 +1675,7 @@ void MainWindow::on_btnAdd_clicked()
     if(currentNode == "Реестр"){
         setKeysToRegistry();
     }else if(currentNode == "Пользователи"){
-        auto reg = Registry();
+        auto reg = srtmnr::Registry();
         QStringList users = reg.localUsers();
         auto dlg = new DialogSelectInList(users, "Пользователи системы", this);
         dlg->setModal(true);
@@ -1820,13 +1822,13 @@ void MainWindow::on_btnDelete_clicked()
 
                 auto result = QMessageBox::question(this, "Удаление контейнера закрытого ключа", "Удалить контейнер?");
                 if(result == QMessageBox::Yes){
-                    bool result = Registry::deleteContainer(currentUser, currentKeyName);
+                    bool result = srtmnr::Registry::deleteContainer(currentUser, currentKeyName);
                     if(!result)
                         QMessageBox::critical(this, "Ошибка", "Ошибка удаления контейнера!");
                     else{
                         QMessageBox::information(this, "Удаление контейнера закрытого ключа", "Контейнер успешно удален из реестра!");
                         table->model()->removeRow(row);
-                        currentUser->setContainers(Registry::currentUserContainers(currentUser->sid()));
+                        currentUser->setContainers(srtmnr::Registry::currentUserContainers(currentUser->sid()));
                     }
                 }
 
@@ -2386,6 +2388,15 @@ void MainWindow::onWsExecQuery(const QString &result)
 //        if(!itemContainers){
 //            getDataContainersList();
 //        }
+    }else if(id_command == "get_data"){
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString json = QByteArray::fromBase64(base64.toUtf8());
+        QString run_on_return = obj.value("run_on_return").toString();
+        if(!run_on_return.isEmpty()){
+            onGetDataFromDatabase(json, run_on_return);
+        }
     }
 }
 
@@ -2416,18 +2427,18 @@ void MainWindow::on_actionTest_triggered()
 #ifdef _WINDOWS
 void MainWindow::execute_command(QString param)
 {
-     SHELLEXECUTEINFO ShExecInfo = {0};
-     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-     ShExecInfo.hwnd = NULL;
-     ShExecInfo.lpVerb = "runas";
-     ShExecInfo.lpFile = TEXT("powershell.exe");
-     ShExecInfo.lpParameters = TEXT("stuff..");
-     ShExecInfo.lpDirectory = NULL;
-     ShExecInfo.nShow = SW_SHOW;
-     ShExecInfo.hInstApp = NULL;
-     ShellExecuteEx(&ShExecInfo);
-     WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
+//     SHELLEXECUTEINFO ShExecInfo = {0};
+//     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+//     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+//     ShExecInfo.hwnd = NULL;
+//     ShExecInfo.lpVerb = "runas";
+//     ShExecInfo.lpFile = TEXT("powershell.exe");
+//     ShExecInfo.lpParameters = TEXT("stuff..");
+//     ShExecInfo.lpDirectory = NULL;
+//     ShExecInfo.nShow = SW_SHOW;
+//     ShExecInfo.hInstApp = NULL;
+//     ShellExecuteEx(&ShExecInfo);
+//     WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
 }
 
 void MainWindow::createConnectionsObjects()
@@ -2852,7 +2863,7 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
 
                 QString uuid = QUuid::createUuid().toString();
                 uuid = uuid.mid(1, uuid.length() - 2);
-                QByteArray data = cnt.toByteArray();
+                QByteArray data = QByteArray();//cnt.toByteArhive();
 
                 auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "Containers");
                 QJsonObject obj = QJsonObject();
@@ -3124,3 +3135,183 @@ void MainWindow::on_btnCurrentDelete_clicked()
 #endif
 }
 
+
+void MainWindow::on_btnCopyToDiskFromDatabase_clicked()
+{
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+        return;
+    }
+
+    auto model = new QStandardItemModel(this);
+    model->setColumnCount(2);
+    model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
+
+    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+         if (storage.isValid() && storage.isReady()) {
+             model->setRowCount(model->rowCount() +1);
+             if (!storage.isReadOnly()) {
+                 QStringList v = storage.rootPath().split(":");
+                 QString vol = QString("\\\\.\\FAT12_%1\\").arg(v[0]);
+
+                 int row = model->rowCount()-1;
+                 auto item = new QStandardItem(vol);
+                 model->setItem(row, 0, item);
+                 item = new QStandardItem(storage.rootPath());
+                 model->setItem(row, 1, item);
+                 item = new QStandardItem(storage.displayName());
+                 model->setItem(row, 2, item);
+             }
+         }
+     }
+    model->setRowCount(model->rowCount() +1);
+    int row = model->rowCount()-1;
+    auto item = new QStandardItem("\\\\.\\REGISTRY\\");
+    model->setItem(row, 0, item);
+    item = new QStandardItem("Реестр");
+    model->setItem(row, 1, item);
+
+    auto dlgSel = new DialogSelectInList(model, "Выбор устройства", this);
+    dlgSel->setModal(true);
+    dlgSel->exec();
+    if(dlgSel->result() == QDialog::Accepted){
+        QString volume = dlgSel->dialogResult()[0];
+        QString path = dlgSel->dialogResult()[1];
+
+        QString name = table->model()->index(index.row(), 2).data().toString();
+        int ind = name.indexOf("@");
+        QString key_name = name.left(ind + 1) + ".000";
+
+        if(path != "Реестр"){
+            QDir dir(path + key_name);
+            if(dir.exists()){
+                QMessageBox::critical(this, "Ошибка", QString("Каталог с именем %1 уже существует на устройстве!").arg(key_name));
+                return;
+            }
+        }
+
+        auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер: \n%1 \n на устройство?").arg(volume));
+
+        if(result != QMessageBox::Yes){
+            return;
+        }
+
+        auto dlg = new DialogContainerName(name,this);
+        dlg->setModal(true);
+        dlg->exec();
+
+        if(dlg->result() != QDialog::Accepted)
+            return;
+
+        QString newName = dlg->keyName() + dlg->name();
+        QString nameBase64 = volume + QByteArray(newName.toUtf8()).toBase64();
+
+        if(path == "Реестр"){
+            QStringList lst = currentUser->getRigstryData();
+
+            if(lst.lastIndexOf(newName) != -1 || lst.lastIndexOf(nameBase64) != -1){
+                QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
+                return;
+            }
+        }
+
+        QModelIndex _index = table->model()->index(index.row(), 1);
+        QString ref = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+
+        if(_sett->launch_mode() == mixed){
+            if(!isDbOpen())
+                return;
+
+        }else{
+
+            if(!m_client->isStarted())
+                return;
+
+            auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Containers");
+
+            QJsonObject obj_where = QJsonObject();
+            obj_where.insert("name", "Ref");
+            obj_where.insert("value", ref);
+            bindQuery.add_where(obj_where, QBSqlTypeOfComparison::QEquals);
+            QString result = bindQuery.to_json();
+
+            QJsonObject objSel = QJsonObject();
+            objSel.insert("name", "Ref");
+            objSel.insert("value", "Ref"); //alias
+            bindQuery.add_field(objSel, bFieldType::qVariant);
+
+            objSel = QJsonObject();
+            objSel.insert("name", "FirstField");
+            objSel.insert("value", "FirstField");
+            bindQuery.add_field(objSel, bFieldType::qVariant);
+
+            objSel = QJsonObject();
+            objSel.insert("name", "data");
+            objSel.insert("value", "data");
+            bindQuery.add_field(objSel, bFieldType::qVariant);
+
+            QString query = bindQuery.to_json();
+
+            QJsonObject cmd = QJsonObject();
+            cmd.insert("command", "copy_container_from_data");
+            cmd.insert("toDevice", nameBase64);
+
+//            QString query = QString("SELECT [data]\n"
+//                            ",[FirstField]\n"
+//                            ",[Ref]\n"
+//                            "FROM [dbo].[Certificates]"
+//                    "WHERE [Ref] = '%1'").arg(ref);
+            if(_sett->launch_mode() == mixed){
+                auto bindQuery1 = QBSqlQuery();
+                bindQuery1.fromJson(result);
+                QSqlQuery sql = bindQuery1.query(db->getDatabase());
+                sql.exec();
+                if(sql.lastError().type() != QSqlError::NoError){
+                    qDebug() << __FUNCTION__ << sql.lastError().text();
+                }
+            }else{
+                if(m_client->isStarted()){
+                    auto obj = QJsonObject();
+                    obj.insert("query", query);
+                    obj.insert("header", true);
+                    obj.insert("id_command", "get_data");
+                    obj.insert("run_on_return", cmd);
+                    auto doc = QJsonDocument();
+                    doc.setObject(obj);
+                    QString param = doc.toJson();
+                    m_client->sendCommand("exec_query_qt", "", param);
+                }
+            }
+        }
+
+
+
+//        QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//        terminal->send(cmd, csptestContainerCopy);
+    }
+
+
+}
+
+void MainWindow::onGetDataFromDatabase(const QString &table, const QString param)
+{
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+    auto _param = QJsonDocument::fromJson(param.toUtf8()).object();
+    QString command = _param.value("command").toString();
+    if(command == "copy_container_from_data"){
+        QString device = _param.value("toDevice").toString();
+        if(device.isEmpty()){
+            return;
+        }else
+        {
+            auto rows = _table.value("rows").toArray();
+            auto row = rows[0].toObject();
+            if(!row.isEmpty()){
+                QString dataBase64 = row.value("data").toString();
+                QByteArray data = QByteArray::fromBase64(dataBase64.toUtf8());
+            }
+        }
+    }
+}

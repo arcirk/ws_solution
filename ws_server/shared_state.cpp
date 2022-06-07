@@ -1635,10 +1635,19 @@ bool shared_state::exec_query_qt(boost::uuids::uuid &uuid, arcirk::bJson *params
 
     std::string query = params->get_member("query").get_string();
     std::string id_command = params->get_member("id_command").get_string();
+    std::string run_on_return = params->get_member("run_on_return").get_string();
+    bool isTable = params->get_member("table").get_bool();
     err = "";
     if (query.empty())
         return false;   //std::string szResult;
-    bool result = sqlite3Db->exec_qt(query, err);
+
+
+    std::string table;
+    bool result;
+    if(isTable)
+        result = sqlite3Db->exec_qt(query, table, err);
+    else
+        result = sqlite3Db->exec_qt(query, err);
 
     if(result){
         custom_result = "Запрос успешно выполнен!";
@@ -1649,7 +1658,9 @@ bool shared_state::exec_query_qt(boost::uuids::uuid &uuid, arcirk::bJson *params
         auto json = arcirk::bJson();
         json.set_object();
         json.addMember("id_command", id_command);
-        //json.addMember("table", base64);
+        json.addMember("run_on_return", run_on_return);
+        json.addMember("table", table);
+
         custom_result = json.to_string();
     }
 
@@ -1674,6 +1685,7 @@ bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, w
     std::string query = params->get_member("query").get_string();
     bool header = params->get_member("header").get_bool();
     std::string id_command = params->get_member("id_command").get_string();
+    std::string run_on_return = params->get_member("run_on_return").get_string();
 
     if (query.empty())
         return false;
@@ -1696,6 +1708,7 @@ bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, w
             json.set_object();
             json.addMember("id_command", id_command);
             json.addMember("table", base64);
+            json.addMember("run_on_return", run_on_return);
             custom_result = json.to_string();
         }
         else{

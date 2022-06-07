@@ -98,7 +98,6 @@ private:
 
     QString encodeData(const QByteArray& data, int m);
     std::string executeSystem(const std::string& cmd);
-
 };
 
 #endif // COMMANDLINE_H

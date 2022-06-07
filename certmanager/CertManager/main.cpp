@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include <QStyleFactory>
 #include <QApplication>
-//#include <Windows.h>
+
+#include <Windows.h>
 //#include <locale.h>
 
 int main(int argc, char *argv[])

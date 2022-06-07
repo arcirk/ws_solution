@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string>
 #include <fstream>
-
+namespace srtmnr {
 std::string Registry::exec(const char* cmd) {
     char buffer[128];
     std::string result = "";
@@ -349,4 +349,5 @@ QStringList Registry::outputCmd(const QString cmd)
 ////    qDebug() << out;
     return lstResult;
 
+}
 }

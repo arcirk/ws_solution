@@ -2,6 +2,7 @@
 // Created by admin on 04.06.2022.
 //
 #include "sqlqueryinterface.h"
+#include <iostream>
 
 //QBSqlValue::QBSqlValue(QBSqlTypeOfComparison _typeOfComparison, QJsonObject _field){
 //    typeOfComparison = _typeOfComparison;
@@ -138,6 +139,8 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
         _query = bindQueryUpdate();
     }else if(_command == QSqlDelete){
         _query = bindQueryDelete();
+    }else if(_command == QSqlGet){
+        _query = bindQueryGet();
     }
 
     sql.prepare(_query);
@@ -268,6 +271,61 @@ QString QBSqlQuery::bindQueryDelete() const
         }
     }
     query.append(_whereEx);
+    return query;
+}
+
+QString QBSqlQuery::bindQueryGet() const
+{
+    QString query;
+    query = "SELECT ";
+
+    QString select = "";
+
+    for (auto iter = _fields.begin(); iter != _fields.end(); iter++) {
+        QJsonObject val = iter->value("value").toObject();
+        select.append(val.value("name").toString());
+        QString v = val.value("value").toString();
+        if(!v.isEmpty())
+            select.append(" AS " + v);
+        if (iter != --_fields.end())
+            select.append(",\n");
+    }
+
+    query.append(" FROM dbo." + _table);
+
+    query.append("\nWHERE ");
+
+    QString _whereEx;
+
+    for (auto iter = _where.begin(); iter != _where.end(); iter++) {
+        QBSqlTypeOfComparison type = (QBSqlTypeOfComparison)iter->value("typeOfComparison").toInt();
+        QJsonObject val = iter->value("value").toObject();
+
+        if(type == QBSqlTypeOfComparison::QNo_Equals || type == QBSqlTypeOfComparison::QNot_In_List){
+             _whereEx.append(" NOT ");
+        }
+
+        QString cmp = comparison(type);
+
+        _whereEx.append(val.value("name").toString());
+        auto vValue = val.value("value");
+        if (vValue.isString()){
+            QString value = vValue.toString();
+            _whereEx.append(cmp + " '" + value + "'");
+            if (iter != --_where.end())
+                _whereEx.append(" AND\n");
+        }else if (vValue.isDouble()){
+            int res = vValue.toInt();
+            QString value = QString::number(res);
+            _whereEx.append(cmp + " '" + value + "'");
+            if (iter != --_where.end())
+                _whereEx.append(" AND\n");
+        }else if (vValue.isArray()){
+
+        }
+    }
+    query.append(_whereEx);
+
     return query;
 }
 

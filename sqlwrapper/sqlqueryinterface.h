@@ -13,7 +13,8 @@
 enum QBSqlCommand{
     QSqlInsert = 0,
     QSqlUpdate,
-    QSqlDelete
+    QSqlDelete,
+    QSqlGet
 };
 
 enum QBSqlTypeOfComparison{
@@ -78,6 +79,7 @@ private:
     QString bindQueryInsert(QList<QBSqlValue>& values) const;
     QString bindQueryUpdate() const;
     QString bindQueryDelete() const;
+    QString bindQueryGet() const;
 
     QString comparison(QBSqlTypeOfComparison typeOfComparison) const;
 };

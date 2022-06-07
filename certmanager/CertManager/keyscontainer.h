@@ -6,11 +6,14 @@
 #include <sqlinterface.h>
 #include <QJsonObject>
 #include <QJsonValue>
+#include "lib/WinReg.hpp"
+#include "converter.h"
 
 class KeysContainer;
 
-typedef std::function<void(const QByteArray&)> set_keys;
-typedef std::function<QByteArray()> get_keys;
+typedef std::vector<BYTE> BYTES;
+typedef std::function<void(const BYTES&)> set_keys;
+typedef std::function<void(BYTES&)> get_keys;
 
 class KeysContainer : public QObject
 {
@@ -33,26 +36,26 @@ public:
     void setName(const QString& value);
     QString name();
 
-    QByteArray header_key();
-    QByteArray masks_key();
-    QByteArray masks2_key();
-    QByteArray name_key();
-    QByteArray primary_key();
-    QByteArray primary2_key();
+    void header_key(BYTES& value);
+    void masks_key(BYTES& value);
+    void masks2_key(BYTES& value);
+    void name_key(BYTES& value);
+    void primary_key(BYTES& value);
+    void primary2_key(BYTES& value);
 
-    void set_header_key(const QByteArray& value);
-    void set_masks_key(const QByteArray& value);
-    void set_masks2_key(const QByteArray& value);
-    void set_name_key(const QByteArray& value);
-    void set_primary_key(const QByteArray& value);
-    void set_primary2_key(const QByteArray& value);
+    void set_header_key(const BYTES& value);
+    void set_masks_key(const BYTES& value);
+    void set_masks2_key(const BYTES& value);
+    void set_name_key(const BYTES& value);
+    void set_primary_key(const BYTES& value);
+    void set_primary2_key(const BYTES& value);
 
     void fromDatabase();
     bool toDataBase();
     QSettings toQSettings();
     void fromQSettings(const QSettings& value);
 
-    QByteArray toByteArray();
+    BYTES toByteArhive();
     QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
 
     QString path();
@@ -66,12 +69,12 @@ public:
 
 private:
     QString _path;
-    QByteArray _header_key;
-    QByteArray _masks_key;
-    QByteArray _masks2_key;
-    QByteArray _name_key;
-    QByteArray _primary_key;
-    QByteArray _primary2_key;
+    BYTES _header_key;
+    BYTES _masks_key;
+    BYTES _masks2_key;
+    BYTES _name_key;
+    BYTES _primary_key;
+    BYTES _primary2_key;
 
     SqlInterface * _db;
     QString _name;
@@ -82,6 +85,9 @@ private:
     std::map<std::string, set_keys> set_function();
     set_keys get_set_function(int index);
     get_keys get_get_function(int index);
+
+    static void readFile(const std::string& filename, BYTES& result);
+    static void writeFile(const std::string& filename, BYTES& fileBytes);
 
 signals:
 

@@ -6,6 +6,9 @@
 #include <QProcess>
 #include "user.h"
 
+namespace srtmnr {
+
+
 class Registry : public QObject
 {
     Q_OBJECT
@@ -33,5 +36,5 @@ public:
     static bool importKeysFromLocalCatalog(CertUser * usr, const QString& folder, const QString& name, QString& error);
 
 };
-
+};
 #endif // REGISTRY_H

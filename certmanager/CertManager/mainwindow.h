@@ -95,6 +95,8 @@ private slots:
 
     void on_btnCurrentDelete_clicked();
 
+    void on_btnCopyToDiskFromDatabase_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -185,6 +187,7 @@ private:
 
     QString fromBase64(const QString& value);
 
+    void onGetDataFromDatabase(const QString& table, const QString param);
 //    static inline bool byte_is_base64(unsigned char c) {
 //        return (isalnum(c) || (c == '+') || (c == '/'));
 //    }
