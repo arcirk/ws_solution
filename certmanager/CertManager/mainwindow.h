@@ -181,6 +181,8 @@ private:
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
 
+    void resetTableJsonModel(const QJsonObject& obj, const QString& cmd);
+
     QModelIndex findInTable(QAbstractItemModel * model, const QString& value, int column, bool findData = true);
 
     QString validUuid(const QString& uuid);

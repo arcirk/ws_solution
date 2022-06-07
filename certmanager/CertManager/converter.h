@@ -11,9 +11,9 @@ static const std::string base64_chars =
 
 typedef unsigned char _BYTE;
 
-namespace  {
+namespace  Base64Converter{
 
-    static inline bool byte_is_base64(BYTE c) {
+    static inline bool byte_is_base64(_BYTE c) {
         return (isalnum(c) || (c == '+') || (c == '/'));
     }
 

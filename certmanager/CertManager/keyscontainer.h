@@ -30,6 +30,7 @@ public:
 
     void fromFolder(const QString& folder);
     void fromRegistry(const QString& name, const QString& sid);
+    void fromIni(const QByteArray& data);
 
     bool isValid();
 
@@ -66,6 +67,8 @@ public:
 
     bool syncRegystry();
     bool removeContainer(const QString& sid, const QString& containerName);
+
+    QJsonObject parseDeviceString(const QString& key);
 
 private:
     QString _path;

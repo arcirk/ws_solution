@@ -207,12 +207,14 @@ BYTES KeysContainer::toByteArhive()
 
     QString tempFile = QDir::toNativeSeparators(temp.path() + QDir::separator() + uuid + ".zip");
 
-
-
 //    QSettings settings = QSettings(tempFile, QSettings::IniFormat, this);
 
 //    settings.beginGroup(name());
 //    for (int i = 0; i < KeyFiles.size(); ++i) {
+//        get_keys fun = get_get_function(i);
+//        BYTES data;
+//        get_get_function(i)(data);
+//        BYTES * buffer = new
 //        settings.setValue(KeyFiles[i], get_get_function(i)());
 //    }
 //    settings.endGroup();
@@ -465,6 +467,69 @@ void KeysContainer::fromRegistry(const QString &name, const QString &sid)
     _path = root;
     _name = name;
     _isValid = true;
+}
+
+void KeysContainer::fromIni(const QByteArray &data)
+{
+    QTemporaryDir temp;
+    if(!temp.isValid())
+        return;
+
+    _isValid = false;
+    QString uuid = QUuid::createUuid().toString();
+    uuid = uuid.mid(1, uuid.length() - 2);
+    QString tmpFile = QDir::toNativeSeparators(temp.path() + QDir::separator() + uuid + ".ini");
+    QFile f(tmpFile);
+    f.open(QIODevice::WriteOnly);
+    f.write(data);
+    f.close();
+
+    QSettings reg = QSettings(tmpFile, QSettings::IniFormat);
+    auto keys = reg.allKeys();
+    if(keys.size() == 0)
+        return;
+    QStringList m_name = keys[0].split("/");
+    if(m_name.size() != 2)
+        return;
+    setName(m_name[0]);
+
+    auto func = set_function();
+
+    foreach(auto key , reg.allKeys()){
+        QString fileName = key.right(key.length() - _name.length()  - 1);
+        if(KeyFiles.indexOf(fileName) != -1){
+            QByteArray data = reg.value("key").toByteArray();
+            std::vector<unsigned char> buffer(
+                        data.begin(), data.end());
+            func[fileName.toStdString()](buffer);
+        }
+        qDebug() << fileName;
+//        auto details = parseDeviceString("\\\\.\\TEMP\\" + )
+    }
+
+    f.remove();
+    _isValid = true;
+}
+
+QJsonObject KeysContainer::parseDeviceString(const QString& key){
+    QJsonObject obj = QJsonObject();
+//    QStringList m_data = key.split("\\");
+
+//    QString device =  m_data[3].replace("\r", "");
+//    QString volume =  device;
+//    volume.replace("FAT12_", "");
+//    QString nameBase64 =  m_data[4].replace("\r", "");
+//    QString name = fromBase64(nameBase64);
+//    int ind =  name.indexOf("@");
+//    QString key_name = name.left(ind);
+
+//    obj.insert("device", device);
+//    obj.insert("nameBase64", nameBase64);
+//    obj.insert("name", name);
+//    obj.insert("key_name", key_name);
+//    obj.insert("volume", volume);
+
+    return obj;
 }
 
 bool KeysContainer::isValid()

@@ -274,6 +274,7 @@ int SqlInterface::exec_qt(const QString &i_query, QString &tableResult, QString 
         obj.insert("columns", cols);
         obj.insert("rows", rows);
 
+        doc.setObject(obj);
         tableResult = doc.toJson();
     }
 

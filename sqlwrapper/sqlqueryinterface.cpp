@@ -144,7 +144,7 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
     }
 
     sql.prepare(_query);
-    qDebug() << qPrintable(_query);
+    //qDebug() << qPrintable(_query);
 
     for (auto itr : values) {
         if(itr.type == qVariant){
@@ -283,49 +283,50 @@ QString QBSqlQuery::bindQueryGet() const
 
     for (auto iter = _fields.begin(); iter != _fields.end(); iter++) {
         QJsonObject val = iter->value("value").toObject();
-        select.append(val.value("name").toString());
+        QString name = val.value("name").toString();
+        select.append(name.left(5) == "Empty" ? "NULL" : "[" + name + "]");
         QString v = val.value("value").toString();
         if(!v.isEmpty())
-            select.append(" AS " + v);
+            select.append(" AS [" + v + "]");
         if (iter != --_fields.end())
             select.append(",\n");
     }
 
+    query.append(select);
     query.append(" FROM dbo." + _table);
 
-    query.append("\nWHERE ");
+    if(_where.size() > 0){
+        query.append("\nWHERE ");
+        QString _whereEx;
+        for (auto iter = _where.begin(); iter != _where.end(); iter++) {
+            QBSqlTypeOfComparison type = (QBSqlTypeOfComparison)iter->value("typeOfComparison").toInt();
+            QJsonObject val = iter->value("value").toObject();
 
-    QString _whereEx;
+            if(type == QBSqlTypeOfComparison::QNo_Equals || type == QBSqlTypeOfComparison::QNot_In_List){
+                 _whereEx.append(" NOT ");
+            }
 
-    for (auto iter = _where.begin(); iter != _where.end(); iter++) {
-        QBSqlTypeOfComparison type = (QBSqlTypeOfComparison)iter->value("typeOfComparison").toInt();
-        QJsonObject val = iter->value("value").toObject();
+            QString cmp = comparison(type);
 
-        if(type == QBSqlTypeOfComparison::QNo_Equals || type == QBSqlTypeOfComparison::QNot_In_List){
-             _whereEx.append(" NOT ");
+            _whereEx.append(val.value("name").toString());
+            auto vValue = val.value("value");
+            if (vValue.isString()){
+                QString value = vValue.toString();
+                _whereEx.append(cmp + " '" + value + "'");
+                if (iter != --_where.end())
+                    _whereEx.append(" AND\n");
+            }else if (vValue.isDouble()){
+                int res = vValue.toInt();
+                QString value = QString::number(res);
+                _whereEx.append(cmp + " '" + value + "'");
+                if (iter != --_where.end())
+                    _whereEx.append(" AND\n");
+            }else if (vValue.isArray()){
+
+            }
         }
-
-        QString cmp = comparison(type);
-
-        _whereEx.append(val.value("name").toString());
-        auto vValue = val.value("value");
-        if (vValue.isString()){
-            QString value = vValue.toString();
-            _whereEx.append(cmp + " '" + value + "'");
-            if (iter != --_where.end())
-                _whereEx.append(" AND\n");
-        }else if (vValue.isDouble()){
-            int res = vValue.toInt();
-            QString value = QString::number(res);
-            _whereEx.append(cmp + " '" + value + "'");
-            if (iter != --_where.end())
-                _whereEx.append(" AND\n");
-        }else if (vValue.isArray()){
-
-        }
+        query.append(_whereEx);
     }
-    query.append(_whereEx);
-
     return query;
 }
 
