@@ -661,6 +661,10 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
     dlg->setModal(true);
     dlg->exec();
 
+    auto doc = QJsonDocument();
+    doc.setObject(obj);
+    updateInfoContainerOnDatabase(doc.toJson(), name.toUtf8().toBase64());
+
 }
 
 QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &value, int column, bool findData)
@@ -1187,7 +1191,7 @@ bool MainWindow::isContainerExists(const QString &name)
     qDebug() << __FUNCTION__;
     if(_sett->launch_mode() == mixed){
         if(db->isOpen()){
-            QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers] WHERE [FirstField] = '%1'").arg(name), db->getDatabase());
+            QSqlQuery query(QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[Containers] WHERE [FirstField] = '%1'").arg(name.toUtf8().toBase64()), db->getDatabase());
             while (query.next()) {
                 return true;
             }
@@ -2853,34 +2857,46 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
     QString name = table->model()->index(index.row(), 2).data().toString();
     //QString keySetInfo = "csptest -keyset -container \"%1\" -info";
 
-    if(volume == "HDIMAGE"){
+    //if(volume == "HDIMAGE"){
         //
-    }else if(volume == "REGISTRY"){
+    //}else if(volume == "REGISTRY"){
         //
-    }else{
-        if(QString(volume).left(6) == "FAT12_"){
-            QString tom = QString(volume).right(volume.length() - 6);
+    //}else{
+    QDir folder;
 
-            QStorageInfo storage(tom + ":" + QDir::separator());
-            if(!storage.isReady())
-            {
-                QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
-                return;
+            if(QString(volume).left(6) == "FAT12_"){
+                QString tom = QString(volume).right(volume.length() - 6);
+
+                QStorageInfo storage(tom + ":" + QDir::separator());
+                if(!storage.isReady())
+                {
+                    QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
+                    return;
+                }
+
+                ////Для теста
+                //terminal->send(keySetInfo.arg(container), unknown);
+
+                QStringList lst = name.split("@");
+                folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
+
+                if(!folder.exists()){
+                    return;
+                }
             }
-
-            ////Для теста
-            //terminal->send(keySetInfo.arg(container), unknown);
-
-            QStringList lst = name.split("@");
-            QDir folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
-
-            if(!folder.exists()){
-                return;
-            }
-
             KeysContainer cnt = KeysContainer(this);
             cnt.setName(name);
-            cnt.fromFolder(folder.path());
+            if(QString(volume).left(6) == "FAT12_"){
+                cnt.fromFolder(folder.path());
+            }else if(volume == "REGISTRY"){
+                if(currentUser->sid().isEmpty()){
+                    qCritical() <<__FUNCTION__ << "Требуется SID!";
+                    return;
+                }
+                cnt.setPath(currentUser->sid(), cnt.nameBase64());
+                cnt.fromRegistry();
+            }
+
             if(!cnt.isValid())
             {
                 qCritical() <<__FUNCTION__ << "Ошибка: Ошибка загрузки данных контейнера с устройства!";
@@ -2897,7 +2913,7 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
 
                 QString uuid = QUuid::createUuid().toString();
                 uuid = uuid.mid(1, uuid.length() - 2);
-                QByteArray data = QByteArray();//cnt.toByteArhive();
+                QByteArray data = cnt.toBase64();
 
                 auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "Containers");
                 QJsonObject obj = QJsonObject();
@@ -2932,6 +2948,9 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                     sql.exec();
                     if(sql.lastError().type() != QSqlError::NoError){
                         qDebug() << __FUNCTION__ << sql.lastError().text();
+                    }else{
+                        QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
+                        getDataContainersList();
                     }
                 }else{
                     if(m_client->isStarted()){
@@ -2945,7 +2964,7 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                     }
                 }
 
-
+            }
 //                obj.insert("Ref", uuid);
 //                obj.insert("FirstField", name);
 //                obj.insert("data", QString(data.toBase64()));
@@ -2968,10 +2987,10 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
 
 
 
-            }
-        }
+            //}
+        //}
 
-    }
+    //}
 
 }
 
@@ -3015,6 +3034,10 @@ void MainWindow::on_btnConDel_clicked()
             sql.exec();
             if(sql.lastError().type() != QSqlError::NoError){
                 qDebug() << __FUNCTION__ << sql.lastError().text();
+            }else
+            {
+                QMessageBox::information(this, "Удаление", "Контейнер успешно удален!");
+                getDataContainersList();
             }
         }else{
             if(m_client->isStarted()){
@@ -3042,45 +3065,12 @@ void MainWindow::on_btnConInfo_clicked()
         return;
     }
 
-    auto tree = ui->treeWidget;
-    //QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
-
     QModelIndex _index = table->model()->index(index.row(), 1);
-    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", ""); //| iconv -f cp1251
-
-    //QString pathCmd = "\"" + QDir::toNativeSeparators(QDir::currentPath() + QDir::separator()) + "syswrapper.exe\" ";
-
-    //syswrapper csptest -keyset -container '\"\\.\FAT12_D\58125054@2021-12-06-ООО ГРИНДА ДАЛВЕСТ\"' -info
+    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
 
     QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
 
-    //std::cout << cmd.toStdString() << std::endl;
-
-    //QTextCodec *codec = QTextCodec::codecForName("CP866");
-
-    //QTextCodec *codec = QTextCodec::codecForName("KOI8-R");
-
-    //QTextCodec *codec = QTextCodec::codecForName("IBM 866");
-    //QString _cmd = codec->toUnicode(cmd.toUtf8());
-
-    //QByteArray _cmd = codec->fromUnicode(cmd);
-
-    //QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-    //QByteArray _cmd = codec->fromUnicode(cmd);
-   //QByteArray _cmd = codec->toUnicode(cmd.toUtf8());
-
-//    QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
-//    QByteArray encodedString = codec->fromUnicode(cmd);
-    //QTextCodec *codec = QTextCodec::codecForName( "KOI8-R" );
-    //QTextCodec::setCodecForLocale(codec);
-    //QTextCodec *codec1 = QTextCodec::codecForName( "CP1251" );
-    //QByteArray text = cmd.toUtf8();
-    //text = codec->toUnicode(text).toUtf8();
-    //QByteArray text = codec->fromUnicode( cmd.toUtf8() );
-    //terminal->setUseSystem(true);
-
     terminal->send(cmd, csptestContainerFnfo);
-    //terminal->setUseSystem(false);
 
 }
 
@@ -3311,6 +3301,43 @@ void MainWindow::on_btnCopyToDiskFromDatabase_clicked()
     }
 }
 
+void MainWindow::updateInfoContainerOnDatabase(const QString &info, const QString &cntName)
+{
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "Containers");
+    QJsonObject obj_where = QJsonObject();
+    obj_where.insert("name", "FirstField");
+    obj_where.insert("value", cntName);
+    bindQuery.add_where(obj_where, QBSqlTypeOfComparison::QEquals);
+
+    QJsonObject objSel = QJsonObject();
+    objSel.insert("name", "cache");
+    objSel.insert("value", info); //alias
+    bindQuery.add_field(objSel, bFieldType::qVariant);
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "update_info_container");
+
+    if(_sett->launch_mode() == mixed){
+        if(!isDbOpen())
+            return;
+        QString query = bindQuery.to_json();
+        QString _error;
+        db->exec_qt(query, _error);
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "update_info_container");
+            obj.insert("run_on_return", cmd);
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
+        }
+    }
+}
+
 void MainWindow::onGetDataFromDatabase(const QString &table, const QString param)
 {
     auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
@@ -3322,14 +3349,24 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
             return;
         }else
         {
+            if(currentUser->sid().isEmpty())
+                return;
             auto rows = _table.value("rows").toArray();
             auto row = rows[0].toObject();
             if(!row.isEmpty()){
                 QString dataBase64 = row.value("data").toString();
                 QByteArray data = QByteArray::fromBase64(dataBase64.toUtf8());
                 auto cnt = KeysContainer();
-                cnt.fromIni(data);
-
+                cnt.fromJson(data);
+                if(!cnt.isValid())
+                    return;
+                cnt.parseAdressKey(device);
+                cnt.setWindowsSid(currentUser->sid());
+                bool result = cnt.sync();
+                if(result)
+                    QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
+                else
+                    QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
             }
         }
     }

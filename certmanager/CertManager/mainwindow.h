@@ -97,6 +97,8 @@ private slots:
 
     void on_btnCopyToDiskFromDatabase_clicked();
 
+    void updateInfoContainerOnDatabase(const QString& info, const QString& cntName);
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;

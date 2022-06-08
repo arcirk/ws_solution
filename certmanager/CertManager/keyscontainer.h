@@ -8,6 +8,7 @@
 #include <QJsonValue>
 #include "lib/WinReg.hpp"
 #include "converter.h"
+#include "commandline.h"
 
 class KeysContainer;
 
@@ -28,14 +29,37 @@ public:
         serialization
     };
 
+    enum VolumeType{
+        FAT12 = 0,
+        REGISTRY,
+        HDIMAGE
+    };
+    const QStringList VolumeTypeString{
+        "FAT12",
+        "REGISTRY",
+        "HDIMAGE"
+    };
+
     void fromFolder(const QString& folder);
-    void fromRegistry(const QString& name, const QString& sid);
-    void fromIni(const QByteArray& data);
+    void fromRegistry();
+    void fromJson(const QByteArray& data);
+
+    QByteArray toBase64();
 
     bool isValid();
-
+    void setWindowsSid(const QString& value);
     void setName(const QString& value);
     QString name();
+    QString nameBase64();
+    void setVolume(VolumeType value);
+    VolumeType volume();
+    void setVolumePath(const QString& value);
+    QString volumePath();
+    void setKeyName(const QString& value);
+    QString keyName();
+    QString fullKeyName();
+    bool sync();
+    void bindRegistryPath(const QString& sid);
 
     void header_key(BYTES& value);
     void masks_key(BYTES& value);
@@ -51,12 +75,13 @@ public:
     void set_primary_key(const BYTES& value);
     void set_primary2_key(const BYTES& value);
 
-    void fromDatabase();
+
     bool toDataBase();
     QSettings toQSettings();
     void fromQSettings(const QSettings& value);
 
     BYTES toByteArhive();
+
     QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
 
     QString path();
@@ -66,12 +91,17 @@ public:
     void parseCsptestInfo(const QString& info);
 
     bool syncRegystry();
+    bool syncVolume();
+
     bool removeContainer(const QString& sid, const QString& containerName);
 
-    QJsonObject parseDeviceString(const QString& key);
+    void parseAdressKey(const QString& key);
+
+    static QString stringFromBase64(const QString &value);
 
 private:
     QString _path;
+
     BYTES _header_key;
     BYTES _masks_key;
     BYTES _masks2_key;
@@ -79,11 +109,20 @@ private:
     BYTES _primary_key;
     BYTES _primary2_key;
 
+
     SqlInterface * _db;
     QString _name;
+    VolumeType _valume;
+    QString _volumePath;
+    QString _device;
+    QString _key_name; //123456@
+    QMap<VolumeType, QString> m_volume;
+    QString _sid;
 
     bool _isValid;
 
+    const QString sample_volume = "\\\\.\\%1\\";
+    const QString sample_full_key = "\\\\.\\%1\\%2";
 
     std::map<std::string, set_keys> set_function();
     set_keys get_set_function(int index);
