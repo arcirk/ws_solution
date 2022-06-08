@@ -65,6 +65,29 @@ MainWindow::MainWindow(QWidget *parent)
 //    csptestf -keyset -container '\\.\HDIMAGE\test' -info
 
 
+    //Просмотр личных сертификатов
+    //certmgr -list -store uMy
+    //Просмотр сертификатов в контейнере
+    //certmgr -list -container '\\.\Aladdin R.D. JaCarta 00 00\8df47e71-18ae-49c1-8738-9b4b0944dcd4'
+    //Просмотр промежуточных сертификатов
+    //certmgr -list -store uca
+
+//    Установка сертификатов в хранилище КриптоПро:
+//    certmgr -inst -store uRoot -file <название-файла>.cer
+//    Установка сертификатов в хранилище ПК:
+//    certmgr -inst -store mRoot -file <название-файла>cer
+
+//   Удалить сертификаты, установленные в хранилище КриптоПро:
+//   certmgr -delete -store uRoot
+//   Если установлено более одного сертификата, то будет предложено указать номер удаляемого сертификата.
+//   Удалить все сертификаты, установленные в хранилище КриптоПро:
+//   certmgr -delete -all -store uRoot
+
+//    Установим пользовательский сертификат с привязкой к закрытому контейнеру \\.\HDIMAGE\bob
+//    certmgr -inst -file cert-bob.cer -cont '\\.\HDIMAGE\bob'
+
+//    Активируем хранилище HDIMAGE:
+//    cpconfig -hardware reader -add HDIMAGE store
 
     ui->setupUi(this);
 
@@ -79,6 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
     modelSqlContainers->setFormatColumn(2, "base64");
     modelSqlCertificates = new QJsonTableModel(this);
     modelSqlCertificates->setColumnAliases(m_colAliases);
+    modelSqlCertificates->setRowsIcon(QIcon(":/img/rosette.ico"));
     modelWsUsers = new QJsonTableModel(this);
     modelWsUsers->setColumnAliases(m_colAliases);
     modelWsUsers->setRowsIcon(QIcon(":/img/user.png"));
@@ -517,6 +541,9 @@ void MainWindow::treeSetFromSqlContainers()
         int index = modelSqlContainers->getColumnIndex("Ref");
         if(index > 0)
             table->setColumnHidden(index, true);
+        index = modelSqlContainers->getColumnIndex("cache");
+        if(index > 0)
+            table->setColumnHidden(index, true);
         table->resizeColumnsToContents();
     }
 }
@@ -661,9 +688,19 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
     dlg->setModal(true);
     dlg->exec();
 
-    auto doc = QJsonDocument();
-    doc.setObject(obj);
-    updateInfoContainerOnDatabase(doc.toJson(), name.toUtf8().toBase64());
+    QString nameBase64 = name.toUtf8().toBase64();
+    auto indexCnt = findInTable(modelSqlContainers, name, 2, false);
+
+    if(indexCnt.isValid()){
+        int col = modelSqlContainers->getColumnIndex("cache");
+        QString cache = modelSqlContainers->index(indexCnt.row(), col).data().toString();
+        if(cache.isEmpty()){
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            updateInfoContainerOnDatabase(doc.toJson(), nameBase64);
+            getDataContainersList();
+        }
+    }
 
 }
 
@@ -880,7 +917,6 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
         QString jsonConteiners = QByteArray::fromBase64(base64.toUtf8());
 
         modelSqlContainers->setJsonText(jsonConteiners);
-        //qDebug() << jsonConteiners;
         modelSqlContainers->reset();
 
         auto itemContainers = findTreeItem("SqlContainers");
@@ -894,6 +930,28 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
         auto itemCertificates = findTreeItem("SqlCertificates");
         if(!itemCertificates){
             getDataCertificatesList();
+        }
+    }else if(id_command == "DataCertificatesList"){
+
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString jsonCertificates = QByteArray::fromBase64(base64.toUtf8());
+
+        modelSqlCertificates->setJsonText(jsonCertificates);
+        modelSqlCertificates->reset();
+
+        auto itemCertificates = findTreeItem("SqlCertificates");
+        if(!itemCertificates){
+            auto rootDb = findTreeItem("SqlServer");
+            if(rootDb){
+               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/cert.png");
+               rootDb->addChild(itemCertificates);
+            }
+        }
+        auto itemUsers = findTreeItem("SqlUsers");
+        if(!itemUsers){
+            getDataUsersList();
         }
     }
 }
@@ -925,6 +983,11 @@ void MainWindow::getDataContainersList()
         objSel = QJsonObject();
         objSel.insert("name", "FirstField");
         objSel.insert("value", "FirstField");
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        objSel = QJsonObject();
+        objSel.insert("name", "cache");
+        objSel.insert("value", "cache");
         bindQuery.add_field(objSel, bFieldType::qVariant);
 
         QString query = bindQuery.to_json();
@@ -960,6 +1023,42 @@ void MainWindow::getDataCertificatesList()
     if(_sett->launch_mode() == mixed){
         if(!isDbOpen())
             return;
+        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Certificates");
+
+        QJsonObject objSel = QJsonObject();
+
+        objSel.insert("name", "EmptyTitle");
+        objSel.insert("value", "EmptyTitle");
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        objSel = QJsonObject();
+        objSel.insert("name", "Ref");
+        objSel.insert("value", "Ref"); //alias
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        objSel = QJsonObject();
+        objSel.insert("name", "FirstField");
+        objSel.insert("value", "FirstField");
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        objSel = QJsonObject();
+        objSel.insert("name", "privateKey");
+        objSel.insert("value", "privateKey");
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        objSel = QJsonObject();
+        objSel.insert("name", "cache");
+        objSel.insert("value", "cache");
+        bindQuery.add_field(objSel, bFieldType::qVariant);
+
+        QString query = bindQuery.to_json();
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+
+        auto objMain = QJsonObject();
+        objMain.insert("table", QString(QByteArray(resultQuery.toUtf8()).toBase64()));
+        resetTableJsonModel(objMain, "DataCertificatesList");
 
     }else{
 
@@ -967,7 +1066,6 @@ void MainWindow::getDataCertificatesList()
             return;
         QString query = "SELECT NULL AS Empty\n"
                         ",[FirstField]\n"
-                        ",[SecondField]\n"
                         ",[Ref]\n"
                         ",[privateKey]\n"
                         "FROM [dbo].[Certificates]";
@@ -2349,7 +2447,7 @@ void MainWindow::onWsExecQuery(const QString &result)
         return;
 
     QString id_command = obj.value("id_command").toString();
-    if(id_command == "DataContainersList"){
+    if(id_command == "DataContainersList" || id_command == "DataCertificatesList" ){
 
         resetTableJsonModel(obj, id_command);
 //        QString base64 = obj.value("table").toString();
@@ -2374,29 +2472,28 @@ void MainWindow::onWsExecQuery(const QString &result)
 //            getDataCertificatesList();
 //        }
 
-    }else if(id_command == "DataCertificatesList"){
+//    }else if(id_command == "DataCertificatesList"){
 
-        QString base64 = obj.value("table").toString();
-        if(base64.isEmpty())
-            return;
-        QString jsonCertificates = QByteArray::fromBase64(base64.toUtf8());
+//        QString base64 = obj.value("table").toString();
+//        if(base64.isEmpty())
+//            return;
+//        QString jsonCertificates = QByteArray::fromBase64(base64.toUtf8());
 
-        modelSqlCertificates->setJsonText(jsonCertificates);
-        //qDebug() << jsonCertificates;
-        modelSqlContainers->reset();
+//        modelSqlCertificates->setJsonText(jsonCertificates);
+//        modelSqlCertificates->reset();
 
-        auto itemCertificates = findTreeItem("SqlCertificates");
-        if(!itemCertificates){
-            auto rootDb = findTreeItem("SqlServer");
-            if(rootDb){
-               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/cert.png");
-               rootDb->addChild(itemCertificates);
-            }
-        }
-        auto itemUsers = findTreeItem("SqlUsers");
-        if(!itemUsers){
-            getDataUsersList();
-        }
+//        auto itemCertificates = findTreeItem("SqlCertificates");
+//        if(!itemCertificates){
+//            auto rootDb = findTreeItem("SqlServer");
+//            if(rootDb){
+//               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/cert.png");
+//               rootDb->addChild(itemCertificates);
+//            }
+//        }
+//        auto itemUsers = findTreeItem("SqlUsers");
+//        if(!itemUsers){
+//            getDataUsersList();
+//        }
     }else if(id_command == "insertContainerToData"){
         qDebug() << __FUNCTION__ << "Контейнер успешно импортирован в на сервер!";
         getDataContainersList();
@@ -2805,8 +2902,8 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
     QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
     if(isCyrillic(device)){
         if(currentUser->sid().isEmpty()){
-            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+            terminal->send(cmd, csptestContainerCopy);
             return;
         }
         auto m_device = parseDeviceString(device);
@@ -2817,21 +2914,23 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
         QDir dir(volume + m_device.value("key_name").toString() + ".000");
         if(dir.exists()){
             auto keyCon = KeysContainer();
+            keyCon.parseAdressKey(device);
+            keyCon.setWindowsSid(currentUser->sid());
             keyCon.fromFolder(dir.path());
             if(keyCon.isValid()){
-                keyCon.setPath(currentUser->sid(), QByteArray(newName.toUtf8()).toBase64());
+                //keyCon.setPath(currentUser->sid(), QByteArray(newName.toUtf8()).toBase64());
                 bool result = keyCon.syncRegystry();
                 if(result){
                     QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
                     getAvailableContainers(currentUser);
                 }else{
-                    QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-                    terminal->send(cmd, cmdCommand::csptestContainerDelete);
+                    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+                    terminal->send(cmd, csptestContainerCopy);
                 }
             }
         }else{
-            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+            terminal->send(cmd, csptestContainerCopy);
         }
     }else{
         QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
@@ -2852,16 +2951,11 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
         return;
     }
 
-    //QString container = table->model()->index(index.row(), 1).data(Qt::UserRole+1).toString();
     QString volume = table->model()->index(index.row(), 1).data().toString();
     QString name = table->model()->index(index.row(), 2).data().toString();
-    //QString keySetInfo = "csptest -keyset -container \"%1\" -info";
 
-    //if(volume == "HDIMAGE"){
-        //
-    //}else if(volume == "REGISTRY"){
-        //
-    //}else{
+    //ToDo: Сделать проверку на кирилицу
+
     QDir folder;
 
             if(QString(volume).left(6) == "FAT12_"){
@@ -3157,6 +3251,8 @@ void MainWindow::on_btnCurrentDelete_clicked()
         QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
         terminal->send(cmd, cmdCommand::csptestContainerDelete);
 #endif
+
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
 }
 
 
@@ -3371,3 +3467,38 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
         }
     }
 }
+
+void MainWindow::on_btnDataContainerInfo_clicked()
+{
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(index.isValid()){
+        int col = modelSqlContainers->getColumnIndex("cache");
+        int colName = modelSqlContainers->getColumnIndex("FirstField");
+        auto cache = modelSqlContainers->index(index.row(), col).data().toString();
+        auto name = modelSqlContainers->index(index.row(), colName).data().toString();
+        if(cache.isEmpty()){
+            QStringList containers = currentUser->containers();
+            foreach(auto cnt, containers){
+                if(cnt.indexOf(name.toUtf8().toBase64()) != 0){
+                    QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(cnt);
+                    terminal->send(cmd, csptestContainerFnfo);
+                    return;
+                }
+            }
+
+            QMessageBox::information(this, "Предупреждение", "Информация о контейнере не загружена!"
+                                     "Обновите данные запустив просмотр иноформации на компьютере с установленным контейнером в КриптоПро.");
+
+        }else{
+
+            auto doc = QJsonDocument::fromJson(cache.toUtf8());
+            auto obj = doc.object();
+            auto dlg = new DialogContainerInfo(obj, name, this);
+            dlg->setModal(true);
+            dlg->exec();
+
+        }
+    }
+}
+

@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Инфомация о контейнере</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="certmaster.qrc">
+    <normaloff>:/img/keyUser16.png</normaloff>:/img/keyUser16.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="2" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -41,7 +45,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="certmaster.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

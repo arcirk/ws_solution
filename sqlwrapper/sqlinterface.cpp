@@ -222,6 +222,7 @@ int SqlInterface::exec_qt(const QString &i_query, QString &err)
 
     if(sql.lastError().type() != QSqlError::NoError){
         err = sql.lastError().text();
+        std::cout << "SqlInterface::exec_qt:query " << sql.lastQuery().toStdString() << std::endl;
     }
 
     return res;

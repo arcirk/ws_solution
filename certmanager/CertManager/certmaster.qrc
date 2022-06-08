@@ -47,5 +47,6 @@
         <file>img/certUsers.png</file>
         <file>img/keyUser16.png</file>
         <file>img/!.png</file>
+        <file>img/rosette.ico</file>
     </qresource>
 </RCC>

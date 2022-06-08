@@ -113,20 +113,6 @@ void QBSqlQuery::fromJson(const QString &json)
     }
 }
 
-//QString QBSqlQuery::queryText() const
-//{
-//    if(_command == QSqlInsert){
-//        QList<QBSqlValue> values;
-//        return bindQueryInsert(values);
-//    }else if(_command == QSqlUpdate){
-//        return bindQueryUpdate();
-//    }else if(_command == QSqlDelete){
-//        return bindQueryUpdate();
-//    }
-
-//    return {};
-//}
-
 QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
 {
     QString _query;
@@ -136,7 +122,7 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
     if(_command == QSqlInsert){
         _query = bindQueryInsert(values);
     }else if(_command == QSqlUpdate){
-        _query = bindQueryUpdate();
+        _query = bindQueryUpdate(values);
     }else if(_command == QSqlDelete){
         _query = bindQueryDelete();
     }else if(_command == QSqlGet){
@@ -144,7 +130,6 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
     }
 
     sql.prepare(_query);
-    //qDebug() << qPrintable(_query);
 
     for (auto itr : values) {
         if(itr.type == qVariant){
@@ -229,9 +214,87 @@ QString QBSqlQuery::bindQueryInsert(QList<QBSqlValue>& values) const
     return query;
 }
 
-QString QBSqlQuery::bindQueryUpdate() const
+QString QBSqlQuery::bindQueryUpdate(QList<QBSqlValue>& values) const
 {
-    return {};
+    QString query;
+    QString _set = "\nSET ";
+    query = "UPDATE ";
+    query.append("dbo." + _table);
+    for (auto iter = _fields.begin(); iter != _fields.end(); iter++) {
+        bFieldType type = (bFieldType)iter->value("type").toInt();
+        QJsonObject val = iter->value("value").toObject();
+        _set.append("[" + val.value("name").toString() + "]");
+        _set.append(" = ?"); //'" + value + "'");
+        if (iter != --_fields.end())
+            _set.append(",\n");
+
+        QBSqlValue item = QBSqlValue();
+        item.type = type;
+        QString v = val.value("value").toString();
+        if(type == bFieldType::qVariant){
+           item.value = v;
+        }else
+           item.data = QByteArray::fromBase64(v.toUtf8());
+        values.append(item);
+    }
+
+    query.append(_set);
+
+    if(!_fieldsIsExists.empty()){
+        QString _whereEx;
+
+        for (auto iter = _fieldsIsExists.begin(); iter != _fieldsIsExists.end(); iter++) {
+            _whereEx.append(iter->value("name").toString());
+            auto vValue = iter->value("value");
+            if (vValue.isString()){
+                QString value = vValue.toString();
+                _whereEx.append(" = '" + value + "'");
+                if (iter != --_fieldsIsExists.end())
+                    _whereEx.append(" AND\n");
+            }else if (vValue.isDouble()){
+                int res = vValue.toInt();
+                QString value = QString::number(res);
+                _whereEx.append(" = '" + value + "'");
+                if (iter != --_fieldsIsExists.end())
+                    _whereEx.append(" AND\n");
+            }
+        }
+    }
+
+    query.append("\nWHERE ");
+
+    QString _whereEx;
+
+    for (auto iter = _where.begin(); iter != _where.end(); iter++) {
+        QBSqlTypeOfComparison type = (QBSqlTypeOfComparison)iter->value("typeOfComparison").toInt();
+        QJsonObject val = iter->value("value").toObject();
+
+        if(type == QBSqlTypeOfComparison::QNo_Equals || type == QBSqlTypeOfComparison::QNot_In_List){
+             _whereEx.append(" NOT ");
+        }
+
+        QString cmp = comparison(type);
+
+        _whereEx.append(val.value("name").toString());
+        auto vValue = val.value("value");
+        if (vValue.isString()){
+            QString value = vValue.toString();
+            _whereEx.append(cmp + " '" + value + "'");
+            if (iter != --_where.end())
+                _whereEx.append(" AND\n");
+        }else if (vValue.isDouble()){
+            int res = vValue.toInt();
+            QString value = QString::number(res);
+            _whereEx.append(cmp + " '" + value + "'");
+            if (iter != --_where.end())
+                _whereEx.append(" AND\n");
+        }else if (vValue.isArray()){
+
+        }
+    }
+    query.append(_whereEx);
+
+    return query;
 }
 
 QString QBSqlQuery::bindQueryDelete() const

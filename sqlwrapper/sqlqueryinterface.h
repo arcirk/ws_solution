@@ -33,12 +33,6 @@ enum bFieldType{
     qByteArray
 };
 
-//struct QBSqlValue{
-//    QBSqlTypeOfComparison typeOfComparison;
-//    QJsonObject field;
-//    explicit QBSqlValue(QBSqlTypeOfComparison _typeOfComparison, QJsonObject _field);
-//};
-
 struct QBSqlValue{
     QVariant value;
     QByteArray data;
@@ -64,8 +58,6 @@ public:
 
     void fromJson(const QString& json);
 
-    //QString queryText() const;
-
     QSqlQuery query(const QSqlDatabase& db);
 
 private:
@@ -77,7 +69,7 @@ private:
     QString _table;
 
     QString bindQueryInsert(QList<QBSqlValue>& values) const;
-    QString bindQueryUpdate() const;
+    QString bindQueryUpdate(QList<QBSqlValue>& values) const;
     QString bindQueryDelete() const;
     QString bindQueryGet() const;
 

@@ -99,6 +99,8 @@ private slots:
 
     void updateInfoContainerOnDatabase(const QString& info, const QString& cntName);
 
+    void on_btnDataContainerInfo_clicked();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
