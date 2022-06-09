@@ -90,6 +90,19 @@ QString Certificate::serial() const
     return _serial;
 }
 
+QString Certificate::getParam(const QString &key, const QString &name)
+{
+    if(sourceObject.isEmpty())
+        return "";
+
+    QString sSubj = sourceObject.value(key).toString();
+    int ind = sSubj.indexOf(name + "=");
+    if(ind != -1)
+        return getStringValue(ind + name.length() + 1, sSubj).replace("\r", "").trimmed().replace("\"", "");
+
+    return "";
+}
+
 QString Certificate::getStringValue(int start, const QString &source)
 {
     for (int i = start; i < source.length(); ++i) {

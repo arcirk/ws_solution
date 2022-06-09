@@ -21,6 +21,8 @@ public:
     QString parentUser() const;
     QString serial() const;
 
+    QString getParam(const QString &key, const QString& name);
+
 private:
     QJsonObject sourceObject;
     QString _subject;

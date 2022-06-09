@@ -101,6 +101,12 @@ private slots:
 
     void on_btnDataContainerInfo_clicked();
 
+    void on_btnCurrentUserAdd_clicked();
+
+    void on_mnuCertUsers_triggered();
+
+    void on_mnuCryptoPro_triggered();
+
 private:
     Ui::MainWindow *ui;
     QList<QToolButton*> toolBar;
@@ -207,5 +213,9 @@ private:
 
     bool isCyrillic(const QString& source);
     QJsonObject parseDeviceString(const QString& key);
+
+    void copyCurrentUserContainer();
+    void copyCurrentUserCertificate();
+
 };
 #endif // MAINWINDOW_H

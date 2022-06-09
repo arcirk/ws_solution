@@ -48,5 +48,7 @@
         <file>img/keyUser16.png</file>
         <file>img/!.png</file>
         <file>img/rosette.ico</file>
+        <file>img/certmgr1.ico</file>
+        <file>img/cryptopro.ico</file>
     </qresource>
 </RCC>
