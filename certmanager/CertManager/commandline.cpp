@@ -3,8 +3,10 @@
 #include <QRegExp>
 #include <QRegularExpression>
 #include <QTextCodec>
-
-
+#include <comanndlineparser.h>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
     : QObject{parent}
@@ -139,6 +141,11 @@ void CommandLine::readyRead() {
 
 }
 
+void CommandLine::onEndParse(const QVariant &result, int cmd)
+{
+    emit endParse(result.toString(), cmd);
+}
+
 QString CommandLine::encodeData(const QByteArray &data, int m)
 {
     if(m==0){
@@ -266,6 +273,7 @@ void CommandLine::stop() {
 
 void CommandLine::send(const QString &commandText, int command)
 {
+    _strPart = "";
     QString _commandText = commandText;
     if(QString(commandText).right(1) != "\n")
         _commandText = commandText + "\n";
@@ -420,19 +428,70 @@ QString CommandLine::parseCommand(const QString &result, int command)
             emit endParse(_info.replace("\r", ""), command);
         }
     }else if(command == csptestContainerCopy){
-//       qDebug() << qPrintable(result);
-//       QString cur = "csptest -keycopy";
-//       if(result.left(cur.length()) != cur){
-           int ind = result.indexOf("[ErrorCode: 0x00000000]");
-           if(ind > 0){
-                emit endParse("OK", command);
-           }
-       //}
+       int ind = result.indexOf("[ErrorCode: 0x00000000]");
+       if(ind > 0){
+            emit endParse("OK", command);
+       }
     }else if(command == csptestContainerDelete){
         int ind = result.indexOf("[ErrorCode: 0x00000000]");
         if(ind > 0){
              emit endParse("OK", command);
         }
+    }else if(command == csptestGetCertificates){
+
+        int ind = result.indexOf("[ErrorCode: 0x00000000]");
+        if(ind > 0){
+
+            _strPart = _strPart + result;
+
+            QString str = _strPart;
+            QStringList results;
+            int j = _strPart.length(); //0;
+            int endIndex = _strPart.length();
+
+            while ((j = str.lastIndexOf("Issuer", j)) != -1) {
+
+                    if(j > 0){
+                        results.append(str.mid(j, endIndex - j));
+                    }
+                    --j;
+                    endIndex = j;
+            }
+
+            //QStringList lst;
+            auto arr = QJsonArray();
+
+            foreach(auto certText, results){
+                QStringList l = certText.split("\n");
+                QString p;
+                auto obj = QJsonObject();
+
+                foreach(auto line, l){
+                    QStringList s = certText.split(":");
+                    if(s.size() < 2){
+                        continue;
+                    }
+                    int ind = line.indexOf(":");
+                    if(ind != -1){
+                        obj.insert(line.left(ind - 1).trimmed(), line.right(line.length() - 1 - ind).trimmed());
+                        p.append(line + "\n");
+                    }
+                }
+
+                arr.append(obj);
+                //lst.append(p);
+            }
+            auto doc = QJsonDocument();
+            doc.setArray(arr);
+            emit endParse(QString(doc.toJson()), command);
+
+            return _strPart;
+
+        }else{
+            _strPart = _strPart + result; //рвет сообщение почему то
+            return "";
+        }
+
     }
     return result;
 }

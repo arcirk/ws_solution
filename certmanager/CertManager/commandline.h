@@ -8,6 +8,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <QThread>
+
 //#include <wchar.h>
 //#include <string>
 //#include <process.h>
@@ -29,6 +31,7 @@ enum cmdCommand{
     csptestContainerCopy,
     csptestContainerFnfo,
     csptestContainerDelete,
+    csptestGetCertificates,
     unknown
 };
 
@@ -68,9 +71,11 @@ public slots:
     void setUseSystem(bool val);
     void setChcp();
 
+    void onEndParse(const QVariant& result, int cmd);
+
 signals:
     void output(const QString& data, int command);
-    void endParse(const QString& result, int command);
+    void endParse(const QVariant& result, int command);
     void error(const QString& data, int command);
 
 private slots:
@@ -81,6 +86,7 @@ private slots:
     void started();
     void stateChanged(QProcess::ProcessState newState);
     void readyRead();
+
 
 private:
     QProcess m_process;
@@ -94,7 +100,8 @@ private:
     int _method;
     bool _useSystem;
 
-    //QString _program;
+    QString _strPart;
+    //QThread parseThread;
 
     QString encodeData(const QByteArray& data, int m);
     std::string executeSystem(const std::string& cmd);

@@ -127,6 +127,11 @@ bool CertUser::thisIsTheUser(const QString &usr, const QString &host)
         return false;
 }
 
+QMap<QString, Certificate *>& CertUser::certificates()
+{
+    return m_cert;
+}
+
 void CertUser::init()
 {
 

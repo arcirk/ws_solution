@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTreeWidgetItem>
 #include <QUuid>
+#include <certificate.h>
 
 namespace boost { namespace uuids { class uuid; } }
 class CertUser : public QObject
@@ -34,6 +35,8 @@ public:
     bool online();
     bool thisIsTheUser(const QString& usr, const QString& host);
 
+    QMap<QString, Certificate*>& certificates();
+
 private:
     QString _domain;
     QString _name;
@@ -43,6 +46,8 @@ private:
     bool _online;
     QStringList _containers;
     QTreeWidgetItem * _treeItem;
+
+    QMap<QString, Certificate*> m_cert;
 
     void init();
 

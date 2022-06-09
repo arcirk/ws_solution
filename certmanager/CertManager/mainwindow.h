@@ -58,7 +58,7 @@ private slots:
     void onDisplayError(const QString& what, const QString& err);
     void UpdateRowIcons();
     void onGetActiveUsers(const QString& resp);
-    void onParseCommand(const QString& result, int command);
+    void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
     void onWsExecQuery(const QString& result);
 
@@ -111,6 +111,7 @@ private:
     QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
+    QJsonTableModel * modelCurrentUserCerts;
 
     SqlInterface * db;
     QLabel * infoBar;
@@ -148,13 +149,18 @@ private:
     void getDataCertificatesList();
     void getDataUsersList();
 
+    void resetCurrentUserCertModel();
+
     void LoadUsersList();
     void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
     void loadItemChilds(QTreeWidgetItem *item);
     void loadItemSpecific(QTreeWidgetItem *item);
+
     void getAvailableContainers(CertUser * usr);
+
+
     void loadOnlineUsers();
     void disableToolBar();
     bool isContainerExists(const QString& name);
@@ -184,6 +190,7 @@ private:
     void treeSetFromSqlCertificates();
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
+    void treeSetFromCurrentUserCerts();
 
     void resetTableJsonModel(const QJsonObject& obj, const QString& cmd);
 

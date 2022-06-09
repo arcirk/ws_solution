@@ -18,6 +18,8 @@ SOURCES += \
     ../../chared/serveresponse.cpp \
     ../../sqlwrapper/sqlinterface.cpp \
     ../../sqlwrapper/sqlqueryinterface.cpp \
+    certificate.cpp \
+    comanndlineparser.cpp \
     commandline.cpp \
     databasemanager.cpp \
     dialogcomputer.cpp \
@@ -45,6 +47,8 @@ HEADERS += \
     ../../chared/serveresponse.h \
     ../../sqlwrapper/sqlinterface.h \
     ../../sqlwrapper/sqlqueryinterface.h \
+    certificate.h \
+    comanndlineparser.h \
     commandline.h \
     converter.h \
     databasemanager.h \
