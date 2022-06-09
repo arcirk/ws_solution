@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="mpl.qrc">
+    <normaloff>:/img/Firefox.ico</normaloff>:/img/Firefox.ico</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <layout class="QFormLayout" name="formLayout">
@@ -60,7 +64,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="mpl.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>Выбор профиля</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="mpl.qrc">
+    <normaloff>:/img/Firefox.ico</normaloff>:/img/Firefox.ico</iconset>
+  </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
@@ -44,7 +48,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="mpl.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
