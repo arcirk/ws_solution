@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include "converter.h"
+#include <sqlqueryinterface.h>
 
 class Certificate : public QObject
 {
@@ -22,12 +23,16 @@ public:
     QString parentUser() const;
     QString serial() const;
     ByteArray data();
+    QString ref();
+    void setRef(const QString& uuid);
     void setData(const ByteArray& dt);
 
     QString getParam(const QString &key, const QString& name);
 
     void fromData(ByteArray &cer);
-
+    void fromFile(const QString& fileName, bool removeSource = false);
+    QJsonObject getObject();
+    QBSqlQuery getSqlQueryObject(QBSqlCommand command);
 private:
     QJsonObject sourceObject;
     QString _subject;
@@ -39,7 +44,7 @@ private:
     QString _serial;
     ByteArray _data;
     bool _isValid;
-
+    QString _ref;
     QString getStringValue(int start, const QString& source);
 
 signals:

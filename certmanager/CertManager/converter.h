@@ -5,9 +5,6 @@
 #include <vector>
 #include <fstream>
 #include <string>
-#include <windows.h>
-#include <tchar.h>
-#include <stdio.h>
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)

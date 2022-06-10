@@ -1952,16 +1952,57 @@ void MainWindow::on_btnAdd_clicked()
             QFile file(fileName);
             if(!file.open(QIODevice::ReadOnly))
                 return;
+            bool removeTmp = false;
+            if(isCyrillic(fileName)){
+                //не могу победить кодировку
+                //
+                QString uuid = QUuid::createUuid().toString();
+                uuid = uuid.mid(1, uuid.length() - 2);
+                QString newPath = QCoreApplication::applicationDirPath() + QDir::separator() + uuid + ".tmp";
+                file.copy(newPath);
+                fileName = newPath;
+                removeTmp = true;
+                if(!QFile::exists(fileName)){
+                    file.close();
+                    return;
+                }
+            }
+
             file.close();
 
-            ByteArray data;
-            Base64Converter::readFile(fileName.toStdString(), data);
-            if(data.size() == 0)
-                return;
+//            ByteArray data;
+//            Base64Converter::readFile(fileName.toStdString(), data);
+//            if(data.size() == 0)
+//                return;
             auto cert = Certificate(this);
-            cert.fromData(data);
+            //cert.fromData(data);
+            cert.fromFile(fileName, removeTmp);
             if(cert.isValid()){
                 if(node == "SqlCertificates"){
+                    auto bindQuery = cert.getSqlQueryObject(QBSqlCommand::QSqlInsert);
+                    QString result = bindQuery.to_json();
+                    if(_sett->launch_mode() == mixed){
+                        auto bindQuery1 = QBSqlQuery();
+                        bindQuery1.fromJson(result);
+                        QSqlQuery sql = bindQuery1.query(db->getDatabase());
+                        sql.exec();
+                        if(sql.lastError().type() != QSqlError::NoError){
+                            qDebug() << __FUNCTION__ << sql.lastError().text();
+                        }else{
+                            QMessageBox::information(this, "Копирование на сервер", "Сертификат успешно скопирован на сервер!");
+                            getDataContainersList();
+                        }
+                    }else{
+                        if(m_client->isStarted()){
+                            auto doc = QJsonDocument();
+                            auto objMain = QJsonObject();
+                            objMain.insert("query", result);
+                            objMain.insert("id_command", "insertCertificateToData");
+                            doc.setObject(objMain);
+                            QString param = doc.toJson();
+                            m_client->sendCommand("exec_query_qt", "", param);
+                        }
+                    }
 
                 }else if(node == "currentUserCertificates"){
 

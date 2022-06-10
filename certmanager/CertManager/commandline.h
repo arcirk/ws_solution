@@ -83,7 +83,7 @@ signals:
     void cmdStarted();
 
 private slots:
-    void errorOccured(QProcess::ProcessError error);
+    void errorOccured(QProcess::ProcessError err);
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
     void readyReadStandardError();
     void readyReadStandardOutput();

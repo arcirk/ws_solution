@@ -36,10 +36,10 @@ CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
 }
 
 
-void CommandLine::errorOccured(QProcess::ProcessError error) {
+void CommandLine::errorOccured(QProcess::ProcessError err) {
     if(!m_listening) return;
     //qInfo() << Q_FUNC_INFO << error;
-    emit output("Error", _command);
+    emit error("Error", _command);
 }
 
 void CommandLine::finished(int exitCode, QProcess::ExitStatus exitStatus) {
@@ -47,7 +47,7 @@ void CommandLine::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     //qInfo() << Q_FUNC_INFO;
     Q_UNUSED(exitCode);
     Q_UNUSED(exitStatus);
-    emit output("Complete", _command);
+    emit output("Complete", unknown);
 }
 
 void CommandLine::readyReadStandardError() {
@@ -82,13 +82,13 @@ void CommandLine::stateChanged(QProcess::ProcessState newState) {
     qInfo() << Q_FUNC_INFO << newState;
     switch (newState) {
         case QProcess::NotRunning:
-            emit output("Not running", _command);
+            emit output("Not running", unknown);
             break;
         case QProcess::Starting:
-            emit output("Starting ...", _command);
+            emit output("Starting ...", unknown);
             break;
         case QProcess::Running:{
-            emit output("Running", _command);
+            emit output("Running", unknown);
             emit cmdStarted();
         }
             break;
@@ -512,12 +512,13 @@ QString CommandLine::parseCommand(const QString &result, int command)
 
     }else if(command == certutilGetCertificateInfo){
 
+        //qDebug() << qPrintable(result);
         int ind = result.indexOf("CertUtil: -dump");
         if(ind > 0){
             QString line = getLine(result, ind);
             if(!line.isEmpty()){
                 QStringList r = line.split(":");
-                if(r.size() == 1){
+                if(r.size() == 2){
                     QString s = r[1].trimmed();
                     if(s == "-dump — команда успешно выполнена."){
                         //QStringList lst;
@@ -540,20 +541,19 @@ QString CommandLine::parseCommand(const QString &result, int command)
                                     QString Issuer = result.mid(ind, ind__ - ind);
                                     Issuer.replace("\n", "");
                                     auto s_r = Issuer.split(":");
-                                    obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                                    obj.insert("Issuer", s_r[1].trimmed());
                                 }
-
                             }
                         }
                         ind = result.indexOf("NotBefore:");
                         if(ind > 0){
                             auto s_r = getLine(result, ind).trimmed().split(":");
-                            obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                            obj.insert("Not valid before", s_r[1].trimmed());
                         }
                         ind = result.indexOf("NotAfter:");
                         if(ind > 0){
                             auto s_r = getLine(result, ind).trimmed().split(":");
-                            obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                            obj.insert("Not valid after", s_r[1].trimmed());
                         }
                         ind = result.indexOf("Субъект:");
                         if(ind > 0){
@@ -565,12 +565,12 @@ QString CommandLine::parseCommand(const QString &result, int command)
                                     QString subject = result.mid(ind, ind__ - ind);
                                     subject.replace("\n", "");
                                     auto s_r = subject.split(":");
-                                    obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                                    obj.insert("Subject", s_r[1].trimmed());
                                 }
-
                             }
                         }
                         auto doc = QJsonDocument();
+                        arr.append(obj);
                         doc.setArray(arr);
                         emit endParse(QString(doc.toJson()), command);
                     }
