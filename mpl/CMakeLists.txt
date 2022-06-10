@@ -19,11 +19,6 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
-
-
-
 set(PROJECT_SOURCES
         main.cpp
         dialogmainwindow.cpp
@@ -46,6 +41,8 @@ set(PROJECT_SOURCES
         )
 
 #set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/logevent.rc")
+find_package(QT NAMES Qt6 Qt5 COMPONENTS  Sql Network Core Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Sql Network Core Widgets REQUIRED)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
@@ -55,6 +52,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
                 ${PROJECT_SOURCES}
                 ${APP_ICON_RESOURCE_WINDOWS}
                 )
+
     else()
         qt_add_executable(MPL
                 MANUAL_FINALIZATION
@@ -83,6 +81,8 @@ endif()
 target_link_libraries(MPL PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Network
+        Qt${QT_VERSION_MAJOR}::Sql
         SingleApplication::SingleApplication)
 
 #

@@ -29,6 +29,7 @@
 #include "dialogcontainerinfo.h"
 #include <QJsonArray>
 #include "certificate.h"
+#include "converter.h"
 
 #ifdef _WINDOWS
 #include <Windows.h>
@@ -91,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
 //    cpconfig -hardware reader -add HDIMAGE store
 
     //Экспортировать сертификат из локального хранилища в файл:
-    //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer
+    //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer !!!
 
     ui->setupUi(this);
 
@@ -225,7 +226,7 @@ void MainWindow::createTerminal()
 
     terminal->start();
     if(isUseCsptest)
-        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), cmdCommand::unknown);
+        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
 
 #ifdef _WINDOWS
         std::string envUSER = "username";
@@ -986,40 +987,58 @@ void MainWindow::createTree()
     tree->expandAll();
 }
 
-void MainWindow::createRootList()
+Certificate *MainWindow::selectCertFromLocalHost()
 {
-    qDebug() << __FUNCTION__;
-    auto table = ui->tableView;
-    table->setModel(nullptr);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
+                                                 QDir::homePath(),
+                                                 "Файл сертификата (*.cer)");
+    if(fileName != ""){
+        QFile file(fileName);
+        //QFileInfo fileInfo(file.fileName());
 
-    if(!isDbOpen())
-        return;
+        if(isCyrillic(fileName)){
 
-    auto model = new QStandardItemModel(this);
+        }
 
-    model->setColumnCount(1);
-    model->setRowCount(3);
+    }
 
-    QStringList cols = {"root"};
-    model->setHorizontalHeaderLabels(cols);
-
-    auto itemKeys = new QStandardItem("Контейнеры");
-    itemKeys->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    itemKeys->setIcon(QIcon(":/img/key_password_lock_800.ico"));
-    model->setItem(0, 0, itemKeys);
-    auto itemCerts = new QStandardItem("Сертификаты");
-    itemCerts->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    itemCerts->setIcon(QIcon(":/img/certificate.ico"));
-    model->setItem(1, 0, itemCerts);
-    auto itemUsers = new QStandardItem("Пользователи");
-    itemUsers->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    itemUsers->setIcon(QIcon(":/img/bootloader_users_person_people_6080.ico"));
-    model->setItem(2, 0, itemUsers);
-
-    table->setModel(model);
-    table->resizeColumnsToContents();
-
+    return nullptr;
 }
+
+//void MainWindow::createRootList()
+//{
+//    qDebug() << __FUNCTION__;
+//    auto table = ui->tableView;
+//    table->setModel(nullptr);
+
+//    if(!isDbOpen())
+//        return;
+
+//    auto model = new QStandardItemModel(this);
+
+//    model->setColumnCount(1);
+//    model->setRowCount(3);
+
+//    QStringList cols = {"root"};
+//    model->setHorizontalHeaderLabels(cols);
+
+//    auto itemKeys = new QStandardItem("Контейнеры");
+//    itemKeys->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//    itemKeys->setIcon(QIcon(":/img/key_password_lock_800.ico"));
+//    model->setItem(0, 0, itemKeys);
+//    auto itemCerts = new QStandardItem("Сертификаты");
+//    itemCerts->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//    itemCerts->setIcon(QIcon(":/img/certificate.ico"));
+//    model->setItem(1, 0, itemCerts);
+//    auto itemUsers = new QStandardItem("Пользователи");
+//    itemUsers->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//    itemUsers->setIcon(QIcon(":/img/bootloader_users_person_people_6080.ico"));
+//    model->setItem(2, 0, itemUsers);
+
+//    table->setModel(model);
+//    table->resizeColumnsToContents();
+
+//}
 
 void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_command){
 
@@ -1391,7 +1410,7 @@ void MainWindow::getAvailableContainers(CertUser *usr)
     qDebug() << __FUNCTION__;
 
     if(usr == currentUser)
-        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
 }
 
 void MainWindow::loadOnlineUsers()
@@ -1773,6 +1792,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             ui->btnCurrentCopyToRegistry->setEnabled(false);
             ui->btnCurrentCopyToSql->setEnabled(false);
             ui->btnCurrentUserAdd->setEnabled(true);
+            ui->btnAdd->setEnabled(true);
         }
     }
 //        return;
@@ -1913,9 +1933,46 @@ void MainWindow::on_mnuConnect_triggered()
 
 }
 
+
+
 void MainWindow::on_btnAdd_clicked()
 {
     qDebug() << __FUNCTION__;
+
+
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+
+    if(node == "SqlCertificates" || node == "currentUserCertificates"){
+
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
+                                                     QDir::homePath(),
+                                                     "Файл сертификата (*.cer)");
+        if(fileName != ""){
+            QFile file(fileName);
+            if(!file.open(QIODevice::ReadOnly))
+                return;
+            file.close();
+
+            ByteArray data;
+            Base64Converter::readFile(fileName.toStdString(), data);
+            if(data.size() == 0)
+                return;
+            auto cert = Certificate(this);
+            cert.fromData(data);
+            if(cert.isValid()){
+                if(node == "SqlCertificates"){
+
+                }else if(node == "currentUserCertificates"){
+
+                }
+            }
+
+        }
+
+    }
+
+    return;
 
 //    auto reg = Registry();
 //    QString admin = reg.currentWindowsName();
@@ -2566,64 +2623,43 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 
 void MainWindow::onParseCommand(const QVariant &result, int command)
 {
-    if(command == cmdCommand::echoUserName){
+    if(command == CmdCommand::echoUserName){
         currentUser->setName(result.toString());
         currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
-    }else if(command == cmdCommand::wmicGetSID){
+    }else if(command == CmdCommand::wmicGetSID){
         currentUser->setSid(result.toString());
         //get cert
-        terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), cmdCommand::csptestGetCertificates);
+        terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), CmdCommand::csptestGetCertificates);
 
-    }else if(command == cmdCommand::csptestGetConteiners){
+    }else if(command == CmdCommand::csptestGetConteiners){
         QString res = result.toString();
         res.replace("\r", "");
         csptestCurrentUserGetContainers(result.toString());
 #ifdef _WINDOWS
         if(currentUser->sid().isEmpty())
-            terminal->send(QString("WHOAMI /USER\n").arg(currentUser->name()), cmdCommand::wmicGetSID);
+            terminal->send(QString("WHOAMI /USER\n").arg(currentUser->name()), CmdCommand::wmicGetSID);
 #endif
-    }else if(command == cmdCommand::csptestContainerFnfo){
+    }else if(command == CmdCommand::csptestContainerFnfo){
         updateContainerInfoOnData(result.toString());
-    }else if(command == cmdCommand::csptestContainerCopy){
+    }else if(command == CmdCommand::csptestContainerCopy){
         QMessageBox::information(this, "Копироване контейнера", "Контейнер успешно скопирован!");
         getAvailableContainers(currentUser);
-    }else if(command == cmdCommand::csptestContainerDelete){
+    }else if(command == CmdCommand::csptestContainerDelete){
         QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
         getAvailableContainers(currentUser);
-    }else if(command == cmdCommand::csptestGetCertificates){
-//        if(result.typeId() == QMetaType::QStringList){
-//            auto res = result.toStringList();
-//            //qDebug() << qPrintable(res.join("\n___________CERT________\n"));
+    }else if(command == CmdCommand::csptestGetCertificates){
 
-//            foreach(auto line, res){
-//             qDebug() << "_______START______";
-//                //auto m = line.split("\n");
-//                qDebug() << qPrintable(line);
-////                foreach(auto s, m){
-////                    qDebug() << qPrintable(s);
-////                }
-//             qDebug() << "_______END______";
-//            }
-
-//        }
         auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
         auto arr = doc.array();
 
         currentUser->certificates().clear();
 
         for (auto itr = arr.begin(); itr != arr.end(); ++itr) {
-//            qDebug() << "_______START______";
-
             auto obj = itr->toObject();
             auto cert = new Certificate(this);
             cert->setSourceObject(obj);
             currentUser->certificates().insert(cert->serial(), cert);
-
-//            for (auto itr1 = obj.begin() ; itr1 != obj.end(); ++itr1) {
-//                qDebug() << itr1.key() << ":" << itr1.value().toString();
-//            }
-//            qDebug() << "_______END______";
         }
 
         resetCurrentUserCertModel();
@@ -3408,7 +3444,7 @@ void MainWindow::on_btnCurrentDelete_clicked()
             }else{
                 if(currentUser->sid().isEmpty()){
                     QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-                    terminal->send(cmd, cmdCommand::csptestContainerDelete);
+                    terminal->send(cmd, CmdCommand::csptestContainerDelete);
                     return;
                 }
                 auto keyCon = KeysContainer();
@@ -3422,14 +3458,14 @@ void MainWindow::on_btnCurrentDelete_clicked()
 
         }else{
             QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-            terminal->send(cmd, cmdCommand::csptestContainerDelete);
+            terminal->send(cmd, CmdCommand::csptestContainerDelete);
         }
 #else
         QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
         terminal->send(cmd, cmdCommand::csptestContainerDelete);
 #endif
 
-        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", cmdCommand::csptestGetConteiners);
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
 }
 
 

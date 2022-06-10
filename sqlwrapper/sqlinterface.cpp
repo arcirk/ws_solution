@@ -391,7 +391,13 @@ QString SqlInterface::tableFields(int tableIndex) {
     }else if(tableName == "Certificates"){
         result = "[cache] [text] NULL,\n"
                  "[data] [varbinary](max) NULL,"
-                 "[privateKey] [char](36) NULL";
+                 "[privateKey] [char](36) NULL"
+                 "[subject] [varchar](max) NULL,"
+                 "[issuer] [varchar](max) NULL,"
+                 "[notValidBefore] [varchar](max) NULL,"
+                 "[notValidAfter] [varchar](max) NULL,"
+                 "[parentUser] [varchar](max) NULL,"
+                 "[serial] [varchar](max) NULL,";
     }
 
 

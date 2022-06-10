@@ -15,16 +15,16 @@
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
     //#include <Windows.h>
-    #pragma comment(lib, "advapi32")
+    //#pragma comment(lib, "advapi32")
 #endif
 
-#include <fstream>
-#include <iostream>
-#include <string>
+//#include <fstream>
+//#include <iostream>
+//#include <string>
 
-using std::wcout;
-using std::wstring;
-using std::vector;
+//using std::wcout;
+//using std::wstring;
+//using std::vector;
 
 QStringList KeyFiles = {
     "header.key",
@@ -48,14 +48,7 @@ KeysContainer::KeysContainer(QObject *parent)
 KeysContainer::KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent)
     : QObject{parent}
 {
-//    const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, localName);
-//    QSettings reg = QSettings(root, QSettings::NativeFormat);
-//    _header_key = reg.value("header.key").toBYTESArray();
-//    _masks_key = reg.value("masks.key").toBYTESArray();
-//    _masks2_key = reg.value("masks2.key").toBYTESArray();
-//    _name_key = reg.value("name.key").toBYTESArray();
-//    _primary_key = reg.value("primary.key").toBYTESArray();
-//    _primary2_key = reg.value("primary2.key").toBYTESArray();
+
     _name = localName;
 
     _db = db;
@@ -123,7 +116,8 @@ bool KeysContainer::sync()
         return syncVolume();
     }else if(volume() == HDIMAGE){
 
-    }
+    }else
+        return false;
 }
 
 void KeysContainer::bindRegistryPath(const QString &sid)
@@ -131,62 +125,62 @@ void KeysContainer::bindRegistryPath(const QString &sid)
    _path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, nameBase64());
 }
 
-void KeysContainer::header_key(BYTES &value)
+void KeysContainer::header_key(ByteArray &value)
 {
     value = _header_key;
 }
 
-void KeysContainer::masks_key(BYTES &value)
+void KeysContainer::masks_key(ByteArray &value)
 {
     value = _masks_key;
 }
 
-void KeysContainer::masks2_key(BYTES &value)
+void KeysContainer::masks2_key(ByteArray &value)
 {
     value = _masks2_key;
 }
 
-void KeysContainer::name_key(BYTES &value)
+void KeysContainer::name_key(ByteArray &value)
 {
     value = _name_key;
 }
 
-void KeysContainer::primary_key(BYTES &value)
+void KeysContainer::primary_key(ByteArray &value)
 {
     value = _primary_key;
 }
 
-void KeysContainer::primary2_key(BYTES &value)
+void KeysContainer::primary2_key(ByteArray &value)
 {
     value = _primary2_key;
 }
 
-void KeysContainer::set_header_key(const BYTES &value)
+void KeysContainer::set_header_key(const ByteArray &value)
 {
     _header_key = value;
 }
 
-void KeysContainer::set_masks_key(const BYTES &value)
+void KeysContainer::set_masks_key(const ByteArray &value)
 {
     _masks_key = value;
 }
 
-void KeysContainer::set_masks2_key(const BYTES &value)
+void KeysContainer::set_masks2_key(const ByteArray &value)
 {
     _masks2_key = value;
 }
 
-void KeysContainer::set_name_key(const BYTES &value)
+void KeysContainer::set_name_key(const ByteArray &value)
 {
     _name_key = value;
 }
 
-void KeysContainer::set_primary_key(const BYTES &value)
+void KeysContainer::set_primary_key(const ByteArray &value)
 {
     _primary_key = value;
 }
 
-void KeysContainer::set_primary2_key(const BYTES &value)
+void KeysContainer::set_primary2_key(const ByteArray &value)
 {
     _primary2_key = value;
 }
@@ -244,7 +238,7 @@ void KeysContainer::fromQSettings(const QSettings &value)
 
 }
 
-BYTES KeysContainer::toByteArhive()
+ByteArray KeysContainer::toByteArhive()
 {
     if(!_isValid){
         qCritical() << __FUNCTION__ <<  "Данные не инициализированы!";
@@ -270,9 +264,9 @@ BYTES KeysContainer::toByteArhive()
 //    settings.beginGroup(name());
 //    for (int i = 0; i < KeyFiles.size(); ++i) {
 //        get_keys fun = get_get_function(i);
-//        BYTES data;
+//        ByteArray data;
 //        get_get_function(i)(data);
-//        BYTES * buffer = new
+//        ByteArray * buffer = new
 //        settings.setValue(KeyFiles[i], get_get_function(i)());
 //    }
 //    settings.endGroup();
@@ -376,7 +370,7 @@ bool KeysContainer::syncRegystry()
     for(int i = 0; i < KeyFiles.size(); ++i){
         QString key = KeyFiles[i];
         auto funcGet = get_get_function(i);
-        BYTES data;
+        ByteArray data;
         funcGet(data);
         if(data.size() == 0)
             return false;
@@ -418,11 +412,11 @@ bool KeysContainer::syncVolume()
     for(int i = 0; i < KeyFiles.size(); ++i){
         QString key = KeyFiles[i];
         auto funcGet = get_get_function(i);
-        BYTES data;
+        ByteArray data;
         funcGet(data);
         if(data.size() == 0)
             return false;
-        writeFile(QDir::toNativeSeparators(dir.path() + QDir::separator() + key).toStdString(),
+        Base64Converter::writeFile(QDir::toNativeSeparators(dir.path() + QDir::separator() + key).toStdString(),
                   data);
     }
     return true;
@@ -527,8 +521,8 @@ void KeysContainer::fromFolder(const QString &folder)
             return;
         //QFile file(folder + QDir::separator() + key);
         //if(file.open(QIODevice::ReadOnly)){
-           BYTES buffer;
-           readFile(filename.toStdString(), buffer);
+           ByteArray buffer;
+           Base64Converter::readFile(filename.toStdString(), buffer);
            func[key.toStdString()](buffer);
         //}else
         //    return;
@@ -552,7 +546,7 @@ void KeysContainer::fromRegistry()
         QString key = KeyFiles[i];
         winreg::RegValue v = winreg::QueryValue(reg.Get(), key.toStdWString());
         func[key.toStdString()](v.Binary());
-        BYTES data;
+        ByteArray data;
         get_get_function(i)(data);
         if(data.size() == 0)
             return;
@@ -576,7 +570,7 @@ void KeysContainer::fromJson(const QByteArray &data)
         if(value.isEmpty())
             return;
 
-        BYTES _data = Base64Converter::base64_to_byte(value.toStdString());
+        ByteArray _data = Base64Converter::base64_to_byte(value.toStdString());
         func[key.toStdString()](_data);
     }
 
@@ -596,7 +590,7 @@ QByteArray KeysContainer::toBase64()
     _isValid = false;
     foreach(auto key , KeyFiles){
 
-        BYTES buffer;
+        ByteArray buffer;
         get_get_function(KeyFiles.indexOf(key))(buffer);
         if(buffer.size() == 0)
             return "";
@@ -656,33 +650,33 @@ void KeysContainer::setWindowsSid(const QString &value)
     _sid = value;
 }
 
-void KeysContainer::writeFile(const std::string& filename, BYTES& file_bytes){
-    std::ofstream file(filename, std::ios::out|std::ios::binary);
-    std::copy(file_bytes.cbegin(), file_bytes.cend(),
-        std::ostream_iterator<unsigned char>(file));
-}
+//void KeysContainer::writeFile(const std::string& filename, ByteArray& file_bytes){
+//    std::ofstream file(filename, std::ios::out|std::ios::binary);
+//    std::copy(file_bytes.cbegin(), file_bytes.cend(),
+//        std::ostream_iterator<unsigned char>(file));
+//}
 
-void KeysContainer::readFile(const std::string &filename, BYTES &result)
-{
+//void KeysContainer::readFile(const std::string &filename, ByteArray &result)
+//{
 
-    FILE * fp = fopen(filename.c_str(), "rb");
+//    FILE * fp = fopen(filename.c_str(), "rb");
 
-    fseek(fp, 0, SEEK_END);
-    size_t flen= ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+//    fseek(fp, 0, SEEK_END);
+//    size_t flen= ftell(fp);
+//    fseek(fp, 0, SEEK_SET);
 
-    std::vector<unsigned char> v (flen);
+//    std::vector<unsigned char> v (flen);
 
-    fread(&v[0], 1, flen, fp);
+//    fread(&v[0], 1, flen, fp);
 
-    fclose(fp);
+//    fclose(fp);
 
-    result = v;
+//    result = v;
 
-    qDebug() << __FUNCTION__ << result.size();
+//    qDebug() << __FUNCTION__ << result.size();
 
-    //std::string data( v.begin(), v.end() );
-}
+//    //std::string data( v.begin(), v.end() );
+//}
 
 QString KeysContainer::stringFromBase64(const QString &value)
 {

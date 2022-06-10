@@ -3,6 +3,18 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <string>
+
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+    //#include <Windows.h>
+    #pragma comment(lib, "advapi32")
+#endif
+
+using std::wcout;
+using std::wstring;
+using std::vector;
 
 static const std::string base64_chars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -10,6 +22,7 @@ static const std::string base64_chars =
         "0123456789+/";
 
 typedef unsigned char _BYTE;
+typedef std::vector<_BYTE> ByteArray;
 
 namespace  Base64Converter{
 
@@ -17,7 +30,7 @@ namespace  Base64Converter{
         return (isalnum(c) || (c == '+') || (c == '/'));
     }
 
-    static std::string byte_to_base64(_BYTE const* buf, unsigned int bufLen) {
+    static inline std::string byte_to_base64(_BYTE const* buf, unsigned int bufLen) {
         std::string ret;
         int i = 0;
         int j = 0;
@@ -59,7 +72,7 @@ namespace  Base64Converter{
     }
 
 
-    static std::vector<_BYTE> base64_to_byte(std::string const& encoded_string) {
+    static inline ByteArray base64_to_byte(std::string const& encoded_string) {
         int in_len = encoded_string.size();
         int i = 0;
         int j = 0;
@@ -98,6 +111,30 @@ namespace  Base64Converter{
         }
 
         return ret;
+    }
+
+    static inline void writeFile(const std::string& filename, ByteArray& file_bytes){
+        std::ofstream file(filename, std::ios::out|std::ios::binary);
+        std::copy(file_bytes.cbegin(), file_bytes.cend(),
+            std::ostream_iterator<unsigned char>(file));
+    }
+
+    static inline void readFile(const std::string &filename, ByteArray &result)
+    {
+
+        FILE * fp = fopen(filename.c_str(), "rb");
+
+        fseek(fp, 0, SEEK_END);
+        size_t flen= ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        std::vector<unsigned char> v (flen);
+
+        fread(&v[0], 1, flen, fp);
+
+        fclose(fp);
+
+        result = v;
     }
 }
 

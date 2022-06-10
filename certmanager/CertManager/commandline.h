@@ -22,7 +22,7 @@ static const QString program = "cmd";
 static const QString program = "/bin/bash";
 #endif
 
-enum cmdCommand{
+enum CmdCommand{
     echoSystem = 0,
     echoUserName,
     wmicGetSID,
@@ -32,6 +32,7 @@ enum cmdCommand{
     csptestContainerFnfo,
     csptestContainerDelete,
     csptestGetCertificates,
+    certutilGetCertificateInfo,
     unknown
 };
 
@@ -77,6 +78,7 @@ signals:
     void output(const QString& data, int command);
     void endParse(const QVariant& result, int command);
     void error(const QString& data, int command);
+    void cmdStarted();
 
 private slots:
     void errorOccured(QProcess::ProcessError error);
@@ -105,6 +107,8 @@ private:
 
     QString encodeData(const QByteArray& data, int m);
     std::string executeSystem(const std::string& cmd);
+
+    QString getLine(const QString& source, int start);
 };
 
 #endif // COMMANDLINE_H

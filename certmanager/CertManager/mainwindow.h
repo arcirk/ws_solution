@@ -149,7 +149,9 @@ private:
     void createTerminal();
 
     void createTree();
-    void createRootList();
+    //void createRootList();
+
+    Certificate* selectCertFromLocalHost();
 
     void getDataContainersList();
     void getDataCertificatesList();

@@ -87,8 +87,10 @@ void CommandLine::stateChanged(QProcess::ProcessState newState) {
         case QProcess::Starting:
             emit output("Starting ...", _command);
             break;
-        case QProcess::Running:
+        case QProcess::Running:{
             emit output("Running", _command);
+            emit cmdStarted();
+        }
             break;
     }
 }
@@ -172,6 +174,17 @@ std::string CommandLine::executeSystem(const std::string &cmd)
     // open file for input, return string containing characters in the file
     std::ifstream file(file_name) ;
     return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() } ;
+}
+
+QString CommandLine::getLine(const QString &source, int start)
+{
+    for (int i = start; i < source.length(); ++i) {
+        QString s = source.mid(i, 1);
+        if(s == "\n" || s == "\r" || i == source.length() - 1)
+            return source.mid(start, i - start);
+    }
+
+    return "";
 }
 
 void CommandLine::setChcp()
@@ -492,6 +505,76 @@ QString CommandLine::parseCommand(const QString &result, int command)
             return "";
         }
 
+    }else if(command == certutilGetCertificateInfo){
+
+        int ind = result.indexOf("CertUtil: -dump");
+        if(ind > 0){
+            QString line = getLine(result, ind);
+            if(!line.isEmpty()){
+                QStringList r = line.split(":");
+                if(r.size() == 1){
+                    QString s = r[1].trimmed();
+                    if(s == "-dump — команда успешно выполнена."){
+                        //QStringList lst;
+                        auto arr = QJsonArray();
+                        auto obj = QJsonObject();
+                        ind = result.indexOf("Серийный номер:");
+                        if(ind > 0){
+                            QString sz = getLine(result, ind);
+                            sz.replace("Серийный номер", "Serial");
+                            auto s_r = sz.split(":");
+                            obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                        }
+                        ind = result.indexOf("Поставщик:");
+                        if(ind > 0){
+                            int ind_ = result.indexOf("Хэш имени (md5)", ind);
+                            if(ind_ != -1){
+                                QString sz_ = getLine(result, ind_);
+                                int ind__ = result.lastIndexOf(sz_);
+                                if(ind__ != -1){
+                                    QString Issuer = result.mid(ind, ind__ - ind);
+                                    Issuer.replace("\n", "");
+                                    auto s_r = Issuer.split(":");
+                                    obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                                }
+
+                            }
+                        }
+                        ind = result.indexOf("NotBefore:");
+                        if(ind > 0){
+                            auto s_r = getLine(result, ind).trimmed().split(":");
+                            obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                        }
+                        ind = result.indexOf("NotAfter:");
+                        if(ind > 0){
+                            auto s_r = getLine(result, ind).trimmed().split(":");
+                            obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                        }
+                        ind = result.indexOf("Субъект:");
+                        if(ind > 0){
+                            int ind_ = result.indexOf("Хэш имени (md5)", ind);
+                            if(ind_ != -1){
+                                QString sz_ = getLine(result, ind_);
+                                int ind__ = result.lastIndexOf(sz_);
+                                if(ind__ != -1){
+                                    QString subject = result.mid(ind, ind__ - ind);
+                                    subject.replace("\n", "");
+                                    auto s_r = subject.split(":");
+                                    obj.insert(s_r[0].trimmed(), s_r[1].trimmed());
+                                }
+
+                            }
+                        }
+                        auto doc = QJsonDocument();
+                        doc.setArray(arr);
+                        emit endParse(QString(doc.toJson()), command);
+                    }
+                }else{
+                    emit error(line, certutilGetCertificateInfo);
+                    return "";
+                }
+            }
+        }
     }
     return result;
 }

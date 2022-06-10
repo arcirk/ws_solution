@@ -12,9 +12,8 @@
 
 class KeysContainer;
 
-typedef std::vector<BYTE> BYTES;
-typedef std::function<void(const BYTES&)> set_keys;
-typedef std::function<void(BYTES&)> get_keys;
+typedef std::function<void(const ByteArray&)> set_keys;
+typedef std::function<void(ByteArray&)> get_keys;
 
 class KeysContainer : public QObject
 {
@@ -61,26 +60,26 @@ public:
     bool sync();
     void bindRegistryPath(const QString& sid);
 
-    void header_key(BYTES& value);
-    void masks_key(BYTES& value);
-    void masks2_key(BYTES& value);
-    void name_key(BYTES& value);
-    void primary_key(BYTES& value);
-    void primary2_key(BYTES& value);
+    void header_key(ByteArray& value);
+    void masks_key(ByteArray& value);
+    void masks2_key(ByteArray& value);
+    void name_key(ByteArray& value);
+    void primary_key(ByteArray& value);
+    void primary2_key(ByteArray& value);
 
-    void set_header_key(const BYTES& value);
-    void set_masks_key(const BYTES& value);
-    void set_masks2_key(const BYTES& value);
-    void set_name_key(const BYTES& value);
-    void set_primary_key(const BYTES& value);
-    void set_primary2_key(const BYTES& value);
+    void set_header_key(const ByteArray& value);
+    void set_masks_key(const ByteArray& value);
+    void set_masks2_key(const ByteArray& value);
+    void set_name_key(const ByteArray& value);
+    void set_primary_key(const ByteArray& value);
+    void set_primary2_key(const ByteArray& value);
 
 
     bool toDataBase();
     QSettings toQSettings();
     void fromQSettings(const QSettings& value);
 
-    BYTES toByteArhive();
+    ByteArray toByteArhive();
 
     QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
 
@@ -102,12 +101,12 @@ public:
 private:
     QString _path;
 
-    BYTES _header_key;
-    BYTES _masks_key;
-    BYTES _masks2_key;
-    BYTES _name_key;
-    BYTES _primary_key;
-    BYTES _primary2_key;
+    ByteArray _header_key;
+    ByteArray _masks_key;
+    ByteArray _masks2_key;
+    ByteArray _name_key;
+    ByteArray _primary_key;
+    ByteArray _primary2_key;
 
 
     SqlInterface * _db;
@@ -128,8 +127,8 @@ private:
     set_keys get_set_function(int index);
     get_keys get_get_function(int index);
 
-    static void readFile(const std::string& filename, BYTES& result);
-    static void writeFile(const std::string& filename, BYTES& fileBytes);
+//    static void readFile(const std::string& filename, ByteArray& result);
+//    static void writeFile(const std::string& filename, ByteArray& fileBytes);
 
 signals:
 
