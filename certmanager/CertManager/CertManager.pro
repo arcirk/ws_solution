@@ -106,8 +106,8 @@ DEFINES += QT_CERT_MANAGER
 
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
-windows:DEFINES -= UNICODE
-windows:DEFINES += _MBCS
+#windows:DEFINES -= UNICODE
+#windows:DEFINES += _MBCS
 
 #win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client

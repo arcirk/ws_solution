@@ -74,6 +74,8 @@ public slots:
 
     void onEndParse(const QVariant& result, int cmd);
 
+    void setProgram(const QString& name);
+
 signals:
     void output(const QString& data, int command);
     void endParse(const QVariant& result, int command);
@@ -101,6 +103,7 @@ private:
     bool _verefyEncoding;
     int _method;
     bool _useSystem;
+    QString _program;
 
     QString _strPart;
     //QThread parseThread;

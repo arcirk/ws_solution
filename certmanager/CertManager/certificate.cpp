@@ -150,7 +150,8 @@ void Certificate::fromData(ByteArray &cer)
         return;
 
     auto cmd = new CommandLine(this, false, "CP866");
-    //cmd->setMethod(2);
+
+    cmd->setProgram("powershell");
     QEventLoop loop;
     QJsonObject res;
 
@@ -158,10 +159,7 @@ void Certificate::fromData(ByteArray &cer)
 
     auto started = [cmd, &fo]() -> void
     {
-        auto codec = QTextCodec::codecForName("CP866");
-        QTextCodec::setCodecForLocale(codec);
-        QString s = "certutil \"" + QDir::toNativeSeparators(codec->toUnicode(fo.fileName().toUtf8())) + "\"";
-        qDebug() << qPrintable(s);
+        QString s = "certutil \"" + fo.fileName() + "\"";
         cmd->send(s, CmdCommand::certutilGetCertificateInfo);
     };
     connect(cmd, &CommandLine::cmdStarted, started);

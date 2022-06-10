@@ -26,7 +26,7 @@ CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
     _verefyEncoding = false;
     _method = 0;
     _useSystem = usesysstem;
-
+    _program = program;
     codec = QTextCodec::codecForName(_currentEncoding.toUtf8());
 //    codec = QTextCodec::codecForName("IBM 866");
 //    codec = QTextCodec::codecForName("Windows-1251");
@@ -38,7 +38,7 @@ CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
 
 void CommandLine::errorOccured(QProcess::ProcessError error) {
     if(!m_listening) return;
-    qInfo() << Q_FUNC_INFO << error;
+    //qInfo() << Q_FUNC_INFO << error;
     emit output("Error", _command);
 }
 
@@ -97,7 +97,7 @@ void CommandLine::stateChanged(QProcess::ProcessState newState) {
 
 void CommandLine::readyRead() {
     if(!m_listening) return;
-    qInfo() << Q_FUNC_INFO;
+    //qInfo() << Q_FUNC_INFO;
     //QTextDecoder *decoder = codec->makeDecoder(QTextCodec::IgnoreHeader);
     QByteArray data = m_process.readAll();//.trimmed();
     QStringList pres = {"______________________QTextCodec::codecForName(" + _currentEncoding + ")->toUnicode(data)______________________________\n"
@@ -146,6 +146,11 @@ void CommandLine::readyRead() {
 void CommandLine::onEndParse(const QVariant &result, int cmd)
 {
     emit endParse(result.toString(), cmd);
+}
+
+void CommandLine::setProgram(const QString &name)
+{
+    _program = name;
 }
 
 QString CommandLine::encodeData(const QByteArray &data, int m)
@@ -272,13 +277,13 @@ void CommandLine::start() {
     //QStringList chcp = {"chcp " + _currentEncoding};
 
     if(!useSystem())
-        m_process.start(program);
+        m_process.start(_program);
 
 
 }
 
 void CommandLine::stop() {
-    qInfo() << Q_FUNC_INFO;
+    //qInfo() << Q_FUNC_INFO;
     m_listening = false;
     if(m_process.state() == QProcess::Running)
         m_process.close();
