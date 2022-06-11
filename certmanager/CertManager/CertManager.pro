@@ -14,6 +14,7 @@ SOURCES += \
     ../../chared/clientsettings.cpp \
     ../../chared/qjsontablemodel.cpp \
     ../../chared/qmlwebsocket.cpp \
+    ../../chared/qproxymodel.cpp \
     ../../chared/qwebdav.cpp \
     ../../chared/serveresponse.cpp \
     ../../sqlwrapper/sqlinterface.cpp \
@@ -34,7 +35,6 @@ SOURCES += \
     keyscontainer.cpp \
     main.cpp \
     mainwindow.cpp \
-    registry.cpp \
     settings.cpp \
     tabledelegate.cpp \
     user.cpp
@@ -43,6 +43,7 @@ HEADERS += \
     ../../chared/clientsettings.h \
     ../../chared/qjsontablemodel.h \
     ../../chared/qmlwebsocket.h \
+    ../../chared/qproxymodel.h \
     ../../chared/qwebdav.h \
     ../../chared/serveresponse.h \
     ../../sqlwrapper/sqlinterface.h \
@@ -63,7 +64,6 @@ HEADERS += \
     dialogterminaloptions.h \
     keyscontainer.h \
     mainwindow.h \
-    registry.h \
     settings.h \
     tabledelegate.h \
     user.h

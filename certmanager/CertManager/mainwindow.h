@@ -16,11 +16,26 @@
 #include <sqlinterface.h>
 #include <QUuid>
 #include <qjsontablemodel.h>
+#include <qproxymodel.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+#define SqlContainers               "SqlContainers"
+#define SqlCertificates             "SqlCertificates"
+#define DataCertificatesList        "DataCertificatesList"
+#define DataContainersList          "DataContainersList"
+#define DataUsersList               "DataUsersList"
+#define SqlServer                   "SqlServer"
+#define SqlUsers                    "SqlUsers"
+#define currentUserRegistry         "currentUserRegistry"
+#define currentUserCertificates     "currentUserCertificates"
+#define currentUserContainers       "currentUserContainers"
+#define currentUserDivace           "currentUserDivace"
+#define insertCertificateToData     "insertCertificateToData"
+#define deleteContainerFromData     "deleteContainerFromData"
+#define insertContainerToData       "insertContainerToData"
 
 class MainWindow : public QMainWindow
 {
@@ -79,27 +94,27 @@ private slots:
 
     void on_btnUserToDatabase_clicked();
 
-    void on_btnContAdd_clicked();
+    void on_btnDatabaseAdd_clicked();
 
     void on_btnSendCommand_clicked();
 
-    void on_btnCurrentCopyToDisk_clicked();
+    void on_btnCurrentUserSaveAs_clicked();
 
     void on_btnCurrentCopyToRegistry_clicked();
 
     void on_btnCurrentCopyToSql_clicked();
 
-    void on_btnConDel_clicked();
+    void on_btnDatabaseDelete_clicked();
 
     void on_btnConInfo_clicked();
 
     void on_btnCurrentDelete_clicked();
 
-    void on_btnCopyToDiskFromDatabase_clicked();
+    void on_btnDatabaseSaveAs_clicked();
 
-    void updateInfoContainerOnDatabase(const QString& info, const QString& cntName);
+    void updateInfoContainerOnDatabase(const QString& info, const QString& name, const QString& nameBase64, KeysContainer* cnt);
 
-    void on_btnDataContainerInfo_clicked();
+    void on_btnDatabaseInfo_clicked();
 
     void on_btnCurrentUserAdd_clicked();
 
@@ -113,11 +128,17 @@ private:
     QList<QToolButton*> toolBarActiveUsers;
     Settings * _sett;
 
+    QJsonTableModel * modelUserContainers;
+    QProxyModel     * proxyModelUserConteiners;
+    QJsonTableModel * modelUserCertificates;
     QJsonTableModel * modelSqlContainers;
     QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
-    QJsonTableModel * modelCurrentUserCerts;
+
+    void resetInfoUserContainers();
+
+    void createModels();
 
     SqlInterface * db;
     QLabel * infoBar;
@@ -192,7 +213,7 @@ private:
     QTreeWidgetItem * findTreeItem(const QString& key);
     QTreeWidgetItem * findTreeItem(const QString& key, QTreeWidgetItem * parent);
 
-    void treeSetCurrentContainers(QStringList data);
+    void treeSetCurrentContainers(const QString& filter);
     void treeSetFromSqlContainers();
     void treeSetFromSqlUsers();
     void treeSetFromSqlCertificates();
@@ -216,8 +237,16 @@ private:
     bool isCyrillic(const QString& source);
     QJsonObject parseDeviceString(const QString& key);
 
-    void copyCurrentUserContainer();
-    void copyCurrentUserCertificate();
+    void saveAsCurrentUserContainer();
+    void saveAsCurrentUserCertificate();
+    void saveAsDatabaseContainer();
+    void saveAsDatabaseCertificate();
+
+
+    void addCertificate();
+    void delCertificate();
+    void addContainer();
+    void delContainer();
 
 };
 #endif // MAINWINDOW_H

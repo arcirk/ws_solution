@@ -8,7 +8,7 @@
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
-    //#include <Windows.h>
+    #pragma warning(disable:4267)
     #pragma comment(lib, "advapi32")
 #endif
 

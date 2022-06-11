@@ -50,5 +50,7 @@
         <file>img/rosette.ico</file>
         <file>img/certmgr1.ico</file>
         <file>img/cryptopro.ico</file>
+        <file>img/sql.png</file>
+        <file>img/cont.png</file>
     </qresource>
 </RCC>

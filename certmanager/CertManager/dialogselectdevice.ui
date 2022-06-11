@@ -6,21 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>224</width>
-    <height>128</height>
+    <width>217</width>
+    <height>156</height>
    </rect>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>224</width>
-    <height>128</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>224</width>
-    <height>128</height>
-   </size>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Выбор устройства</string>
@@ -29,23 +23,30 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QRadioButton" name="radioBtnFolder">
+      <widget class="QRadioButton" name="radio1">
        <property name="text">
         <string>Каталог на диске</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radioBtnRegysty">
+      <widget class="QRadioButton" name="radio2">
        <property name="text">
         <string>Файл реестра</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radioBtnUserRegysty">
+      <widget class="QRadioButton" name="radio3">
        <property name="text">
         <string>Реестр пользователя</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radio4">
+       <property name="text">
+        <string>RadioButton</string>
        </property>
       </widget>
      </item>

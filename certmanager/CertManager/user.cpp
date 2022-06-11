@@ -35,6 +35,16 @@ void CertUser::setSid(const QString &value)
 void CertUser::setContainers(const QStringList &value)
 {
     _containers = value;
+
+    m_cnt.clear();
+
+    foreach(auto cntName, value){
+        if(cntName.isEmpty())
+            continue;
+        auto _cnt = new KeysContainer(this);
+        _cnt->fromContainerName(cntName);
+        m_cnt.insert(cntName, _cnt);
+    }
 }
 
 void CertUser::setTreeItem(QTreeWidgetItem *item)
@@ -81,6 +91,55 @@ QStringList CertUser::getDivaceData()
             result.append(str.replace("\r", ""));
     }
     return result;
+}
+
+QString CertUser::modelContainersText()
+{
+    auto doc = QJsonDocument();
+    auto obj = QJsonObject();
+    auto arrCols = QJsonArray();
+    auto arrRows = QJsonArray();
+
+    arrCols.append("Empty");
+    arrCols.append("volume");
+    arrCols.append("name");
+    arrCols.append("subject");
+    arrCols.append("issuer");
+    arrCols.append("notValidBefore");
+    arrCols.append("notValidAfter");
+    arrCols.append("parentUser");
+    arrCols.append("nameInStorgare");
+    obj.insert("columns", arrCols);
+
+
+    foreach(auto itr, m_cnt){
+        auto row = QJsonObject();
+        row.insert("Empty", QString());
+        row.insert("volume",itr->volume());
+        row.insert("name", itr->fullName());
+        row.insert("subject", itr->subject());
+        row.insert("issuer", itr->issuer());
+        row.insert("notValidBefore", itr->notValidBefore());
+        row.insert("notValidAfter", itr->notValidAfter());
+        row.insert("parentUser", itr->parentUser());
+        row.insert("nameInStorgare", itr->nameInStorgare());
+        arrRows.append(row);
+    }
+
+    obj.insert("rows", arrRows);
+
+    doc.setObject(obj);
+
+    return doc.toJson();
+}
+
+KeysContainer *CertUser::container(const QString &key)
+{
+    auto itr = m_cnt.find(key);
+    if(itr != m_cnt.end()){
+        return itr.value();
+    }else
+        return nullptr;
 }
 
 QString CertUser::domain()
@@ -132,8 +191,12 @@ QMap<QString, Certificate *>& CertUser::certificates()
     return m_cert;
 }
 
-void CertUser::init()
+KeysContainer *CertUser::cntDetails(const QString &name)
 {
+    auto itr = m_cnt.find(name);
+    if(itr != m_cnt.end())
+        return  itr.value();
 
-
+    return nullptr;
 }
+

@@ -374,7 +374,12 @@ QString SqlInterface::tableFields(int tableIndex) {
         result = "[cache] [text] NULL,";
     }else if(tableName == "Containers"){
         result = "[cache] [text] NULL,\n"
-                 "[data] [varbinary](max) NULL,";
+                 "[data] [varbinary](max) NULL,"
+                 "[subject] [varchar](max) NULL,"
+                 "[issuer] [varchar](max) NULL,"
+                 "[notValidBefore] [varchar](max) NULL,"
+                 "[notValidAfter] [varchar](max) NULL,"
+                 "[parentUser] [varchar](max) NULL,";
     }else if(tableName == "CertUsers"){
         result = "[cache] [text] NULL,\n"
                  "[uuid] [char](38) NULL,\n"

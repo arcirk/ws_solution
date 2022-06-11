@@ -37,8 +37,16 @@ bool QProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
 
             //if (i.value().typeId() == QMetaType::QString){
             if (i.value().userType() == QMetaType::QString){
-                if (i.value().toString() != model->data(index).toString())
-                    return false;
+                QString value = model->data(index).toString();
+                QString filter = i.value().toString();
+                if(filter.left(1) != "!"){
+                    if (filter != value)
+                        return false;
+                }else{
+                    filter = filter.right(filter.length() - 1);
+                    if (filter == value)
+                        return false;
+                }
             }
             else if (i.value().userType() == QMetaType::Int){
                 if (i.value().toInt() != model->data(index).toInt())

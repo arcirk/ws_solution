@@ -68,7 +68,7 @@ QString QJsonTableModel::fromBase64(const QString &str)
     QString result;
     try {
         return QByteArray::fromBase64(str.toUtf8());
-    }  catch (std::exception &e) {
+    }  catch (std::exception&) {
         return str;
     }
 }

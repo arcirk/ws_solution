@@ -279,7 +279,15 @@ QString QBSqlQuery::bindQueryUpdate(QList<QBSqlValue>& values) const
         auto vValue = val.value("value");
         if (vValue.isString()){
             QString value = vValue.toString();
-            _whereEx.append(cmp + " '" + value + "'");
+            if(type == QBSqlTypeOfComparison::QOn_List|| type == QBSqlTypeOfComparison::QNot_In_List){
+                QStringList lst = value.split(",");
+                for (int i = 0; i < lst.size(); ++i) {
+                    lst[i] = "'" + lst[i] + "'";
+                }
+                QString arr = "(" + lst.join(",") + ")";
+                _whereEx.append(cmp + " " + arr);
+            }else
+                _whereEx.append(cmp + " '" + value + "'");
             if (iter != --_where.end())
                 _whereEx.append(" AND\n");
         }else if (vValue.isDouble()){

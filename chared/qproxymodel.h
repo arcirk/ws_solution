@@ -19,11 +19,13 @@ public:
     int sortRole();
     void setSortRole(int role);
 
+    QString filter();
+    void setFilter(const QString& filterText);
+
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const  override;
 
-    QString filter();
-    void setFilter(const QString& filterText);
+
 
 signals:
     void filterChanged();

@@ -24,10 +24,14 @@ public:
 private slots:
     void on_lineContainerName_textChanged(const QString &arg1);
 
+    void on_DialogContainerName_accepted();
+
 private:
     Ui::DialogContainerName *ui;
     QString new_name;
     QString key_name;
+    QString end_date;
+    QString _name;
 };
 
 #endif // DIALOGCONTAINERNAME_H

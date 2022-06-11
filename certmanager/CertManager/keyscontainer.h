@@ -9,56 +9,68 @@
 #include "lib/WinReg.hpp"
 #include "converter.h"
 #include "commandline.h"
+#include "sqlqueryinterface.h"
 
 class KeysContainer;
 
 typedef std::function<void(const ByteArray&)> set_keys;
 typedef std::function<void(ByteArray&)> get_keys;
 
+//struct ContainerName{
+//    QString key_name;
+//    QString end_date;
+//    QString name;
+//    explicit ContainerName(){};
+
+//    QString getName(){
+//        QString _end_date = end_date;
+//        _end_date.replace(".", "-");
+//        return key_name + "@" + _end_date + "-" + name;
+//    }
+//};
+
+#define FAT12_      "FAT12"
+#define REGISTRY_   "REGISTRY"
+#define HDIMAGE_    "HDIMAGE"
+#define DATABASE_   "DATABASE"
+
 class KeysContainer : public QObject
 {
     Q_OBJECT
 public:
     explicit KeysContainer(QObject *parent = nullptr);
-    explicit KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent = nullptr);
+    //explicit KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent = nullptr);
 
-    enum JsonFormat{
-        nameData = 0,
-        forDatabase,
-        serialization
-    };
+//    enum JsonFormat{
+//        nameData = 0,
+//        forDatabase,
+//        serialization
+//    };
 
-    enum VolumeType{
-        FAT12 = 0,
-        REGISTRY,
-        HDIMAGE
-    };
-    const QStringList VolumeTypeString{
-        "FAT12",
-        "REGISTRY",
-        "HDIMAGE"
-    };
+//    enum VolumeType{
+//        FAT12 = 0,
+//        REGISTRY,
+//        HDIMAGE,
+//        DATABASE
+//    };
+//    const QStringList VolumeTypeString{
+//        "FAT12",
+//        "REGISTRY",
+//        "HDIMAGE",
+//        "DATABASE"
+//    };
 
     void fromFolder(const QString& folder);
-    void fromRegistry();
+    void fromContainerName(const QString& cntName);
+    void fromRegistry(const QString& sid, const QString& name);
     void fromJson(const QByteArray& data);
 
     QByteArray toBase64();
-
+    bool sync(const QString& sid = "");
+    bool syncRegystry(const QString& sid);
+    bool syncVolume();
     bool isValid();
-    void setWindowsSid(const QString& value);
-    void setName(const QString& value);
-    QString name();
-    QString nameBase64();
-    void setVolume(VolumeType value);
-    VolumeType volume();
-    void setVolumePath(const QString& value);
-    QString volumePath();
-    void setKeyName(const QString& value);
-    QString keyName();
-    QString fullKeyName();
-    bool sync();
-    void bindRegistryPath(const QString& sid);
+    QString fullName();
 
     void header_key(ByteArray& value);
     void masks_key(ByteArray& value);
@@ -74,29 +86,37 @@ public:
     void set_primary_key(const ByteArray& value);
     void set_primary2_key(const ByteArray& value);
 
+    QString subject() const;
+    QString issuer() const;
+    //QString container() const;
+    QString notValidBefore() const;
+    QString notValidAfter() const;
+    QString parentUser() const;
+    QString nameInStorgare() const;
 
-    bool toDataBase();
-    QSettings toQSettings();
-    void fromQSettings(const QSettings& value);
+    void setName(const QString& value);
+    void setVolume(const QString& value);
+    void setVolumePath(const QString& value);
+    void setKeyName(const QString& value);
+    void setRef(const QString& value);
+    void setStorgare(const QString& value);
+    void setCache(const QJsonObject& obj);
 
-    ByteArray toByteArhive();
+    QString name() const;
+    QString volume() const;
+    QString volumePath() const;
+    QString keyName() const;
+    QString ref() const;
+    QString storgare() const;
+    QJsonObject cache() const;
 
-    QJsonObject toJsonObject(JsonFormat format, const QUuid& uuid = QUuid());
+    QString containerInfo();    
+    QJsonObject parseCsptestInfo(const QString& info);
+    void infoFromDataBaseJson(const QString& json);
 
-    QString path();
-    void setPath(const QString& sid, const QString& containerName);
+    bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
+    QBSqlQuery getSqlQueryObject(QBSqlCommand command);
 
-    QString containerInfo();
-    void parseCsptestInfo(const QString& info);
-
-    bool syncRegystry();
-    bool syncVolume();
-
-    bool removeContainer(const QString& sid, const QString& containerName);
-
-    void parseAdressKey(const QString& key);
-
-    static QString stringFromBase64(const QString &value);
 
 private:
     QString _path;
@@ -108,24 +128,40 @@ private:
     ByteArray _primary_key;
     ByteArray _primary2_key;
 
+    QString _subject;
+    QString _issuer;
+    QString _container;
+    QString _notValidBefore;
+    QString _notValidAfter;
+    QString _parentUser;
+    QJsonObject _cache;
+    QString _ref;
 
-    SqlInterface * _db;
-    QString _name;
-    VolumeType _valume;
-    QString _volumePath;
-    QString _device;
+    //ContainerName _cntName;
+
+    QString _name; // @OOO
     QString _key_name; //123456@
-    QMap<VolumeType, QString> m_volume;
-    QString _sid;
+    QString _volume; //FAT12_D
+    QString _storgare;// //./FAT12_D/
+    QString _volumePath; //D:/
+    QString _nameInStorgare; //полное имя контейнера без форматирования
+    //QString _device;
+
+    //QMap<VolumeType, QString> m_volume;
+
 
     bool _isValid;
+    SqlInterface * _db;
 
-    const QString sample_volume = "\\\\.\\%1\\";
-    const QString sample_full_key = "\\\\.\\%1\\%2";
+
+
+    //const QString sample_volume = "\\\\.\\%1\\";
+    //const QString sample_full_key = "\\\\.\\%1\\%2";
 
     std::map<std::string, set_keys> set_function();
     set_keys get_set_function(int index);
     get_keys get_get_function(int index);
+    static QString stringFromBase64(const QString &value);
 
 //    static void readFile(const std::string& filename, ByteArray& result);
 //    static void writeFile(const std::string& filename, ByteArray& fileBytes);

@@ -8,6 +8,9 @@
 #include <QSqlError>
 #include <QJsonDocument>
 #include <QJniObject>
+#include "commandline.h"
+#include <QEventLoop>
+#include <sqlqueryinterface.h>
 
 //#include <cstdio>
 //#include <cstdlib>
@@ -39,21 +42,7 @@ KeysContainer::KeysContainer(QObject *parent)
     : QObject{parent}
 {
     _isValid = false;
-    m_volume.insert(FAT12, "FAT12_");
-    m_volume.insert(REGISTRY, "REGISTRY");
-    m_volume.insert(HDIMAGE, "HDIMAGE");
-}
-
-//ToDo: удалить
-KeysContainer::KeysContainer(const QString& sid, const QString& localName, SqlInterface * db, QObject *parent)
-    : QObject{parent}
-{
-
-    _name = localName;
-
-    _db = db;
-
-    _isValid = true;
+    _cache = QJsonObject();
 }
 
 void KeysContainer::setName(const QString &value)
@@ -61,24 +50,19 @@ void KeysContainer::setName(const QString &value)
     _name = value;
 }
 
-QString KeysContainer::name()
+QString KeysContainer::name() const
 {
     return _name;
 }
 
-QString KeysContainer::nameBase64()
+void KeysContainer::setVolume(const QString& value)
 {
-    return QString(_name.toUtf8().toBase64());
+    _volume = value;
 }
 
-void KeysContainer::setVolume(VolumeType value)
+QString KeysContainer::volume() const
 {
-    _valume = value;
-}
-
-KeysContainer::VolumeType KeysContainer::volume()
-{
-    return _valume;
+    return _volume;
 }
 
 void KeysContainer::setVolumePath(const QString &value)
@@ -86,7 +70,7 @@ void KeysContainer::setVolumePath(const QString &value)
     _volumePath = value;
 }
 
-QString KeysContainer::volumePath()
+QString KeysContainer::volumePath() const
 {
     return _volumePath;
 }
@@ -96,33 +80,110 @@ void KeysContainer::setKeyName(const QString &value)
     _key_name = value;
 }
 
-QString KeysContainer::keyName()
+QString KeysContainer::keyName() const
 {
     return _key_name;
 }
 
-QString KeysContainer::fullKeyName()
+bool KeysContainer::sync(const QString& sid)
 {
-    QString p = _volumePath.isEmpty() ? "_" + _volumePath.split(":")[0] : "";
-    return QString(sample_full_key).arg(VolumeTypeString[volume()] + p, nameBase64());
-
-}
-
-bool KeysContainer::sync()
-{
-    if(volume() == REGISTRY){
-        return syncRegystry();
-    }else if(volume() == FAT12){
+    if(_volume.indexOf("REGISTRY") != -1){
+        return syncRegystry(sid);
+    }else if(_volume.indexOf("FAT12") != -1){
         return syncVolume();
-    }else if(volume() == HDIMAGE){
-
+    }else if(_volume.indexOf("HDIMAGE") != -1){
+        return false;
     }else
         return false;
 }
 
-void KeysContainer::bindRegistryPath(const QString &sid)
+void KeysContainer::setRef(const QString &value)
 {
-   _path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, nameBase64());
+    _ref = value;
+}
+
+QString KeysContainer::ref() const
+{
+    return _ref;
+}
+
+QString KeysContainer::storgare() const{
+    return _storgare;
+}
+
+QJsonObject KeysContainer::cache() const
+{
+    return _cache;
+}
+
+void KeysContainer::setStorgare(const QString &value){
+    _storgare = value;
+}
+
+void KeysContainer::setCache(const QJsonObject &obj)
+{
+    _cache = obj;
+    if(!obj.isEmpty()){
+        QString val = obj.value("PrivKey").toString();
+        QStringList l = val.split("-");
+        if(l.size() == 2){
+            _notValidBefore = l[0].trimmed();
+            _notValidAfter = l[1].replace("(UTC)", "").trimmed();
+        }
+        auto subObj = obj.value("Issuer").toObject();
+        _issuer = subObj.value("CN").toString().replace("\"", "");
+        subObj = obj.value("Subject").toObject();
+        _subject = subObj.value("CN").toString().replace("\"", "");
+        _parentUser = subObj.value("SN").toString() + " " + subObj.value("G").toString();
+    }
+}
+
+void KeysContainer::fromContainerName(const QString &cntName)
+{
+    _name = "";
+    _key_name = "";
+    _volume = "";
+    _storgare = "";
+    _volumePath = "";
+
+    _nameInStorgare = cntName;
+    QStringList m_data = cntName.split("\\");
+    QString _nameTmp;
+
+    if(m_data.size() > 3){
+
+        _volume = m_data[3].replace("\r", "");
+        _storgare = QString("\\\\.\\%1\\").arg(_volume);
+
+        QStringList m_vol =  _volume.split("_");
+        setVolumePath("");
+        if(m_vol.size() > 1){
+    #ifdef _WINDOWS
+            setVolumePath(m_vol[1] + ":\\");
+    #else
+            setVolumePath(m_vol[1]);
+    #endif
+        }
+
+        _nameTmp = stringFromBase64(m_data[4]);
+
+     }else
+        _nameTmp = cntName;
+
+    QStringList m_nameTmp= _nameTmp.split("@");
+    if(m_nameTmp.size() > 1){
+       _key_name = m_nameTmp[0];
+       _nameTmp = m_nameTmp[1];
+    }else
+        _name = _nameTmp;
+
+
+    QStringList dateAndName = _nameTmp.split("-");
+    if(dateAndName.size() == 4){
+        _notValidAfter = dateAndName[0] + "." + dateAndName[1] + "." + dateAndName[2];
+        _name = dateAndName[3];
+    }
+
 }
 
 void KeysContainer::header_key(ByteArray &value)
@@ -185,184 +246,103 @@ void KeysContainer::set_primary2_key(const ByteArray &value)
     _primary2_key = value;
 }
 
-bool KeysContainer::toDataBase()
+QJsonObject KeysContainer::parseCsptestInfo(const QString &info)
 {
-    if(!_db){
-        qCritical() << __FUNCTION__ <<  "База данных не открыта!";
-        return false;
-
-    }
-
-    if(!_db->getDatabase().isOpen()){
-        qCritical() << __FUNCTION__ <<  "База данных не открыта!";
-        return false;
-
-    }
-
-//    QTemporaryDir temp;
-//    if(!temp.isValid())
-//        return false;
-
-
-//    QString uuid = QUuid::createUuid().toString();
-//    uuid = uuid.mid(1, uuid.length() - 2);
-//    QByteArray data = toByteArhive();
-//    if(data == "")
-//        return false;
-
-//    QSqlQuery query(_db->getDatabase());
-//    query.prepare("INSERT INTO [dbo].[Containers] ([Ref], [FirstField], [data]) "
-//                  "VALUES (?, ?, ?)");
-//    query.addBindValue(uuid);
-//    query.addBindValue(name().trimmed());
-//    query.addBindValue(data);
-//    query.exec();
-
-//    if (query.lastError().type() != QSqlError::NoError)
-//    {
-//        qDebug() << __FUNCTION__ << query.lastError();
-//        return false;
-//    }
-
-    return true;
-
-}
-
-QSettings KeysContainer::toQSettings()
-{
-    return QSettings{};
-}
-
-void KeysContainer::fromQSettings(const QSettings &value)
-{
-
-}
-
-ByteArray KeysContainer::toByteArhive()
-{
-    if(!_isValid){
-        qCritical() << __FUNCTION__ <<  "Данные не инициализированы!";
-        return {};
-    }
-
-    if(_name.isEmpty()){
-        qCritical() << __FUNCTION__ <<  "Не указано наименование контейнера!";
-        return {};
-    }
-
-    QTemporaryDir temp;
-    if(!temp.isValid())
-        return {};
-
-    QString uuid = QUuid::createUuid().toString();
-    uuid = uuid.mid(1, uuid.length() - 2);
-
-    QString tempFile = QDir::toNativeSeparators(temp.path() + QDir::separator() + uuid + ".zip");
-
-//    QSettings settings = QSettings(tempFile, QSettings::IniFormat, this);
-
-//    settings.beginGroup(name());
-//    for (int i = 0; i < KeyFiles.size(); ++i) {
-//        get_keys fun = get_get_function(i);
-//        ByteArray data;
-//        get_get_function(i)(data);
-//        ByteArray * buffer = new
-//        settings.setValue(KeyFiles[i], get_get_function(i)());
-//    }
-//    settings.endGroup();
-//    settings.sync();
-
-//    if(settings.status() != QSettings::NoError){
-//        qCritical() << __FUNCTION__ << settings.status();
-//        return "";
-//    }
-
-//    QFile fdata(tempFile);
-//    if(fdata.open(QIODevice::ReadOnly)){
-//        QByteArray data = fdata.readAll();
-//        fdata.close();
-//        fdata.remove();
-//        return data;
-//    }
-
-    return {};
-}
-
-QJsonObject KeysContainer::toJsonObject(JsonFormat format, const QUuid& uuid)
-{
-
+    QStringList lst = info.split("\n");
     QJsonObject obj = QJsonObject();
-//    if(format == nameData){
-//        Q_BYTEArray data = to_BYTEArray();
-//        if(data == "")
-//            return obj;
+    foreach(auto line, lst){
+        if(line.trimmed() == "")
+            continue;
+        QStringList source;
+        if(line.left(QString("Valid").length()) == "Valid" || line.left(QString("PrivKey").length()) == "PrivKey"){
+            int ind = line.indexOf(":");
+            QString key = line.left(ind).trimmed();
+            QString val = line.right(line.length() - ind - 1).trimmed();
+            obj.insert(key, val);
+            if(key == "PrivKey"){
+                QStringList l = val.split("-");
+                if(l.size() == 2){
+                    _notValidBefore = l[0].trimmed();
+                    _notValidAfter = l[1].replace("(UTC)", "").trimmed();
+                }
+            }
+            continue;
+        }else
+            source = line.split(":");
+        if(source.size() > 0){
+            QJsonObject subObj = QJsonObject();
+            //QString details = source[1];
 
-//        obj.insert("name", name());
-//        obj.insert("data",  QJsonValue::fromVariant(data));
+            QStringList subLst = source[1].split(",");
+            bool is_address = false;
+            QString street;
+            foreach(auto item, subLst){
+                QStringList val = item.split("=");
+                if(val.size() > 1){
+                    if(val[0].trimmed() == "STREET"){
+                        is_address = true;
+                        street = val[1].trimmed();
+                        continue;
+                    }else{
+                        if(is_address){
+                            is_address = false;
+                            subObj.insert("STREET", street);
+                        }
+                    }
+                    subObj.insert(val[0].trimmed(), val[1].trimmed());
+                }else{
+                    if(is_address){
+                        street.append(" " + val[0].trimmed());
+                        continue;
+                    }
+                    continue;
+                }
 
-//    }else if(format == forDatabase){
-//        QUuid _uuid = uuid;
-//        if(_uuid.isNull()){
-//            _uuid = QUuid::createUuid();
-//        }
+            }
+            if(!subObj.isEmpty()){
+                QString _key = source[0].trimmed();
+                if(_key == "Issuer"){
+                    _issuer = subObj.value("CN").toString().replace("\"", "");
+                }else if(_key == "Subject"){
+                    _subject = subObj.value("CN").toString().replace("\"", "");
+                    _parentUser = subObj.value("SN").toString() + " " + subObj.value("G").toString();
+                }
+                obj.insert(source[0].trimmed(), subObj);
+            }
+        }
+    }
 
-//        QString sz_uuid = _uuid.toString();
-//        sz_uuid = sz_uuid.mid(1, sz_uuid.length() - 2);
-
-//        Q_BYTEArray data = to_BYTEArray();
-//        if(data == "")
-//            return obj;
-
-//        obj.insert("Ref", sz_uuid);
-//        obj.insert("name", name());
-//        obj.insert("data",  QJsonValue::fromVariant(data));
-
-//    }else if(format == serialization){
-//        for(int i = 0; i < KeyFiles.size(); ++i){
-//            QString key = KeyFiles[i];
-//            Q_BYTEArray data = get_get_function(i)();
-//            QJsonValue val = QJsonValue::fromVariant(data);
-//            obj.insert(key, val);
-//        }
-//    }
+    _cache = obj;
 
     return obj;
-
 }
 
-QString KeysContainer::path()
+void KeysContainer::infoFromDataBaseJson(const QString &json)
 {
-    return _path;
-}
-
-void KeysContainer::setPath(const QString &sid, const QString& containerName)
-{
-    _path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, containerName);
-}
-
-void KeysContainer::parseCsptestInfo(const QString &info)
-{
-    int ind = info.indexOf("KP_CERTIFICATE:");
-    if(ind > 0){
-        int pKey = info.indexOf("PrivKey", ind);
-        QString _info = info.mid(ind, pKey);
+    auto doc = QJsonDocument::fromJson(json.toUtf8());
+    if(!doc.isEmpty()){
+       setCache(doc.object());
     }
 }
 
-bool KeysContainer::syncRegystry()
+bool KeysContainer::syncRegystry(const QString& sid)
 {
     if(!isValid()){
         qCritical() << __FUNCTION__ << "класс не инициализирован!";
         return false;
     }
 
-    if(_sid.isEmpty()){
-        qCritical() << __FUNCTION__ << "Требуется SID ползователя!";
+    if(sid.isEmpty()){
+        qCritical() << __FUNCTION__ << "Требуется SID пользователя!";
         return false;
     }
 
-    bindRegistryPath(_sid);
-    QString ph = _path;
+    if(_name.isEmpty()){
+        qCritical() << __FUNCTION__ << "Не указано имя контейнера!";
+        return false;
+    }
+
+    QString ph = QString("SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, _name);
     ph.replace("\\HKEY_LOCAL_MACHINE\\", "");
     winreg::RegKey regKey = winreg::CreateKey(HKEY_LOCAL_MACHINE, ph.toStdWString().c_str());
 
@@ -390,12 +370,6 @@ bool KeysContainer::syncVolume()
         return false;
     }
 
-
-//    bindRegistryPath(_sid);
-//    QString ph = _path;
-//    ph.replace("\\HKEY_LOCAL_MACHINE\\", "");
-//    winreg::RegKey regKey = winreg::CreateKey(HKEY_LOCAL_MACHINE, ph.toStdWString().c_str());
-
     QString folder = volumePath() + keyName() + ".000";
     QDir dir(folder);
     if(dir.exists()){
@@ -422,7 +396,7 @@ bool KeysContainer::syncVolume()
     return true;
 }
 
-bool KeysContainer::removeContainer(const QString &sid, const QString &containerName)
+bool KeysContainer::removeContainerFromRegistry(const QString &sid, const QString &containerName)
 {
     QString s_path = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys").arg(sid);
     QSettings reg = QSettings(s_path, QSettings::NativeFormat);
@@ -519,26 +493,25 @@ void KeysContainer::fromFolder(const QString &folder)
         QString filename = QDir::toNativeSeparators(folder + QDir::separator() + key);
         if(!QFile::exists(filename))
             return;
-        //QFile file(folder + QDir::separator() + key);
-        //if(file.open(QIODevice::ReadOnly)){
-           ByteArray buffer;
-           Base64Converter::readFile(filename.toStdString(), buffer);
-           func[key.toStdString()](buffer);
-        //}else
-        //    return;
+        ByteArray buffer;
+        Base64Converter::readFile(filename.toStdString(), buffer);
+        func[key.toStdString()](buffer);
     }
+
+
+
     _isValid = true;
 }
 
-void KeysContainer::fromRegistry()
+void KeysContainer::fromRegistry(const QString& sid, const QString& name)
 {
     _isValid = false;
 
+    fromContainerName(name);
+
     auto func = set_function();
 
-    //const QString root = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, name);
-    QString ph = _path;
-    ph.replace("\\HKEY_LOCAL_MACHINE\\", "");
+    QString ph = QString("SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, name);
     winreg::RegKey reg = winreg::OpenKey(HKEY_LOCAL_MACHINE, ph.toStdWString().c_str(), KEY_READ);
     if(!reg.IsValid())
         return;
@@ -605,50 +578,50 @@ QByteArray KeysContainer::toBase64()
 
 }
 
-void KeysContainer::parseAdressKey(const QString& key){
+//void KeysContainer::parseAdressKey(const QString& key){
 
-    QStringList m_data = key.split("\\");
-    QStringList __volume =  m_data[3].replace("\r", "").split("_");
-    setVolume((VolumeType)VolumeTypeString.indexOf(__volume[0]));
-    setVolumePath("");
-    if(__volume.size() > 1){
-#ifdef _WINDOWS
-        setVolumePath(__volume[1] + ":\\");
-#else
-        setVolumePath(__volume[1]);
-#endif
-    }
-    QString _nameBase64 =  m_data[4].replace("\r", "");
-    _name = stringFromBase64(_nameBase64);
-    int ind =  _name.indexOf("@");
-    _key_name = _name.left(ind);
+//    QStringList m_data = key.split("\\");
+//    QStringList __volume =  m_data[3].replace("\r", "").split("_");
+//    setVolume((VolumeType)VolumeTypeString.indexOf(__volume[0]));
+//    setVolumePath("");
+//    if(__volume.size() > 1){
+//#ifdef _WINDOWS
+//        setVolumePath(__volume[1] + ":\\");
+//#else
+//        setVolumePath(__volume[1]);
+//#endif
+//    }
+//    QString _nameBase64 =  m_data[4].replace("\r", "");
+//    _name = stringFromBase64(_nameBase64);
+//    int ind =  _name.indexOf("@");
+//    _key_name = _name.left(ind);
 
 
-//    QString volume =  device;
-//    volume.replace("FAT12_", "");
-//    QString nameBase64 =  m_data[4].replace("\r", "");
-//    QString name = fromBase64(nameBase64);
-//    int ind =  name.indexOf("@");
-//    QString key_name = name.left(ind);
+////    QString volume =  device;
+////    volume.replace("FAT12_", "");
+////    QString nameBase64 =  m_data[4].replace("\r", "");
+////    QString name = fromBase64(nameBase64);
+////    int ind =  name.indexOf("@");
+////    QString key_name = name.left(ind);
 
-//    obj.insert("device", device);
-//    obj.insert("nameBase64", nameBase64);
-//    obj.insert("name", name);
-//    obj.insert("key_name", key_name);
-//    obj.insert("volume", volume);
+////    obj.insert("device", device);
+////    obj.insert("nameBase64", nameBase64);
+////    obj.insert("name", name);
+////    obj.insert("key_name", key_name);
+////    obj.insert("volume", volume);
 
-//    return obj;
-}
+////    return obj;
+//}
 
 bool KeysContainer::isValid()
 {
     return _isValid;
 }
 
-void KeysContainer::setWindowsSid(const QString &value)
-{
-    _sid = value;
-}
+//void KeysContainer::setWindowsSid(const QString &value)
+//{
+//    _sid = value;
+//}
 
 //void KeysContainer::writeFile(const std::string& filename, ByteArray& file_bytes){
 //    std::ofstream file(filename, std::ios::out|std::ios::binary);
@@ -686,10 +659,112 @@ QString KeysContainer::stringFromBase64(const QString &value)
     if(!isBase64)
        return value;
 
-    QString result;
     try {
         return QByteArray::fromBase64(value.toUtf8());
-    }  catch (std::exception &e) {
+    }  catch (std::exception&) {
         return value;
     }
+}
+
+QString KeysContainer::fullName(){
+    if(_notValidAfter.isEmpty())
+        return "";
+    QStringList s = _notValidAfter.split(" ");
+    return _key_name + "@" + s[0].replace(".", "-") + "-" + _name;;
+}
+
+QBSqlQuery KeysContainer::getSqlQueryObject(QBSqlCommand command)
+{
+
+    if(!_isValid)
+        return QBSqlQuery();
+
+    if(_ref.isEmpty()){
+       QString uuid = QUuid::createUuid().toString();
+       _ref = uuid.mid(1, uuid.length() - 2);
+    }
+
+    auto bindQuery = QBSqlQuery(command, "Containers");
+    QJsonObject obj = QJsonObject();
+    obj.insert("name", "Ref");
+    obj.insert("value", _ref);
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "FirstField");
+    obj.insert("value", fullName()); //QString(name.toUtf8().toBase64())
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "SecondField");
+    obj.insert("value", name());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.add_field_is_exists(obj);
+
+    obj = QJsonObject();
+    obj.insert("name", "subject");
+    obj.insert("value", subject());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "issuer");
+    obj.insert("value", issuer());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "notValidBefore");
+    obj.insert("value", notValidBefore());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "notValidAfter");
+    obj.insert("value", notValidAfter());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "parentUser");
+    obj.insert("value", parentUser());
+    bindQuery.add_field(obj, bFieldType::qVariant);
+
+    obj = QJsonObject();
+    obj.insert("name", "data");
+    obj.insert("value", QString(toBase64()));
+    bindQuery.add_field(obj, bFieldType::qByteArray);
+
+    return  bindQuery;
+}
+
+QString KeysContainer::subject() const
+{
+    return _subject;
+}
+
+QString KeysContainer::issuer() const
+{
+    return _issuer;
+}
+
+//QString KeysContainer::container() const
+//{
+//    return _container;
+//}
+
+QString KeysContainer::notValidBefore() const
+{
+    return _notValidBefore;
+}
+
+QString KeysContainer::notValidAfter() const
+{
+    return _notValidAfter;
+}
+
+QString KeysContainer::parentUser() const
+{
+    return _parentUser;
+}
+
+QString KeysContainer::nameInStorgare() const
+{
+    return _nameInStorgare;
 }
