@@ -643,48 +643,57 @@ bool DialogMainWindow::getCurrentUser()
         return false;
     }
 
-    auto cmd = new CommandLine(this, false);
+    auto cmd = CommandLine(this, false);
     //cmd->setMethod(3);
     //cmd->setProgram("powershell");
     QEventLoop loop;
     QJsonObject res;
     QString sid;
 
-    auto started = [cmd]() -> void
+    auto started = [&cmd]() -> void
     {
-        cmd->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+        cmd.send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
     };
-    connect(cmd, &CommandLine::cmdStarted, started);
+    connect(&cmd, &CommandLine::cmdStarted, started);
 
-    auto output = [cmd](const QString& data, int command) -> void
+    QString str;
+    auto output = [&cmd, &str](const QString& data, int command) -> void
     {
-        if(command == CmdCommand::wmicGetSID){
-             cmd->parseCommand(data, command);
+        str = str + data;
+        qDebug() << str;
+       if(command == CmdCommand::wmicGetSID){
+           //f(str.indexOf("Microsoft Corporation") == -1){
+                if(str.indexOf("S-1") != -1)
+                    cmd.parseCommand(str, command);
+           //}
         }
-    };
-    connect(cmd, &CommandLine::output, output);
 
-    auto parse = [&loop, cmd, &sid](const QVariant& result, int command) -> void
+    };
+    connect(&cmd, &CommandLine::output, output);
+
+    auto parse = [&loop, &cmd, &sid](const QVariant& result, int command) -> void
     {
         if(command == CmdCommand::wmicGetSID){
             sid = result.toString();
-            cmd->stop();
+            cmd.stop();
             loop.quit();
         }
 
     };
-    connect(cmd, &CommandLine::endParse, parse);
+    connect(&cmd, &CommandLine::endParse, parse);
 
-    auto err = [&loop, cmd](const QString& data, int command) -> void
+    auto err = [&loop, &cmd](const QString& data, int command) -> void
     {
         qDebug() << __FUNCTION__ << data << command;
-        cmd->stop();
+        cmd.stop();
         loop.quit();
     };
-    connect(cmd, &CommandLine::error, err);
+    connect(&cmd, &CommandLine::error, err);
 
-    cmd->start();
+    cmd.start();
     loop.exec();
+
+    currentUser->setSid(sid);
 
     return !sid.isEmpty();
 }
