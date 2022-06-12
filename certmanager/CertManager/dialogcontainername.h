@@ -22,9 +22,10 @@ public:
     QString keyName();
 
 private slots:
-    void on_lineContainerName_textChanged(const QString &arg1);
 
-    void on_DialogContainerName_accepted();
+    void onCheckEncodeToggled(bool checked);
+
+    void onContainerNameTextChanged(const QString &arg1);
 
 private:
     Ui::DialogContainerName *ui;
@@ -32,6 +33,9 @@ private:
     QString key_name;
     QString end_date;
     QString _name;
+    QString fromBase64(const QString &value);
+    bool isBase64(const QString &value);
+    bool isCyrillic(const QString &source);
 };
 
 #endif // DIALOGCONTAINERNAME_H

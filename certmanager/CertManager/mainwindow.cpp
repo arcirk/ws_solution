@@ -128,16 +128,20 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::createModels(){
 
     createColumnAliases();
+
     modelSqlContainers = new QJsonTableModel(this);
     modelSqlContainers->setColumnAliases(m_colAliases);
     modelSqlContainers->setRowsIcon(QIcon(":/img/cont.png"));
     modelSqlContainers->setFormatColumn(2, "base64");
+
     modelSqlCertificates = new QJsonTableModel(this);
     modelSqlCertificates->setColumnAliases(m_colAliases);
     modelSqlCertificates->setRowsIcon(QIcon(":/img/rosette.ico"));
+
     modelWsUsers = new QJsonTableModel(this);
     modelWsUsers->setColumnAliases(m_colAliases);
     modelWsUsers->setRowsIcon(QIcon(":/img/user.png"));
+
     modelSqlUsers = new QJsonTableModel(this);
     modelSqlUsers->setColumnAliases(m_colAliases);
     modelSqlUsers->setRowsIcon(QIcon(":/img/user.png"));
@@ -455,33 +459,7 @@ void MainWindow::saveAsCurrentUserContainer()
         return;
     }
 
-    auto model = new QStandardItemModel(this);
-    model->setColumnCount(2);
-    model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
-
-    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
-         if (storage.isValid() && storage.isReady()) {
-             model->setRowCount(model->rowCount() +1);
-             if (!storage.isReadOnly()) {
-                 QStringList v = storage.rootPath().split(":");
-                 QString vol = QString("\\\\.\\FAT12_%1\\").arg(v[0]);
-
-                 int row = model->rowCount()-1;
-                 auto item = new QStandardItem(vol);
-                 model->setItem(row, 0, item);
-                 item = new QStandardItem(storage.rootPath());
-                 model->setItem(row, 1, item);
-                 item = new QStandardItem(storage.displayName());
-                 model->setItem(row, 2, item);
-             }
-         }
-     }
-    model->setRowCount(model->rowCount() +1);
-    int row = model->rowCount()-1;
-    auto item = new QStandardItem("\\\\.\\REGISTRY\\");
-    model->setItem(row, 0, item);
-    item = new QStandardItem("Реестр");
-    model->setItem(row, 1, item);
+    auto model = getLocalMountedVolumes();
 
     auto dlgSel = new DialogSelectInList(model, "Выбор устройства", this);
     dlgSel->setModal(true);
@@ -582,76 +560,50 @@ void MainWindow::saveAsDatabaseContainer()
         return;
     }
 
-    auto model = new QStandardItemModel(this);
-    model->setColumnCount(2);
-    model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
+    auto model = getLocalMountedVolumes();
+    auto dlgSel = DialogSelectInList(model, "Выбор устройства", this);
+    dlgSel.setModal(true);
+    dlgSel.exec();
 
-    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
-         if (storage.isValid() && storage.isReady()) {
-             model->setRowCount(model->rowCount() +1);
-             if (!storage.isReadOnly()) {
-                 QStringList v = storage.rootPath().split(":");
-                 QString vol = QString("\\\\.\\FAT12_%1\\").arg(v[0]);
-
-                 int row = model->rowCount()-1;
-                 auto item = new QStandardItem(vol);
-                 model->setItem(row, 0, item);
-                 item = new QStandardItem(storage.rootPath());
-                 model->setItem(row, 1, item);
-                 item = new QStandardItem(storage.displayName());
-                 model->setItem(row, 2, item);
-             }
-         }
-     }
-    model->setRowCount(model->rowCount() +1);
-    int row = model->rowCount()-1;
-    auto item = new QStandardItem("\\\\.\\REGISTRY\\");
-    model->setItem(row, 0, item);
-    item = new QStandardItem("Реестр");
-    model->setItem(row, 1, item);
-
-    auto dlgSel = new DialogSelectInList(model, "Выбор устройства", this);
-    dlgSel->setModal(true);
-    dlgSel->exec();
-    if(dlgSel->result() == QDialog::Accepted){
-        QStringList dlgResult = dlgSel->dialogResult();
+    if(dlgSel.result() == QDialog::Accepted){
+        QStringList dlgResult = dlgSel.dialogResult();
         QString volume = dlgResult[0];
         QString path = dlgResult[1];
 
-        QString name = table->model()->index(index.row(), 2).data().toString();
+        int colName = modelSqlContainers->getColumnIndex("FirstField");
+        auto name = modelSqlContainers->index(index.row(), colName).data().toString();
+        //QString name = table->model()->index(index.row(), 2).data().toString();
         int ind = name.indexOf("@");
         QString key_name = name.left(ind + 1) + ".000";
 
         if(path != "Реестр"){
             QDir dir(path + key_name);
             if(dir.exists()){
-                QMessageBox::critical(this, "Ошибка", QString("Каталог с именем %1 уже существует на устройстве!").arg(key_name));
+                QMessageBox::critical(this, "Ошибка", QString("Каталог с именем %1 уже существует в хранилище!").arg(key_name));
                 return;
             }
         }
 
-        auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер: \n%1 \n на устройство?").arg(volume));
+        auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер в хранилище: %1?").arg(volume));
 
         if(result != QMessageBox::Yes){
             return;
         }
 
-        auto dlg = new DialogContainerName(name,this);
-        dlg->setModal(true);
-        dlg->exec();
+//        auto dlg = DialogContainerName(name,this);
+//        dlg.setModal(true);
+//        dlg.exec();
 
-        if(dlg->result() != QDialog::Accepted)
-            return;
+//        if(dlg.result() != QDialog::Accepted)
+//            return;
 
-        QString newName = dlg->name();
+        QString newName = name; //dlg.name();
         QString fillName = volume + newName;
-
-        QString nameBase64 = volume + QByteArray(newName.toUtf8()).toBase64();
 
         if(path == "Реестр"){
             QStringList lst = currentUser->getRigstryData();
 
-            if(lst.lastIndexOf(newName) != -1 || lst.lastIndexOf(nameBase64) != -1){
+            if(lst.lastIndexOf(newName) != -1){
                 QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
                 return;
             }
@@ -662,38 +614,20 @@ void MainWindow::saveAsDatabaseContainer()
         int col = modelSqlContainers->getColumnIndex("Ref");
         QString ref = modelSqlContainers->index(index.row(), col).data(Qt::UserRole + col).toString();
 
-        QJsonObject obj_where = QJsonObject();
-        obj_where.insert("name", "Ref");
-        obj_where.insert("value", ref);
-        bindQuery.add_where(obj_where, QBSqlTypeOfComparison::QEquals);
-
-        QJsonObject objSel = QJsonObject();
-        objSel.insert("name", "Ref");
-        objSel.insert("value", "Ref"); //alias
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "FirstField");
-        objSel.insert("value", "FirstField");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "data");
-        objSel.insert("value", "data");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
+        bindQuery.addField("Ref", "Ref");
+        bindQuery.addField("FirstField", "FirstField");
+        bindQuery.addField("data", "data");
+        bindQuery.addWhere("Ref", ref);
 
         QString query = bindQuery.to_json();
 
         QJsonObject cmd = QJsonObject();
         cmd.insert("command", "copy_container_from_data");
-        cmd.insert("toDevice", fillName); //nameBase64);
-        //QModelIndex _index = table->model()->index(index.row(), 1);
-        //QString ref = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+        cmd.insert("toDevice", fillName);
 
         if(_sett->launch_mode() == mixed){
             if(!isDbOpen())
                 return;
-            QString query = bindQuery.to_json();
             QString resultQuery;
             QString _error;
             db->exec_qt(query, resultQuery, _error);
@@ -800,11 +734,47 @@ void MainWindow::addCertificate()
 void MainWindow::delCertificate()
 {
 
-    auto tree = ui->treeWidget;
-    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+    qDebug() << __FUNCTION__;
 
-    if(node == SqlContainers){
-        delContainer();
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    QString ref = table->model()->index(index.row(), 1).data().toString();
+    QString name = table->model()->index(index.row(), 2).data().toString();
+    auto bOK =  QMessageBox::question(this, "Удаление сертификата", QString("Удалить сертификат %1 с сервера?").arg(name));
+    if(bOK == QMessageBox::No){
+        return;
+    }
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Certificates");
+    bindQuery.addWhere("Ref", ref);
+
+    if(_sett->launch_mode() == mixed){
+        QSqlQuery sql = bindQuery.query(db->getDatabase());
+        sql.exec();
+        if(sql.lastError().type() != QSqlError::NoError){
+            qDebug() << __FUNCTION__ << sql.lastError().text();
+        }else
+        {
+            QMessageBox::information(this, "Удаление", "Сертификат успешно удален!");
+            getDataCertificatesList();
+        }
+    }else{
+        if(m_client->isStarted()){
+            QString result = bindQuery.to_json();
+            auto doc = QJsonDocument();
+            auto obj = QJsonObject();
+            obj.insert("query", result);
+            obj.insert("id_command", deleteCertificateFromData);
+            doc.setObject(obj);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
+        }
     }
 }
 
@@ -829,7 +799,8 @@ void MainWindow::addContainer()
 
     if(dlg->result() == QDialog::Accepted){
 
-        QString query;
+        //QString query;
+        auto bindQuery = QBSqlQuery();
 
         if(dlg->currentSelection() == 0){
 
@@ -842,23 +813,30 @@ void MainWindow::addContainer()
                 if(file.open(QIODevice::ReadOnly)){
                     QString data = QString::fromLocal8Bit(file.readAll());
                     int ind = data.indexOf("\026");
-                   if(ind != -1){
+                    if(ind != -1){
                         QString name = data.right(data.length() - ind - 2);
                         auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(name));
                         if(result == QMessageBox::Yes){
                             auto cnt = KeysContainer();
                             cnt.fromFolder(dir);
                             if(cnt.isValid()){
+                                if(isCyrillic(name)){
+                                    auto dlg = DialogContainerName(name, this);
+                                    dlg.setModal(true);
+                                    dlg.exec();
+                                    if(dlg.result() == QDialog::Accepted){
+                                        name = dlg.name();
+                                        cnt.setNewOriginalName(name);
+                                    }else
+                                        return;
+                                }
                                 cnt.fromContainerName(name);
-                                QString orgName = cnt.fullName();
-                                if(isContainerExists(orgName)){
+                                if(isContainerExists(name)){
                                     QMessageBox::critical(this, "Ошибка",
-                                                          QString("Контейнер с именем: \n'%1' уже загружен в базу!"
-                                                                  "\nДля импорта контейнера с новым именем загрузите его из локального хранилища.").arg(orgName));
+                                                          QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
                                     return;
                                 }else{
-                                    auto bindQuery = cnt.getSqlQueryObject(QBSqlCommand::QSqlInsert);
-                                    query = bindQuery.to_json();
+                                    bindQuery = cnt.getSqlQueryObject(QBSqlCommand::QSqlInsert);
                                 }
                             }else
                                 QMessageBox::critical(this, "Ошибка", "Ошибка импорта!");
@@ -871,15 +849,91 @@ void MainWindow::addContainer()
             }
         }else if(dlg->currentSelection() == 1){
 
+            auto model = new QStandardItemModel(this);
+            model->setHorizontalHeaderLabels({"Устройство", "Наименование", "Контейнер"});
+            int row = 0;
+            foreach(auto cntPt, currentUser->containers()){
+                auto cnt = currentUser->container(cntPt);
+                if(cnt){
+                    model->setRowCount(row + 1);
+                    auto item = new QStandardItem(cnt->volume());
+                    model->setItem(row, 0, item);
+                    item = new QStandardItem(cnt->bindName());
+                    model->setItem(row, 1, item);
+                    item = new QStandardItem(cntPt);
+                    model->setItem(row, 2, item);
+                    row++;
+                }
+            }
+
+            auto dlgSel = DialogSelectInList(model, "Выбор устройства", this);
+            dlgSel.setModal(true);
+            dlgSel.exec();
+
+            if(dlgSel.result() == QDialog::Accepted){
+                QStringList dlgResult = dlgSel.dialogResult();
+                if(dlgResult.size() == 0)
+                    return;
+                QString contaner = dlgResult[2];
+                QString volume = dlgResult[0];
+                //QString path = dlgResult[1];
+                QString name;
+                auto cnt = currentUser->container(contaner);
+                if(cnt){
+                    if(cnt->keyName().isEmpty())
+                        cnt->fromContainerName(contaner);
+                    if(volume.indexOf(REGISTRY_) != -1){
+                        cnt->fromRegistry(currentUser->sid(), cnt->originalName());
+                        cnt->originalName();
+                    }else{
+                       QDir dir(cnt->volumePath() + cnt->keyName() + ".000");
+                       qDebug() << dir.path();
+                       if(dir.exists()){
+                           cnt->fromFolder(dir.path());
+                           name = cnt->originalName();
+                       }else{
+                           QMessageBox::critical(this, "Ошибка", "Произошла ошибка чтения с каталога!");
+                           return;
+                       }
+                    }
+
+                    if(cnt->isValid()){
+                         auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(cnt->bindName()));
+
+                         if(result == QMessageBox::Yes){
+                             name = cnt->originalName();
+                            if(isCyrillic(cnt->originalName())){
+                                auto dlg = DialogContainerName(name, this);
+                                dlg.setModal(true);
+                                dlg.exec();
+                                if(dlg.result() == QDialog::Accepted){
+                                    name = dlg.name();
+                                    if(name != cnt->originalName())
+                                         cnt->setNewOriginalName(name);
+                                }else
+                                    return;
+                            }
+                         }else
+                            return;
+
+                         if(isContainerExists(name)){
+                             QMessageBox::critical(this, "Ошибка",
+                                                   QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
+                             return;
+                         }else{
+                             bindQuery = cnt->getSqlQueryObject(QBSqlCommand::QSqlInsert);
+                         }
+                    }
+
+                }
+            }
         }else if(dlg->currentSelection() == 2){
 
         }
 
-        if(!query.isEmpty()){
+        if(bindQuery.isValid()){
             if(_sett->launch_mode() == mixed){
-                auto bindQuery1 = QBSqlQuery();
-                bindQuery1.fromJson(query);
-                QSqlQuery sql = bindQuery1.query(db->getDatabase());
+                QSqlQuery sql = bindQuery.query(db->getDatabase());
                 sql.exec();
                 if(sql.lastError().type() != QSqlError::NoError){
                     qDebug() << __FUNCTION__ << sql.lastError().text();
@@ -891,14 +945,15 @@ void MainWindow::addContainer()
                 if(m_client->isStarted()){
                     auto doc = QJsonDocument();
                     auto objMain = QJsonObject();
-                    objMain.insert("query", query);
+                    objMain.insert("query", bindQuery.to_json());
                     objMain.insert("id_command", insertContainerToData);
                     doc.setObject(objMain);
                     QString param = doc.toJson();
                     m_client->sendCommand("exec_query_qt", "", param);
                 }
             }
-        }
+        }else
+            QMessageBox::critical(this, "Ошибка", "Произошла ошибка импорта!");
 
     }
 }
@@ -923,18 +978,10 @@ void MainWindow::delContainer()
     }
 
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Containers");
-    QJsonObject obj = QJsonObject();
-    obj.insert("name", "Ref");
-    obj.insert("value", ref);
-    bindQuery.add_where(obj, QBSqlTypeOfComparison::QEquals);
-
-    QString result = bindQuery.to_json();
-    qDebug() << qPrintable(result);
+    bindQuery.addWhere("Ref", ref);
 
     if(_sett->launch_mode() == mixed){
-        auto bindQuery1 = QBSqlQuery();
-        bindQuery1.fromJson(result);
-        QSqlQuery sql = bindQuery1.query(db->getDatabase());
+        QSqlQuery sql = bindQuery.query(db->getDatabase());
         sql.exec();
         if(sql.lastError().type() != QSqlError::NoError){
             qDebug() << __FUNCTION__ << sql.lastError().text();
@@ -945,6 +992,7 @@ void MainWindow::delContainer()
         }
     }else{
         if(m_client->isStarted()){
+            QString result = bindQuery.to_json();
             auto doc = QJsonDocument();
             auto obj = QJsonObject();
             obj.insert("query", result);
@@ -956,55 +1004,56 @@ void MainWindow::delContainer()
     }
 }
 
+QStandardItemModel *MainWindow::getLocalMountedVolumes()
+{
+    auto model = new QStandardItemModel(this);
+    model->setColumnCount(2);
+    model->setHorizontalHeaderLabels({"Volume", "Path", "Name"});
+
+    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+         if (storage.isValid() && storage.isReady()) {
+             model->setRowCount(model->rowCount() +1);
+             if (!storage.isReadOnly()) {
+                 QStringList v = storage.rootPath().split(":");
+                 QString vol = QString("\\\\.\\FAT12_%1\\").arg(v[0]);
+
+                 int row = model->rowCount()-1;
+                 auto item = new QStandardItem(vol);
+                 model->setItem(row, 0, item);
+                 item = new QStandardItem(storage.rootPath());
+                 model->setItem(row, 1, item);
+                 item = new QStandardItem(storage.displayName());
+                 model->setItem(row, 2, item);
+             }
+         }
+     }
+    model->setRowCount(model->rowCount() +1);
+    int row = model->rowCount()-1;
+    auto item = new QStandardItem("\\\\.\\REGISTRY\\");
+    model->setItem(row, 0, item);
+    item = new QStandardItem("Реестр");
+    model->setItem(row, 2, item);
+    return model;
+}
+
 void MainWindow::treeSetCurrentContainers(const QString& filter)
 {
-
         auto tableView = ui->tableView;
         tableView->setModel(nullptr);
+
 //        currentList.filter = "{\"IsGroup\": 1,
 //                               \"Parent\": \"" + uuid + "\"}"
         proxyModelUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
         tableView->setModel(proxyModelUserConteiners);
+
+        int ind = modelUserContainers->getColumnIndex("name");
+        if(ind != -1)
+            tableView->setColumnHidden(ind, true);
+        ind = modelUserContainers->getColumnIndex("nameInStorgare");
+        if(ind != -1)
+            tableView->setColumnHidden(ind, true);
+
         tableView->resizeColumnsToContents();
-
-//        auto table = new QStandardItemModel(this);
-//        table->setColumnCount(2);
-//        table->setRowCount(keys.size());
-//        QStringList cols = {"", "Устройство", "Наименование"};
-//        table->setHorizontalHeaderLabels(cols);
-//        auto colDb = table->horizontalHeaderItem(0);
-//        colDb->setIcon(QIcon(":/img/sql.png"));
-//        int i = 0;
-//        foreach(const QString& key, keys){
-//            QStringList m_data = key.split("\\");
-//            if(m_data.size() == 5){
-//                QString device = m_data[3].replace("\r", "");
-//                auto itemTable = new QStandardItem(device);
-//                itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-//                itemTable->setData(key);
-//                table->setItem(i, 1, itemTable);
-//                QString nameBase64 = m_data[4].replace("\r", "");
-//                QString name = fromBase64(nameBase64);
-//                itemTable = new QStandardItem(name);
-//                itemTable->setData(nameBase64);
-//                itemTable->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-//                table->setItem(i, 2, itemTable);
-
-//                if(isContainerExists(name)){
-//                    auto itemIco = new QStandardItem();
-//                    itemIco->setIcon(QIcon(":/img/checked.png"));
-//                    table->setItem(i, 0, itemIco);
-////                    QLabel *lbl_item = new QLabel();
-////                    lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/checked.png")));// *ui->my_label->pixmap());
-////                    lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-////                    table->setCellWidget(i, 0, lbl_item);
-//                }
-//            }
-
-//            i++;
-//        }
-//        tableView->setModel(table);
-//        tableView->resizeColumnsToContents();
 
 }
 
@@ -1030,9 +1079,12 @@ void MainWindow::treeSetFromSqlContainers()
         int index = modelSqlContainers->getColumnIndex("Ref");
         if(index > 0)
             table->setColumnHidden(index, true);
-//        index = modelSqlContainers->getColumnIndex("cache");
-//        if(index > 0)
-//            table->setColumnHidden(index, true);
+        index = modelSqlContainers->getColumnIndex("cache");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlContainers->getColumnIndex("FirstField");
+        if(index > 0)
+            table->setColumnHidden(index, true);
         table->resizeColumnsToContents();
     }
 }
@@ -1135,7 +1187,9 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
 
     int indNameInStorgare = modelUserContainers->getColumnIndex("nameInStorgare");
     int indName = modelUserContainers->getColumnIndex("name");
+    int indSecondName = modelUserContainers->getColumnIndex("SecondField");
     QString name = ui->tableView->model()->index(index.row(), indName).data().toString();
+    QString second_name = ui->tableView->model()->index(index.row(), indSecondName).data().toString();
     QString nameInStorgare = ui->tableView->model()->index(index.row(), indNameInStorgare).data().toString();
 
     KeysContainer * cnt = currentUser->container(nameInStorgare);
@@ -1146,7 +1200,7 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
             modelUserContainers->setJsonText(currentUser->modelContainersText());
             modelUserContainers->reset();
         }
-        auto dlg = new DialogContainerInfo(obj, name, this);
+        auto dlg = new DialogContainerInfo(obj, second_name, this);
         dlg->setModal(true);
         dlg->exec();
 
@@ -1155,7 +1209,7 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
 
         if(indexCnt.isValid()){
             int col = modelSqlContainers->getColumnIndex("cache");
-            QString cache = modelSqlContainers->index(indexCnt.row(), col).data().toString();
+            QString cache = modelSqlContainers->index(indexCnt.row(), col).data(Qt::UserRole + col).toString();
             if(cache.isEmpty()){
                 auto doc = QJsonDocument();
                 doc.setObject(obj);
@@ -1178,7 +1232,7 @@ QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &v
             if(value == index.data(Qt::UserRole + 1).toString())
                 return index;
         }else{
-            QString data = index.data().toString();
+            QString data = index.data(Qt::UserRole + column).toString();
             if(value == data)
                 return index;
         }
@@ -1437,6 +1491,25 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
         if(!itemUsers){
             getDataUsersList();
         }
+    }else if(id_command == DataUsersList){
+
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString jsonUsers = QByteArray::fromBase64(base64.toUtf8());
+
+        modelSqlUsers->setJsonText(jsonUsers);
+
+        modelSqlUsers->reset();
+
+        auto itemUsers = findTreeItem(SqlUsers);
+        if(!itemUsers){
+            auto rootDb = findTreeItem(SqlServer);
+            if(rootDb){
+               itemUsers = addTreeNode("Пользователи", SqlUsers, ":/img/certUsers.png");
+               rootDb->addChild(itemUsers);
+            }
+        }
     }
 }
 
@@ -1535,138 +1608,78 @@ void MainWindow::getDataCertificatesList()
     qDebug() << __FUNCTION__;
 
 
-        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Certificates");
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Certificates");
+    bindQuery.addField("EmptyTitle", "EmptyTitle");
+    bindQuery.addField("Ref", "Ref");
+    bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("subject", "subject");
+    bindQuery.addField("issuer", "issuer");
+    bindQuery.addField("notValidBefore", "notValidBefore");
+    bindQuery.addField("notValidAfter", "notValidAfter");
+    bindQuery.addField("parentUser", "parentUser");
+    bindQuery.addField("serial", "serial");
+    bindQuery.addField("privateKey", "privateKey");
 
-        QJsonObject objSel = QJsonObject();
+    QString query = bindQuery.to_json();
 
-        objSel.insert("name", "EmptyTitle");
-        objSel.insert("value", "EmptyTitle");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
+    if(_sett->launch_mode() == mixed){
+        if(!isDbOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
 
-        objSel = QJsonObject();
-        objSel.insert("name", "Ref");
-        objSel.insert("value", "Ref"); //alias
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "FirstField");
-        objSel.insert("value", "FirstField");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "subject");
-        objSel.insert("value", "subject");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "issuer");
-        objSel.insert("value", "issuer");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "notValidBefore");
-        objSel.insert("value", "notValidBefore");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "notValidAfter");
-        objSel.insert("value", "notValidAfter");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "parentUser");
-        objSel.insert("value", "parentUser");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        objSel = QJsonObject();
-        objSel.insert("name", "serial");
-        objSel.insert("value", "serial");
-        bindQuery.add_field(objSel, bFieldType::qVariant);
-
-        QString query = bindQuery.to_json();
-
-        if(_sett->launch_mode() == mixed){
-            if(!isDbOpen())
-                return;
-            QString resultQuery;
-            QString _error;
-            db->exec_qt(query, resultQuery, _error);
-
+        auto objMain = QJsonObject();
+        objMain.insert("table", QString(QByteArray(resultQuery.toUtf8()).toBase64()));
+        resetTableJsonModel(objMain, DataCertificatesList);
+    }else{
+        if(m_client->isStarted()){
+            auto doc = QJsonDocument();
             auto objMain = QJsonObject();
-            objMain.insert("table", QString(QByteArray(resultQuery.toUtf8()).toBase64()));
-            resetTableJsonModel(objMain, "DataCertificatesList");
-        }else{
-            if(m_client->isStarted()){
-                auto doc = QJsonDocument();
-                auto objMain = QJsonObject();
-                objMain.insert("query", query);
-                objMain.insert("id_command", "DataCertificatesList");
-                doc.setObject(objMain);
-                QString param = doc.toJson();
-                m_client->sendCommand("exec_query_qt", "", param);
-            }
+            objMain.insert("query", query);
+            objMain.insert("id_command", DataCertificatesList);
+            doc.setObject(objMain);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
         }
-
-
-//        QString resultQuery;
-//        QString _error;
-//        db->exec_qt(query, resultQuery, _error);
-
-//        auto objMain = QJsonObject();
-//        objMain.insert("table", QString(QByteArray(resultQuery.toUtf8()).toBase64()));
-//        resetTableJsonModel(objMain, "DataCertificatesList");
-
-
-//    }else{
-
-//        if(!m_client->isStarted())
-//            return;
-//        QString query = "SELECT NULL AS Empty\n"
-//                        ",[FirstField]\n"
-//                        ",[Ref]\n"
-//                        ",[privateKey]\n"
-//                        "FROM [dbo].[Certificates]";
-//        auto obj = QJsonObject();
-//        obj.insert("query", query);
-//        obj.insert("header", true);
-//        obj.insert("id_command", "DataCertificatesList");
-//        auto doc = QJsonDocument();
-//        doc.setObject(obj);
-//        QString param = doc.toJson();
-//        m_client->sendCommand("exec_query", "", param);
-
-//    }
+    }
 }
 
 void MainWindow::getDataUsersList()
 {
     qDebug() << __FUNCTION__;
 
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertUsers");
+    bindQuery.addField("Empty", "Empty");
+    bindQuery.addField("EmptyisOnline", "EmptyisOnline");
+    bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("Ref", "Ref");
+    bindQuery.addField("uuid", "uuid");
+    bindQuery.addField("sid", "sid");
+    bindQuery.addField("host", "host");
+
+    QString result = bindQuery.to_json();
+
     if(_sett->launch_mode() == mixed){
         if(!isDbOpen())
             return;
-
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(result, resultQuery, _error);
+        auto objMain = QJsonObject();
+        objMain.insert("table", QString(QByteArray(resultQuery.toUtf8()).toBase64()));
+        resetTableJsonModel(objMain, DataUsersList);
     }else{
-
         if(!m_client->isStarted())
             return;
-        QString query = "SELECT NULL AS Empty\n"
-                        ", NULL AS EmptyisOnline\n"
-                        ",[FirstField]\n"
-                        ",[Ref]\n"
-                        ",[uuid]\n"
-                        ",[sid]\n"
-                        ",[host]\n"
-                        "FROM [dbo].[CertUsers]";
         auto obj = QJsonObject();
-        obj.insert("query", query);
+        obj.insert("query", result);
         obj.insert("header", true);
-        obj.insert("id_command", "DataUsersList");
+        obj.insert("id_command", DataUsersList);
         auto doc = QJsonDocument();
         doc.setObject(obj);
         QString param = doc.toJson();
-        m_client->sendCommand("exec_query", "", param);
-
+        m_client->sendCommand("exec_query_qt", "", param);
     }
 }
 
@@ -1890,8 +1903,11 @@ bool MainWindow::isContainerExists(const QString &name)
             }
         }
     }else{
-        auto index = findInTable(modelSqlContainers, name, 2, false);
-        return index.isValid();
+        int ind = modelSqlContainers->getColumnIndex("FirstField");
+        if(ind != -1){
+            auto index = findInTable(modelSqlContainers, name, ind, false);
+            return index.isValid();
+        }
     }
 
     return false;
@@ -2187,31 +2203,31 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     }else{
 
         QString key = item->data(0, Qt::UserRole).toString();
-        if(key == "currentUserRegistry"){
+        if(key == currentUserRegistry){
            toolBarSetVisible(ui->wToolBarCurrentUser, true);
            treeSetCurrentContainers("REGISTRY");
            ui->btnCurrentCopyToRegistry->setEnabled(true);
            ui->btnCurrentCopyToSql->setEnabled(true);
            ui->btnCurrentUserAdd->setEnabled(false);
-        }else if(key == "currentUserDivace"){
+        }else if(key == currentUserDivace){
            toolBarSetVisible(ui->wToolBarCurrentUser, true);
            treeSetCurrentContainers("!REGISTRY");
            ui->btnCurrentCopyToRegistry->setEnabled(true);
            ui->btnCurrentCopyToSql->setEnabled(true);
            ui->btnCurrentUserAdd->setEnabled(false);
-        }else if(key == "SqlContainers"){
+        }else if(key == SqlContainers){
             toolBarSetVisible(ui->wToolbarDatabase, true);
             treeSetFromSqlContainers();
-        }else if(key == "WsActiveUsers"){
+        }else if(key == WsActiveUsers){
             toolBarSetVisible(ui->wToolBarAU, true);
             treeSetOnlineWsUsers();
-        }else if(key == "SqlCertificates"){
+        }else if(key == SqlCertificates){
             toolBarSetVisible(ui->wToolbarDatabase, true);
             treeSetFromSqlCertificates();
-        }else if(key == "SqlUsers"){
+        }else if(key == SqlUsers){
             toolBarSetVisible(ui->wToolBarMain, true);
             treeSetFromSqlUsers();
-        }else if(key == "currentUserCertificates"){
+        }else if(key == currentUserCertificates){
             toolBarSetVisible(ui->wToolBarCurrentUser, true);
             treeSetFromCurrentUserCerts();
             ui->btnCurrentCopyToRegistry->setEnabled(false);
@@ -2817,9 +2833,9 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
             if(item){
                 item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
                 if(item->childCount() == 0){
-                    auto Root = addTreeNode("Доступные контейнеры", "currentUserAvailableContainers", ":/img/key16.png");
+                    auto Root = addTreeNode("Доступные контейнеры", currentUserAvailableContainers, ":/img/key16.png");
                     item->addChild(Root);
-                    auto certs = addTreeNode("Установленные сертификаты", "currentUserCertificates", ":/img/cert.png");
+                    auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
                     item->addChild(certs);
                     auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
                     Root->addChild(reg);
@@ -3151,81 +3167,15 @@ void MainWindow::onWsExecQuery(const QString &result)
 
     QString id_command = obj.value("id_command").toString();
     if(id_command == "DataContainersList" || id_command == "DataCertificatesList" ){
-
         resetTableJsonModel(obj, id_command);
-//        QString base64 = obj.value("table").toString();
-//        if(base64.isEmpty())
-//            return;
-//        QString jsonConteiners = QByteArray::fromBase64(base64.toUtf8());
-
-//        modelSqlContainers->setJsonText(jsonConteiners);
-//        //qDebug() << jsonConteiners;
-//        modelSqlContainers->reset();
-
-//        auto itemContainers = findTreeItem("SqlContainers");
-//        if(!itemContainers){
-//            auto rootDb = findTreeItem("SqlServer");
-//            if(rootDb){
-//               itemContainers = addTreeNode("Контейнеры", "SqlContainers", ":/img/zamok.png");
-//               rootDb->addChild(itemContainers);
-//            }
-//        }
-//        auto itemCertificates = findTreeItem("SqlCertificates");
-//        if(!itemCertificates){
-//            getDataCertificatesList();
-//        }
-
-//    }else if(id_command == "DataCertificatesList"){
-
-//        QString base64 = obj.value("table").toString();
-//        if(base64.isEmpty())
-//            return;
-//        QString jsonCertificates = QByteArray::fromBase64(base64.toUtf8());
-
-//        modelSqlCertificates->setJsonText(jsonCertificates);
-//        modelSqlCertificates->reset();
-
-//        auto itemCertificates = findTreeItem("SqlCertificates");
-//        if(!itemCertificates){
-//            auto rootDb = findTreeItem("SqlServer");
-//            if(rootDb){
-//               itemCertificates = addTreeNode("Сертификаты", "SqlCertificates", ":/img/cert.png");
-//               rootDb->addChild(itemCertificates);
-//            }
-//        }
-//        auto itemUsers = findTreeItem("SqlUsers");
-//        if(!itemUsers){
-//            getDataUsersList();
-//        }
     }else if(id_command == insertContainerToData){
         qDebug() << __FUNCTION__ << "Контейнер успешно импортирован в на сервер!";
         getDataContainersList();
     }else if(id_command == deleteContainerFromData){
         qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
         getDataContainersList();
-    }else if(id_command == DataUsersList){
-
-        QString base64 = obj.value("table").toString();
-        if(base64.isEmpty())
-            return;
-        QString jsonUsers = QByteArray::fromBase64(base64.toUtf8());
-
-        modelSqlUsers->setJsonText(jsonUsers);
-
-        modelSqlUsers->reset();
-
-        auto itemUsers = findTreeItem(SqlUsers);
-        if(!itemUsers){
-            auto rootDb = findTreeItem(SqlServer);
-            if(rootDb){
-               itemUsers = addTreeNode("Пользователи", SqlUsers, ":/img/certUsers.png");
-               rootDb->addChild(itemUsers);
-            }
-        }
-//        auto itemContainers = findTreeItem("SqlContainers");
-//        if(!itemContainers){
-//            getDataContainersList();
-//        }
+    }else if(id_command == DataUsersList){\
+        resetTableJsonModel(obj, id_command);
     }else if(id_command == "get_data"){
         QString base64 = obj.value("table").toString();
         if(base64.isEmpty())
@@ -3235,6 +3185,12 @@ void MainWindow::onWsExecQuery(const QString &result)
         if(!run_on_return.isEmpty()){
             onGetDataFromDatabase(json, run_on_return);
         }
+    }else if(id_command == insertCertificateToData){
+        qDebug() << __FUNCTION__ << "Сертификат успешно импортирован в на сервер!";
+        getDataCertificatesList();
+    }else if(id_command == deleteCertificateFromData){
+        qDebug() << __FUNCTION__ << "Сертификат успешно удален с сервера!";
+        getDataCertificatesList();
     }
 }
 
@@ -3413,43 +3369,32 @@ void MainWindow::on_btnUserToDatabase_clicked()
                 QMessageBox::information(this, "Успех", "Пользователь успешно зарегистрирован!");
         }else{
             auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "CertUsers");
-            QJsonObject obj = QJsonObject();
-            obj.insert("name", "FirstField");
-            obj.insert("value", userName);
-            bindQuery.add_field(obj, bFieldType::qVariant);
-            obj = QJsonObject();
-            obj.insert("name", "SecondField");
-            obj.insert("value", userName);
-            bindQuery.add_field(obj, bFieldType::qVariant);
-            obj = QJsonObject();
-            obj.insert("name", "Ref");
-            obj.insert("value", uuid);
-            bindQuery.add_field(obj, bFieldType::qVariant);
-            obj = QJsonObject();
-            obj.insert("name", "host");
-            obj.insert("value", hostName);
-            bindQuery.add_field(obj, bFieldType::qVariant);
+            bindQuery.addField("FirstField", userName);
+            bindQuery.addField("SecondField", userName);
+            bindQuery.addField("Ref", uuid);
+            bindQuery.addField("host", hostName);
 
-            QString result = bindQuery.to_json();
-            auto doc = QJsonDocument();
-            auto objMain = QJsonObject();
-            objMain.insert("query", result);
-            objMain.insert("id_command", "insertUserToData");
-            doc.setObject(obj);
-            QString param = doc.toJson();
-            m_client->sendCommand("exec_query_qt", "", param);
-
-//            if(!m_client->isStarted())
-//                return;
-//            QString query = "SELECT NULL AS EmptyTitle, [Ref] , [FirstField] , [cache] FROM [arcirk].[dbo].[Containers]";
-//            auto obj = QJsonObject();
-//            obj.insert("query", query);
-//            obj.insert("header", true);
-//            obj.insert("id_command", "DataContainersList");
-//            auto doc = QJsonDocument();
-//            doc.setObject(obj);
-//            QString param = doc.toJson();
-//            m_client->sendCommand("exec_query", "", param);
+            if(_sett->launch_mode() == mixed){
+                QSqlQuery sql = bindQuery.query(db->getDatabase());
+                sql.exec();
+                if(sql.lastError().type() != QSqlError::NoError){
+                    qDebug() << __FUNCTION__ << sql.lastError().text();
+                }else{
+                    QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
+                    getDataContainersList();
+                }
+            }else{
+                if(m_client->isStarted()){
+                    QString result = bindQuery.to_json();
+                    auto doc = QJsonDocument();
+                    auto objMain = QJsonObject();
+                    objMain.insert("query", result);
+                    objMain.insert("id_command", "insertUserToData");
+                    doc.setObject(objMain);
+                    QString param = doc.toJson();
+                    m_client->sendCommand("exec_query_qt", "", param);
+                }
+            }
         }
     }
 }
@@ -3636,7 +3581,7 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                     return;
                 }
                 //cnt.setPath(currentUser->sid(), cnt.nameBase64());
-                cnt.fromRegistry(currentUser->sid(), cnt.fullName());
+                cnt.fromRegistry(currentUser->sid(), cnt.bindName());
             }
 
             if(!cnt.isValid())
@@ -3680,13 +3625,11 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                 obj.insert("value", QString(data.toBase64()));
                 bindQuery.add_field(obj, bFieldType::qByteArray);
 
-                QString result = bindQuery.to_json();
+
                 //qDebug() << qPrintable(result);
 
                 if(_sett->launch_mode() == mixed){
-                    auto bindQuery1 = QBSqlQuery();
-                    bindQuery1.fromJson(result);
-                    QSqlQuery sql = bindQuery1.query(db->getDatabase());
+                    QSqlQuery sql = bindQuery.query(db->getDatabase());
                     sql.exec();
                     if(sql.lastError().type() != QSqlError::NoError){
                         qDebug() << __FUNCTION__ << sql.lastError().text();
@@ -3696,6 +3639,7 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
                     }
                 }else{
                     if(m_client->isStarted()){
+                        QString result = bindQuery.to_json();
                         auto doc = QJsonDocument();
                         auto objMain = QJsonObject();
                         objMain.insert("query", result);
@@ -3754,6 +3698,8 @@ void MainWindow::on_btnDatabaseDelete_clicked()
 
     if(node == SqlContainers){
         delContainer();
+    }if(node == SqlCertificates){
+        delCertificate();
     }
 }
 
@@ -3794,7 +3740,7 @@ void MainWindow::createColumnAliases()
     m_colAliases.insert("Ref", "Ссылка");
     m_colAliases.insert("FirstField", "Имя");
     m_colAliases.insert("SecondField", "Представление");
-    m_colAliases.insert("privateKey", "Ключ");
+    m_colAliases.insert("privateKey", "Контейнер");
     m_colAliases.insert("_id", "Иднекс");
     m_colAliases.insert("sid", "SID");
     m_colAliases.insert("cache", "cache");
@@ -3895,40 +3841,13 @@ void MainWindow::updateInfoContainerOnDatabase(const QString &info, const QStrin
 
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "Containers");
     QStringList lst = {name, nameBase64};
-    QJsonObject obj_where = QJsonObject();
-    obj_where.insert("name", "FirstField");
-    obj_where.insert("value", lst.join(","));
-    bindQuery.add_where(obj_where, QBSqlTypeOfComparison::QOn_List);
-
-    QJsonObject objSel = QJsonObject();
-    objSel.insert("name", "cache");
-    objSel.insert("value", info); //alias
-    bindQuery.add_field(objSel, bFieldType::qVariant);
-
-    objSel = QJsonObject();
-    objSel.insert("name", "subject");
-    objSel.insert("value", cnt->subject()); //
-    bindQuery.add_field(objSel, bFieldType::qVariant);
-
-    objSel = QJsonObject();
-    objSel.insert("name", "issuer");
-    objSel.insert("value", cnt->issuer()); //
-    bindQuery.add_field(objSel, bFieldType::qVariant);
-
-    objSel = QJsonObject();
-    objSel.insert("name", "notValidAfter");
-    objSel.insert("value", cnt->notValidAfter()); //
-    bindQuery.add_field(objSel, bFieldType::qVariant);
-
-    objSel = QJsonObject();
-    objSel.insert("name", "notValidBefore");
-    objSel.insert("value", cnt->notValidBefore()); //
-    bindQuery.add_field(objSel, bFieldType::qVariant);
-
-    objSel = QJsonObject();
-    objSel.insert("name", "parentUser");
-    objSel.insert("value", cnt->parentUser()); //
-    bindQuery.add_field(objSel, bFieldType::qVariant);
+    bindQuery.addWhere("FirstField", lst.join(","), QBSqlTypeOfComparison::QOn_List);
+    bindQuery.addField("cache", info);
+    bindQuery.addField("subject", cnt->subject());
+    bindQuery.addField("issuer", cnt->issuer());
+    bindQuery.addField("notValidAfter", cnt->notValidAfter());
+    bindQuery.addField("notValidBefore", cnt->notValidBefore());
+    bindQuery.addField("parentUser", cnt->parentUser());
 
     QString query = bindQuery.to_json();
 
@@ -3975,15 +3894,16 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
                 QByteArray data = QByteArray::fromBase64(dataBase64.toUtf8());
                 auto cnt = KeysContainer();
                 cnt.fromJson(data);
-                if(!cnt.isValid())
+                if(!cnt.isValid()){
+                    QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
                     return;
-//                cnt.parseAdressKey(device);
-//                cnt.setWindowsSid(currentUser->sid());
+                }
                 cnt.fromContainerName(device);
                 bool result = cnt.sync(currentUser->sid());
-                if(result)
+                if(result){
                     QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
-                else
+                    terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+                }else
                     QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
             }
         }
@@ -3992,36 +3912,50 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
 
 void MainWindow::on_btnDatabaseInfo_clicked()
 {
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
     auto table = ui->tableView;
     auto index = table->currentIndex();
-    if(index.isValid()){
-        int col = modelSqlContainers->getColumnIndex("cache");
-        int colName = modelSqlContainers->getColumnIndex("FirstField");
-        auto cache = modelSqlContainers->index(index.row(), col).data().toString();
-        auto name = modelSqlContainers->index(index.row(), colName).data().toString();
-        if(cache.isEmpty()){
-            QStringList containers = currentUser->containers();
-            foreach(auto cnt, containers){
-                if(cnt.indexOf(name.toUtf8().toBase64()) != 0){
-                    QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(cnt);
-                    terminal->send(cmd, csptestContainerFnfo);
-                    return;
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    if(node == currentUserRegistry || node == currentUserDivace || node == SqlContainers){
+
+            int col = modelSqlContainers->getColumnIndex("cache");
+            int colName = modelSqlContainers->getColumnIndex("FirstField");
+            auto cache = modelSqlContainers->index(index.row(), col).data().toString();
+            auto name = modelSqlContainers->index(index.row(), colName).data().toString();
+            if(cache.isEmpty()){
+                QStringList containers = currentUser->containers();
+                foreach(auto cnt, containers){
+                    if(cnt.indexOf(name.toUtf8().toBase64()) != 0){
+                        QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(cnt);
+                        terminal->send(cmd, csptestContainerFnfo);
+                        return;
+                    }
                 }
+
+                QMessageBox::information(this, "Предупреждение", "Информация о контейнере не загружена!"
+                                         "Обновите данные запустив просмотр иноформации на компьютере с установленным контейнером в КриптоПро.");
+
+            }else{
+                int colName = modelSqlContainers->getColumnIndex("SecondField");
+                auto second_name = modelSqlContainers->index(index.row(), colName).data().toString();
+                auto doc = QJsonDocument::fromJson(cache.toUtf8());
+                auto obj = doc.object();
+                auto dlg = new DialogContainerInfo(obj, second_name, this);
+                dlg->setModal(true);
+                dlg->exec();
+
             }
 
-            QMessageBox::information(this, "Предупреждение", "Информация о контейнере не загружена!"
-                                     "Обновите данные запустив просмотр иноформации на компьютере с установленным контейнером в КриптоПро.");
+    }else if(node == SqlCertificates){
 
-        }else{
-
-            auto doc = QJsonDocument::fromJson(cache.toUtf8());
-            auto obj = doc.object();
-            auto dlg = new DialogContainerInfo(obj, name, this);
-            dlg->setModal(true);
-            dlg->exec();
-
-        }
     }
+
+
 }
 
 
@@ -4081,7 +4015,7 @@ void MainWindow::resetInfoUserContainers()
                 auto index = findInTable(modelUserContainers, name, indName, false);
                 if(index.isValid()){
                     int indNameInStorgare = modelUserContainers->getColumnIndex("nameInStorgare");
-                    QString nameInStorgare = modelUserContainers->index(i, indNameInStorgare).data(Qt::UserRole + indNameInStorgare).toString();
+                    QString nameInStorgare = modelUserContainers->index(index.row(), indNameInStorgare).data(Qt::UserRole + indNameInStorgare).toString();
                     KeysContainer * cnt = currentUser->container(nameInStorgare);
                     if(cnt){
                        if(cnt->cache().isEmpty()){

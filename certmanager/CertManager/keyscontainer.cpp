@@ -12,6 +12,7 @@
 #include <QEventLoop>
 #include <sqlqueryinterface.h>
 
+#include<stdio.h>
 //#include <cstdio>
 //#include <cstdlib>
 
@@ -154,6 +155,8 @@ void KeysContainer::fromContainerName(const QString &cntName)
 
         _volume = m_data[3].replace("\r", "");
         _storgare = QString("\\\\.\\%1\\").arg(_volume);
+        if(_originalName.isEmpty() && !isValid())
+            _originalName = cntName.right(cntName.length() - _storgare.length()).replace("\r", "").replace("\n", "");
 
         QStringList m_vol =  _volume.split("_");
         setVolumePath("");
@@ -164,7 +167,6 @@ void KeysContainer::fromContainerName(const QString &cntName)
             setVolumePath(m_vol[1]);
     #endif
         }
-
         _nameTmp = stringFromBase64(m_data[4]);
 
      }else
@@ -179,9 +181,15 @@ void KeysContainer::fromContainerName(const QString &cntName)
 
 
     QStringList dateAndName = _nameTmp.split("-");
-    if(dateAndName.size() == 4){
+    if(dateAndName.size() >= 4){ //возможно наименование далее с несколькими дефисами
         _notValidAfter = dateAndName[0] + "." + dateAndName[1] + "." + dateAndName[2];
-        _name = dateAndName[3];
+        QString b;
+        for(int i = 3; i < dateAndName.size(); ++i){
+            if(i != 3 && i < dateAndName.size() -1)
+                b = b + "-";
+            b = b + dateAndName[i].replace("\r", "");
+        }
+        _name = stringFromBase64(b.trimmed());
     }
 
 }
@@ -244,6 +252,18 @@ void KeysContainer::set_primary_key(const ByteArray &value)
 void KeysContainer::set_primary2_key(const ByteArray &value)
 {
     _primary2_key = value;
+}
+
+void KeysContainer::erase()
+{
+    auto func = set_function();
+    _isValid = false;
+    for(int i = 0; i < KeyFiles.size(); ++i){
+        QString key = KeyFiles[i];
+        ByteArray buffer;
+        func[key.toStdString()](buffer);
+    }
+    _originalName = "";
 }
 
 QJsonObject KeysContainer::parseCsptestInfo(const QString &info)
@@ -343,7 +363,6 @@ bool KeysContainer::syncRegystry(const QString& sid)
     }
 
     QString ph = QString("SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, _name);
-    ph.replace("\\HKEY_LOCAL_MACHINE\\", "");
     winreg::RegKey regKey = winreg::CreateKey(HKEY_LOCAL_MACHINE, ph.toStdWString().c_str());
 
 
@@ -486,6 +505,7 @@ get_keys KeysContainer::get_get_function(int index)
 void KeysContainer::fromFolder(const QString &folder)
 {
 
+    erase();
     auto func = set_function();
     _isValid = false;
     for(int i = 0; i < KeyFiles.size(); ++i){
@@ -498,7 +518,9 @@ void KeysContainer::fromFolder(const QString &folder)
         func[key.toStdString()](buffer);
     }
 
-
+    ByteArray buffer;
+    name_key(buffer);
+    setOriginalName(buffer);
 
     _isValid = true;
 }
@@ -506,6 +528,8 @@ void KeysContainer::fromFolder(const QString &folder)
 void KeysContainer::fromRegistry(const QString& sid, const QString& name)
 {
     _isValid = false;
+
+    erase();
 
     fromContainerName(name);
 
@@ -525,6 +549,10 @@ void KeysContainer::fromRegistry(const QString& sid, const QString& name)
             return;
     }
 
+    ByteArray buffer;
+    name_key(buffer);
+    setOriginalName(buffer);
+
     _isValid = true;
 }
 
@@ -532,6 +560,8 @@ void KeysContainer::fromJson(const QByteArray &data)
 {
 
     _isValid = false;
+
+    erase();
 
     auto doc = QJsonDocument::fromJson(data);
     auto obj = doc.object();
@@ -546,6 +576,10 @@ void KeysContainer::fromJson(const QByteArray &data)
         ByteArray _data = Base64Converter::base64_to_byte(value.toStdString());
         func[key.toStdString()](_data);
     }
+
+    ByteArray buffer;
+    name_key(buffer);
+    setOriginalName(buffer);
 
     _isValid = true;
 }
@@ -574,7 +608,7 @@ QByteArray KeysContainer::toBase64()
 
     doc.setObject(obj);
     _isValid = true;
-    return doc.toJson();
+    return doc.toJson().toBase64();
 
 }
 
@@ -666,11 +700,51 @@ QString KeysContainer::stringFromBase64(const QString &value)
     }
 }
 
-QString KeysContainer::fullName(){
+QString KeysContainer::bindName() const{
     if(_notValidAfter.isEmpty())
         return "";
     QStringList s = _notValidAfter.split(" ");
     return _key_name + "@" + s[0].replace(".", "-") + "-" + _name;;
+}
+
+QString KeysContainer::originalName() const
+{
+    return _originalName;
+}
+
+void KeysContainer::setOriginalName(ByteArray name_key_data)
+{
+    if(name_key_data.size() == 0)
+        return;
+
+    std::string b64 = Base64Converter::byte_to_base64(&name_key_data[0], name_key_data.size());
+    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
+    int ind = qbyte.indexOf("\026");
+    if(ind != -1){
+        QString s_name = qbyte.right(qbyte.length() - ind - 2);
+        if(!s_name.isEmpty())
+            _originalName = s_name;
+    }
+}
+
+void KeysContainer::setNewOriginalName(const QString &new_name)
+{
+    if(_name_key.size() == 0)
+        return;
+
+    // методом проб и ошибок вычислил формат файла name.key
+    //0КодASCII(ДлинаНаименования + 2)КодACII(16)КодASCII(ДлинаНаименования)Наименование
+    _name_key.resize(4);
+    qDebug() << new_name.length() << static_cast<char>(new_name.length());
+    _name_key[1] = static_cast<char>(new_name.length() + 2);
+    _name_key[3] = static_cast<char>(new_name.length());
+    for (char &ch : new_name.toStdString()) {
+       _name_key.emplace_back(ch);
+    }
+
+    _originalName = new_name;
+
+    fromContainerName(new_name);
 }
 
 QBSqlQuery KeysContainer::getSqlQueryObject(QBSqlCommand command)
@@ -685,51 +759,16 @@ QBSqlQuery KeysContainer::getSqlQueryObject(QBSqlCommand command)
     }
 
     auto bindQuery = QBSqlQuery(command, "Containers");
-    QJsonObject obj = QJsonObject();
-    obj.insert("name", "Ref");
-    obj.insert("value", _ref);
-    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("Ref", _ref);
+    bindQuery.addField("FirstField",  _originalName);
+    bindQuery.addField("SecondField",  bindName());
+    bindQuery.addField("subject",  subject());
+    bindQuery.addField("issuer",  issuer());
+    bindQuery.addField("notValidBefore",  notValidBefore());
+    bindQuery.addField("notValidAfter",  notValidAfter());
+    bindQuery.addField("parentUser",  parentUser());
+    bindQuery.addField("data",  QString(toBase64()), bFieldType::qByteArray);
 
-    obj = QJsonObject();
-    obj.insert("name", "FirstField");
-    obj.insert("value", fullName()); //QString(name.toUtf8().toBase64())
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "SecondField");
-    obj.insert("value", name());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    bindQuery.add_field_is_exists(obj);
-
-    obj = QJsonObject();
-    obj.insert("name", "subject");
-    obj.insert("value", subject());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "issuer");
-    obj.insert("value", issuer());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "notValidBefore");
-    obj.insert("value", notValidBefore());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "notValidAfter");
-    obj.insert("value", notValidAfter());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "parentUser");
-    obj.insert("value", parentUser());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-
-    obj = QJsonObject();
-    obj.insert("name", "data");
-    obj.insert("value", QString(toBase64()));
-    bindQuery.add_field(obj, bFieldType::qByteArray);
 
     return  bindQuery;
 }

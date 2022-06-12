@@ -34,13 +34,14 @@ void CertUser::setSid(const QString &value)
 
 void CertUser::setContainers(const QStringList &value)
 {
-    _containers = value;
+    _containers.clear();
+    foreach(auto n, value){
+        if(!n.isEmpty())
+            _containers.append(n);
+    }
 
     m_cnt.clear();
-
-    foreach(auto cntName, value){
-        if(cntName.isEmpty())
-            continue;
+    foreach(auto cntName, _containers){
         auto _cnt = new KeysContainer(this);
         _cnt->fromContainerName(cntName);
         m_cnt.insert(cntName, _cnt);
@@ -103,6 +104,7 @@ QString CertUser::modelContainersText()
     arrCols.append("Empty");
     arrCols.append("volume");
     arrCols.append("name");
+    arrCols.append("SecondField");
     arrCols.append("subject");
     arrCols.append("issuer");
     arrCols.append("notValidBefore");
@@ -116,7 +118,8 @@ QString CertUser::modelContainersText()
         auto row = QJsonObject();
         row.insert("Empty", QString());
         row.insert("volume",itr->volume());
-        row.insert("name", itr->fullName());
+        row.insert("name", itr->originalName());
+        row.insert("SecondField", itr->bindName());
         row.insert("subject", itr->subject());
         row.insert("issuer", itr->issuer());
         row.insert("notValidBefore", itr->notValidBefore());

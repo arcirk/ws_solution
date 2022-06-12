@@ -2,12 +2,23 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDir>
 
-Settings::Settings(QObject *parent)
+Settings::Settings(QObject *parent, const QString& parentFolder)
     : QObject{parent}
 {
 
-    QFile conf = QFile("conf.json");
+    _parentFolder = parentFolder;
+    if(!_parentFolder.isEmpty()){
+        if(_parentFolder.right(1) != QDir::separator())
+            _parentFolder = _parentFolder + QDir::separator();
+
+        QDir dir(_parentFolder);
+        if(!dir.exists())
+            _parentFolder = "";
+    }
+
+    QFile conf = QFile(_parentFolder + "conf.json");
 
     _charset = "CP866";
     _method = 0;
@@ -35,6 +46,15 @@ Settings::Settings(QObject *parent)
         itr = obj.find("launch_mode");
         if(itr != obj.end())
             setLanchMode((launchMode)itr.value().toInt());
+        itr = obj.find("httpHost");
+        if(itr != obj.end())
+            setHttpHost(itr.value().toString());
+        itr = obj.find("httpUsr");
+        if(itr != obj.end())
+            setHttpUsr(itr.value().toString());
+        itr = obj.find("httpPwd");
+        if(itr != obj.end())
+            setHttpPwd(itr.value().toString());
     }
 
     if(_charset.isEmpty())
@@ -61,29 +81,59 @@ void Settings::setLanchMode(launchMode value)
     _launch_mode = value;
 }
 
+void Settings::setHttpHost(const QString &val)
+{
+    _httpHost = val;
+}
+
+void Settings::setHttpUsr(const QString &val)
+{
+    _httpUsr = val;
+}
+
+void Settings::setHttpPwd(const QString &val)
+{
+    _httpPwd = val;
+}
+
 launchMode Settings::launch_mode()
 {
     return _launch_mode;
 }
 
-QString Settings::user()
+QString Settings::user() const
 {
     return _user;
 }
 
-QString Settings::server()
+QString Settings::server() const
 {
     return _server;
 }
 
-QString Settings::pwd()
+QString Settings::pwd() const
 {
     return _pwd;
 }
 
+QString Settings::httpHost() const
+{
+    return _httpHost;
+}
+
+QString Settings::httpUsr() const
+{
+    return _httpUsr;
+}
+
+QString Settings::httpPwd() const
+{
+    return _httpPwd;
+}
+
 void Settings::save()
 {
-    QFile conf = QFile("conf.json");
+    QFile conf = QFile(_parentFolder + "conf.json");
 
     if(conf.open(QIODevice::WriteOnly)){
 
@@ -95,6 +145,9 @@ void Settings::save()
         obj.insert("method", _method);
         obj.insert("charset", _charset);
         obj.insert("launch_mode", _launch_mode);
+        obj.insert("httpHost", _httpHost);
+        obj.insert("httpUsr", _httpUsr);
+        obj.insert("httpPwd", _httpPwd);
         doc.setObject(obj);
 
         conf.write(QJsonDocument(doc).toJson(QJsonDocument::Indented));

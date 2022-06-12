@@ -32,6 +32,7 @@ public:
 
     QStringList getRigstryData();
     QStringList getDivaceData();
+
     QString modelContainersText();
 
     KeysContainer *container(const QString& key);

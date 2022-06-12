@@ -17,6 +17,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QSqlError>
 
 DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QDialog(parent),
@@ -40,6 +41,8 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     ui->horizontalLayout->addStretch();
 
+    infoBar = ui->lblStatus;
+
     setWindowTitle("Настройки профилей пользователя");
 
     QTableWidget * table = ui->tableWidget;
@@ -59,7 +62,11 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     createTrayIcon();
     trayIcon->show();
 
-    mozillaApp = new QProcess(this);
+//    mozillaApp = new QProcess(this);
+
+    _sett = new Settings(this, appHome.path());
+
+    bool result = getCurrentUser();
 
 }
 
@@ -278,6 +285,36 @@ QString DialogMainWindow::toBankClientFile()
 void DialogMainWindow::onWindowShow()
 {
     setVisible(true);
+}
+
+void DialogMainWindow::onConnectionSuccess()
+{
+
+}
+
+void DialogMainWindow::onCloseConnection()
+{
+
+}
+
+void DialogMainWindow::onConnectedStatusChanged(bool status)
+{
+
+}
+
+void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
+{
+
+}
+
+void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
+{
+
+}
+
+void DialogMainWindow::onWsExecQuery(const QString &result)
+{
+
 }
 
 void DialogMainWindow::on_btnAdd_clicked()
@@ -534,3 +571,176 @@ void DialogMainWindow::onAppExit()
     QApplication::exit();
 }
 
+
+void DialogMainWindow::connectToDatabase(Settings *sett, const QString &pwd)
+{
+
+    qDebug() << __FUNCTION__;
+
+    QString host = sett->server();
+    QString database = "arcirk";
+    QString userName = sett->user();
+    QString password = pwd;
+
+    db->setSqlUser(userName);
+    db->setSqlPwd(password);
+    db->setHost(host);
+    db->setDatabaseName(database);
+    db->connect();
+
+
+    if(sett->launch_mode() == mixed)
+        connectToWsServer();
+
+    sett->save();
+
+    if (!isDbOpen()){
+        QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
+    }else{
+        //getDataContainersList();
+    }
+
+}
+
+bool DialogMainWindow::isDbOpen()
+{
+    qDebug() << __FUNCTION__;
+    QString status;
+
+    bool result = db->isOpen();
+
+    if(db->isOpen()){
+        status = "SQL Server: " + _sett->server() + "  ";
+    }
+
+    if(m_client->isStarted()){
+        status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
+    }
+
+    infoBar->setText(status);
+
+    return result;
+}
+
+bool DialogMainWindow::getCurrentUser()
+{
+    currentUser = new CertUser(this);
+    QString curentHost = QSysInfo::machineHostName();
+    currentUser->setDomain(curentHost);
+#ifdef _WINDOWS
+        std::string envUSER = "username";
+        QByteArray data(std::getenv(envUSER.c_str()));
+        QString uname = QString::fromLocal8Bit(data);
+        currentUser->setName(uname);
+#else
+//        std::string envUSER = "USER";
+//        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+//        terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
+#endif
+
+    if(uname.isEmpty()){
+        qCritical() << "Ошибка получения имени пользователя!";
+        return false;
+    }
+
+    auto cmd = new CommandLine(this, false);
+    //cmd->setMethod(3);
+    //cmd->setProgram("powershell");
+    QEventLoop loop;
+    QJsonObject res;
+    QString sid;
+
+    auto started = [cmd]() -> void
+    {
+        cmd->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+    };
+    connect(cmd, &CommandLine::cmdStarted, started);
+
+    auto output = [cmd](const QString& data, int command) -> void
+    {
+        if(command == CmdCommand::wmicGetSID){
+             cmd->parseCommand(data, command);
+        }
+    };
+    connect(cmd, &CommandLine::output, output);
+
+    auto parse = [&loop, cmd, &sid](const QVariant& result, int command) -> void
+    {
+        if(command == CmdCommand::wmicGetSID){
+            sid = result.toString();
+            cmd->stop();
+            loop.quit();
+        }
+
+    };
+    connect(cmd, &CommandLine::endParse, parse);
+
+    auto err = [&loop, cmd](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << data << command;
+        cmd->stop();
+        loop.quit();
+    };
+    connect(cmd, &CommandLine::error, err);
+
+    cmd->start();
+    loop.exec();
+
+    return !sid.isEmpty();
+}
+
+void DialogMainWindow::connectToWsServer()
+{
+    qDebug() << __FUNCTION__;
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+    }
+    if(!m_client)
+        return;
+
+    if(m_client->isStarted())
+        return;
+
+    if(_sett->launch_mode() == mixed){
+        QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
+        if(result.lastError().type() == QSqlError::NoError){
+            while (result.next()){
+                QString _host = result.value(0).toString().trimmed();
+                int _port = result.value(1).toInt();
+                m_client->setHost(_host);
+                m_client->setPort(_port);
+                m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+                break;
+            }
+        }
+        //getDataContainersList();
+        //getDataCertificatesList();
+    }else{
+        QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
+        int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
+        m_client->setHost(_host);
+        m_client->setPort(_port);
+        m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+    }
+
+}
+
+void DialogMainWindow::createWsObject()
+{
+    qDebug() << __FUNCTION__;
+    m_client = new bWebSocket(this, "conf_qt_cert_manager.json", currentUser->name());
+
+}
+
+void DialogMainWindow::setWsConnectedSignals()
+{
+    qDebug() << __FUNCTION__;
+    connect(m_client, &bWebSocket::connectionSuccess, this, &DialogMainWindow::onConnectionSuccess);
+    connect(m_client, &bWebSocket::closeConnection, this, &DialogMainWindow::onCloseConnection);
+    connect(m_client, &bWebSocket::connectedStatusChanged, this, &DialogMainWindow::onConnectedStatusChanged);
+    connect(m_client, &bWebSocket::displayError, this, &DialogMainWindow::onDisplayError);
+    connect(m_client, &bWebSocket::messageReceived, this, &DialogMainWindow::onMessageReceived);
+    connect(m_client, &bWebSocket::execQuery, this, &DialogMainWindow::onWsExecQuery);
+}

@@ -12,13 +12,14 @@
 
 QBSqlQuery::QBSqlQuery()
 {
-
+    _isValid = false;
 }
 
 QBSqlQuery::QBSqlQuery(QBSqlCommand command, const QString &tableName)
 {
     _command = command;
     _table = tableName;
+    _isValid = false;
 }
 
 void QBSqlQuery::add_field(const QJsonObject &field, bFieldType field_type)
@@ -27,6 +28,26 @@ void QBSqlQuery::add_field(const QJsonObject &field, bFieldType field_type)
     obj.insert("type", field_type);
     obj.insert("value", field);
     _fields.push_back(obj);
+
+    _isValid = true;
+}
+
+void QBSqlQuery::addField(const QString &key, const QVariant &valueOrAlias, bFieldType type)
+{
+    QJsonObject obj = QJsonObject();
+    obj.insert("name", key);
+    if(valueOrAlias.typeId() == QMetaType::QString){
+        obj.insert("value", valueOrAlias.toString());
+    }else if(valueOrAlias.typeId() == QMetaType::Int){
+        obj.insert("value", valueOrAlias.toInt());
+    }else if(valueOrAlias.typeId() == QMetaType::QStringList){
+        obj.insert("value", valueOrAlias.toStringList().join(","));
+    }else
+        obj.insert("value", valueOrAlias.toString());
+
+    add_field(obj, type);
+
+    _isValid = true;
 }
 
 void QBSqlQuery::add_where(const QJsonObject &val, QBSqlTypeOfComparison typeOfComparison)
@@ -35,6 +56,26 @@ void QBSqlQuery::add_where(const QJsonObject &val, QBSqlTypeOfComparison typeOfC
     obj_where.insert("typeOfComparison", typeOfComparison);
     obj_where.insert("value", val);
     _where.append(obj_where);
+
+    _isValid = true;
+}
+
+void QBSqlQuery::addWhere(const QString& key, const QVariant& value, QBSqlTypeOfComparison compareType)
+{
+    QJsonObject obj = QJsonObject();
+    obj.insert("name", key);
+    if(value.typeId() == QMetaType::QString){
+        obj.insert("value", value.toString());
+    }else if(value.typeId() == QMetaType::Int){
+        obj.insert("value", value.toInt());
+    }else if(value.typeId() == QMetaType::QStringList){
+        obj.insert("value", value.toStringList().join(","));
+    }else
+        obj.insert("value", value.toString());
+
+    add_where(obj, compareType);
+
+    _isValid = true;
 }
 
 void QBSqlQuery::set_where_sample(const QString &str)
@@ -42,9 +83,34 @@ void QBSqlQuery::set_where_sample(const QString &str)
     _whereSample = str;
 }
 
+bool QBSqlQuery::isValid()
+{
+    return _isValid;
+}
+
 void QBSqlQuery::add_field_is_exists(const QJsonObject &field)
 {
     _fieldsIsExists.append(field);
+
+    _isValid = true;
+}
+
+void QBSqlQuery::addFieldIsExists(const QString& key, const QVariant& value)
+{
+    QJsonObject obj = QJsonObject();
+    obj.insert("name", key);
+    if(value.typeId() == QMetaType::QString){
+        obj.insert("value", value.toString());
+    }else if(value.typeId() == QMetaType::Int){
+        obj.insert("value", value.toInt());
+    }else if(value.typeId() == QMetaType::QStringList){
+        obj.insert("value", value.toStringList().join(","));
+    }else
+        obj.insert("value", value.toString());
+
+    add_field_is_exists(obj);
+
+    _isValid = true;
 }
 
 QString QBSqlQuery::to_json() const
@@ -59,20 +125,20 @@ QString QBSqlQuery::to_json() const
 
     auto arr_fields = QJsonArray();
 
-    for(auto itr : _fields){
+    foreach(auto itr , _fields){
         arr_fields.append(itr);
     }
     objMain.insert("fields", arr_fields);
 
     auto arr_fieldsIsExists = QJsonArray();
 
-    for(auto itr : _fieldsIsExists){
+    foreach(auto itr , _fieldsIsExists){
         arr_fieldsIsExists.append(itr);
     }
     objMain.insert("fieldsIsExists", arr_fieldsIsExists);
 
     auto arr_where = QJsonArray();
-    for(auto itr : _where){
+    foreach(auto itr , _where){
         arr_where.append(itr);
     }
     objMain.insert("where", arr_where);
@@ -131,13 +197,15 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
 
     sql.prepare(_query);
 
-    for (auto itr : values) {
+    foreach (auto itr , values) {
         if(itr.type == qVariant){
             sql.addBindValue(itr.value);
             qDebug() << itr.value.toString();
         }else
             sql.addBindValue(itr.data);
     }
+
+    _isValid = true;
 
     return sql;
 }

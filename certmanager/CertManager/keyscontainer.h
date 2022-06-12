@@ -70,7 +70,10 @@ public:
     bool syncRegystry(const QString& sid);
     bool syncVolume();
     bool isValid();
-    QString fullName();
+    QString bindName() const;
+    QString originalName() const;
+    void setOriginalName(ByteArray name_key_data);
+    void setNewOriginalName(const QString& new_name);
 
     void header_key(ByteArray& value);
     void masks_key(ByteArray& value);
@@ -85,6 +88,8 @@ public:
     void set_name_key(const ByteArray& value);
     void set_primary_key(const ByteArray& value);
     void set_primary2_key(const ByteArray& value);
+
+    void erase();
 
     QString subject() const;
     QString issuer() const;
@@ -117,7 +122,6 @@ public:
     bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
     QBSqlQuery getSqlQueryObject(QBSqlCommand command);
 
-
 private:
     QString _path;
 
@@ -145,6 +149,7 @@ private:
     QString _storgare;// //./FAT12_D/
     QString _volumePath; //D:/
     QString _nameInStorgare; //полное имя контейнера без форматирования
+    QString _originalName;
     //QString _device;
 
     //QMap<VolumeType, QString> m_volume;

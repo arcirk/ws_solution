@@ -12,6 +12,7 @@ DialogSelectInList::DialogSelectInList(const QStringList& list, const QString& t
     ui->tableView->setModel(m_list);
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     setWindowTitle(title);
+    ui->tableView->resizeColumnsToContents();
 }
 
 DialogSelectInList::DialogSelectInList(QAbstractTableModel *list, const QString &title, QWidget *parent):
@@ -24,6 +25,7 @@ DialogSelectInList::DialogSelectInList(QAbstractTableModel *list, const QString 
     ui->tableView->setModel(list);
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     setWindowTitle(title);
+    ui->tableView->resizeColumnsToContents();
 }
 
 DialogSelectInList::DialogSelectInList(QAbstractItemModel *list, const QString &title, QWidget *parent):
@@ -35,6 +37,7 @@ DialogSelectInList::DialogSelectInList(QAbstractItemModel *list, const QString &
     ui->tableView->setModel(list);
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     setWindowTitle(title);
+    ui->tableView->resizeColumnsToContents();
 }
 
 DialogSelectInList::~DialogSelectInList()

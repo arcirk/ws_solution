@@ -17,25 +17,29 @@
 #include <QUuid>
 #include <qjsontablemodel.h>
 #include <qproxymodel.h>
+#include <QStandardItemModel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-#define SqlContainers               "SqlContainers"
-#define SqlCertificates             "SqlCertificates"
-#define DataCertificatesList        "DataCertificatesList"
-#define DataContainersList          "DataContainersList"
-#define DataUsersList               "DataUsersList"
-#define SqlServer                   "SqlServer"
-#define SqlUsers                    "SqlUsers"
-#define currentUserRegistry         "currentUserRegistry"
-#define currentUserCertificates     "currentUserCertificates"
-#define currentUserContainers       "currentUserContainers"
-#define currentUserDivace           "currentUserDivace"
-#define insertCertificateToData     "insertCertificateToData"
-#define deleteContainerFromData     "deleteContainerFromData"
-#define insertContainerToData       "insertContainerToData"
+#define SqlContainers                   "SqlContainers"
+#define SqlCertificates                 "SqlCertificates"
+#define DataCertificatesList            "DataCertificatesList"
+#define DataContainersList              "DataContainersList"
+#define DataUsersList                   "DataUsersList"
+#define SqlServer                       "SqlServer"
+#define SqlUsers                        "SqlUsers"
+#define currentUserRegistry             "currentUserRegistry"
+#define currentUserCertificates         "currentUserCertificates"
+#define currentUserContainers           "currentUserContainers"
+#define currentUserDivace               "currentUserDivace"
+#define currentUserAvailableContainers  "currentUserAvailableContainers"
+#define insertCertificateToData         "insertCertificateToData"
+#define deleteContainerFromData         "deleteContainerFromData"
+#define deleteCertificateFromData       "deleteCertificateFromData"
+#define insertContainerToData           "insertContainerToData"
+#define WsActiveUsers                   "WsActiveUsers"
 
 class MainWindow : public QMainWindow
 {
@@ -47,8 +51,6 @@ public:
 
 private slots:
     void on_mnuExit_triggered();
-
-    void connectToDatabase(Settings * sett, const QString& pwd);
 
     void on_mnuConnect_triggered();
 
@@ -166,11 +168,11 @@ private:
     void connectToWsServer();
     void createWsObject();
     void setWsConnectedSignals();
+    void connectToDatabase(Settings * sett, const QString& pwd);
 
     void createTerminal();
 
     void createTree();
-    //void createRootList();
 
     Certificate* selectCertFromLocalHost();
 
@@ -247,6 +249,8 @@ private:
     void delCertificate();
     void addContainer();
     void delContainer();
+
+    QStandardItemModel *getLocalMountedVolumes();
 
 };
 #endif // MAINWINDOW_H

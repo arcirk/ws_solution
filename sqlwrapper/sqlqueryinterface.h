@@ -47,12 +47,18 @@ public:
     explicit QBSqlQuery(QBSqlCommand command, const QString& tableName);
 
     void add_field(const QJsonObject& val, bFieldType field_type);
+    void addField(const QString& key, const QVariant& valueOrAlias, bFieldType type = qVariant);
 
     void add_where(const QJsonObject& val, QBSqlTypeOfComparison typeOfComparison);
+    void addWhere(const QString& key, const QVariant& value, QBSqlTypeOfComparison compareType = QEquals);
+
+    void add_field_is_exists(const QJsonObject& field);
+    void addFieldIsExists(const QString& key, const QVariant& value);
 
     void set_where_sample(const QString& str);
 
-    void add_field_is_exists(const QJsonObject& field);
+    bool isValid();
+
 
     QString to_json() const;
 
@@ -67,6 +73,7 @@ private:
     QString _whereSample;
     QList<QJsonObject> _where;
     QString _table;
+    bool _isValid;
 
     QString bindQueryInsert(QList<QBSqlValue>& values) const;
     QString bindQueryUpdate(QList<QBSqlValue>& values) const;

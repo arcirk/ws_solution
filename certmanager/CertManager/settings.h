@@ -12,17 +12,25 @@ class Settings : public QObject
 {
     Q_OBJECT
 public:
-    explicit Settings(QObject *parent = nullptr);
+    explicit Settings(QObject *parent = nullptr, const QString& parentFolder = "");
 
     void setUser(const QString& usr);
     void setServer(const QString& val);
     void setPwd(const QString& val);
     void setLanchMode(launchMode value);
 
+    void setHttpHost(const QString& val);
+    void setHttpUsr(const QString& val);
+    void setHttpPwd(const QString& val);
+
     launchMode launch_mode();
-    QString user();
-    QString server();
-    QString pwd();
+    QString user() const;
+    QString server() const;
+    QString pwd() const;
+
+    QString httpHost() const;
+    QString httpUsr() const;
+    QString httpPwd() const;
 
     void save();
 
@@ -31,7 +39,6 @@ public:
 
     int method();
     void setMethod(int m);
-
 
 private:
     const QString connectionStringTemplate = "DRIVER={SQL Server};"
@@ -45,6 +52,11 @@ private:
     int _method;
     QString _charset;
     launchMode _launch_mode;
+    QString _parentFolder;
+
+    QString _httpHost;
+    QString _httpUsr;
+    QString _httpPwd;
 
 signals:
 

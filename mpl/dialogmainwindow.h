@@ -14,6 +14,12 @@
 #include <QCloseEvent>
 #include <QProcess>
 #include <QDir>
+#include <qmlwebsocket.h>
+#include <QSqlDatabase>
+#include <QLabel>
+#include <settings.h>
+#include <sqlinterface.h>
+#include <user.h>
 
 namespace Ui {
 class DialogMainWindow;
@@ -48,6 +54,12 @@ private slots:
     void onAppExit();
     void onWindowShow();
 
+    void onConnectionSuccess();
+    void onCloseConnection();
+    void onConnectedStatusChanged(bool status);
+    void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
+    void onDisplayError(const QString& what, const QString& err);
+    void onWsExecQuery(const QString& result);
 
 public slots:
     void onLineEditCursorPositionChanged ( int oldPos , int newPos );
@@ -61,6 +73,13 @@ private:
     QProcess * mozillaApp;
     QDir appHome;
     QString dirName;
+    Settings * _sett;
+
+    SqlInterface * db;
+    QLabel * infoBar;
+    CertUser * currentUser;
+    bWebSocket* m_client;
+
     const QString _bankClientFile = "sslgate.url";
     const QString _bakClientUsbKey = "BankUsbKey";
 
@@ -79,6 +98,15 @@ private:
     void createDynamicMenu();
 
     QString toBankClientFile();
+
+    ///////////////////////////
+    void connectToWsServer();
+    void createWsObject();
+    void setWsConnectedSignals();
+    void connectToDatabase(Settings * sett, const QString& pwd);
+    bool isDbOpen();
+
+    bool getCurrentUser();
 
 };
 
