@@ -80,6 +80,12 @@ void IClient::send_command(const std::string &cmd, const std::string &uuid_form,
 }
 
 void IClient::ext_message(const std::string& msg) {
+
+//    if(msg == "on_connect"){
+//        _isRun = true;
+//        return;
+//    }
+
     //std::cout << msg << std::endl;
 //    if(callback_msg){
 //        callback_msg(msg);
@@ -99,12 +105,17 @@ void IClient::ext_message(const std::string& msg) {
     }
 }
 
+void IClient::on_connect()
+{
+    _isRun = true;
+}
+
 void IClient::close(bool exitParent) {
 
     _exitParent = exitParent;
     if (client)
     {
-        if (client->started())
+        if (started())
         {
             client->close(exitParent);
         }
@@ -113,7 +124,7 @@ void IClient::close(bool exitParent) {
         //client = nullptr;
     }
 
-
+    _isRun = false;
 }
 
 void IClient::start() {
@@ -122,15 +133,19 @@ void IClient::start() {
 
     close();
 
+    _isRun = false;
+
     if(client){
         delete client;
         client = nullptr;
     }
 
+    _callback_connect callback = std::bind(&IClient::on_connect, this);
+
     client = new ws_client(ioc, _client_param);
 
     try {
-        client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed);
+        client->open(host.c_str(), std::to_string(port).c_str(), callback_msg, _status_changed, callback);
     }
     catch (std::exception& e){
         std::cerr << "IClient::start::exception: " << e.what() <<std::endl;
@@ -138,17 +153,25 @@ void IClient::start() {
 
     std::cout << "IClient::start: exit client thread" << std::endl;
 
+
     if(client && !_exitParent){
         if(callback_msg){
             callback_msg("exit_thread");
-        }
+        }        
         delete client;
         client = nullptr;
     }
 
+    _isRun = false;
+
 }
 
 bool IClient::started() {
+
+
+    if(!_isRun)
+        return false;
+
     bool result = false;
 
 //    try {
@@ -536,7 +559,7 @@ void IClient::send(const std::string &msg, const std::string &sub_user_uuid, con
 
     if (client)
     {
-        if (client->started())
+        if (started())
         {
             client->send(_msg, false, _sub_user_uuid, _uuid_form, "message", objectName, msg_ref);
         }
@@ -793,8 +816,13 @@ void IClient::synch_session_write(const std::string &msg) {
 std::string IClient::synch_session_get_buffer() {
     //if (!_m_synch)
         return {};
-    //return client->synch_get_buffer();
+        //return client->synch_get_buffer();
 }
+
+//void IClient::isRun()
+//{
+//    _isRun = true;
+//}
 
 //bool IClient::synch_session_is_open() {
 //    if (!_m_synch)

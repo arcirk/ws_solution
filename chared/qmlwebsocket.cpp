@@ -56,7 +56,7 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile, const QString& 
 
 bWebSocket::~bWebSocket()
 {
-    _isRun = false;
+    //_isRun = false;
     if (client->started()) {
         client->close(true);
     }
@@ -69,11 +69,11 @@ bWebSocket::~bWebSocket()
 
 void bWebSocket::open(const QString& user_name, const QString& user_password)
 {
-    if(_isRun){
+    //if(_isRun){
         if (client->started()) {
             return;
         }
-    }
+    //}
 
     //QString _hash;
 
@@ -92,7 +92,7 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
 
     settings.save();
 
-    _isRun = true;
+    //_isRun = true;
 
     emit startedChanged();
 }
@@ -102,7 +102,7 @@ void bWebSocket::close(bool exitParent)
 
     if(client->started()){
         client->close(exitParent);
-        _isRun = false;
+        //_isRun = false;
     }
 
     if(!exitParent)
@@ -163,6 +163,11 @@ void bWebSocket::resetUnreadMsgFromData(const QString &sender)
 
 void bWebSocket::ext_message(const std::string &msg)
 {
+//    if(msg == "on_connect"){
+//        client->isRun();
+//        return;
+//    }
+
     if(msg == "exit_thread"){
         emit connectedStatusChanged(false);
         return;
@@ -237,7 +242,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #endif
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
-            _isRun = false;
+            //_isRun = false;
             emit closeConnection();            
         }else if (resp->command == "message"){
             emit messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
@@ -350,10 +355,10 @@ QString bWebSocket::generateHash(const QString &usr, const QString &pwd)
 bool bWebSocket::isStarted()
 {  
     if(client){
-        if(_isRun)
+        //if(_isRun)
             return client->started();
-        else
-            return false;
+        //else
+        //    return false;
     }else
         return false;
 }

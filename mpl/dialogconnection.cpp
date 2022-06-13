@@ -115,16 +115,14 @@ void DialogConnection::formControl()
         }
         ui->btnCustomWsUserEdit->setEnabled(true);
     }else{
-        bool en = (bool)_sett->launch_mode();
+        bool en = ui->checkMode->isChecked();
         ui->lineServer->setEnabled(en);
         ui->lineUser->setEnabled(en);
         ui->linePwd->setEnabled(en);
         ui->lineWsServer->setEnabled(!en);
         ui->spinPort->setEnabled(!en);
         ui->btnViewPwd->setEnabled(en);
-        ui->pwdEdit->setEnabled(!en);
-        //ui->checkMode->setEnabled(true);
-        ui->lineWsUser->setEnabled(true);
+        ui->pwdEdit->setEnabled(true);
         ui->lineWsUser->setEnabled(true);
         ui->lineWsPwd->setEnabled(true);
         ui->btnCustomWsUserEdit->setChecked(false);
@@ -174,7 +172,8 @@ void DialogConnection::on_checkMode_toggled(bool checked)
         formControl();
         if(!checked)
             ui->pwdEdit->setChecked(false);
-    }
+    }else
+        formControl();
 }
 
 
@@ -204,5 +203,11 @@ void DialogConnection::on_btnHttpPwd_toggled(bool checked)
 void DialogConnection::on_btnCustomWsUserEdit_clicked()
 {
     formControl();
+}
+
+
+void DialogConnection::on_chkUseSettingsFromHttp_clicked()
+{
+
 }
 

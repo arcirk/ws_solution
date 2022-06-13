@@ -11,6 +11,7 @@ class  ws_client;
 
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
+typedef std::function<void()> _callback_connect;
 
 enum result_synch{
     ok = 0,
@@ -40,10 +41,12 @@ public:
     };
 
     void ext_message(const std::string& msg);
+    void on_connect();
 
     void close(bool exitParent = false);
     void open(bool new_thread = true);
     bool synch_open();
+
 
     void get_messages(const std::string &uuid_sub, const long int &start_date, const long int &end_date, int &limit, const std::string &uuid_form);
     void get_user_info(const std::string &_user_uuid, const std::string &uuid_form);
@@ -108,6 +111,7 @@ public:
     std::string synch_session_get_buffer();
     //bool synch_session_is_open();
 
+    //void isRun(); //костыль, вызывается если калбек сообщения приходит из bWebsocket напрямую
 
 
 private:
@@ -115,11 +119,13 @@ private:
     std::string _client_param;
     _callback_message callback_msg;
     _callback_status _status_changed;
+    //_callback_connect callback_connect;
     bool _m_synch;
     result_synch resultSynch;
     bool _exitParent;
     void start();
 
+    bool _isRun;
 };
 
 #endif // IWS_CLIENT_H

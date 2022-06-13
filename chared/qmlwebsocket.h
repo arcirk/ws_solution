@@ -85,7 +85,7 @@ public:
     void setUserName(const QString& name);
     [[nodiscard]] QString getHash() const;
 
-    bool _isRun;
+    //bool _isRun;
     bool isStarted();
     const QString getUserUUID();
     const QString getUuidSession();

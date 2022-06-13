@@ -142,8 +142,13 @@ on_connect(session * sess){
     sessions_.insert(sess);
     //_started = true;
 
+    if(callback_connect){
+        callback_connect();
+    }
+
     if (_callback_msg)
     {
+
         auto _msg = ws_message();
         _msg.message().uuid = get_uuid();
         _msg.message().message = "client connection success";
@@ -189,6 +194,8 @@ ws_client::on_stop() {
         status_changed(false);
 
     console_log("ws_client::on_stop: client on_stop");
+
+    //sessions_.clear();
 }
 
 void
@@ -209,6 +216,8 @@ close(bool exit_base) {
     for(auto const& wp : v)
         if(auto sp = wp.lock())
             sp->stop();
+
+    ioc.stop();
 
 //    if(status_changed)
 //        status_changed(started());
@@ -242,6 +251,7 @@ started() {
                 //break;
             }
         }
+
     return false;
 }
 
@@ -502,12 +512,13 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
 
 }
 
-void ws_client::open(const char *host, const char *port, _callback_message &msg, _callback_status &st) {
+void ws_client::open(const char *host, const char *port, _callback_message &msg, _callback_status &st, _callback_connect& cn) {
 
     _is_login = false;
 
     _callback_msg = msg;
     status_changed = st;
+    callback_connect = cn;
 
     boost::make_shared<session>(ioc)->run(host, port, this);
     ioc.run();
@@ -555,6 +566,7 @@ std::string ws_client::get_webdav_host() const {
 bool ws_client::get_webdav_ssl() {
     return _webdav_ssl;
 }
+
 //
 //bool ws_client::synch_set_param(const std::string &usr, const std::string &pwd) {
 //    if(!_is_synch)

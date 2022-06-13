@@ -121,7 +121,7 @@ private:
     void createWsObject();
     void setWsConnectedSignals();
     void connectToDatabase(Settings * sett, const QString& pwd);
-    bool isDbOpen();
+    void updateConnectionStatus();
     void createConnectionsObjects();
 
     //////////////////////////

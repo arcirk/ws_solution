@@ -326,7 +326,7 @@ void DialogMainWindow::onWindowShow()
 void DialogMainWindow::onConnectionSuccess()
 {
     qDebug() << __FUNCTION__;
-    isDbOpen();
+    updateConnectionStatus();
 
 }
 
@@ -684,23 +684,23 @@ void DialogMainWindow::connectToDatabase(Settings *sett, const QString &pwd)
 
     sett->save();
 
-    if (!isDbOpen()){
+    if (!db->isOpen()){
         QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
     }else{
         //getDataContainersList();
     }
 
+    updateConnectionStatus();
 }
 
-bool DialogMainWindow::isDbOpen()
+void DialogMainWindow::updateConnectionStatus()
 {
     qDebug() << __FUNCTION__;
     QString status;
 
-    bool result = db->isOpen();
-
     if(db->isOpen()){
         status = "SQL Server: " + _sett->server() + "  ";
+
     }
 
     if(m_client->isStarted()){
@@ -709,7 +709,6 @@ bool DialogMainWindow::isDbOpen()
 
     infoBar->setText(status);
 
-    return result;
 }
 
 void DialogMainWindow::getSettingsFromHttp()
@@ -839,6 +838,7 @@ void DialogMainWindow::connectToWsServer()
         m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
     }
 
+    updateConnectionStatus();
 }
 
 void DialogMainWindow::createWsObject()
@@ -884,6 +884,19 @@ void DialogMainWindow::on_btnSettings_clicked()
                 m_client->close();
 
             if(_sett->launch_mode() == mixed){
+                if(_sett->customWsUser()){
+                    QString pass;
+                    QString pwd = clientSett["Password"].toString();
+                    QString usr = clientSett["ServerUser"].toString();
+                    if(clientSett["pwdEdit"].toBool()){
+                        QString  hash = bWebSocket::generateHash(usr, pwd);
+                        m_client->options()[bConfFieldsWrapper::Hash] = hash;
+                    }
+                    m_client->options()[bConfFieldsWrapper::User] = usr;
+                    m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+                    m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+                    m_client->options().save();
+                }
                 connectToDatabase(_sett, dlg.pwd());
             }else{
                 QString pass;
@@ -918,7 +931,7 @@ void DialogMainWindow::on_btnSettings_clicked()
 //        }
         _sett->save();
 
-        isDbOpen();
+        updateConnectionStatus();
     }
 }
 

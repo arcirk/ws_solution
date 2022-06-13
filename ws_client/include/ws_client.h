@@ -19,6 +19,7 @@ using std::placeholders::_2;
 
 typedef std::function<void(std::string)> _callback_message;
 typedef std::function<void(bool)> _callback_status;
+typedef std::function<void()> _callback_connect;
 
 using namespace arcirk;
 
@@ -35,7 +36,7 @@ public:
     void open(const char *host, const char *port, const char *name);
     void open(const char *host, const char *port, const char *name, const char *uuid);
     void open(const char* host, const char* port, _callback_message& msg);
-    void open(const char* host, const char* port, _callback_message& msg, _callback_status& st);
+    void open(const char* host, const char* port, _callback_message& msg, _callback_status& st, _callback_connect& cn);
     void send(const std::string &message, bool is_cmd, const std::string &sub_user_uuid = "", const std::string &uuid_form = "",
               const std::string &command = "", const std::string &objectName = "", const std::string &msg_ref = "");
 //    void
@@ -96,6 +97,7 @@ private:
     std::string name_;
     _callback_message _callback_msg;
     _callback_status status_changed;
+    _callback_connect callback_connect;
     std::string _client_param;
     std::string _app_name;
     boost::uuids::uuid  _user_uuid{};
