@@ -650,6 +650,11 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
 
         if (!session->authorized){
 
+            if(!sqlite3Db->isOpen()){
+                err = "База данных не открыта!";
+                return false;
+            }
+
             if (!hash.empty()){
                 std::cout << session->get_name() << ":" << hash << std::endl;
                 std::vector<std::map<std::string, std::string>> table;

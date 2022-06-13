@@ -1337,6 +1337,15 @@ namespace arc_sqlite {
         }
     }
 
+    bool sqlite3_db::isOpen()
+    {
+        if(useWrapper){
+            return qtWrapper->isOpen();
+        }else{
+            return true; //!
+        }
+    }
+
 
 }
 

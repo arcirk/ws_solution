@@ -165,8 +165,11 @@ namespace arc_sqlite {
 
         void sync_users(const std::string& resp);
 
+        bool isOpen();
+
 #ifdef USE_QT_CREATOR
     void set_qt_wrapper(SqlInterface * wrapper);
+
 #else
         void set_qt_wrapper(SqlWrapper * wrapper);
 #endif
