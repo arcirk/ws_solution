@@ -122,6 +122,11 @@ void IClient::start() {
 
     close();
 
+    if(client){
+        delete client;
+        client = nullptr;
+    }
+
     client = new ws_client(ioc, _client_param);
 
     try {
@@ -623,6 +628,11 @@ long int IClient::current_date_seconds() {
 
 long int IClient::add_day(const long selDate, const int dayCount) {
     return arcirk::add_day(selDate, dayCount);
+}
+
+std::string IClient::crypt(const std::string &source, const std::string &key)
+{
+    return arcirk::_crypt(source, key);
 }
 
 void IClient::set_webdav_settings_on_client(const std::string& param) {

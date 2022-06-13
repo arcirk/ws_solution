@@ -85,6 +85,7 @@ public:
     void setUserName(const QString& name);
     [[nodiscard]] QString getHash() const;
 
+    bool _isRun;
     bool isStarted();
     const QString getUserUUID();
     const QString getUuidSession();
@@ -144,6 +145,8 @@ public:
 
     static std::vector<unsigned char> byteArrayToVector(const QByteArray& ba);
     static QByteArray vectorToByteArray(std::vector<unsigned char> v);
+
+    static QString crypt(const QString& source, const QString& key);
 
 private:
     IClient * client;

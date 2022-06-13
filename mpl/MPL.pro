@@ -16,11 +16,13 @@ SOURCES += \
     ../certmanager/CertManager/settings.cpp \
     ../certmanager/CertManager/user.cpp \
     ../chared/clientsettings.cpp \
+    ../chared/httpservice.cpp \
     ../chared/qmlwebsocket.cpp \
     ../chared/qwebdav.cpp \
     ../chared/serveresponse.cpp \
     ../sqlwrapper/sqlinterface.cpp \
     ../sqlwrapper/sqlqueryinterface.cpp \
+    dialogconnection.cpp \
     dialogmainwindow.cpp \
     dialogselectedrow.cpp \
     dialogselectprofile.cpp \
@@ -39,11 +41,13 @@ HEADERS += \
     ../certmanager/CertManager/settings.h \
     ../certmanager/CertManager/user.h \
     ../chared/clientsettings.h \
+    ../chared/httpservice.h \
     ../chared/qmlwebsocket.h \
     ../chared/qwebdav.h \
     ../chared/serveresponse.h \
     ../sqlwrapper/sqlinterface.h \
     ../sqlwrapper/sqlqueryinterface.h \
+    dialogconnection.h \
     dialogmainwindow.h \
     dialogselectedrow.h \
     dialogselectprofile.h \
@@ -54,6 +58,7 @@ HEADERS += \
 #    singleapplication/singleapplication.h \
 
 FORMS += \
+    dialogconnection.ui \
     dialogmainwindow.ui \
     dialogselectedrow.ui \
     dialogselectprofile.ui \

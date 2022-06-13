@@ -8,14 +8,11 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
     : QObject{parent}
 {
 
+    _useSettingsFromHttp = false;
+
     _parentFolder = parentFolder;
     if(!_parentFolder.isEmpty()){
-        if(_parentFolder.right(1) != QDir::separator())
-            _parentFolder = _parentFolder + QDir::separator();
-
-        QDir dir(_parentFolder);
-        if(!dir.exists())
-            _parentFolder = "";
+        _parentFolder = _parentFolder + QDir::separator();
     }
 
     QFile conf = QFile(_parentFolder + "conf.json");
@@ -55,6 +52,14 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
         itr = obj.find("httpPwd");
         if(itr != obj.end())
             setHttpPwd(itr.value().toString());
+        itr = obj.find("useSettingsFromHttp");
+        if(itr != obj.end())
+            setUseSettingsFromHttp(itr.value().toBool());
+        itr = obj.find("customWsUser");
+        if(itr != obj.end())
+            setCustomWsUser(itr.value().toBool());
+    }else{
+        save();
     }
 
     if(_charset.isEmpty())
@@ -131,9 +136,29 @@ QString Settings::httpPwd() const
     return _httpPwd;
 }
 
+bool Settings::useSettingsFromHttp()
+{
+    return _useSettingsFromHttp;
+}
+
+void Settings::setUseSettingsFromHttp(bool value)
+{
+    _useSettingsFromHttp = value;
+}
+
+bool Settings::customWsUser()
+{
+    return _customWsUser;
+}
+
+void Settings::setCustomWsUser(bool value)
+{
+    _customWsUser = value;
+}
+
 void Settings::save()
 {
-    QFile conf = QFile(_parentFolder + "conf.json");
+    QFile conf = QFile(_parentFolder +  "conf.json");
 
     if(conf.open(QIODevice::WriteOnly)){
 
@@ -148,6 +173,8 @@ void Settings::save()
         obj.insert("httpHost", _httpHost);
         obj.insert("httpUsr", _httpUsr);
         obj.insert("httpPwd", _httpPwd);
+        obj.insert("useSettingsFromHttp", _useSettingsFromHttp);
+        obj.insert("customWsUser", _customWsUser);
         doc.setObject(obj);
 
         conf.write(QJsonDocument(doc).toJson(QJsonDocument::Indented));

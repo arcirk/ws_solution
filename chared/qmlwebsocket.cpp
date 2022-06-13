@@ -56,6 +56,7 @@ bWebSocket::bWebSocket(QObject *parent, const QString& confFile, const QString& 
 
 bWebSocket::~bWebSocket()
 {
+    _isRun = false;
     if (client->started()) {
         client->close(true);
     }
@@ -68,8 +69,10 @@ bWebSocket::~bWebSocket()
 
 void bWebSocket::open(const QString& user_name, const QString& user_password)
 {
-    if (client->started()) {
-        return;
+    if(_isRun){
+        if (client->started()) {
+            return;
+        }
     }
 
     //QString _hash;
@@ -89,16 +92,21 @@ void bWebSocket::open(const QString& user_name, const QString& user_password)
 
     settings.save();
 
+    _isRun = true;
+
     emit startedChanged();
 }
 
 void bWebSocket::close(bool exitParent)
 {
+
     if(client->started()){
         client->close(exitParent);
+        _isRun = false;
     }
 
-    emit startedChanged();
+    if(!exitParent)
+        emit startedChanged();
 }
 
 void bWebSocket::saveCache(const QString &jsonText)
@@ -229,6 +237,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #endif
             emit setMessages(resp->message);
         }else if (resp->command == "close_connections"){
+            _isRun = false;
             emit closeConnection();            
         }else if (resp->command == "message"){
             emit messageReceived(resp->message, resp->uuid, resp->recipient, resp->recipientName);
@@ -339,9 +348,12 @@ QString bWebSocket::generateHash(const QString &usr, const QString &pwd)
 }
 
 bool bWebSocket::isStarted()
-{
+{  
     if(client){
-        return client->started();
+        if(_isRun)
+            return client->started();
+        else
+            return false;
     }else
         return false;
 }
@@ -741,6 +753,11 @@ std::vector<unsigned char> bWebSocket::byteArrayToVector(const QByteArray &ba)
 QByteArray bWebSocket::vectorToByteArray(std::vector<unsigned char> v)
 {
     return QByteArray(reinterpret_cast<const char*>(v.data()), v.size());
+}
+
+QString bWebSocket::crypt(const QString &source, const QString &key)
+{
+    return QString::fromStdString(IClient::crypt(source.toStdString(), key.toStdString()));
 }
 
 

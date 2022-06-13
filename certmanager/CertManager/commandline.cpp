@@ -38,7 +38,8 @@ CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
 
 void CommandLine::errorOccured(QProcess::ProcessError err) {
     if(!m_listening) return;
-    //qInfo() << Q_FUNC_INFO << error;
+
+    qInfo() << Q_FUNC_INFO << err;
     emit error("Error", _command);
 }
 

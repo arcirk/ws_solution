@@ -32,6 +32,12 @@ public:
     QString httpUsr() const;
     QString httpPwd() const;
 
+    bool useSettingsFromHttp();
+    void setUseSettingsFromHttp(bool value);
+
+    bool customWsUser();
+    void setCustomWsUser(bool value);
+
     void save();
 
     QString charset();
@@ -57,6 +63,8 @@ private:
     QString _httpHost;
     QString _httpUsr;
     QString _httpPwd;
+    bool _useSettingsFromHttp;
+    bool _customWsUser;
 
 signals:
 

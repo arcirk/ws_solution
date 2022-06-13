@@ -18,6 +18,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QSqlError>
+#include "dialogconnection.h"
 
 DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QDialog(parent),
@@ -28,45 +29,57 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QString dir = QDir::homePath();
 
 #ifdef Q_OS_WINDOWS
-    dir.append("/AppData/Roaming");
-    dirName = "mpl";
+    dir.append("/AppData/Roaming/");
+    dirName = "mpl/";
 #else
     dirName = ".mpl";
 #endif
 
-    appHome = QDir(dir + "/" + dirName);
+    appHome = QDir(dir + dirName);
 
     if(!appHome.exists())
        appHome.mkpath(".");
 
-    ui->horizontalLayout->addStretch();
+    //ui->horizontalLayout->addStretch();
 
     infoBar = ui->lblStatus;
 
     setWindowTitle("Настройки профилей пользователя");
 
-    QTableWidget * table = ui->tableWidget;
-    table->setColumnCount(5);
-    table->setHorizontalHeaderLabels(QStringList{"Профиль", "Вид операции", "Адрес", "Сертификаты", "Идентификатор"}); // "IsRelative", "Default"});
-    table->setColumnHidden(3, true);
-    table->setColumnHidden(4, true);
+    formControl();
 
-    _profiles = new ProfileManager(appHome.path(), this);
-    updateFromData();
+    ui->tableWidget->resizeRowsToContents();
+////    mozillaApp = new QProcess(this);
 
-    table->resizeColumnToContents(0);
-    table->resizeColumnToContents(1);
-    table->setSelectionMode(QTableWidget::SingleSelection);
+    getCurrentUser();
 
-    createTrayActions();
-    createTrayIcon();
-    trayIcon->show();
-
-//    mozillaApp = new QProcess(this);
+    createConnectionsObjects();
 
     _sett = new Settings(this, appHome.path());
 
-    bool result = getCurrentUser();
+    if(_sett->useSettingsFromHttp())
+        getSettingsFromHttp();
+
+    initCsptest();
+
+    createTerminal();
+
+    setWsConnectedSignals();
+
+    if(_sett->launch_mode() == mixed){
+        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+             connectToDatabase(_sett, _sett->pwd());
+    }else
+        connectToWsServer();
+
+
+}
+
+void DialogMainWindow::createConnectionsObjects()
+{
+    db = new SqlInterface(this);
+
+    createWsObject(/*usr, pwd */);
 
 }
 
@@ -220,6 +233,29 @@ QWidget *DialogMainWindow::getItemWidget(const QString &text, int row, int col, 
     return pWidget;
 }
 
+void DialogMainWindow::formControl()
+{
+    QTableWidget * table = ui->tableWidget;
+    table->setColumnCount(5);
+    table->setHorizontalHeaderLabels(QStringList{"Профиль", "Вид операции", "Адрес", "Сертификаты", "Идентификатор"}); // "IsRelative", "Default"});
+    table->setColumnHidden(3, true);
+    table->setColumnHidden(4, true);
+
+    _profiles = new ProfileManager(appHome.path(), this);
+    if(_profiles->mozillaExeFile().isEmpty()){
+        _profiles->setMozillaExeFile("C:\\Program Files\\Mozilla Firefox\\firefox.exe");
+    }
+    updateFromData();
+
+    table->resizeColumnToContents(0);
+    table->resizeColumnToContents(1);
+    table->setSelectionMode(QTableWidget::SingleSelection);
+
+    createTrayActions();
+    createTrayIcon();
+    trayIcon->show();
+}
+
 void DialogMainWindow::createTrayActions()
 {
     quitAction = new QAction(tr("&Выйти"), this);
@@ -289,32 +325,59 @@ void DialogMainWindow::onWindowShow()
 
 void DialogMainWindow::onConnectionSuccess()
 {
+    qDebug() << __FUNCTION__;
+    isDbOpen();
 
 }
 
 void DialogMainWindow::onCloseConnection()
 {
-
+    qDebug() << __FUNCTION__;
 }
 
 void DialogMainWindow::onConnectedStatusChanged(bool status)
 {
-
+    qDebug() << __FUNCTION__;
 }
 
 void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
 {
-
+    qDebug() << __FUNCTION__;
 }
 
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 {
-
+    qCritical() << __FUNCTION__ << what << err;
 }
 
 void DialogMainWindow::onWsExecQuery(const QString &result)
 {
+    qDebug() << __FUNCTION__;
+}
 
+void DialogMainWindow::onParseCommand(const QVariant &result, int command)
+{
+
+    if(command == CmdCommand::wmicGetSID){
+        QString sid = result.toString();
+        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
+        currentUser->setSid(sid);
+     }
+}
+
+void DialogMainWindow::onCommandError(const QString &result, int command)
+{
+    qCritical() << __FUNCTION__ << "error: " <<  result;
+}
+
+void DialogMainWindow::onOutputCommandLine(const QString &data, int command)
+{
+    qDebug() << __FUNCTION__ << "command: " << command;
+
+    if(data.indexOf("Error:") > 0)
+        return;
+
+    terminal->parseCommand(data, command);
 }
 
 void DialogMainWindow::on_btnAdd_clicked()
@@ -413,6 +476,26 @@ void DialogMainWindow::onLineEditCursorPositionChanged(int oldPos, int newPos)
     }
 
     qDebug() << oldPos << newPos;
+}
+
+void DialogMainWindow::createTerminal()
+{
+
+    terminal = new CommandLine(this, false, _sett->charset());
+    terminal->setMethod(_sett->method());
+
+    connect(terminal, &CommandLine::output, this, &DialogMainWindow::onOutputCommandLine);
+    connect(terminal, &CommandLine::endParse, this, &DialogMainWindow::onParseCommand);
+    connect(terminal, &CommandLine::error, this, &DialogMainWindow::onCommandError);
+
+    terminal->start();
+    if(isUseCsptest)
+        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
+
+#ifdef _WINDOWS
+    terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+#endif
+
 }
 
 
@@ -568,6 +651,13 @@ void DialogMainWindow::onTrayTriggered()
 
 void DialogMainWindow::onAppExit()
 {
+    terminal->stop();
+    if(m_client->isStarted())
+        m_client->close(true);
+    if(db->isOpen())
+        db->close();
+    delete m_client;
+    delete db;
     QApplication::exit();
 }
 
@@ -580,7 +670,7 @@ void DialogMainWindow::connectToDatabase(Settings *sett, const QString &pwd)
     QString host = sett->server();
     QString database = "arcirk";
     QString userName = sett->user();
-    QString password = pwd;
+    QString password = bWebSocket::crypt(pwd, "my_key");
 
     db->setSqlUser(userName);
     db->setSqlPwd(password);
@@ -622,7 +712,79 @@ bool DialogMainWindow::isDbOpen()
     return result;
 }
 
-bool DialogMainWindow::getCurrentUser()
+void DialogMainWindow::getSettingsFromHttp()
+{
+    if(_sett->httpHost().isEmpty())
+        return;
+
+    QString httpPwd = _sett->httpPwd();
+    if(!httpPwd.isEmpty())
+        httpPwd = QString::fromStdString(ClientSettings::crypt(httpPwd.toStdString(), "my_key"));
+    else
+        httpPwd = "";
+
+    QEventLoop loop;
+    HttpService * httpService = new HttpService(this, _sett->httpHost(),
+            _sett->httpUsr(),
+            httpPwd);
+
+    QString result;
+
+    auto finished = [&result, &loop](QNetworkReply* reply) -> void
+    {
+        QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+       if(status_code.isValid()){
+           int status = status_code.toInt();
+           if(status != 200)
+                qDebug() << __FUNCTION__ << "Error: " << status << " " + reply->errorString() ;
+           else
+           {
+               QByteArray data = reply->readAll();
+               result = data;
+           }
+       }
+       loop.quit();
+    };
+
+    loop.connect(httpService, &HttpService::finished, finished);
+
+    httpService->request("getConSett_" + currentUser->name()); //формат процедуры GET на http сервисе: getConSett_UserName
+
+    loop.exec();
+
+    qDebug() << result;
+
+    if(result.isEmpty())
+        return;
+
+    auto doc = QJsonDocument::fromJson(result.toUtf8());
+    if(doc.isEmpty())
+        return;
+
+    auto obj = doc.object();
+    auto arr = obj.value("Rows").toArray();
+    if(arr.isEmpty())
+        return;
+
+    auto row = arr[0].toObject();
+
+    m_client->options()[bConfFieldsWrapper::ServerHost] = row.value("wsServer").toString();
+    m_client->options()[bConfFieldsWrapper::ServerPort] = row.value("wsPort").toString().toInt();
+
+    if(!_sett->customWsUser()){
+        m_client->options()[bConfFieldsWrapper::User] = row.value("userName").toString();
+        m_client->options()[bConfFieldsWrapper::Hash] = bWebSocket::generateHash(row.value("userName").toString(), row.value("userPwd").toString());
+    }
+
+    _sett->setServer( row.value("sqlServer").toString());
+    _sett->setUser(row.value("sqlUser").toString());
+
+    QString pwd = row.value("sqlPwd").toString();
+    if(!pwd.isEmpty())
+        _sett->setPwd(bWebSocket::crypt(pwd, "my_key"));
+}
+
+void DialogMainWindow::getCurrentUser()
 {
     currentUser = new CertUser(this);
     QString curentHost = QSysInfo::machineHostName();
@@ -639,63 +801,8 @@ bool DialogMainWindow::getCurrentUser()
 #endif
 
     if(uname.isEmpty()){
-        qCritical() << "Ошибка получения имени пользователя!";
-        return false;
+        qCritical() << __FUNCTION__ << "Ошибка получения имени пользователя!";
     }
-
-    auto cmd = CommandLine(this, false);
-    //cmd->setMethod(3);
-    //cmd->setProgram("powershell");
-    QEventLoop loop;
-    QJsonObject res;
-    QString sid;
-
-    auto started = [&cmd]() -> void
-    {
-        cmd.send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
-    };
-    connect(&cmd, &CommandLine::cmdStarted, started);
-
-    QString str;
-    auto output = [&cmd, &str](const QString& data, int command) -> void
-    {
-        str = str + data;
-        qDebug() << str;
-       if(command == CmdCommand::wmicGetSID){
-           //f(str.indexOf("Microsoft Corporation") == -1){
-                if(str.indexOf("S-1") != -1)
-                    cmd.parseCommand(str, command);
-           //}
-        }
-
-    };
-    connect(&cmd, &CommandLine::output, output);
-
-    auto parse = [&loop, &cmd, &sid](const QVariant& result, int command) -> void
-    {
-        if(command == CmdCommand::wmicGetSID){
-            sid = result.toString();
-            cmd.stop();
-            loop.quit();
-        }
-
-    };
-    connect(&cmd, &CommandLine::endParse, parse);
-
-    auto err = [&loop, &cmd](const QString& data, int command) -> void
-    {
-        qDebug() << __FUNCTION__ << data << command;
-        cmd.stop();
-        loop.quit();
-    };
-    connect(&cmd, &CommandLine::error, err);
-
-    cmd.start();
-    loop.exec();
-
-    currentUser->setSid(sid);
-
-    return !sid.isEmpty();
 }
 
 void DialogMainWindow::connectToWsServer()
@@ -724,8 +831,6 @@ void DialogMainWindow::connectToWsServer()
                 break;
             }
         }
-        //getDataContainersList();
-        //getDataCertificatesList();
     }else{
         QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
         int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
@@ -739,8 +844,8 @@ void DialogMainWindow::connectToWsServer()
 void DialogMainWindow::createWsObject()
 {
     qDebug() << __FUNCTION__;
-    m_client = new bWebSocket(this, "conf_qt_cert_manager.json", currentUser->name());
-
+    m_client = new bWebSocket(this, "conf_qt_mpl.json", currentUser->name());
+    m_client->setAppName("qt_mpl_client");
 }
 
 void DialogMainWindow::setWsConnectedSignals()
@@ -752,4 +857,96 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::displayError, this, &DialogMainWindow::onDisplayError);
     connect(m_client, &bWebSocket::messageReceived, this, &DialogMainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::execQuery, this, &DialogMainWindow::onWsExecQuery);
+}
+
+void DialogMainWindow::on_btnSettings_clicked()
+{
+    QMap<QString, QVariant> clientSett;
+    clientSett.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+    clientSett.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
+    clientSett.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
+    clientSett.insert("Password", "***");
+    clientSett.insert("pwdEdit", false);
+    clientSett.insert("mozillaExeFile", _profiles->mozillaExeFile());
+
+    auto dlg = DialogConnection(_sett, clientSett, this);
+    dlg.setModal(true);
+    dlg.exec();
+
+    if(dlg.result() == QDialog::Accepted){
+
+        _profiles->setMozillaExeFile(clientSett["mozillaExeFile"].toString());
+
+        //if(!_sett->useSettingsFromHttp()){
+            if(db->isOpen())
+                db->close();
+            if(m_client->isStarted())
+                m_client->close();
+
+            if(_sett->launch_mode() == mixed){
+                connectToDatabase(_sett, dlg.pwd());
+            }else{
+                QString pass;
+                QString pwd = clientSett["Password"].toString();
+                QString usr = clientSett["ServerUser"].toString();
+                if(!_sett->useSettingsFromHttp()){
+                    if(clientSett["pwdEdit"].toBool()){
+                        QString  hash = bWebSocket::generateHash(usr, pwd);
+                        m_client->options()[bConfFieldsWrapper::Hash] = hash;
+                    }
+                    m_client->options()[bConfFieldsWrapper::User] = usr;
+                    m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+                    m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+                    m_client->options().save();
+                }else{
+                    if(_sett->customWsUser()){
+                        if(clientSett["pwdEdit"].toBool()){
+                            QString  hash = bWebSocket::generateHash(usr, pwd);
+                            m_client->options()[bConfFieldsWrapper::Hash] = hash;
+                        }
+                        m_client->options()[bConfFieldsWrapper::User] = usr;
+                        m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+                        m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+                        m_client->options().save();
+                    }
+                }
+                connectToWsServer();
+            }
+
+//        }else{
+
+//        }
+        _sett->save();
+
+        isDbOpen();
+    }
+}
+
+void DialogMainWindow::initCsptest()
+{
+
+    isUseCsptest = false;
+
+#ifdef _WINDOWS
+   _cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
+   _cprocsp_dir = "C:/Program Files (x86)/Crypto Pro/CSP/";
+#else
+    _cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
+    _cprocsp_dir = "/opt/cprocsp/bin/amd64/"
+#endif
+
+    QFile csptest(_cprocsp_exe);
+    QString inf;
+    if(!csptest.exists()){
+        inf = "Ошибка: КриптоПро не найден в каталоге установки по умолчанию!";
+        qCritical() << __FUNCTION__ << inf;
+
+    }
+    else{
+        inf = "КриптоПро найден в каталоге установки по умолчанию.";
+        isUseCsptest = true;
+
+    }
+
+
 }

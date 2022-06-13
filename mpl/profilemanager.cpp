@@ -20,7 +20,7 @@ QMap<QUuid, UserProfile *> ProfileManager::profiles()
 
 void ProfileManager::getSettings()
 {
-    QFile settings(_homePath + "/settings.json");
+    QFile settings(_homePath + "/profiles.json");
     if (!settings.open(QIODevice::ReadOnly))
     {
         return;
@@ -60,7 +60,7 @@ void ProfileManager::getSettings()
 
 void ProfileManager::saveSettings()
 {
-    QFile file(_homePath + "/settings.json");
+    QFile file(_homePath + "/profiles.json");
     if (!file.open(QIODevice::WriteOnly))
     {
         return;
@@ -92,7 +92,7 @@ void ProfileManager::saveSettings()
 
 QString ProfileManager::mozillaProfilesFile()
 {
-    QFile conf(_homePath + "/conf.json");
+    QFile conf(_homePath + "/mozilla.json");
 
     QString _mozillaPDir = "";
 
@@ -158,7 +158,7 @@ QString ProfileManager::mozillaExeFile()
 
 void ProfileManager::setMozillaExeFile(const QString &value)
 {
-    QFile conf(_homePath + "/conf.json");
+    QFile conf(_homePath + "/mozilla.json");
     _mozillaExeFile = value;
     if(conf.open(QIODevice::WriteOnly)){
         QJsonDocument doc = QJsonDocument();
@@ -188,7 +188,7 @@ void ProfileManager::clear()
 
 void ProfileManager::getConf()
 {
-    QFile conf(_homePath + "/conf.json");
+    QFile conf(_homePath + "/mozilla.json");
 
     if(conf.open(QIODevice::ReadOnly)){
        QJsonDocument doc = QJsonDocument::fromJson(conf.readAll());

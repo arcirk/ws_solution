@@ -3234,6 +3234,7 @@ void MainWindow::execute_command(QString param)
 //     ShellExecuteEx(&ShExecInfo);
 //     WaitForSingleObject(ShExecInfo.hProcess,INFINITE);
 }
+#endif
 
 void MainWindow::createConnectionsObjects()
 {
@@ -3242,7 +3243,7 @@ void MainWindow::createConnectionsObjects()
     createWsObject(/*usr, pwd */);
 
 }
-#endif
+
 
 void MainWindow::on_btnTermOptions_clicked()
 {

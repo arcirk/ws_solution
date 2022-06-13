@@ -85,6 +85,7 @@ public:
     static std::string get_hash(const std::string &usr, const std::string &pwd);
     static long int current_date_seconds();
     static long int add_day(const long int selDate, const int dayCount);
+    static std::string crypt(const std::string& source, const std::string& key);
 
     void set_webdav_settings_on_client(const std::string& param);
     void set_webdav_settings_on_server();
@@ -106,6 +107,8 @@ public:
     //void synch_session_close();
     std::string synch_session_get_buffer();
     //bool synch_session_is_open();
+
+
 
 private:
     ws_client * client;

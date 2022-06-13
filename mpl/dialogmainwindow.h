@@ -20,6 +20,7 @@
 #include <settings.h>
 #include <sqlinterface.h>
 #include <user.h>
+#include <httpservice.h>
 
 namespace Ui {
 class DialogMainWindow;
@@ -61,6 +62,12 @@ private slots:
     void onDisplayError(const QString& what, const QString& err);
     void onWsExecQuery(const QString& result);
 
+    void onParseCommand(const QVariant& result, int command);
+    void onCommandError(const QString& result, int command);
+    void onOutputCommandLine(const QString& data, int command);
+
+    void on_btnSettings_clicked();
+
 public slots:
     void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
@@ -80,6 +87,15 @@ private:
     CertUser * currentUser;
     bWebSocket* m_client;
 
+    QString _cprocsp_exe;
+    bool isUseCsptest;
+    QString _cprocsp_dir;
+    QString _launch_mode;
+    CommandLine * terminal;
+    void createTerminal();
+    void getCurrentUser();
+    void initCsptest();
+
     const QString _bankClientFile = "sslgate.url";
     const QString _bakClientUsbKey = "BankUsbKey";
 
@@ -93,6 +109,7 @@ private:
     QLineEdit *getLineEdit(int row, int col);
     QWidget *getItemWidget(const QString& text, int row, int col, const char* member);
 
+    void formControl();
     void createTrayActions();
     void createTrayIcon();
     void createDynamicMenu();
@@ -105,8 +122,10 @@ private:
     void setWsConnectedSignals();
     void connectToDatabase(Settings * sett, const QString& pwd);
     bool isDbOpen();
+    void createConnectionsObjects();
 
-    bool getCurrentUser();
+    //////////////////////////
+    void getSettingsFromHttp();
 
 };
 
