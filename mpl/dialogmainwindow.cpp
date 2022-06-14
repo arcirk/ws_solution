@@ -358,12 +358,12 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
     qDebug() << __FUNCTION__;
 }
 
-void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &message, const QString &command)
+void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message)
 {
     if(!m_client->isStarted())
         return;
 
-    QString _message = message.toUtf8().toBase64();
+    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message).toUtf8().toBase64();
     QJsonObject obj = QJsonObject();
     obj.insert("uuid_agent", m_client->getUuidSession());
     obj.insert("uuid_client", recipient);
@@ -379,7 +379,7 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
-        sendToRecipient(recipient, currentUser->containers().join("\n"), "available_containers");
+        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"));
     }else{
         currentRecipient = recipient;
         terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), CmdCommand::csptestGetCertificates);

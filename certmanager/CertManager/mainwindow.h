@@ -150,7 +150,7 @@ private:
     QJsonTableModel * modelSqlUsers;
 
     QString currentRecipient;
-    void sendToRecipient(const QString &recipient, const QString& message, const QString& command);
+    void sendToRecipient(const QString &recipient, const QString& command, const QString &message);
 
     void resetInfoUserContainers();
 

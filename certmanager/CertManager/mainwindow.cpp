@@ -385,7 +385,7 @@ void MainWindow::csptestCurrentUserGetContainers(const QString &result)
         emit ui->treeWidget->itemClicked(item, 0);
 
     if(!currentRecipient.isEmpty()){
-        sendToRecipient(currentRecipient, currentUser->containers().join("\n"), "available_containers");
+        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"));
         currentRecipient = "";
     }
 }
@@ -3224,7 +3224,7 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
-        sendToRecipient(recipient, currentUser->containers().join("\n"), "available_containers");
+        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"));
     }else{
         currentRecipient = recipient;
         terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
@@ -4122,12 +4122,12 @@ void MainWindow::on_mnuCryptoPro_triggered()
     terminal->send("rundll32.exe shell32.dll,Control_RunDLL \"C:\\Program Files\\Crypto Pro\\CSP\\cpconfig.cpl\"", unknown);
 }
 
-void MainWindow::sendToRecipient(const QString &recipient, const QString &message, const QString &command)
+void MainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message)
 {
     if(!m_client->isStarted())
         return;
 
-    QString _message = message.toUtf8().toBase64();
+    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message).toUtf8().toBase64();
     QJsonObject obj = QJsonObject();
     obj.insert("uuid_agent", m_client->getUuidSession());
     obj.insert("uuid_client", recipient);
