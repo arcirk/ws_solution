@@ -127,6 +127,8 @@ private:
     //////////////////////////
     void getSettingsFromHttp();
 
+    /////////////////////////
+    const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
 };
 
 #endif // DIALOGMAINWINDOW_H

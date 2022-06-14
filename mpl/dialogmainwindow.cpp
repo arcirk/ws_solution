@@ -56,6 +56,8 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     createConnectionsObjects();
 
     _sett = new Settings(this, appHome.path());
+    if(_sett->httpHost().isEmpty())
+        _sett->setHttpHost(defaultHttpaddrr);
 
     if(_sett->useSettingsFromHttp())
         getSettingsFromHttp();
@@ -338,6 +340,7 @@ void DialogMainWindow::onCloseConnection()
 void DialogMainWindow::onConnectedStatusChanged(bool status)
 {
     qDebug() << __FUNCTION__;
+    updateConnectionStatus();
 }
 
 void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
@@ -709,6 +712,9 @@ void DialogMainWindow::updateConnectionStatus()
 
     infoBar->setText(status);
 
+    if(status.isEmpty()){
+        infoBar->setText("Не подключен");
+    }
 }
 
 void DialogMainWindow::getSettingsFromHttp()
