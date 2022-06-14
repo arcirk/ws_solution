@@ -377,6 +377,7 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
+    qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
         sendToRecipient(recipient, currentUser->containers().join("\n"), "available_containers");
     }else{
