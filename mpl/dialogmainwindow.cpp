@@ -358,7 +358,7 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
     qDebug() << __FUNCTION__;
 }
 
-void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message)
+void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)
 {
     if(!m_client->isStarted())
         return;
@@ -371,7 +371,10 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     obj.insert("message", _message);
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
-    m_client->sendCommand("command_to_qt_client", "", param);
+    if(!to_agent)
+        m_client->sendCommand("command_to_qt_client", "", param);
+    else
+        m_client->sendCommand("command_to_qt_agent", "", param);
 
 }
 
@@ -379,10 +382,10 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
-        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"));
+        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"), true);
     }else{
         currentRecipient = recipient;
-        terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), CmdCommand::csptestGetCertificates);
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
     }
 }
 
@@ -393,7 +396,12 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         QString sid = result.toString();
         qDebug() << __FUNCTION__ << "set sid:" <<  sid;
         currentUser->setSid(sid);
-     }
+     }else if(command == CmdCommand::csptestGetConteiners){
+        QString res = result.toString();
+        res.replace("\r", "");
+        QStringList keys = res.split("\n");
+        currentUser->setContainers(keys);
+    }
 }
 
 void DialogMainWindow::onCommandError(const QString &result, int command)

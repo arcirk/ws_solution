@@ -385,7 +385,7 @@ void MainWindow::csptestCurrentUserGetContainers(const QString &result)
         emit ui->treeWidget->itemClicked(item, 0);
 
     if(!currentRecipient.isEmpty()){
-        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"));
+        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
         currentRecipient = "";
     }
 }
@@ -3224,10 +3224,10 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
-        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"));
+        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"), true);
     }else{
         currentRecipient = recipient;
-        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
     }
 }
 
@@ -4069,7 +4069,7 @@ void MainWindow::on_btnDatabaseInfo_clicked()
              }
              if(row != -1){
                 QString uuid = modelWsUsers->index(row, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
-                sendToRecipient(uuid, "get_available_containers", "get_available_containers");
+                sendToRecipient(uuid, "get_available_containers", "get_available_containers", false);
              }
          }
 
@@ -4122,7 +4122,7 @@ void MainWindow::on_mnuCryptoPro_triggered()
     terminal->send("rundll32.exe shell32.dll,Control_RunDLL \"C:\\Program Files\\Crypto Pro\\CSP\\cpconfig.cpl\"", unknown);
 }
 
-void MainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message)
+void MainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)
 {
     if(!m_client->isStarted())
         return;
@@ -4135,7 +4135,10 @@ void MainWindow::sendToRecipient(const QString &recipient, const QString &comman
     obj.insert("message", _message);
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
-    m_client->sendCommand("command_to_qt_client", "", param);
+    if(!to_agent)
+        m_client->sendCommand("command_to_qt_client", "", param);
+    else
+        m_client->sendCommand("command_to_qt_agent", "", param);
 
 }
 

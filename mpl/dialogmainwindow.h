@@ -133,7 +133,7 @@ private:
     const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
 
     /////
-    void sendToRecipient(const QString &recipient, const QString &command, const QString &message);
+    void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent);
 };
 
 #endif // DIALOGMAINWINDOW_H
