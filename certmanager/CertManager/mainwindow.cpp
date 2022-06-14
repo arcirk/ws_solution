@@ -186,6 +186,7 @@ void MainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::messageReceived, this, &MainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
     connect(m_client, &bWebSocket::execQuery, this, &MainWindow::onWsExecQuery);
+    connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &MainWindow::onWsGetAvailableContainers);
 }
 
 void MainWindow::createTerminal()
@@ -382,6 +383,11 @@ void MainWindow::csptestCurrentUserGetContainers(const QString &result)
     auto item = ui->treeWidget->currentItem();
     if(item)
         emit ui->treeWidget->itemClicked(item, 0);
+
+    if(!currentRecipient.isEmpty()){
+        sendToRecipient(currentRecipient, currentUser->containers().join("\n"), "available_containers");
+        currentRecipient = "";
+    }
 }
 
 QTreeWidgetItem *MainWindow::addTreeNode(const QString &text, const QVariant &key, const QString &imagePath)
@@ -1004,6 +1010,62 @@ void MainWindow::delContainer()
     }
 }
 
+void MainWindow::delCertUser()
+{
+    qDebug() << __FUNCTION__;
+
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    int row = index.row();
+
+    int col = modelSqlUsers->getColumnIndex("FirstField");
+    auto user = modelSqlUsers->index(row, col).data(Qt::UserRole + col).toString();
+    col = modelSqlUsers->getColumnIndex("Ref");
+    auto ref = modelSqlUsers->index(row, col).data(Qt::UserRole + col).toString();
+
+    auto bOK =  QMessageBox::question(this, "Удаление пользователя", QString("Удалить ползователя %1 с сервера?").arg(user));
+    if(bOK == QMessageBox::No){
+        return;
+    }
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "CertUsers");
+    bindQuery.addWhere("Ref", ref);
+
+    if(_sett->launch_mode() == mixed){
+        QSqlQuery sql = bindQuery.query(db->getDatabase());
+        sql.exec();
+        if(sql.lastError().type() != QSqlError::NoError){
+            qDebug() << __FUNCTION__ << sql.lastError().text();
+        }else
+        {
+            QMessageBox::information(this, "Удаление", "Пользователь успешно удален!");
+            getDataUsersList();
+        }
+    }else{
+        if(m_client->isStarted()){
+            QString result = bindQuery.to_json();
+            auto doc = QJsonDocument();
+            auto obj = QJsonObject();
+            obj.insert("query", result);
+            obj.insert("id_command", deleteUserFromData);
+            doc.setObject(obj);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
+        }
+    }
+}
+
+void MainWindow::addCertUser()
+{
+
+}
+
 QStandardItemModel *MainWindow::getLocalMountedVolumes()
 {
     auto model = new QStandardItemModel(this);
@@ -1166,12 +1228,12 @@ void MainWindow::treeSetOnlineWsUsers()
     table->setModel(nullptr);
     if(modelWsUsers){
         table->setModel(modelWsUsers);
-        int index = modelWsUsers->getColumnIndex("uuid");
-        if(index > 0)
-            table->setColumnHidden(index, true);
-        index = modelWsUsers->getColumnIndex("user_uuid");
-        if(index > 0)
-            table->setColumnHidden(index, true);
+//        int index = modelWsUsers->getColumnIndex("uuid");
+//        if(index > 0)
+//            table->setColumnHidden(index, true);
+//        index = modelWsUsers->getColumnIndex("user_uuid");
+//        if(index > 0)
+//            table->setColumnHidden(index, true);
 
         table->resizeColumnsToContents();
 
@@ -1653,6 +1715,7 @@ void MainWindow::getDataUsersList()
     bindQuery.addField("Empty", "Empty");
     bindQuery.addField("EmptyisOnline", "EmptyisOnline");
     bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("SecondField", "SecondField");
     bindQuery.addField("Ref", "Ref");
     bindQuery.addField("uuid", "uuid");
     bindQuery.addField("sid", "sid");
@@ -1938,8 +2001,9 @@ bool MainWindow::isWsUserExists(const QString &name, const QString &host)
     if(modelWsUsers){
         QString findKey = name + host;
         for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
-            if(modelWsUsers->rowKey(i) == findKey)
+            if(modelWsUsers->rowKey(i) == findKey){
                 return true;
+            }
         }
     }
     return false;
@@ -2225,7 +2289,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             toolBarSetVisible(ui->wToolbarDatabase, true);
             treeSetFromSqlCertificates();
         }else if(key == SqlUsers){
-            toolBarSetVisible(ui->wToolBarMain, true);
+            toolBarSetVisible(ui->wToolbarDatabase, true);
             treeSetFromSqlUsers();
         }else if(key == currentUserCertificates){
             toolBarSetVisible(ui->wToolBarCurrentUser, true);
@@ -3112,7 +3176,7 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
     }else if(command == CmdCommand::wmicGetSID){
         currentUser->setSid(result.toString());
         //get cert
-        terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), CmdCommand::csptestGetCertificates);
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
 
     }else if(command == CmdCommand::csptestGetConteiners){
         QString res = result.toString();
@@ -3156,6 +3220,24 @@ void MainWindow::onCommandError(const QString &result, int command)
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() +  "\nerror:"  + result);
 }
 
+void MainWindow::onWsGetAvailableContainers(const QString &recipient)
+{
+    qDebug() << __FUNCTION__;
+    if(currentUser->containers().size() > 0){
+        sendToRecipient(recipient, currentUser->containers().join("\n"), "available_containers");
+    }else{
+        currentRecipient = recipient;
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+    }
+}
+
+void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
+{
+    if(command == AvailableContainers){
+        qDebug() << message;
+    }
+}
+
 void MainWindow::onWsExecQuery(const QString &result)
 {
     qDebug() << __FUNCTION__;// << result;
@@ -3191,6 +3273,12 @@ void MainWindow::onWsExecQuery(const QString &result)
     }else if(id_command == deleteCertificateFromData){
         qDebug() << __FUNCTION__ << "Сертификат успешно удален с сервера!";
         getDataCertificatesList();
+    }else if(id_command == deleteUserFromData){
+        qDebug() << __FUNCTION__ << "Пользователь успешно удален с сервера!";
+        getDataUsersList();
+    }else if(id_command == insertUserToData){
+        qDebug() << __FUNCTION__ << "Пользователь успешно добавлен с сервер!";
+        getDataUsersList();
     }
 }
 
@@ -3328,7 +3416,7 @@ void MainWindow::on_btnUserToDatabase_clicked()
         return;
     }
 
-    QString currentNode = treeItem->text(0);
+    QString currentNode = treeItem->data(0, Qt::UserRole).toString();
 
     auto index = ui->tableView->currentIndex();
 
@@ -3337,12 +3425,15 @@ void MainWindow::on_btnUserToDatabase_clicked()
 
     int row = index.row();
 
-    if(currentNode == "Активные пользователи"){
+    if(currentNode == WsActiveUsers){
+        int colHost = modelWsUsers->getColumnIndex("host_name");
+        int colName = modelWsUsers->getColumnIndex("user_name");
+        int colRef = modelWsUsers->getColumnIndex("Ref");
+        auto user = modelWsUsers->index(row, colName).data(Qt::UserRole + colName).toString();
+        auto host = modelWsUsers->index(row, colHost).data(Qt::UserRole + colHost).toString();
+        auto ref = modelWsUsers->index(row, colHost).data(Qt::UserRole + colRef).toString();
 
-        QString hostName = ui->tableView->model()->index(row, 5).data().toString();
-        QString userName = ui->tableView->model()->index(row, 3).data().toString();
-
-        if(isCertUserExists(hostName, userName)){
+        if(isCertUserExists(host, user)){
             QMessageBox::critical(this, "Ошибка", "Пользователь уже зарегистрирован в базе!");
             return;
         }else{
@@ -3354,10 +3445,11 @@ void MainWindow::on_btnUserToDatabase_clicked()
         QUuid _uuid = QUuid::createUuid();
         QString uuid = _uuid.toString().mid(1, 36);
         QMap<QString, QVariant> _row;
-        _row.insert("FirstField", userName);
-        _row.insert("SecondField", userName);
-        _row.insert("Ref", uuid);
-        _row.insert("host", hostName);
+        _row.insert("FirstField", user);
+        _row.insert("SecondField", user);
+        _row.insert("Ref", ref);
+        _row.insert("uuid", uuid);
+        _row.insert("host", host);
         if(_sett->launch_mode() == mixed){
             bool r = db->insertSqlTableRow("CertUsers", _row);
             if(!r){
@@ -3370,10 +3462,10 @@ void MainWindow::on_btnUserToDatabase_clicked()
                 QMessageBox::information(this, "Успех", "Пользователь успешно зарегистрирован!");
         }else{
             auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "CertUsers");
-            bindQuery.addField("FirstField", userName);
-            bindQuery.addField("SecondField", userName);
+            bindQuery.addField("FirstField", user);
+            bindQuery.addField("SecondField", user);
             bindQuery.addField("Ref", uuid);
-            bindQuery.addField("host", hostName);
+            bindQuery.addField("host", host);
 
             if(_sett->launch_mode() == mixed){
                 QSqlQuery sql = bindQuery.query(db->getDatabase());
@@ -3382,7 +3474,7 @@ void MainWindow::on_btnUserToDatabase_clicked()
                     qDebug() << __FUNCTION__ << sql.lastError().text();
                 }else{
                     QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
-                    getDataContainersList();
+                    getDataUsersList();
                 }
             }else{
                 if(m_client->isStarted()){
@@ -3390,7 +3482,7 @@ void MainWindow::on_btnUserToDatabase_clicked()
                     auto doc = QJsonDocument();
                     auto objMain = QJsonObject();
                     objMain.insert("query", result);
-                    objMain.insert("id_command", "insertUserToData");
+                    objMain.insert("id_command", insertUserToData);
                     doc.setObject(objMain);
                     QString param = doc.toJson();
                     m_client->sendCommand("exec_query_qt", "", param);
@@ -3415,6 +3507,8 @@ void MainWindow::on_btnDatabaseAdd_clicked()
         addContainer();
     }else if(currentNode == SqlCertificates){
         addCertificate();
+    }else if(currentNode == SqlUsers){
+        addCertUser();
     }
 }
 
@@ -3701,6 +3795,8 @@ void MainWindow::on_btnDatabaseDelete_clicked()
         delContainer();
     }if(node == SqlCertificates){
         delCertificate();
+    }if(node == SqlUsers){
+        delCertUser();
     }
 }
 
@@ -3954,6 +4050,29 @@ void MainWindow::on_btnDatabaseInfo_clicked()
 
     }else if(node == SqlCertificates){
 
+    }else if(node == SqlUsers){
+
+         if(tree->currentItem()->childCount() == 0){
+             int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
+             int nameHost = modelSqlUsers->getColumnIndex("host");
+             int uuidIndex = modelWsUsers->getColumnIndex("uuid");
+             qDebug() << uuidIndex;
+             QString name = modelSqlUsers->index(index.row(), nameIndex).data(Qt::UserRole + nameIndex).toString();
+             QString host = modelSqlUsers->index(index.row(), nameHost).data(Qt::UserRole + nameHost).toString();
+
+             int row = -1;
+             QString findKey = name + host;
+             for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
+                 if(modelWsUsers->rowKey(i) == findKey){
+                     row = i;
+                 }
+             }
+             if(row != -1){
+                QString uuid = modelWsUsers->index(row, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
+                sendToRecipient(uuid, "get_available_containers", "get_available_containers");
+             }
+         }
+
     }
 
 
@@ -4001,6 +4120,23 @@ void MainWindow::on_mnuCryptoPro_triggered()
 {
     //C:\Windows\System32\rundll32.exe shell32.dll,Control_RunDLL "C:\Program Files\Crypto Pro\CSP\cpconfig.cpl"
     terminal->send("rundll32.exe shell32.dll,Control_RunDLL \"C:\\Program Files\\Crypto Pro\\CSP\\cpconfig.cpl\"", unknown);
+}
+
+void MainWindow::sendToRecipient(const QString &recipient, const QString &message, const QString &command)
+{
+    if(!m_client->isStarted())
+        return;
+
+    QString _message = message.toUtf8().toBase64();
+    QJsonObject obj = QJsonObject();
+    obj.insert("uuid_agent", m_client->getUuidSession());
+    obj.insert("uuid_client", recipient);
+    obj.insert("command", command);
+    obj.insert("message", _message);
+
+    QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+    m_client->sendCommand("command_to_qt_client", "", param);
+
 }
 
 void MainWindow::resetInfoUserContainers()

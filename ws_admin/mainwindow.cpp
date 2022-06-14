@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(client, SIGNAL(getListUsers(QString)), this, SLOT(onFillUsers(QString)));
     connect(client, SIGNAL(addGroupUsers(QString)), this, SLOT(onAddGroup(QString)));
     connect(client, SIGNAL(editGroupUsers(QString)), this, SLOT(onEditGroup(QString)));
-    connect(client,Optionsd SIGNAL(removeGroupUsers(QString)), this, SLOT(onRemoveGroup(QString)));
+    connect(client, SIGNAL(removeGroupUsers(QString)), this, SLOT(onRemoveGroup(QString)));
     connect(client, SIGNAL(addUser(QString)), this, SLOT(onAddUser(QString)));
     connect(client, SIGNAL(deleteUser(QString)), this, SLOT(onDeleteUser(QString)));
     connect(client, SIGNAL(updateUser(QString)), this, SLOT(onUpdateUser(QString)));
@@ -1091,6 +1091,8 @@ void MainWindow::on_mnuTableImport_triggered()
                                 QString key;
                                 QVariant val;
                                 key = item.key();
+                                if(key == "_id")
+                                    continue;
                                 if(item.value().isString())
                                     val = item.value().toString();
                                 else if(item.value().isDouble())
@@ -1102,6 +1104,7 @@ void MainWindow::on_mnuTableImport_triggered()
 
                             }
                             auto res = q.query(_db.getDatabase());
+                            res.exec();
                             if(res.lastError().type() != QSqlError::NoError){
                                 qCritical() << res.lastError().text();
                                 _db.close();
@@ -1109,7 +1112,8 @@ void MainWindow::on_mnuTableImport_triggered()
                             }
                         }
                         _db.getDatabase().commit();
-                        db.close();
+                        _db.close();
+                        QMessageBox::information(this, "Успех", "Таблица успешно имортирована!");
                     }
 
                 }

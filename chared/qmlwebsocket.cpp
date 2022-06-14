@@ -700,6 +700,12 @@ void bWebSocket::responseCommand(ServeResponse * resp)
         }
     }else if(command == "system_info"){
         qDebug() << __FUNCTION__ << "system_info";
+    }else if(command == "get_available_containers"){ //Запрос
+
+        emit wsGetAvailableContainers(resp->recipient);
+
+    }else if(command == "available_containers"){//Ответ
+        emit wsCommandToClient(resp->recipient, message);
     }
 }
 

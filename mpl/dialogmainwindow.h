@@ -61,6 +61,7 @@ private slots:
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
     void onWsExecQuery(const QString& result);
+    void onWsGetAvailableContainers(const QString& recipient);
 
     void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
@@ -86,6 +87,7 @@ private:
     QLabel * infoBar;
     CertUser * currentUser;
     bWebSocket* m_client;
+    QString currentRecipient;
 
     QString _cprocsp_exe;
     bool isUseCsptest;
@@ -129,6 +131,9 @@ private:
 
     /////////////////////////
     const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
+
+    /////
+    void sendToRecipient(const QString &recipient, const QString &message, const QString &command);
 };
 
 #endif // DIALOGMAINWINDOW_H

@@ -38,8 +38,14 @@ QT_END_NAMESPACE
 #define insertCertificateToData         "insertCertificateToData"
 #define deleteContainerFromData         "deleteContainerFromData"
 #define deleteCertificateFromData       "deleteCertificateFromData"
+#define deleteUserFromData              "deleteUserFromData"
 #define insertContainerToData           "insertContainerToData"
+#define insertUserToData                "insertContainerToData"
 #define WsActiveUsers                   "WsActiveUsers"
+
+//Команды клиенту
+#define AvailableContainers             "available_containers"
+#define GetAvailableContainers          "get_available_containers"
 
 class MainWindow : public QMainWindow
 {
@@ -80,6 +86,9 @@ private slots:
     void onOutputCommandLine(const QString& data, int command);
     void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
+
+    void onWsGetAvailableContainers(const QString& recipient);
+    void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -139,6 +148,9 @@ private:
     QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
+
+    QString currentRecipient;
+    void sendToRecipient(const QString &recipient, const QString& message, const QString& command);
 
     void resetInfoUserContainers();
 
@@ -251,6 +263,8 @@ private:
     void delCertificate();
     void addContainer();
     void delContainer();
+    void delCertUser();
+    void addCertUser();
 
     QStandardItemModel *getLocalMountedVolumes();
 

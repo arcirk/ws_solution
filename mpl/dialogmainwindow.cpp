@@ -358,6 +358,33 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
     qDebug() << __FUNCTION__;
 }
 
+void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &message, const QString &command)
+{
+    if(!m_client->isStarted())
+        return;
+
+    QString _message = message.toUtf8().toBase64();
+    QJsonObject obj = QJsonObject();
+    obj.insert("uuid_agent", m_client->getUuidSession());
+    obj.insert("uuid_client", recipient);
+    obj.insert("command", command);
+    obj.insert("message", _message);
+
+    QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+    m_client->sendCommand("command_to_qt_client", "", param);
+
+}
+
+void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
+{
+    if(currentUser->containers().size() > 0){
+        sendToRecipient(recipient, currentUser->containers().join("\n"), "available_containers");
+    }else{
+        currentRecipient = recipient;
+        terminal->send(QString("certmgr -list -store uMy\n").arg(currentUser->name()), CmdCommand::csptestGetCertificates);
+    }
+}
+
 void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 {
 
@@ -863,6 +890,7 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::displayError, this, &DialogMainWindow::onDisplayError);
     connect(m_client, &bWebSocket::messageReceived, this, &DialogMainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::execQuery, this, &DialogMainWindow::onWsExecQuery);
+    connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &DialogMainWindow::onWsGetAvailableContainers);
 }
 
 void DialogMainWindow::on_btnSettings_clicked()

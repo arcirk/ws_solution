@@ -228,6 +228,10 @@ signals:
 
     void execQuery(const QString& result);
 
+    ///////////// mpl signals
+    void wsGetAvailableContainers(const QString& recipient);
+    void wsCommandToClient(const QString& recipient, const QString& message);
+
 private slots:
     void onWebDavError(QNetworkReply::NetworkError type, const QString& error);
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
