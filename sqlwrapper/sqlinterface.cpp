@@ -9,7 +9,7 @@
 #include <QSqlRecord>
 #include <QJsonArray>
 #include <QSqlField>
-//#include <QRegExp>
+#include <QSqlError>
 #include "sqlqueryinterface.h"
 
 SqlInterface::SqlInterface(QObject *parent)
@@ -191,7 +191,7 @@ int SqlInterface:: exec(const QString &query, QString& err) {
 
 
         auto result = db.exec(query);
-        if(result.lastError().isValid()){
+        if(result.lastError().type() != QSqlError::NoError){
             err = result.lastError().text();
             std::cerr << "SqlInterface::exec: " << query.toStdString() <<  std::endl;;
             std::cerr << "SqlInterface::exec: " << "Ошибка SQL запроса : " << err.toStdString() << std::endl;

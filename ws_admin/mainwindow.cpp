@@ -6,6 +6,14 @@
 #include "include/aboutdialog.h"
 #include <serveresponse.h>
 #include <QAbstractItemModel>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <qjsontablemodel.h>
+#include "dialogselectinlist.h"
+#include "sqlinterface.h"
+#include "sqlqueryinterface.h"
 
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
@@ -48,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(client, SIGNAL(getListUsers(QString)), this, SLOT(onFillUsers(QString)));
     connect(client, SIGNAL(addGroupUsers(QString)), this, SLOT(onAddGroup(QString)));
     connect(client, SIGNAL(editGroupUsers(QString)), this, SLOT(onEditGroup(QString)));
-    connect(client, SIGNAL(removeGroupUsers(QString)), this, SLOT(onRemoveGroup(QString)));
+    connect(client,Optionsd SIGNAL(removeGroupUsers(QString)), this, SLOT(onRemoveGroup(QString)));
     connect(client, SIGNAL(addUser(QString)), this, SLOT(onAddUser(QString)));
     connect(client, SIGNAL(deleteUser(QString)), this, SLOT(onDeleteUser(QString)));
     connect(client, SIGNAL(updateUser(QString)), this, SLOT(onUpdateUser(QString)));
@@ -75,17 +83,17 @@ MainWindow::MainWindow(QWidget *parent) :
         client->open(settings[bConfFieldsWrapper::User].toString(), "");
     }
 
-    QString httpPwd = settings[bConfFieldsWrapper::HSPassword].toString();
-    if(!httpPwd.isEmpty())
-        httpPwd = QString::fromStdString(ClientSettings::crypt(httpPwd.toStdString(), "my_key"));
-    else
-        httpPwd = "";
-    httpService = new HttpService(this, settings[bConfFieldsWrapper::HSHost].toString(),
-            settings[bConfFieldsWrapper::HSUser].toString(),
-            httpPwd);
+//    QString httpPwd = settings[bConfFieldsWrapper::HSPassword].toString();
+//    if(!httpPwd.isEmpty())
+//        httpPwd = QString::fromStdString(ClientSettings::crypt(httpPwd.toStdString(), "my_key"));
+//    else
+//        httpPwd = "";
+//    httpService = new HttpService(this, settings[bConfFieldsWrapper::HSHost].toString(),
+//            settings[bConfFieldsWrapper::HSUser].toString(),
+//            httpPwd);
 
-    connect(httpService, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(onReplyFinished(QNetworkReply*)));
+//    connect(httpService, SIGNAL(finished(QNetworkReply*)),
+//            this, SLOT(onReplyFinished(QNetworkReply*)));
 
 }
 
@@ -830,6 +838,54 @@ bool MainWindow::responseResultHsService(const QByteArray &result)
     return true;
 }
 
+QString MainWindow::generateJsonTableModel(QSqlQuery &m_query)
+{
+    QString tableResult;
+
+    if(m_query.lastError().type() != QSqlError::NoError){
+        qCritical() << __FUNCTION__ << m_query.lastError().text();
+    }else{
+
+        int count = m_query.record().count();
+        int rowCount = 0;
+
+        auto rows = QJsonArray();
+        auto cols = QJsonArray();
+
+        for (int i = 0; i < count; ++i) {
+            QString key = m_query.record().fieldName(i);
+            cols.push_back(key);
+        }
+        while (m_query.next()) {
+            QJsonObject obj = QJsonObject();
+            for (int i = 0; i < count; ++i) {
+                QString key = m_query.record().fieldName(i);
+                QVariant val = m_query.value(i);
+                if (val.typeId() == QMetaType::QString)
+                    obj.insert(key, val.toString().trimmed());
+                else if (val.typeId() == QMetaType::Double)
+                    obj.insert(key, val.toDouble());
+                else if (val.typeId() == QMetaType::Int)
+                    obj.insert(key, val.toInt());
+                else if (val.typeId() == QMetaType::QByteArray)
+                    obj.insert(key, QString(val.toByteArray().toBase64()));
+            }
+
+            rows.push_back(obj);
+            rowCount++;
+        }
+        QJsonDocument doc = QJsonDocument();
+        QJsonObject obj = QJsonObject();
+        obj.insert("columns", cols);
+        obj.insert("rows", rows);
+
+        doc.setObject(obj);
+        tableResult = doc.toJson();
+    }
+
+    return tableResult;
+}
+
 void MainWindow::on_btnDeleteUser_clicked()
 {
     QTableWidgetItem * item = listChildServerObjects->item(listChildServerObjects->currentRow(), 3);
@@ -952,5 +1008,124 @@ void MainWindow::on_mnuExportData_triggered()
 void MainWindow::on_mnuImportUsersFrom1C_triggered()
 {
     httpService->request("getUsers");
+}
+
+
+void MainWindow::on_treeSrvObjects_itemClicked(QTreeWidgetItem *item, int column)
+{
+
+}
+
+
+void MainWindow::on_mnuImportData_triggered()
+{
+
+}
+
+
+void MainWindow::on_mnuTableImport_triggered()
+{
+
+    if(settings[bConfFieldsWrapper::SQLFormat] == "SQLSERVER"){
+        QString f = QFileDialog::getOpenFileName(this, tr("Выбрать файл базы данных"),
+                                                     QDir::homePath(),
+                                                     "Все файлы (*.*)");
+        if(f != ""){
+            auto db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName(f);
+            if(db.open()){
+
+                auto result = db.exec("SELECT name FROM sqlite_master WHERE type='table';");
+                QString jsonModel = generateJsonTableModel(result);
+                if(jsonModel.isEmpty()){
+                    db.close();
+                    return;
+                }
+                auto model = new QJsonTableModel(this);
+                model->setJsonText(jsonModel);
+                auto dlg = DialogSelectinList(model, this);
+                dlg.setModal(true);
+                dlg.exec();
+                if(dlg.result() == QDialog::Accepted){
+
+
+                    QStringList tables = dlg.dialogResult();
+                    if(tables.size() > 0){
+
+                        QString table = tables[0];
+
+                        result = db.exec(QString("SELECT * FROM %1").arg(table));
+                        QString jsonModel = generateJsonTableModel(result);
+                        if(jsonModel.isEmpty()){
+                            db.close();
+                            return;
+                        }
+                        db.close();
+
+                        auto doc = QJsonDocument::fromJson(jsonModel.toUtf8());
+                        //auto cols = doc.object().value("columns").toArray();
+                        auto rows = doc.object().value("rows").toArray();
+
+                        auto _db = SqlInterface(this);
+                        _db.setDriver("QODBC");
+                        _db.setDatabaseName("arcirk");
+                        _db.setHost(settings[bConfFieldsWrapper::SQLHost].toString());
+                        _db.setSqlUser(settings[bConfFieldsWrapper::SQLUser].toString());
+
+                        QString dPwd = settings[bConfFieldsWrapper::SQLPassword].toString();
+                        QString pass = "";
+                        if (!dPwd.isEmpty()){
+                            pass = bWebSocket::crypt(dPwd, "my_key");
+                        }
+                        _db.setSqlPwd(pass);
+
+                        bool res = _db.connect();
+
+                        if(!res)
+                            return;
+                        _db.getDatabase().transaction();
+                         foreach(auto row, rows){
+                            auto q = QBSqlQuery(QBSqlCommand::QSqlInsert, table);
+                            auto obj = row.toObject();
+                            for(auto item = obj.begin(); item != obj.end(); ++item){
+                                QString key;
+                                QVariant val;
+                                key = item.key();
+                                if(item.value().isString())
+                                    val = item.value().toString();
+                                else if(item.value().isDouble())
+                                    val = QString::number(item.value().toInteger());
+                                else
+                                    val = item.value().toVariant();
+
+                                q.addField(key, val);
+
+                            }
+                            auto res = q.query(_db.getDatabase());
+                            if(res.lastError().type() != QSqlError::NoError){
+                                qCritical() << res.lastError().text();
+                                _db.close();
+                                return;
+                            }
+                        }
+                        _db.getDatabase().commit();
+                        db.close();
+                    }
+
+                }
+
+
+            }else
+                QMessageBox::critical(this, "Ошибка", "Ошибка открытия файла базы данных!");
+        }
+
+    }
+
+}
+
+
+void MainWindow::on_mnuOptions_changed()
+{
+
 }
 

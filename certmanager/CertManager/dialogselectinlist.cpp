@@ -50,7 +50,7 @@ void DialogSelectInList::accept()
 
     auto index = ui->tableView->currentIndex();
     if(!index.isValid()){
-        QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+        QMessageBox::critical(this, "Ошибка", "Не выбрана строка!");
         return;
     }
 

@@ -8,6 +8,7 @@
 #include <qmlwebsocket.h>
 #include "include/userdialog.h"
 #include "httpservice.h"
+#include <QSqlQuery>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -79,6 +80,14 @@ private slots:
 
     void on_mnuImportUsersFrom1C_triggered();
 
+    void on_treeSrvObjects_itemClicked(QTreeWidgetItem *item, int column);
+
+    void on_mnuImportData_triggered();
+
+    void on_mnuTableImport_triggered();
+
+    void on_mnuOptions_changed();
+
 private:
     Ui::MainWindow *ui;
     ClientSettings settings;
@@ -112,6 +121,7 @@ private:
 
     bool responseResultHsService(const QByteArray& result);
 
+    QString generateJsonTableModel(QSqlQuery& result);
 };
 
 #endif // MAINWINDOW_H

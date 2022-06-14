@@ -1,10 +1,15 @@
 QT += core gui
 QT += widgets
 QT += network
+QT += sql
 
 CONFIG += c++17
 
 SOURCES += \
+        ../chared/qjsontablemodel.cpp \
+        ../sqlwrapper/sqlinterface.cpp \
+        ../sqlwrapper/sqlqueryinterface.cpp \
+        dialogselectinlist.cpp \
         httpservice.cpp \
         main.cpp \
         ../chared/clientsettings.cpp \
@@ -21,9 +26,13 @@ SOURCES += \
 
 HEADERS += \
     ../chared/clientsettings.h \
+    ../chared/qjsontablemodel.h \
     ../chared/qmlwebsocket.h \
     ../chared/qwebdav.h \
     ../chared/serveresponse.h \
+    ../sqlwrapper/sqlinterface.h \
+    ../sqlwrapper/sqlqueryinterface.h \
+    dialogselectinlist.h \
     httpservice.h \
     include/optionsdialog.h \
     include/groupdialog.h \
@@ -34,6 +43,7 @@ HEADERS += \
     mainwindow.h
 
 FORMS += \
+    dialogselectinlist.ui \
     mainwindow.ui \
     form/aboutdialog.ui \
     form/directoryinfobasedialog.ui \
@@ -65,6 +75,8 @@ unix:LIBS += -lboost_filesystem
 INCLUDEPATH += $$PWD/../ws_client/include
 DEPENDPATH += $$PWD/../ws_client
 INCLUDEPATH += $$PWD/../chared
+INCLUDEPATH += $$PWD/../sqlwrapper
+
 windows:INCLUDEPATH += $(BOOST_INCLDUE)
 
 CONFIG(debug, debug|release): DEFINES +=  DEBUG_MODE
