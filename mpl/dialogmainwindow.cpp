@@ -367,11 +367,12 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
-    if(!to_agent)
-        obj.insert("uuid_client", recipient);
-    else
+    //if(!to_agent)
         obj.insert("uuid_agent", recipient);
-    obj.insert("uuid_client", recipient);
+    //else
+    //    obj.insert("uuid_agent", recipient);
+
+    obj.insert("uuid_client", m_client->getUuidSession());
     obj.insert("command", command);
     obj.insert("message", _message);
 
@@ -406,6 +407,10 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         res.replace("\r", "");
         QStringList keys = res.split("\n");
         currentUser->setContainers(keys);
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
+            currentRecipient = "";
+        }
     }
 }
 
