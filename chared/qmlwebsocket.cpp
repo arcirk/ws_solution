@@ -713,7 +713,7 @@ void bWebSocket::responseCommand(ServeResponse * resp)
         emit wsGetAvailableContainers(resp->recipient);
 
     }else if(command == "available_containers"){//Ответ
-        emit wsCommandToClient(resp->recipient, message);
+        emit wsCommandToClient(resp->recipient, command, message);
     }
 }
 

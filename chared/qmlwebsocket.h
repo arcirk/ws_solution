@@ -230,7 +230,7 @@ signals:
 
     ///////////// mpl signals
     void wsGetAvailableContainers(const QString& recipient);
-    void wsCommandToClient(const QString& recipient, const QString& message);
+    void wsCommandToClient(const QString& recipient, const QString& command, const QString& message);
 
 private slots:
     void onWebDavError(QNetworkReply::NetworkError type, const QString& error);

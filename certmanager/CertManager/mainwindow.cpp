@@ -187,6 +187,7 @@ void MainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::getActiveUsers, this, &MainWindow::onGetActiveUsers);
     connect(m_client, &bWebSocket::execQuery, this, &MainWindow::onWsExecQuery);
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &MainWindow::onWsGetAvailableContainers);
+    connect(m_client, &bWebSocket::wsCommandToClient, this, &MainWindow::onWsCommandToClient);
 }
 
 void MainWindow::createTerminal()
@@ -3235,7 +3236,7 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
 {
     qDebug() << __FUNCTION__;
     if(command == AvailableContainers){
-        qDebug() << message;
+        qDebug() << qPrintable(message);
     }
 }
 
