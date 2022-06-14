@@ -365,7 +365,12 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
     QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message).toUtf8().toBase64();
     QJsonObject obj = QJsonObject();
-    obj.insert("uuid_agent", m_client->getUuidSession());
+    //obj.insert("uuid_agent", m_client->getUuidSession());
+    //obj.insert("uuid_agent", m_client->getUuidSession());
+    if(!to_agent)
+        obj.insert("uuid_client", recipient);
+    else
+        obj.insert("uuid_agent", recipient);
     obj.insert("uuid_client", recipient);
     obj.insert("command", command);
     obj.insert("message", _message);
