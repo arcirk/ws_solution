@@ -367,13 +367,13 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
-    //if(!to_agent){
+    if(!to_agent){
         obj.insert("uuid_agent", recipient);
         obj.insert("uuid_client", m_client->getUuidSession());
-    //}else{
-    //    obj.insert("uuid_agent", m_client->getUuidSession());
-    //    obj.insert("uuid_client", recipient);
-    //}
+    }else{
+        obj.insert("uuid_agent", m_client->getUuidSession());
+        obj.insert("uuid_client", recipient);
+    }
 
     obj.insert("command", command);
     obj.insert("message", _message);

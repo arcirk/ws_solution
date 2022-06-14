@@ -3233,6 +3233,7 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 
 void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
+    qDebug() << __FUNCTION__;
     if(command == AvailableContainers){
         qDebug() << message;
     }
@@ -4130,12 +4131,13 @@ void MainWindow::sendToRecipient(const QString &recipient, const QString &comman
 
     QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message);
     QJsonObject obj = QJsonObject();
-    //obj.insert("uuid_agent", m_client->getUuidSession());
-    //if(!to_agent)
+    if(to_agent){
         obj.insert("uuid_agent", recipient);
-    //else
-    //    obj.insert("uuid_agent", recipient);
-    obj.insert("uuid_client", m_client->getUuidSession());
+        obj.insert("uuid_client", m_client->getUuidSession());
+    }else{
+        obj.insert("uuid_agent", m_client->getUuidSession());
+        obj.insert("uuid_client", recipient);
+    }
     obj.insert("command", command);
     obj.insert("message", _message);
 

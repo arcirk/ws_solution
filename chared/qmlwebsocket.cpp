@@ -319,9 +319,9 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
-#ifdef defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER)
+//#ifdef defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER)
             responseCommand(resp);
-#endif
+//#endif
         }else if (resp->command == "exec_query"){
             emit execQuery(resp->message);
         }else if (resp->command == "exec_query_qt"){
