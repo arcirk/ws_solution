@@ -278,7 +278,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 
 //#ifdef QT_MPL_CLIENT
             if(resp->message == "get_available_containers"){
-                            emit wsGetAvailableContainers(resp->recipient);
+                            emit wsGetAvailableContainers(resp->uuid_session);
                         }
 //#else
 //            responseCommand(resp);
