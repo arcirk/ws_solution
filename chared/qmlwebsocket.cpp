@@ -269,10 +269,12 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit unreadMessages(resp->message);
         }
         else if(resp->command == "command_to_qt_client"){
-#ifdef QT_QML_CLIENT_APP
+#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
             qDebug() << resp->message;
             if(resp->message == "clientShow"){
                 emit clientShow();
+            }if(resp->message == "get_available_containers"){
+                emit wsGetAvailableContainers(resp->recipient);
             }
 #else
             responseCommand(resp);

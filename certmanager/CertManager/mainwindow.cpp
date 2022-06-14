@@ -4070,7 +4070,7 @@ void MainWindow::on_btnDatabaseInfo_clicked()
              if(row != -1){
                 QString uuid = modelWsUsers->index(row, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
                 qDebug() << uuid;
-                sendToRecipient(uuid, "get_available_containers", "get_available_containers", true);
+                sendToRecipient(uuid, "get_available_containers", "get_available_containers", false);
              }
          }
 
@@ -4128,7 +4128,7 @@ void MainWindow::sendToRecipient(const QString &recipient, const QString &comman
     if(!m_client->isStarted())
         return;
 
-    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message).toUtf8().toBase64();
+    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message);
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //if(!to_agent)

@@ -363,11 +363,11 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     if(!m_client->isStarted())
         return;
 
-    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message).toUtf8().toBase64();
+    QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message);
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
-    //if(!to_agent)
+    if(!to_agent)
         obj.insert("uuid_agent", recipient);
     //else
     //    obj.insert("uuid_agent", recipient);
