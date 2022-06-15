@@ -1160,6 +1160,46 @@ void MainWindow::treeSetFromCurrentUserCerts()
     }
 }
 
+void MainWindow::treeSetCertUserData(CertUser *usr)
+{
+    if(!usr)
+        return;
+    if(usr->uuid().isNull())
+        return;
+
+    auto root = findTreeItem(SqlUsers);
+    if(!root)
+        return;
+    auto user = findTreeItem(usr->uuid().toString(), root);
+    if(!user){
+        user = addTreeNode(usr->name(), usr->uuid().toString(), ":/img/certUsers.png");
+        root->addChild(user);
+    }
+
+    QString pair = usr->name() + "/" + usr->domain();
+
+    auto userData = findTreeItem("data_" + usr->uuid().toString(), user);
+    if(!userData){
+        userData = addTreeNode("Доступные контейнеры", "data_" + usr->uuid().toString(), ":/img/key16.png");
+        user->addChild(userData);
+    }
+    auto userReg = findTreeItem("reg_" + pair, userData);
+    if(!userReg){
+        userReg = addTreeNode("Реестр", "reg_" + pair, ":/img/registry16.png");
+        userData->addChild(userReg);
+    }
+    auto userVol = findTreeItem("vol_" + pair, userData);
+    if(!userVol){
+        userVol = addTreeNode("Устройства", "vol_" + pair, ":/img/Card_Reader_16.ico");
+        userData->addChild(userVol);
+    }
+    auto userCrt = findTreeItem("cert_" + pair, user);
+    if(!userCrt){
+        userCrt = addTreeNode("Установленные сертификаты", "cert_" + pair, ":/img/cert.png");
+        user->addChild(userCrt);
+    }
+}
+
 
 void MainWindow::treeSetFromSqlContainers()
 {
@@ -2313,6 +2353,33 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             ui->btnCurrentCopyToSql->setEnabled(false);
             ui->btnCurrentUserAdd->setEnabled(true);
             ui->btnAdd->setEnabled(true);
+        }else{
+            ui->tableView->setModel(nullptr);
+            if(key.left(4) == "reg_"){
+                QStringList m_key = key.split("_");
+                QStringList m_userHost = m_key[1].split("/");
+                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto itr = m_users.find(index);
+                if(itr != m_users.end()){
+                    itr.value()->setModel();
+                    auto regModel = itr.value()->modelContainers();
+                    regModel->setFilter("REGISTRY");
+                    ui->tableView->setModel(regModel);
+
+                }
+            }else if(key.left(4) == "vol_"){
+                QStringList m_key = key.split("_");
+                QStringList m_userHost = m_key[1].split("/");
+                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto itr = m_users.find(index);
+                if(itr != m_users.end()){
+                    itr.value()->setModel();
+                    auto regModel = itr.value()->modelContainers();
+                    regModel->setFilter("!REGISTRY");
+                    ui->tableView->setModel(regModel);
+
+                }
+            }
         }
     }
 //        return;
@@ -2945,9 +3012,9 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
                 item->addChild(Root);
                 auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
                 item->addChild(certs);
-                auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
+                auto reg = addTreeNode("Реестр", currentUserRegistry, ":/img/registry16.png");
                 Root->addChild(reg);
-                auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
+                auto dev = addTreeNode("Устройства", currentUserDivace, ":/img/Card_Reader_16.ico");
                 Root->addChild(dev);
 
                 getAvailableContainers(currentUser);
@@ -3172,15 +3239,25 @@ void MainWindow::onGetActiveUsers(const QString& resp){
     qDebug() << __FUNCTION__;// << qPrintable(resp);
     modelWsUsers->setJsonText(resp);
     modelWsUsers->reset();
-    int colHost = modelWsUsers->getColumnIndex("host_name");
-    int colName = modelWsUsers->getColumnIndex("user_name");
+    int iHost = modelWsUsers->getColumnIndex("host_name");
+    int iName = modelWsUsers->getColumnIndex("user_name");
+    int iApp = modelWsUsers->getColumnIndex("app_name");
+    int iUuid = modelWsUsers->getColumnIndex("uuid");
     for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
-        auto user = modelWsUsers->index(i, colName).data(Qt::UserRole + colName).toString();
-        auto host = modelWsUsers->index(i, colHost).data(Qt::UserRole + colHost).toString();
+        auto user = modelWsUsers->index(i, iName).data(Qt::UserRole + iName).toString();
+        auto host = modelWsUsers->index(i, iHost).data(Qt::UserRole + iHost).toString();
+        auto app = modelWsUsers->index(i, iApp).data(Qt::UserRole + iApp).toString();
+        auto uuid = modelWsUsers->index(i, iUuid).data(Qt::UserRole + iUuid).toString();
         modelWsUsers->setRowKey(i, user+host);
-        if(isCertUserExists(user, host)){
+        QList<QPair<QString, QString>> temp;
+        if(app == "qt_mpl_client" && isCertUserExists(user, host)){
             if(!currentUser->thisIsTheUser(user, host)){
-                m_queue.append(qMakePair(user,host));
+                auto p = qMakePair(user,host);
+                if(temp.indexOf(p) != -1)
+                    continue;
+                //возмет у первого данные, остальнх если подключено нескольколько клиентов с одним пользоваетем игнорим
+                m_queue.append(uuid); //получим данные контейнеров и сертификатов на удаленных клиентах
+                temp.append(p);
             }
         }
     }
@@ -3200,9 +3277,13 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         QString host = item.value("host_name").toString();
         CertUser * user;
         if(!currentUser->thisIsTheUser(name, host)){
+            auto itr = m_users.find(qMakePair(name, host));
+            if(itr != m_users.end())
+                continue;
             user = new CertUser(this);
             user->setName(name);
             user->setDomain(host);
+            m_users.insert(qMakePair(name, host), user);
         }
         else{
              user = currentUser;
@@ -3247,7 +3328,7 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
 {
     if(command == CmdCommand::echoUserName){
         currentUser->setName(result.toString());
-        currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
+        //currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
     }else if(command == CmdCommand::wmicGetSID){
         currentUser->setSid(result.toString());
@@ -3309,10 +3390,50 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 
 void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
-    qDebug() << __FUNCTION__;
-    //if(command == AvailableContainers){
-        qDebug() <<  __FUNCTION__ << qPrintable(message);
-    //}
+    //qDebug() << __FUNCTION__;
+//    qDebug() <<  __FUNCTION__ << recipient << command;
+//    qDebug() <<  __FUNCTION__ << qPrintable(message);
+    if(command == AvailableContainers){
+
+    }else if(command == mplCertData){
+
+        int iUuid = modelWsUsers->getColumnIndex("uuid");
+        auto index = findInTable(modelWsUsers, recipient, iUuid, false);
+        if(!index.isValid())
+            return;
+
+        QString result = QByteArray::fromBase64(message.toUtf8());
+        auto doc = QJsonDocument::fromJson(result.toUtf8());
+        if(doc.isEmpty())
+            return;
+
+        auto obj = doc.object();
+        QStringList containers = obj.value("cnt").toString().split("\n");
+        auto certs = obj.value("certs").toObject();
+
+        int iName = modelWsUsers->getColumnIndex("name");
+        int iHost = modelWsUsers->getColumnIndex("host_name");
+        QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
+        QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
+        if(!name.isEmpty() && !host.isEmpty()){
+            auto itr = m_users.find(qMakePair(name, host));
+            CertUser * usr = nullptr;
+            if(itr != m_users.end())
+                usr = itr.value();
+            else{
+                usr = new CertUser(this);
+                usr->setName(name);
+                usr->setDomain(host);
+                m_users.insert(qMakePair(name, host), usr);
+            }
+            usr->setContainers(containers);
+            usr->certsFromModel(certs);
+
+            usr->setModel();
+
+            treeSetCertUserData(usr);
+        }
+    }
 }
 
 void MainWindow::onWsMplClientFormLoaded(const QString &resp)
@@ -4215,13 +4336,10 @@ void MainWindow::onStartGetCertUsersData()
     if(m_queue.size() == 0)
         return;
 
-    auto item = m_queue.dequeue();
-    int row = modelWsUsers->row(item.first +item.second);
-    if(row != -1){
-        int ind = modelWsUsers->getColumnIndex("uuid");
-        auto uuid = modelWsUsers->index(row, 1).data(Qt::UserRole + ind).toString();
-        sendToRecipient(uuid, "get_crypt_data", "get_crypt_data", false);
-    }
+    //получим по очереди данные о контейнерах и сертификатх с удаленных клиентов
+    auto uuid = m_queue.dequeue();
+    sendToRecipient(uuid, "get_crypt_data", "get_crypt_data", false);
+
 }
 
 void MainWindow::onWhenDataIsLoaded()
@@ -4248,6 +4366,7 @@ void MainWindow::sendToRecipient(const QString &recipient, const QString &comman
 
     QString param = QJsonDocument(obj).toJson(QJsonDocument::Indented);
     if(!to_agent)
+
         m_client->sendCommand("command_to_qt_client", "", param);
     else
         m_client->sendCommand("command_to_qt_agent", "", param);

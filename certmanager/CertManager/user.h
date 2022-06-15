@@ -6,13 +6,10 @@
 #include <QUuid>
 #include <certificate.h>
 #include "keyscontainer.h"
+#include <qjsontablemodel.h>
+#include <qproxymodel.h>
 
 namespace boost { namespace uuids { class uuid; } }
-
-//enum UserStorgareType{
-//    StorgareRegistry,
-//    StorgareVolume
-//};
 
 class CertUser : public QObject
 {
@@ -25,17 +22,8 @@ public:
     void setName(const QString& value);
     void setSid(const QString& value);
 
-    void setTreeItem(QTreeWidgetItem * item);
     void setUuid(const QUuid& value);
     void setOnline(bool value);
-    QTreeWidgetItem * treeItem();
-
-    QStringList getRigstryData();
-    QStringList getDivaceData();
-
-    QString modelContainersText();
-
-    KeysContainer *container(const QString& key);
 
     QString domain();
     QString name();
@@ -50,10 +38,24 @@ public:
     bool online();
     bool thisIsTheUser(const QString& usr, const QString& host);
 
+
+    QString modelContainersText();
+    KeysContainer *container(const QString& key);
+    QStringList getRigstryData();
+    QStringList getDivaceData();
+
+
     QMap<QString, Certificate*>& certificates();
+    QString modelCertificatesText();
     QJsonObject certModel();
+    void certsFromModel(const QJsonObject& certs);
 
     KeysContainer *cntDetails(const QString& name);
+
+    QProxyModel* modelContainers();
+    QJsonTableModel* modelCertificates();
+
+    void setModel();
 
 private:
     QString _domain;
@@ -68,9 +70,9 @@ private:
     QMap<QString, KeysContainer*> m_cnt;
     QMap<QString, Certificate*> m_cert;
 
-    QTreeWidgetItem * _treeItem;
-
-
+    QJsonTableModel* _model;
+    QProxyModel * _proxyModel;
+    QJsonTableModel* _modelCerts;
 
 signals:
 

@@ -47,6 +47,7 @@ QT_END_NAMESPACE
 //Команды клиенту
 #define AvailableContainers             "available_containers"
 #define GetAvailableContainers          "get_available_containers"
+#define mplCertData                     "mpl_cert_data"
 
 class MainWindow : public QMainWindow
 {
@@ -144,7 +145,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QQueue<QPair<QString,QString>> m_queue; //загрузка данных контейнеров и сертификатов пользователей online
+    QQueue<QString> m_queue; //загрузка данных контейнеров и сертификатов пользователей online
 
     QList<QToolButton*> toolBar;
     QList<QToolButton*> toolBarActiveUsers;
@@ -168,7 +169,7 @@ private:
     SqlInterface * db;
     QLabel * infoBar;
     CertUser * currentUser;
-    QMap<QString, CertUser*> m_users;
+    QMap<QPair<QString, QString>, CertUser*> m_users;
     bWebSocket* m_client;
 
     CommandLine * terminal;
@@ -246,6 +247,7 @@ private:
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
     void treeSetFromCurrentUserCerts();
+    void treeSetCertUserData(CertUser * usr);
 
     void resetTableJsonModel(const QJsonObject& obj, const QString& cmd);
 

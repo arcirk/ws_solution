@@ -216,6 +216,17 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
    return;
 }
 
+void Certificate::fromModelObject(const QJsonObject &obj)
+{
+    _subject = obj.value("subject").toString();
+    _issuer = obj.value("issuer").toString();
+    _notValidBefore = obj.value("notValidBefore").toString();
+    _notValidAfter = obj.value("notValidAfter").toString();
+    _parentUser = obj.value("parentUser").toString();
+    _container = obj.value("container").toString();
+    _serial = obj.value("serial").toString();
+
+}
 QJsonObject Certificate::getObject()
 {
     auto obj = QJsonObject();

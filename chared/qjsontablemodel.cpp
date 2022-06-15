@@ -317,10 +317,9 @@ QString QJsonTableModel::rowKey(int index)
 
 int QJsonTableModel::row(const QString& key)
 {
-    int i = 0;
-    foreach(auto item, m_rowKeys){
-       if(item == key){
-           return i;
+    for(auto item = m_rowKeys.begin(); item != m_rowKeys.end();  ++item){
+       if(item.value() == key){
+           return item.key();
        }
     }
     return -1;

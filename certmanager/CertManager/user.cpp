@@ -1,5 +1,7 @@
 #include "user.h"
 #include "registry.h"
+#include <qjsontablemodel.h>
+#include <qproxymodel.h>
 
 CertUser::CertUser(QObject *parent)
     : QObject{parent}
@@ -7,8 +9,9 @@ CertUser::CertUser(QObject *parent)
     _domain = "";
     _name = "";
     _sid = "";
-    _treeItem = nullptr;
     _uuid = QUuid();
+    _model = nullptr;
+    _proxyModel = nullptr;
 
 }
 
@@ -48,11 +51,6 @@ void CertUser::setContainers(const QStringList &value)
     }
 }
 
-void CertUser::setTreeItem(QTreeWidgetItem *item)
-{
-    _treeItem = item;
-}
-
 void CertUser::setUuid(const QUuid &value)
 {
     _uuid = value;
@@ -61,11 +59,6 @@ void CertUser::setUuid(const QUuid &value)
 void CertUser::setOnline(bool value)
 {
     _online = value;
-}
-
-QTreeWidgetItem *CertUser::treeItem()
-{
-    return _treeItem;
 }
 
 QStringList CertUser::getRigstryData()
@@ -194,6 +187,11 @@ QMap<QString, Certificate *>& CertUser::certificates()
     return m_cert;
 }
 
+QString CertUser::modelCertificatesText()
+{
+    return QJsonDocument(certModel()).toJson();
+}
+
 QJsonObject CertUser::certModel()
 {
     auto objCols = QJsonArray();
@@ -229,6 +227,24 @@ QJsonObject CertUser::certModel()
 
 }
 
+void CertUser::certsFromModel(const QJsonObject &certs)
+{
+    m_cert.clear();
+    auto objRows = certs.value("rows").toArray();
+    if(objRows.isEmpty())
+        return;
+    foreach(auto item, objRows){
+        auto row = item.toObject();
+        auto cert = new Certificate(this);
+        cert->fromModelObject(row);
+        if(cert->serial().isEmpty()){
+            delete cert;
+            continue;
+        }
+        m_cert.insert(cert->serial(), cert);
+    }
+}
+
 
 KeysContainer *CertUser::cntDetails(const QString &name)
 {
@@ -237,5 +253,32 @@ KeysContainer *CertUser::cntDetails(const QString &name)
         return  itr.value();
 
     return nullptr;
+}
+
+QProxyModel *CertUser::modelContainers()
+{
+    return _proxyModel;
+}
+
+QJsonTableModel *CertUser::modelCertificates()
+{
+    return _modelCerts;
+}
+
+void CertUser::setModel()
+{
+    if(_model)
+        _model = new QJsonTableModel(this);
+    _model->setJsonText(modelContainersText());
+    _model->reset();
+
+    if(_proxyModel)
+        _proxyModel = new QProxyModel(this);
+    _proxyModel->setSourceModel(_model);
+
+    if(_modelCerts)
+        _modelCerts = new QJsonTableModel(this->parent());
+    _modelCerts->setJsonText(modelCertificatesText());
+    _modelCerts->reset();
 }
 
