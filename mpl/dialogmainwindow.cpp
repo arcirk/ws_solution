@@ -398,8 +398,11 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
 
     auto doc = QJsonDocument();
     auto obj = QJsonObject();
-    obj.insert("cnt", currentUser->containers().join("\n"));
-    obj.insert("certs", currentUser->certModel());
+    auto objCerts = QJsonObject();
+    objCerts.insert("cnt", currentUser->containers().join("\n"));
+    objCerts.insert("certs", currentUser->certModel());
+    obj.insert("command", "mpl_cert_data");
+    obj.insert("message", QString(QJsonDocument(objCerts).toJson().toBase64()));
     QString object = QJsonDocument(obj).toJson(QJsonDocument::Indented);
 
     auto objMain = QJsonObject();
@@ -409,7 +412,8 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
     objMain.insert("uuid_agent", recipient);
     objMain.insert("uuid_client", m_client->getUuidSession());
 
-    QString param = QJsonDocument(objMain).toJson(QJsonDocument::Indented);
+    doc.setObject(objMain);
+    QString param = doc.toJson();// QJsonDocument(objMain).toJson(QJsonDocument::Indented);
     m_client->sendCommand("command_to_qt_agent", "", param);
 }
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)

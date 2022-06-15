@@ -269,7 +269,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit unreadMessages(resp->message);
         }
         else if(resp->command == "command_to_qt_client"){
-#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
+//#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
             //qDebug() << resp->message;
             if(resp->message == "clientShow"){
                 emit clientShow();
@@ -278,7 +278,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             }else if(resp->message == "get_crypt_data"){
                 emit wsGetCryptData(resp->uuid_session);
             }
-#else
+//#else
 
 //#ifdef QT_MPL_CLIENT
 //            if(resp->message == "get_available_containers"){
@@ -288,7 +288,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 //            responseCommand(resp);
 //#endif
 
-#endif
+//#endif
         }
         else if(resp->command == "get_group_list"){
             emit getGroupList(resp->message);
@@ -334,6 +334,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 #ifdef QT_CERT_MANAGER
             emit mplFormLoaded(resp->message);
 #endif
+        }else if (resp->command == "connect_unknown_user"){
+
         }
         else
            qDebug() << "Не известная команда: " << resp->command;
