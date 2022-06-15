@@ -159,6 +159,10 @@ private:
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
 
+    QJsonTableModel * modelCertUserContainers;
+    QProxyModel     * proxyModeCertlUserConteiners;
+    QJsonTableModel * modelCertUserCertificates;
+
     QString currentRecipient;
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
 

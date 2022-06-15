@@ -164,6 +164,15 @@ void MainWindow::createModels(){
     proxyModelUserConteiners = new QProxyModel(this);
     proxyModelUserConteiners->setSourceModel(modelUserContainers);
 
+    modelCertUserCertificates = new QJsonTableModel(this);
+    modelCertUserCertificates->setRowsIcon(QIcon(":/img/rosette.ico"));
+    modelCertUserCertificates->setColumnAliases(m_colAliases);
+
+    modelCertUserContainers = new QJsonTableModel(this);
+    modelCertUserContainers->setColumnAliases(m_colAliases);
+    modelCertUserContainers->setRowsIcon(QIcon(":/img/cont.png"));
+    proxyModeCertlUserConteiners = new QProxyModel(this);
+    proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
 }
 
 void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
@@ -2361,24 +2370,44 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto itr = m_users.find(index);
                 if(itr != m_users.end()){
-                    itr.value()->setModel();
-                    auto regModel = itr.value()->modelContainers();
-                    regModel->setFilter("REGISTRY");
-                    ui->tableView->setModel(regModel);
-
+                    QString filter = "REGISTRY";
+                    modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
+                    modelCertUserContainers->reset();
+                    //proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
+                    proxyModeCertlUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
+                    ui->tableView->setModel(proxyModeCertlUserConteiners);
+                    ui->tableView->resizeColumnsToContents();
                 }
+                int ind = modelCertUserContainers->getColumnIndex("name");
+                if(ind != -1)
+                    ui->tableView->setColumnHidden(ind, true);
+                ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+                if(ind != -1)
+                    ui->tableView->setColumnHidden(ind, true);
+
+                ui->tableView->resizeColumnsToContents();
             }else if(key.left(4) == "vol_"){
+                QString filter = "!REGISTRY";
                 QStringList m_key = key.split("_");
                 QStringList m_userHost = m_key[1].split("/");
                 QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto itr = m_users.find(index);
                 if(itr != m_users.end()){
-                    itr.value()->setModel();
-                    auto regModel = itr.value()->modelContainers();
-                    regModel->setFilter("!REGISTRY");
-                    ui->tableView->setModel(regModel);
-
+                    modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
+                    modelCertUserContainers->reset();
+                    //proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
+                    proxyModeCertlUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
+                    ui->tableView->setModel(proxyModeCertlUserConteiners);
+                    ui->tableView->resizeColumnsToContents();
                 }
+                int ind = modelCertUserContainers->getColumnIndex("name");
+                if(ind != -1)
+                    ui->tableView->setColumnHidden(ind, true);
+                ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+                if(ind != -1)
+                    ui->tableView->setColumnHidden(ind, true);
+
+                ui->tableView->resizeColumnsToContents();
             }
         }
     }
@@ -3428,9 +3457,6 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             }
             usr->setContainers(containers);
             usr->certsFromModel(certs);
-
-            usr->setModel();
-
             treeSetCertUserData(usr);
         }
     }

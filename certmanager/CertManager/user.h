@@ -6,8 +6,8 @@
 #include <QUuid>
 #include <certificate.h>
 #include "keyscontainer.h"
-#include <qjsontablemodel.h>
-#include <qproxymodel.h>
+//#include <qjsontablemodel.h>
+//#include <qproxymodel.h>
 
 namespace boost { namespace uuids { class uuid; } }
 
@@ -52,10 +52,10 @@ public:
 
     KeysContainer *cntDetails(const QString& name);
 
-    QProxyModel* modelContainers();
-    QJsonTableModel* modelCertificates();
+//    QProxyModel* modelContainers();
+//    QJsonTableModel* modelCertificates();
 
-    void setModel();
+   //void setModel();
 
 private:
     QString _domain;
@@ -70,9 +70,9 @@ private:
     QMap<QString, KeysContainer*> m_cnt;
     QMap<QString, Certificate*> m_cert;
 
-    QJsonTableModel* _model;
-    QProxyModel * _proxyModel;
-    QJsonTableModel* _modelCerts;
+//    QJsonTableModel* _model;
+//    QProxyModel * _proxyModel;
+//    QJsonTableModel* _modelCerts;
 
 signals:
 

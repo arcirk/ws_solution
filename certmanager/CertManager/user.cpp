@@ -1,7 +1,7 @@
 #include "user.h"
 #include "registry.h"
-#include <qjsontablemodel.h>
-#include <qproxymodel.h>
+//#include <qjsontablemodel.h>
+//#include <qproxymodel.h>
 
 CertUser::CertUser(QObject *parent)
     : QObject{parent}
@@ -10,8 +10,8 @@ CertUser::CertUser(QObject *parent)
     _name = "";
     _sid = "";
     _uuid = QUuid();
-    _model = nullptr;
-    _proxyModel = nullptr;
+//    _model = nullptr;
+//    _proxyModel = nullptr;
 
 }
 
@@ -255,30 +255,30 @@ KeysContainer *CertUser::cntDetails(const QString &name)
     return nullptr;
 }
 
-QProxyModel *CertUser::modelContainers()
-{
-    return _proxyModel;
-}
+//QProxyModel *CertUser::modelContainers()
+//{
+//    return _proxyModel;
+//}
 
-QJsonTableModel *CertUser::modelCertificates()
-{
-    return _modelCerts;
-}
+//QJsonTableModel *CertUser::modelCertificates()
+//{
+//    return _modelCerts;
+//}
 
-void CertUser::setModel()
-{
-    if(_model)
-        _model = new QJsonTableModel(this);
-    _model->setJsonText(modelContainersText());
-    _model->reset();
+//void CertUser::setModel()
+//{
+//    if(_model)
+//        _model = new QJsonTableModel(this);
+//    _model->setJsonText(modelContainersText());
+//    _model->reset();
 
-    if(_proxyModel)
-        _proxyModel = new QProxyModel(this);
-    _proxyModel->setSourceModel(_model);
+//    if(_proxyModel)
+//        _proxyModel = new QProxyModel(this);
+//    _proxyModel->setSourceModel(_model);
 
-    if(_modelCerts)
-        _modelCerts = new QJsonTableModel(this->parent());
-    _modelCerts->setJsonText(modelCertificatesText());
-    _modelCerts->reset();
-}
+//    if(_modelCerts)
+//        _modelCerts = new QJsonTableModel(this->parent());
+//    _modelCerts->setJsonText(modelCertificatesText());
+//    _modelCerts->reset();
+//}
 
