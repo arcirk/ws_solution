@@ -10,6 +10,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../certmanager/CertManager/certificate.cpp \
     ../certmanager/CertManager/commandline.cpp \
     ../certmanager/CertManager/keyscontainer.cpp \
     ../certmanager/CertManager/lib/WinReg.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
 #    singleapplication/singleapplication_p.cpp \
 
 HEADERS += \
+    ../certmanager/CertManager/certificate.h \
     ../certmanager/CertManager/commandline.h \
     ../certmanager/CertManager/converter.h \
     ../certmanager/CertManager/keyscontainer.h \

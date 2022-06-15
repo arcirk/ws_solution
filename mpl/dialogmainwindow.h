@@ -69,6 +69,9 @@ private slots:
 
     void on_btnSettings_clicked();
 
+    void onWhenDataIsLoaded();
+    void onEndInitConnection();
+
 public slots:
     void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
@@ -94,6 +97,9 @@ private:
     QString _cprocsp_dir;
     QString _launch_mode;
     CommandLine * terminal;
+
+    bool isFormLoaded;
+
     void createTerminal();
     void getCurrentUser();
     void initCsptest();
@@ -134,6 +140,11 @@ private:
 
     /////
     void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent);
+
+signals:
+    void whenDataIsLoaded();
+    void endInitConnection();
+
 };
 
 #endif // DIALOGMAINWINDOW_H

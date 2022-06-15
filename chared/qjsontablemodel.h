@@ -45,6 +45,9 @@ public:
     QString rowKey(int index);
     void setFormatColumn(int column, const QString& fmt);
 
+    void removeRow(int row);
+    void addRow(const QJsonObject& row);
+
 signals:
     void jsonTextChanged();
 private:

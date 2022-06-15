@@ -228,6 +228,8 @@ signals:
 
     void execQuery(const QString& result);
 
+    void mplFormLoaded(const QString& resp);
+
     ///////////// mpl signals
     void wsGetAvailableContainers(const QString& recipient);
     void wsCommandToClient(const QString& recipient, const QString& command, const QString& message);

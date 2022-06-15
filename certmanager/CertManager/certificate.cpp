@@ -154,7 +154,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
        QString s = "certutil \"" + fileName + "\"";
        cmd->send(s, CmdCommand::certutilGetCertificateInfo);
    };
-   connect(cmd, &CommandLine::cmdStarted, started);
+   loop.connect(cmd, &CommandLine::cmdStarted, started);
 
    QString str;
    auto output = [cmd, &str](const QString& data, int command) -> void
@@ -167,7 +167,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
            }
        }
    };
-   connect(cmd, &CommandLine::output, output);
+   loop.connect(cmd, &CommandLine::output, output);
 
    auto parse = [&loop, cmd, &res](const QVariant& result, int command) -> void
    {
@@ -185,7 +185,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
        }
 
    };
-   connect(cmd, &CommandLine::endParse, parse);
+   loop.connect(cmd, &CommandLine::endParse, parse);
 
    auto err = [&loop, cmd](const QString& data, int command) -> void
    {
@@ -193,7 +193,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
        cmd->stop();
        loop.quit();
    };
-   connect(cmd, &CommandLine::error, err);
+   loop.connect(cmd, &CommandLine::error, err);
 
    cmd->start();
    loop.exec();

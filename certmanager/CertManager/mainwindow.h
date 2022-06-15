@@ -79,7 +79,7 @@ private slots:
     void onClientLeave(const QString& resp);
     void onMessageReceived(const QString& msg, const QString& uuid, const QString& recipient, const QString& recipientName);
     void onDisplayError(const QString& what, const QString& err);
-    void UpdateRowIcons();
+    void updateRowIcons();
     void onGetActiveUsers(const QString& resp);
     void onWsExecQuery(const QString& result);
 
@@ -89,6 +89,7 @@ private slots:
 
     void onWsGetAvailableContainers(const QString& recipient);
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
+    void onWsMplClientFormLoaded(const QString& resp);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -169,7 +170,7 @@ private:
     QString _cprocsp_dir;
     QString _launch_mode;
 
-    QMap<QUuid, CertUser*> m_actUsers;
+    //QMap<QUuid, CertUser*> m_actUsers;
     QMap<QString, QString> m_colAliases;
 
     void createColumnAliases();
@@ -196,7 +197,7 @@ private:
 
     void resetCurrentUserCertModel();
 
-    void LoadUsersList();
+   // void LoadUsersList();
     void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
@@ -206,7 +207,7 @@ private:
     void getAvailableContainers(CertUser * usr);
 
 
-    void loadOnlineUsers();
+    //void loadOnlineUsers();
     void disableToolBar();
     bool isContainerExists(const QString& name);
     bool isCertUserExists(const QString& name, const QString& host = "");
@@ -268,5 +269,6 @@ private:
 
     QStandardItemModel *getLocalMountedVolumes();
 
+    void updateCertUsersOnlineStstus();
 };
 #endif // MAINWINDOW_H

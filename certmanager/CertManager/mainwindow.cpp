@@ -188,6 +188,7 @@ void MainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::execQuery, this, &MainWindow::onWsExecQuery);
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &MainWindow::onWsGetAvailableContainers);
     connect(m_client, &bWebSocket::wsCommandToClient, this, &MainWindow::onWsCommandToClient);
+    connect(m_client, &bWebSocket::mplFormLoaded, this, &MainWindow::onWsMplClientFormLoaded);
 }
 
 void MainWindow::createTerminal()
@@ -1099,6 +1100,27 @@ QStandardItemModel *MainWindow::getLocalMountedVolumes()
     return model;
 }
 
+void MainWindow::updateCertUsersOnlineStstus()
+{
+    int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
+    int nameHost = modelSqlUsers->getColumnIndex("host");
+
+    for (int i = 0; i < modelSqlUsers->rowCount(); ++i) {
+
+        QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
+        QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
+        auto index = modelSqlUsers->index(i, 1);
+
+        if(isWsUserExists(name, host)){
+            modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+        }else{
+            modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+        }
+    }
+
+    modelSqlUsers->reset();
+}
+
 void MainWindow::treeSetCurrentContainers(const QString& filter)
 {
         auto tableView = ui->tableView;
@@ -1183,21 +1205,6 @@ void MainWindow::treeSetFromSqlUsers()
             }else{
                 modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
             }
-
-
-
-//            if(index.isValid()){
-//                if(modelWsUsers){
-//                    int col = modelWsUsers->getColumnIndex("user_uuid");
-//                    QString val = modelSqlUsers->index(i, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
-
-//                    auto ind = findInTable(modelWsUsers, validUuid(val), col, false);
-//                    if(ind.isValid())
-//                        modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
-//                    else
-//                        modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
-//                }
-//            }
         }
 
         table->resizeColumnsToContents();
@@ -1785,54 +1792,54 @@ void MainWindow::resetCurrentUserCertModel()
     modelUserCertificates->reset();
 }
 
-void MainWindow::LoadUsersList()
-{
-    qDebug() << __FUNCTION__;
-    auto table = ui->tableView;
-    table->setModel(nullptr);
-    ui->btnAdd->setEnabled(true);
+//void MainWindow::LoadUsersList()
+//{
+//    qDebug() << __FUNCTION__;
+//    auto table = ui->tableView;
+//    table->setModel(nullptr);
+//    ui->btnAdd->setEnabled(true);
 
-    if(!isDbOpen())
-        return;
+//    if(!isDbOpen())
+//        return;
 
-    QString result;
-    QString query = "SELECT NULL AS isOnline\n"
-            ",[FirstField] AS Имя\n"
-            ",[Ref] AS Ссылка\n"
-            ",[uuid] AS ID\n"
-            ",[sid] AS SID\n"
-            ",[host] AS Host\n"
-            "FROM [dbo].[CertUsers]";
+//    QString result;
+//    QString query = "SELECT NULL AS isOnline\n"
+//            ",[FirstField] AS Имя\n"
+//            ",[Ref] AS Ссылка\n"
+//            ",[uuid] AS ID\n"
+//            ",[sid] AS SID\n"
+//            ",[host] AS Host\n"
+//            "FROM [dbo].[CertUsers]";
 
-    auto model = new QSqlQueryModel(this);
-    model->setQuery(query, db->getDatabase());
-    ui->tableView->setModel(model);
+//    auto model = new QSqlQueryModel(this);
+//    model->setQuery(query, db->getDatabase());
+//    ui->tableView->setModel(model);
 
 
-    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
-        QModelIndex index = ui->tableView->model()->index(i, 0);
-        QModelIndex indexUuid = ui->tableView->model()->index(i, 3);
-        QUuid uuid = QUuid::fromString(indexUuid.data().toString().trimmed());
-         auto iter = m_actUsers.find(uuid);
+//    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
+//        QModelIndex index = ui->tableView->model()->index(i, 0);
+//        QModelIndex indexUuid = ui->tableView->model()->index(i, 3);
+//        QUuid uuid = QUuid::fromString(indexUuid.data().toString().trimmed());
+//         auto iter = m_actUsers.find(uuid);
 
-         QLabel *lbl_item = new QLabel();
-         if(iter != m_actUsers.end()){
-             if(iter.value()->online()){
-                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/online.png")));
-             }else{
-                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
-             }
+//         QLabel *lbl_item = new QLabel();
+//         if(iter != m_actUsers.end()){
+//             if(iter.value()->online()){
+//                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/online.png")));
+//             }else{
+//                 lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
+//             }
 
-         }else{
-            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
-         }
-         lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-         ui->tableView->setIndexWidget(index, lbl_item);
-     }
+//         }else{
+//            lbl_item ->setPixmap(QPixmap::fromImage(QImage(":/img/ofline.png")));
+//         }
+//         lbl_item ->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+//         ui->tableView->setIndexWidget(index, lbl_item);
+//     }
 
-    ui->tableView->model()->setHeaderData(0, Qt::Orientation::Horizontal, "");
-    ui->tableView->resizeColumnsToContents();
-}
+//    ui->tableView->model()->setHeaderData(0, Qt::Orientation::Horizontal, "");
+//    ui->tableView->resizeColumnsToContents();
+//}
 
 void MainWindow::loadCertList()
 {
@@ -1915,36 +1922,36 @@ void MainWindow::getAvailableContainers(CertUser *usr)
         terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
 }
 
-void MainWindow::loadOnlineUsers()
-{
-    qDebug() << __FUNCTION__;
-    auto table = ui->tableView;
-    table->setModel(nullptr);
+//void MainWindow::loadOnlineUsers()
+//{
+//    qDebug() << __FUNCTION__;
+//    auto table = ui->tableView;
+//    table->setModel(nullptr);
 
-    if(!m_client->isStarted())
-        return;
+//    if(!m_client->isStarted())
+//        return;
 
-    auto model = new QStandardItemModel(this);
-    model->setColumnCount(4);
-    model->setRowCount(m_actUsers.size() - 1);
-    QStringList header = {"Имя", "Хост", "ID пользователя", "SID"};
-    model->setHorizontalHeaderLabels(header);
-    int row = 0;
-    for(auto itr : m_actUsers){
-        if(itr->online()){
-            auto name = new QStandardItem(itr->name());
-            model->setItem(row, 0, name);
-            auto host = new QStandardItem(itr->domain());
-            model->setItem(row, 1, host);
-            auto uuid = new QStandardItem(itr->uuid().toString());
-            model->setItem(row, 2, uuid);
-            auto sid = new QStandardItem(itr->sid());
-            model->setItem(row, 3, sid);
-        }
-    }
-    table->setModel(model);
-    table->resizeColumnsToContents();
-}
+//    auto model = new QStandardItemModel(this);
+//    model->setColumnCount(4);
+//    model->setRowCount(m_actUsers.size() - 1);
+//    QStringList header = {"Имя", "Хост", "ID пользователя", "SID"};
+//    model->setHorizontalHeaderLabels(header);
+//    int row = 0;
+//    for(auto itr : m_actUsers){
+//        if(itr->online()){
+//            auto name = new QStandardItem(itr->name());
+//            model->setItem(row, 0, name);
+//            auto host = new QStandardItem(itr->domain());
+//            model->setItem(row, 1, host);
+//            auto uuid = new QStandardItem(itr->uuid().toString());
+//            model->setItem(row, 2, uuid);
+//            auto sid = new QStandardItem(itr->sid());
+//            model->setItem(row, 3, sid);
+//        }
+//    }
+//    table->setModel(model);
+//    table->resizeColumnsToContents();
+//}
 
 void MainWindow::disableToolBar()
 {
@@ -2051,7 +2058,7 @@ void MainWindow::loadCimputers()
     ui->tableView->setColumnHidden(4, true);
     ui->tableView->setColumnHidden(6, true);
 
-    UpdateRowIcons();
+    updateRowIcons();
     ui->tableView->model()->setHeaderData(1, Qt::Orientation::Horizontal, "");
     ui->tableView->resizeColumnsToContents();
 
@@ -2061,7 +2068,7 @@ void MainWindow::loadCimputers()
     ui->btnDelete->setEnabled(true);
 }
 
-void MainWindow::UpdateRowIcons(){
+void MainWindow::updateRowIcons(){
     qDebug() << __FUNCTION__;
    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
        QModelIndex index = ui->tableView->model()->index(i, 1);
@@ -2875,84 +2882,120 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
     //MainWindow::onClientJoinEx {"name": "admin", "uuid": "d1ca0bc6-b6cb-4b90-941c-85fb9faf70a9", "uuid_user": "e7429c10-8070-40da-ae2e-dea1cb9ae371", "active": true}
     //MainWindow::onClientJoinEx "192.168.10.14"   "VMBUHSVR"   "qt_cert_manager"
 
+//    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+//    auto obj = doc.object();
+//    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
+//    //QString name = obj.value("user_name").toString();
+
+//    auto itr = m_actUsers.find(uuid);
+//    if(itr != m_actUsers.end()){
+//        itr.value()->setOnline(true);
+//    }else{
+//        if(!currentUser)
+//            return;
+//        CertUser * usr = nullptr;
+//        if(!currentUser->thisIsTheUser(user_name, host_name)){
+//            usr = new CertUser(this);
+//            usr->setName(user_name);
+//            usr->setDomain(host_name);
+//        }
+//        else {
+//            usr = currentUser;
+//            auto item = findTreeItem("currentUser");
+//            if(item){
+//                item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
+//                if(item->childCount() == 0){
+//                    auto Root = addTreeNode("Доступные контейнеры", currentUserAvailableContainers, ":/img/key16.png");
+//                    item->addChild(Root);
+//                    auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
+//                    item->addChild(certs);
+//                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
+//                    Root->addChild(reg);
+//                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
+//                    Root->addChild(dev);
+
+//                    getAvailableContainers(usr);
+//                }
+//            }
+//        }
+//        usr->setOnline(true);
+//        usr->setUuid(uuid);
+//        m_actUsers.insert(uuid, usr);
+//    }
+
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
-    auto obj = doc.object();
-    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
-    //QString name = obj.value("user_name").toString();
-
-    auto itr = m_actUsers.find(uuid);
-    if(itr != m_actUsers.end())
-        itr.value()->setOnline(true);
-    else{
-        if(!currentUser)
-            return;
-        CertUser * usr = nullptr;
-        if(!currentUser->thisIsTheUser(user_name, host_name)){
-            usr = new CertUser(this);
-            usr->setName(user_name);
-            usr->setDomain(host_name);
-        }
-        else {
-            usr = currentUser;
-            auto item = findTreeItem("currentUser");
-            if(item){
-                item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
-                if(item->childCount() == 0){
-                    auto Root = addTreeNode("Доступные контейнеры", currentUserAvailableContainers, ":/img/key16.png");
-                    item->addChild(Root);
-                    auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
-                    item->addChild(certs);
-                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
-                    Root->addChild(reg);
-                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
-                    Root->addChild(dev);
-
-                    getAvailableContainers(usr);
-                }
-            }
-        }
-        usr->setOnline(true);
-        usr->setUuid(uuid);
-        m_actUsers.insert(uuid, usr);
-    }
-
-    auto treeItem = ui->treeWidget->currentItem();
-    if(!treeItem){
+    auto objResp = doc.object();
+    QString uuid = objResp.value("uuid").toString();
+    if(uuid == m_client->getUuidSession())
         return;
-    }
+    QString uuid_user = objResp.value("uuid_user").toString();
+    QString name = objResp.value("name").toString();
 
-    QString currentNode = treeItem->text(0);
+    auto obj = QJsonObject();
+    obj.insert("Empty", "");
+    obj.insert("uuid", uuid);
+    obj.insert("name", name);
+    obj.insert("user_uuid", uuid_user);
+    obj.insert("app_name", app_name);
+    obj.insert("user_name", name);
+    obj.insert("ip_address", ip_address);
+    obj.insert("host_name", host_name);
 
-    if(currentNode == "Активные пользователи")
-    {
-        loadOnlineUsers();
-    }
+    modelWsUsers->addRow(obj);
+    QString findKey = name + host_name;
+    modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, findKey);
+    qDebug() << __FUNCTION__ << qPrintable(resp);
+
+    updateCertUsersOnlineStstus();
+//    auto treeItem = ui->treeWidget->currentItem();
+//    if(!treeItem){
+//        return;
+//    }
+
+//    QString currentNode = treeItem->text(0);
+
+//    if(currentNode == "Активные пользователи")
+//    {
+//        loadOnlineUsers();
+//    }
 
 }
 
 void MainWindow::onClientLeave(const QString &resp)
 {
-    qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__ << qPrintable(resp);
+
+//    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+//    auto obj = doc.object();
+//    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
+//    QString name = obj.value("name").toString();
+
+//    auto itr = m_actUsers.find(uuid);
+//    if(itr != m_actUsers.end()){
+//        itr.value()->setOnline(false);
+//    }
+//    auto treeItem = ui->treeWidget->currentItem();
+//    if(!treeItem){
+//        return;
+//    }
+//    QString currentNode = treeItem->text(0);
+
+//    if(currentNode == "Активные пользователи")
+//    {
+//        loadOnlineUsers();
+//    }
 
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
     auto obj = doc.object();
-    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
-    QString name = obj.value("name").toString();
+    QString uuid = obj.value("uuid").toString();
 
-    auto itr = m_actUsers.find(uuid);
-    if(itr != m_actUsers.end()){
-        itr.value()->setOnline(false);
+    int ind = modelWsUsers->getColumnIndex("uuid");
+    auto item = findInTable(modelWsUsers, uuid, ind, false);
+    if(item.isValid()){
+        modelWsUsers->removeRow(item.row());
     }
-    auto treeItem = ui->treeWidget->currentItem();
-    if(!treeItem){
-        return;
-    }
-    QString currentNode = treeItem->text(0);
 
-    if(currentNode == "Активные пользователи")
-    {
-        loadOnlineUsers();
-    }
+    updateCertUsersOnlineStstus();
 }
 
 void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
@@ -3103,6 +3146,7 @@ void MainWindow::onGetActiveUsers(const QString& resp){
                 root->addChild(onlineItem);
             }
         }
+        qDebug() << __FUNCTION__ << qPrintable(resp);
         modelWsUsers->setJsonText(resp);
         modelWsUsers->reset();
         int colHost = modelWsUsers->getColumnIndex("host_name");
@@ -3164,7 +3208,7 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         }
         user->setUuid(user_uuid);
         user->setOnline(true);
-        m_actUsers.insert(user_uuid, user);
+        //m_actUsers.insert(user_uuid, user);
     }
 }
 
@@ -3238,6 +3282,11 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
     if(command == AvailableContainers){
         qDebug() << qPrintable(message);
     }
+}
+
+void MainWindow::onWsMplClientFormLoaded(const QString &resp)
+{
+    qDebug() << __FUNCTION__ << resp;
 }
 
 void MainWindow::onWsExecQuery(const QString &result)

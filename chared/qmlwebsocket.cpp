@@ -269,22 +269,24 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit unreadMessages(resp->message);
         }
         else if(resp->command == "command_to_qt_client"){
-//#ifdef QT_QML_CLIENT_APP
-//            qDebug() << resp->message;
-//            if(resp->message == "clientShow"){
-//                emit clientShow();
-//            }
-//#else
+#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
+            //qDebug() << resp->message;
+            if(resp->message == "clientShow"){
+                emit clientShow();
+            }else if(resp->message == "get_available_containers"){
+                emit wsGetAvailableContainers(resp->uuid_session);
+            }
+#else
 
 //#ifdef QT_MPL_CLIENT
-            if(resp->message == "get_available_containers"){
-                            emit wsGetAvailableContainers(resp->uuid_session);
-                        }
+//            if(resp->message == "get_available_containers"){
+//                            emit wsGetAvailableContainers(resp->uuid_session);
+//                        }
 //#else
 //            responseCommand(resp);
 //#endif
 
-//#endif
+#endif
         }
         else if(resp->command == "get_group_list"){
             emit getGroupList(resp->message);
@@ -319,13 +321,17 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
-//#ifdef defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER)
+#if defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER)
             responseCommand(resp);
-//#endif
+#endif
         }else if (resp->command == "exec_query"){
             emit execQuery(resp->message);
         }else if (resp->command == "exec_query_qt"){
             emit execQuery(resp->message);
+        }else if (resp->command == "mpl_form_loaded"){
+#ifdef QT_CERT_MANAGER
+            emit mplFormLoaded(resp->message);
+#endif
         }
         else
            qDebug() << "Не известная команда: " << resp->command;

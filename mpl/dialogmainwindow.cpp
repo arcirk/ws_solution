@@ -26,6 +26,8 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    isFormLoaded = false;
+
     QString dir = QDir::homePath();
 
 #ifdef Q_OS_WINDOWS
@@ -35,12 +37,13 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     dirName = ".mpl";
 #endif
 
+    connect(this, &DialogMainWindow::whenDataIsLoaded, this, &DialogMainWindow::onWhenDataIsLoaded);
+    connect(this, &DialogMainWindow::endInitConnection, this, &DialogMainWindow::onEndInitConnection);
+
     appHome = QDir(dir + dirName);
 
     if(!appHome.exists())
        appHome.mkpath(".");
-
-    //ui->horizontalLayout->addStretch();
 
     infoBar = ui->lblStatus;
 
@@ -68,11 +71,11 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     setWsConnectedSignals();
 
-    if(_sett->launch_mode() == mixed){
-        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-             connectToDatabase(_sett, _sett->pwd());
-    }else
-        connectToWsServer();
+//    if(_sett->launch_mode() == mixed){
+//        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+//             connectToDatabase(_sett, _sett->pwd());
+//    }else
+//        connectToWsServer();
 
 
 }
@@ -329,7 +332,8 @@ void DialogMainWindow::onConnectionSuccess()
 {
     qDebug() << __FUNCTION__;
     updateConnectionStatus();
-
+    if(!isFormLoaded)
+        emit endInitConnection();
 }
 
 void DialogMainWindow::onCloseConnection()
@@ -351,6 +355,9 @@ void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 {
     qCritical() << __FUNCTION__ << what << err;
+    if(err == "В соединении отказано"){
+        emit endInitConnection();
+    }
 }
 
 void DialogMainWindow::onWsExecQuery(const QString &result)
@@ -404,6 +411,8 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         QString sid = result.toString();
         qDebug() << __FUNCTION__ << "set sid:" <<  sid;
         currentUser->setSid(sid);
+        //получаем список контейнеров
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
      }else if(command == CmdCommand::csptestGetConteiners){
         QString res = result.toString();
         res.replace("\r", "");
@@ -413,6 +422,24 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
             currentRecipient = "";
         }
+        //получаем список сертификатов
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+    }else if(command == CmdCommand::csptestGetCertificates){
+
+        auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
+        auto arr = doc.array();
+
+        currentUser->certificates().clear();
+
+        for (auto itr = arr.begin(); itr != arr.end(); ++itr) {
+            auto obj = itr->toObject();
+            auto cert = new Certificate(this);
+            cert->setSourceObject(obj);
+            currentUser->certificates().insert(cert->serial(), cert);
+        }
+
+        if(!isFormLoaded) //оповещяем о окончании загрузки данных
+            emit whenDataIsLoaded();
     }
 }
 
@@ -423,7 +450,7 @@ void DialogMainWindow::onCommandError(const QString &result, int command)
 
 void DialogMainWindow::onOutputCommandLine(const QString &data, int command)
 {
-    qDebug() << __FUNCTION__ << "command: " << command;
+    //qDebug() << __FUNCTION__ << "command: " << command;
 
     if(data.indexOf("Error:") > 0)
         return;
@@ -988,6 +1015,31 @@ void DialogMainWindow::on_btnSettings_clicked()
 
         updateConnectionStatus();
     }
+}
+
+void DialogMainWindow::onWhenDataIsLoaded()
+{
+
+    qDebug() << __FUNCTION__ << currentUser->containers().size() << currentUser->certificates().size();
+
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen()){
+            if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+                 connectToDatabase(_sett, _sett->pwd());
+        }
+    }else{
+        if(!m_client->isStarted())
+            connectToWsServer();
+    }
+}
+
+void DialogMainWindow::onEndInitConnection()
+{
+    qDebug() << __FUNCTION__;
+    isFormLoaded = true;
+    if(m_client->isStarted())
+        m_client->sendCommand("mpl_form_loaded");
 }
 
 void DialogMainWindow::initCsptest()

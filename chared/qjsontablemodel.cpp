@@ -312,9 +312,46 @@ QString QJsonTableModel::rowKey(int index)
         return iter.value();
     else
         return "";
+
 }
 
 void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
 {
     m_fmtText.insert(column, fmt);
+}
+
+void QJsonTableModel::removeRow(int row)
+{
+    if(row < rowCount()){
+        m_json.removeAt(row);
+        auto iter = m_fmtText.find(row);
+        if(iter != m_fmtText.end())
+            m_fmtText.erase(iter);
+        iter = m_rowKeys.find(row);
+        if(iter != m_rowKeys.end())
+            m_rowKeys.erase(iter);
+
+        for(int i = 0; i < _header.count(); ++i){
+            auto pr = qMakePair(row, i);
+            auto iterPr = m_rowIcon.find(pr);
+            if(iterPr != m_rowIcon.end())
+                m_rowIcon.erase(iterPr);
+        }
+
+        reset();
+    }
+
+}
+
+void QJsonTableModel::addRow(const QJsonObject &row)
+{
+    auto obj = QJsonObject();
+    foreach(auto key, _header){
+        auto val = row.find(key.toString());
+        if(val != row.end()){
+            obj.insert(key.toString(), val.value());
+        }
+    }
+    m_json.append(obj);
+    reset();
 }

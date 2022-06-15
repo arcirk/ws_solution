@@ -488,6 +488,8 @@ bool shared_state::is_valid_param_count(const std::string &command, unsigned int
         return params == 2;
     else if (command == "exec_query_qt")
         return true; //return params == 1;
+    else if (command == "mpl_form_loaded")
+        return true;
     else
         return false;
 }
@@ -531,6 +533,7 @@ bool shared_state::is_valid_command_name(const std::string &command) {
     commands.emplace_back("export_tables_to_ext");
     commands.emplace_back("sync_users");
     commands.emplace_back("exec_query_qt");
+    commands.emplace_back("mpl_form_loaded");
 
     return std::find(commands.begin(), commands.end(), command) != commands.end();
 }
@@ -606,7 +609,8 @@ cmd_func shared_state::get_cmd_func(const std::string& command) {
         return  std::bind(&shared_state::sync_users, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else if (command == "exec_query_qt")
         return  std::bind(&shared_state::exec_query_qt, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-
+    else if (command == "mpl_form_loaded")
+        return  std::bind(&shared_state::mpl_form_loaded, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
     else
        return nullptr;
 }
@@ -857,6 +861,45 @@ bool shared_state::send_all_message(boost::uuids::uuid &uuid, arcirk::bJson* par
 
 }
 
+bool shared_state::mpl_form_loaded(boost::uuids::uuid &uuid, arcirk::bJson* params, ws_message* msg, std::string& err, std::string& custom_result) {
+
+    auto  current_sess = get_session(uuid);
+
+    try {
+        current_sess->throw_authorized();
+    }catch (boost::exception const &e) {
+        err = boost::diagnostic_information(e);
+        std::cerr << err << std::endl;
+        return false;
+
+    }
+
+    _ws_message _message = createMessage(current_sess);
+    _message.message = "sucsess";
+    _message.command = "mpl_form_loaded";
+
+    std::string message = arcirk::ws_message(_message).get_json(true);
+
+    std::vector<boost::weak_ptr<websocket_session>> v;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        v.reserve(get_sessions(current_sess->get_user_uuid()).size());
+        for(auto p : get_sessions(current_sess->get_user_uuid()))
+            v.emplace_back(p->weak_from_this());
+    }
+
+    auto const ss = boost::make_shared<std::string const>(std::move(message));
+
+    for(auto const& wp : v)
+        if(auto sp = wp.lock()){
+            std::cout << "shared_state::mpl_form_loaded: " << sp->get_app_name() << std::endl;
+            if(sp->get_app_name() == "qt_cert_manager")
+                sp->send(ss);
+        }
+
+    return true;
+
+}
 bool shared_state::is_msg(const std::string& msg)
 {
     std::string cmd = msg.substr(0, 3);
