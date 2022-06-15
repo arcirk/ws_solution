@@ -30,6 +30,7 @@
 #include <QJsonArray>
 #include "certificate.h"
 #include "converter.h"
+#include <QQueue>
 
 #include <sstream>
 
@@ -39,6 +40,7 @@
 #include <stdio.h>
     #pragma warning(disable:4100)
 #endif
+
 
 const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
         "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
@@ -96,7 +98,13 @@ MainWindow::MainWindow(QWidget *parent)
     //Экспортировать сертификат из локального хранилища в файл:
     //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer !!!
 
+    //isFormLoaded = false;
+
     ui->setupUi(this);
+
+    connect(this, &MainWindow::whenDataIsLoaded, this, &MainWindow::onWhenDataIsLoaded);
+    connect(this, &MainWindow::endInitConnection, this, &MainWindow::onEndInitConnection);
+    connect(this, &MainWindow::startGetCertUsersData, this, &MainWindow::onStartGetCertUsersData);
 
     ui->tableView->setItemDelegate(new TableDelegate);
     ui->tableView->setIconSize(QSize(16,16));
@@ -232,8 +240,6 @@ void MainWindow::createTerminal()
         QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
         terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
 #endif
-
-
 
 }
 
@@ -420,7 +426,7 @@ QTreeWidgetItem * MainWindow::findTreeItem(const QString& key, QTreeWidgetItem* 
         for(i=0;i<parent->childCount();i++){
             if(parent->child(i)!=0)
             {
-                qDebug() << parent->child(i)->data(0, Qt::UserRole).toString();
+                //qDebug() << parent->child(i)->data(0, Qt::UserRole).toString();
 
                 if (parent->child(i)->data(0, Qt::UserRole).toString() == key)
                     return parent->child(i);
@@ -895,7 +901,7 @@ void MainWindow::addContainer()
                         cnt->originalName();
                     }else{
                        QDir dir(cnt->volumePath() + cnt->keyName() + ".000");
-                       qDebug() << dir.path();
+                      // qDebug() << dir.path();
                        if(dir.exists()){
                            cnt->fromFolder(dir.path());
                            name = cnt->originalName();
@@ -1355,7 +1361,7 @@ void MainWindow::onOutputCommandLine(const QString &data, int command)
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + data);
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
-    qDebug() << __FUNCTION__ << "commant: " << command;
+    qDebug() << __FUNCTION__ << "command: " << (CmdCommand)command;
 
     if(data.indexOf("Error:") > 0)
         return;
@@ -2267,14 +2273,15 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 
 
     qDebug() << __FUNCTION__;
+    QString key = item->data(0, Qt::UserRole).toString();
+
     inVisibleToolBars();
-    if(item->childCount() > 0){
+
+    if(item->childCount() > 0 && key != SqlUsers){
         loadItemChilds(item);
         disableToolBar();       
         toolBarSetVisible(ui->wToolBarMain, true);
-    }else{
-
-        QString key = item->data(0, Qt::UserRole).toString();
+    }else{   
         if(key == currentUserRegistry){
            toolBarSetVisible(ui->wToolBarCurrentUser, true);
            treeSetCurrentContainers("REGISTRY");
@@ -2399,6 +2406,7 @@ void MainWindow::connectToDatabase(Settings *sett, const QString &pwd)
         getDataContainersList();
     }
 
+    emit whenDataIsLoaded();
 }
 
 void MainWindow::on_mnuConnect_triggered()
@@ -2854,6 +2862,8 @@ void MainWindow::onConnectionSuccess()
         if(_sett->launch_mode() != mixed){
             getDataContainersList();
         }
+
+        emit endInitConnection();
     }
 
 }
@@ -2885,7 +2895,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 //    auto doc = QJsonDocument::fromJson(resp.toUtf8());
 //    auto obj = doc.object();
 //    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
-//    //QString name = obj.value("user_name").toString();
+    //QString name = obj.value("user_name").toString();
 
 //    auto itr = m_actUsers.find(uuid);
 //    if(itr != m_actUsers.end()){
@@ -2920,33 +2930,50 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 //        }
 //        usr->setOnline(true);
 //        usr->setUuid(uuid);
-//        m_actUsers.insert(uuid, usr);
+//        //m_actUsers.insert(uuid, usr);
 //    }
 
     auto doc = QJsonDocument::fromJson(resp.toUtf8());
     auto objResp = doc.object();
     QString uuid = objResp.value("uuid").toString();
-    if(uuid == m_client->getUuidSession())
-        return;
-    QString uuid_user = objResp.value("uuid_user").toString();
-    QString name = objResp.value("name").toString();
+    if(uuid == m_client->getUuidSession()){
+        auto item = findTreeItem("currentUser");
+        if(item){
+            item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
+            if(item->childCount() == 0){
+                auto Root = addTreeNode("Доступные контейнеры", currentUserAvailableContainers, ":/img/key16.png");
+                item->addChild(Root);
+                auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
+                item->addChild(certs);
+                auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
+                Root->addChild(reg);
+                auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
+                Root->addChild(dev);
 
-    auto obj = QJsonObject();
-    obj.insert("Empty", "");
-    obj.insert("uuid", uuid);
-    obj.insert("name", name);
-    obj.insert("user_uuid", uuid_user);
-    obj.insert("app_name", app_name);
-    obj.insert("user_name", name);
-    obj.insert("ip_address", ip_address);
-    obj.insert("host_name", host_name);
+                getAvailableContainers(currentUser);
+            }
+        }
+    }else{
+        QString uuid_user = objResp.value("uuid_user").toString();
+        QString name = objResp.value("name").toString();
 
-    modelWsUsers->addRow(obj);
-    QString findKey = name + host_name;
-    modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, findKey);
-    qDebug() << __FUNCTION__ << qPrintable(resp);
+        auto obj = QJsonObject();
+        obj.insert("Empty", "");
+        obj.insert("uuid", uuid);
+        obj.insert("name", name);
+        obj.insert("user_uuid", uuid_user);
+        obj.insert("app_name", app_name);
+        obj.insert("user_name", name);
+        obj.insert("ip_address", ip_address);
+        obj.insert("host_name", host_name);
 
-    updateCertUsersOnlineStstus();
+        modelWsUsers->addRow(obj);
+        QString findKey = name + host_name;
+        modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, findKey);
+        qDebug() << __FUNCTION__ << qPrintable(resp);
+
+        updateCertUsersOnlineStstus();
+    }
 //    auto treeItem = ui->treeWidget->currentItem();
 //    if(!treeItem){
 //        return;
@@ -3006,6 +3033,9 @@ void MainWindow::onMessageReceived(const QString &msg, const QString &uuid, cons
 void MainWindow::onDisplayError(const QString &what, const QString &err)
 {
     qCritical() << __FUNCTION__ << what << ": " << err ;
+    if(err == "Отказано в доступе"){
+        emit endInitConnection();
+    }
 
 }
 
@@ -3131,32 +3161,29 @@ void MainWindow::on_btnEdit_clicked()
 
 void MainWindow::onGetActiveUsers(const QString& resp){
 
-//    ui->tableView->setModel(nullptr);
-//    auto model = new QJsonTableModel(this);
-//    model->setJsonText(resp);
-//    ui->tableView->setModel(model);
-//    ui->tableView->resizeColumnsToContents();
-
-    //if(_sett->launch_mode() != mixed){
-        auto onlineItem = findTreeItem("WsActiveUsers");
-        if(!onlineItem){
-            auto root = findTreeItem("WsServer");
-            if(root){
-                onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers16.png");
-                root->addChild(onlineItem);
+    auto onlineItem = findTreeItem("WsActiveUsers");
+    if(!onlineItem){
+        auto root = findTreeItem("WsServer");
+        if(root){
+            onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers16.png");
+            root->addChild(onlineItem);
+        }
+    }
+    qDebug() << __FUNCTION__;// << qPrintable(resp);
+    modelWsUsers->setJsonText(resp);
+    modelWsUsers->reset();
+    int colHost = modelWsUsers->getColumnIndex("host_name");
+    int colName = modelWsUsers->getColumnIndex("user_name");
+    for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
+        auto user = modelWsUsers->index(i, colName).data(Qt::UserRole + colName).toString();
+        auto host = modelWsUsers->index(i, colHost).data(Qt::UserRole + colHost).toString();
+        modelWsUsers->setRowKey(i, user+host);
+        if(isCertUserExists(user, host)){
+            if(!currentUser->thisIsTheUser(user, host)){
+                m_queue.append(qMakePair(user,host));
             }
         }
-        qDebug() << __FUNCTION__ << qPrintable(resp);
-        modelWsUsers->setJsonText(resp);
-        modelWsUsers->reset();
-        int colHost = modelWsUsers->getColumnIndex("host_name");
-        int colName = modelWsUsers->getColumnIndex("user_name");
-        for (int i = 0; i < modelWsUsers->rowCount(); ++i) {
-            auto user = modelWsUsers->index(i, colName).data(Qt::UserRole + colName).toString();
-            auto host = modelWsUsers->index(i, colHost).data(Qt::UserRole + colHost).toString();
-            modelWsUsers->setRowKey(i, user+host);
-        }
-     //}
+    }
 
     if(!currentUser)
         return;
@@ -3208,8 +3235,12 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         }
         user->setUuid(user_uuid);
         user->setOnline(true);
-        //m_actUsers.insert(user_uuid, user);
     }
+
+    if(m_queue.size() > 0){
+        emit startGetCertUsersData();
+    }
+
 }
 
 void MainWindow::onParseCommand(const QVariant &result, int command)
@@ -3229,7 +3260,7 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
         csptestCurrentUserGetContainers(result.toString());
 #ifdef _WINDOWS
         if(currentUser->sid().isEmpty())
-            terminal->send(QString("WHOAMI /USER\n").arg(currentUser->name()), CmdCommand::wmicGetSID);
+            terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
 #endif
     }else if(command == CmdCommand::csptestContainerFnfo){
         updateContainerInfoOnData(result.toString());
@@ -3279,9 +3310,9 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
     qDebug() << __FUNCTION__;
-    if(command == AvailableContainers){
-        qDebug() << qPrintable(message);
-    }
+    //if(command == AvailableContainers){
+        qDebug() <<  __FUNCTION__ << qPrintable(message);
+    //}
 }
 
 void MainWindow::onWsMplClientFormLoaded(const QString &resp)
@@ -4107,7 +4138,7 @@ void MainWindow::on_btnDatabaseInfo_clicked()
              int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
              int nameHost = modelSqlUsers->getColumnIndex("host");
              int uuidIndex = modelWsUsers->getColumnIndex("uuid");
-             qDebug() << uuidIndex;
+             //qDebug() << uuidIndex;
              QString name = modelSqlUsers->index(index.row(), nameIndex).data(Qt::UserRole + nameIndex).toString();
              QString host = modelSqlUsers->index(index.row(), nameHost).data(Qt::UserRole + nameHost).toString();
 
@@ -4120,7 +4151,7 @@ void MainWindow::on_btnDatabaseInfo_clicked()
              }
              if(row != -1){
                 QString uuid = modelWsUsers->index(row, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
-                qDebug() << uuid;
+                //qDebug() << uuid;
                 sendToRecipient(uuid, "get_available_containers", "get_available_containers", false);
              }
          }
@@ -4172,6 +4203,30 @@ void MainWindow::on_mnuCryptoPro_triggered()
 {
     //C:\Windows\System32\rundll32.exe shell32.dll,Control_RunDLL "C:\Program Files\Crypto Pro\CSP\cpconfig.cpl"
     terminal->send("rundll32.exe shell32.dll,Control_RunDLL \"C:\\Program Files\\Crypto Pro\\CSP\\cpconfig.cpl\"", unknown);
+}
+
+void MainWindow::onEndInitConnection()
+{
+    qDebug() << __FUNCTION__;
+}
+
+void MainWindow::onStartGetCertUsersData()
+{
+    if(m_queue.size() == 0)
+        return;
+
+    auto item = m_queue.dequeue();
+    int row = modelWsUsers->row(item.first +item.second);
+    if(row != -1){
+        int ind = modelWsUsers->getColumnIndex("uuid");
+        auto uuid = modelWsUsers->index(row, 1).data(Qt::UserRole + ind).toString();
+        sendToRecipient(uuid, "get_crypt_data", "get_crypt_data", false);
+    }
+}
+
+void MainWindow::onWhenDataIsLoaded()
+{
+    qDebug() << __FUNCTION__;
 }
 
 void MainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)

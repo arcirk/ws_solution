@@ -71,6 +71,7 @@ private slots:
 
     void onWhenDataIsLoaded();
     void onEndInitConnection();
+    void onGetCryptData(const QString& recipient);
 
 public slots:
     void onLineEditCursorPositionChanged ( int oldPos , int newPos );

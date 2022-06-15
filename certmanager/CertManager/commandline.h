@@ -36,6 +36,7 @@ enum CmdCommand{
     unknown
 };
 
+
 class CommandLine : public QObject
 {
     Q_OBJECT
@@ -45,8 +46,6 @@ public:
     void setParams(QStringList& param);
 
     bool listening();
-
-
 
     QString parseCommand(const QString& result, int command);
 

@@ -275,6 +275,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
                 emit clientShow();
             }else if(resp->message == "get_available_containers"){
                 emit wsGetAvailableContainers(resp->uuid_session);
+            }else if(resp->message == "get_crypt_data"){
+                emit wsGetCryptData(resp->uuid_session);
             }
 #else
 
@@ -719,6 +721,8 @@ void bWebSocket::responseCommand(ServeResponse * resp)
         emit wsGetAvailableContainers(resp->recipient);
 
     }else if(command == "available_containers"){//Ответ
+        emit wsCommandToClient(resp->recipient, command, message);
+    }else if(command == "mpl_cert_data"){//Ответ
         emit wsCommandToClient(resp->recipient, command, message);
     }
 }

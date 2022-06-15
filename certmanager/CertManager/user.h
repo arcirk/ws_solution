@@ -51,6 +51,7 @@ public:
     bool thisIsTheUser(const QString& usr, const QString& host);
 
     QMap<QString, Certificate*>& certificates();
+    QJsonObject certModel();
 
     KeysContainer *cntDetails(const QString& name);
 

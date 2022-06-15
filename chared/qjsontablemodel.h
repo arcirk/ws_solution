@@ -47,6 +47,7 @@ public:
 
     void removeRow(int row);
     void addRow(const QJsonObject& row);
+    int row(const QString& key);
 
 signals:
     void jsonTextChanged();

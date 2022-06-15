@@ -393,6 +393,25 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
 }
 
+void DialogMainWindow::onGetCryptData(const QString &recipient)
+{
+
+    auto doc = QJsonDocument();
+    auto obj = QJsonObject();
+    obj.insert("cnt", currentUser->containers().join("\n"));
+    obj.insert("certs", currentUser->certModel());
+    QString object = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+
+    auto objMain = QJsonObject();
+    objMain.insert("command", "mpl_cert_data");
+    objMain.insert("message", object);
+
+    objMain.insert("uuid_agent", recipient);
+    objMain.insert("uuid_client", m_client->getUuidSession());
+
+    QString param = QJsonDocument(objMain).toJson(QJsonDocument::Indented);
+    m_client->sendCommand("command_to_qt_agent", "", param);
+}
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
@@ -939,6 +958,7 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::messageReceived, this, &DialogMainWindow::onMessageReceived);
     connect(m_client, &bWebSocket::execQuery, this, &DialogMainWindow::onWsExecQuery);
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &DialogMainWindow::onWsGetAvailableContainers);
+    connect(m_client, &bWebSocket::wsGetCryptData, this, &DialogMainWindow::onGetCryptData);
 }
 
 void DialogMainWindow::on_btnSettings_clicked()
@@ -1041,6 +1061,7 @@ void DialogMainWindow::onEndInitConnection()
     if(m_client->isStarted())
         m_client->sendCommand("mpl_form_loaded");
 }
+
 
 void DialogMainWindow::initCsptest()
 {

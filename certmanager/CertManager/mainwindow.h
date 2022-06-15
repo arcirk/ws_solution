@@ -18,6 +18,7 @@
 #include <qjsontablemodel.h>
 #include <qproxymodel.h>
 #include <QStandardItemModel>
+#include <QQueue>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -136,8 +137,15 @@ private slots:
 
     void on_mnuCryptoPro_triggered();
 
+    void onWhenDataIsLoaded();
+    void onEndInitConnection();
+    void onStartGetCertUsersData();
+
 private:
     Ui::MainWindow *ui;
+
+    QQueue<QPair<QString,QString>> m_queue; //загрузка данных контейнеров и сертификатов пользователей online
+
     QList<QToolButton*> toolBar;
     QList<QToolButton*> toolBarActiveUsers;
     Settings * _sett;
@@ -170,8 +178,9 @@ private:
     QString _cprocsp_dir;
     QString _launch_mode;
 
-    //QMap<QUuid, CertUser*> m_actUsers;
     QMap<QString, QString> m_colAliases;
+
+    //bool isFormLoaded;
 
     void createColumnAliases();
 
@@ -270,5 +279,10 @@ private:
     QStandardItemModel *getLocalMountedVolumes();
 
     void updateCertUsersOnlineStstus();
+
+signals:
+    void whenDataIsLoaded();
+    void endInitConnection();
+    void startGetCertUsersData();
 };
 #endif // MAINWINDOW_H

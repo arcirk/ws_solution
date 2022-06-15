@@ -194,6 +194,42 @@ QMap<QString, Certificate *>& CertUser::certificates()
     return m_cert;
 }
 
+QJsonObject CertUser::certModel()
+{
+    auto objCols = QJsonArray();
+    objCols.append("Empty");
+    objCols.append("subject");
+    objCols.append("issuer");
+    objCols.append("notValidBefore");
+    objCols.append("notValidAfter");
+    objCols.append("parentUser");
+    objCols.append("container");
+    objCols.append("serial");
+
+
+    auto objRows = QJsonArray();
+    foreach(auto itr, certificates()){
+        auto row = QJsonObject();
+        row.insert("Empty", QString());
+        row.insert("subject", itr->subject());
+        row.insert("issuer", itr->issuer());
+        row.insert("notValidBefore", itr->notValidBefore());
+        row.insert("notValidAfter", itr->notValidAfter());
+        row.insert("parentUser", itr->parentUser());
+        row.insert("container", itr->container());
+        row.insert("serial", itr->serial());
+        objRows.append(row);
+    }
+
+    auto objMain = QJsonObject();
+    objMain.insert("columns", objCols);
+    objMain.insert("rows", objRows);
+
+    return objMain;
+
+}
+
+
 KeysContainer *CertUser::cntDetails(const QString &name)
 {
     auto itr = m_cnt.find(name);

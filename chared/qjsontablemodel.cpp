@@ -315,6 +315,17 @@ QString QJsonTableModel::rowKey(int index)
 
 }
 
+int QJsonTableModel::row(const QString& key)
+{
+    int i = 0;
+    foreach(auto item, m_rowKeys){
+       if(item == key){
+           return i;
+       }
+    }
+    return -1;
+}
+
 void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
 {
     m_fmtText.insert(column, fmt);
