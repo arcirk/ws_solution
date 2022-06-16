@@ -120,8 +120,8 @@ void IClient::close(bool exitParent) {
             client->close(exitParent);
         }
 
-        //delete client;
-        //client = nullptr;
+        delete client;
+        client = nullptr;
     }
 
     _isRun = false;
@@ -135,10 +135,10 @@ void IClient::start() {
 
     _isRun = false;
 
-    if(client){
-        delete client;
-        client = nullptr;
-    }
+//    if(client){
+//        delete client;
+//        client = nullptr;
+//    }
 
     _callback_connect callback = std::bind(&IClient::on_connect, this);
 

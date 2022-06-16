@@ -122,7 +122,7 @@ _ws_message shared_state::createMessage(websocket_session *session) {
     _message.ip_address = session->ip_address();
     _message.host_name = session->host_name();
     _message.user_name = session->get_user_name();
-    std::cout << _message.uuid << std::endl;
+    //std::cout << _message.uuid << std::endl;
     return _message;
 }
 
@@ -660,7 +660,7 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
             }
 
             if (!hash.empty()){
-                std::cout << session->get_name() << ":" << hash << std::endl;
+                //std::cout << session->get_name() << ":" << hash << std::endl;
                 std::vector<std::map<std::string, std::string>> table;
                 err = "";
                 std::string dbo = sqlite3Db->is_use_wrapper() ? "dbo." : "";
@@ -1469,7 +1469,7 @@ void shared_state::remove_group_hierarchy(const std::string &current_uuid, std::
     err = "";
     sqlite3Db->exec(query, err);
 
-    std::cout << query << std::endl;
+   // std::cout << query << std::endl;
 
     if (!err.empty() && err != "no error"){
         return;
@@ -2223,6 +2223,8 @@ bool shared_state::command_to_qt_client(boost::uuids::uuid &uuid, arcirk::bJson 
         auto const ss = boost::make_shared<std::string const>(std::move(msg));
         sess->send(ss);
 
+        std::cout << "shared_state::command_to_qt_client " << uuid << " to " << uuid_sess << std::endl;
+
     }else
         return false;
 
@@ -2271,6 +2273,8 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
         auto const ss = boost::make_shared<std::string const>(std::move(msg));
 
         sess->send(ss);
+
+        std::cout << "shared_state::command_to_qt_agent " << uuid << " to " << uuid_sess << std::endl;
 
     }else
         return false;
@@ -2577,7 +2581,7 @@ void shared_state::connect_sqlite_database() {
     sqlWrapper->setDriver("QSQLITE");
     sqlWrapper->setDatabaseName("base/db.sqlite");
     bool sqlResult = sqlWrapper->connect("QSQLITE");
-    std::cout << sqlWrapper->databaseName().toStdString() << std::endl;
+    std::cout << "shared_state::shared_state: " << sqlWrapper->databaseName().toStdString() << std::endl;
     if(!sqlResult)
         std::cerr << "shared_state::shared_state error connect to sqlite!" << std::endl;
     else{

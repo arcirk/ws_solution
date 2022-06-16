@@ -430,7 +430,7 @@ QString CommandLine::parseCommand(const QString &result, int command)
         int l = tmp.indexOf("\\\\.\\");
         int e = tmp.lastIndexOf("OK.");
 
-        qDebug() << l << " " << e;
+        //qDebug() << l << " " << e;
         if(l > 0 && e > 0 && l < e){
             tmp = tmp.mid(l, e - l);
             emit endParse(tmp, command);

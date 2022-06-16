@@ -269,7 +269,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             emit unreadMessages(resp->message);
         }
         else if(resp->command == "command_to_qt_client"){
-//#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
+#if defined(QT_QML_CLIENT_APP) || defined(QT_MPL_CLIENT)
             //qDebug() << resp->message;
             if(resp->message == "clientShow"){
                 emit clientShow();
@@ -278,15 +278,15 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
             }else if(resp->message == "get_crypt_data"){
                 emit wsGetCryptData(resp->uuid_session);
             }
-//#else
+#else
 
 //#ifdef QT_MPL_CLIENT
 //            if(resp->message == "get_available_containers"){
 //                            emit wsGetAvailableContainers(resp->uuid_session);
 //                        }
 //#else
-//            responseCommand(resp);
-//#endif
+            responseCommand(resp);
+#endif
 
 //#endif
         }
@@ -690,6 +690,9 @@ void bWebSocket::responseCommand(ServeResponse * resp)
 
     QString command = obj.value("command").toString();
     QString message = obj.value("message").toString();
+
+    //qDebug() << __FUNCTION__ << command << message;
+
     if(command == "registerClient")
         joinClientToAgent(resp);
     else if(command== "displayError")

@@ -52,5 +52,6 @@
         <file>img/cryptopro.ico</file>
         <file>img/sql.png</file>
         <file>img/cont.png</file>
+        <file>img/update.png</file>
     </qresource>
 </RCC>

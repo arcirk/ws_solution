@@ -176,7 +176,7 @@ void MainWindow::createModels(){
 }
 
 void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
     bar->setVisible(value);
 }
 
@@ -254,7 +254,7 @@ void MainWindow::createTerminal()
 
 void MainWindow::inVisibleToolBars()
 {
-    qDebug() << __FUNCTION__;
+//    qDebug() << __FUNCTION__;
 //    toolBar.append(ui->btnAdd);
 //    toolBar.append(ui->btnEdit);
 //    toolBar.append(ui->btnDelete);
@@ -409,7 +409,7 @@ void MainWindow::csptestCurrentUserGetContainers(const QString &result)
 
 QTreeWidgetItem *MainWindow::addTreeNode(const QString &text, const QVariant &key, const QString &imagePath)
 {
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
     auto * node = new QTreeWidgetItem();
     node-> setText (0, text);
     node->setData(0, Qt::UserRole, key);
@@ -801,158 +801,197 @@ void MainWindow::delCertificate()
     }
 }
 
-void MainWindow::addContainer()
+void MainWindow::addContainer(const QString& destantion, const QString& contanerName)
 {
 
-    QStringList select = {
-        "Добавить из каталога",
-        "Добавить из устройства"
-    };
-
     auto tree = ui->treeWidget;
+
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
-    if(node != SqlContainers){
-        select.append("Добавить из базы данных");
+    int selection = 0;
+
+    if(contanerName.isEmpty()){
+
+        QStringList select = {
+            "Добавить из каталога",
+            "Добавить из устройства"
+        };
+
+        if(node != SqlContainers){
+            select.append("Добавить из базы данных");
+        }
+
+        auto dlg = new DialogSelectDevice(this, select, "Добавить контейнер");
+        dlg->setModal(true);
+        dlg->exec();
+
+        if(dlg->result() != QDialog::Accepted){
+            return;
+        }
+
+        selection = dlg->currentSelection();
+    }else{
+        if(contanerName == FromRegistry || contanerName == FromVolume)
+            selection = 1;
+        else if(contanerName == FromDatabase)
+            selection = 2;
+        else if(contanerName == FromFolder)
+            selection = 0;
+        else
+            selection = 1;  //указано конкретное устройство
     }
 
-    auto dlg = new DialogSelectDevice(this, select, "Добавить контейнер");
-    dlg->setModal(true);
-    dlg->exec();
+    if(selection == 0){
+        addContainerFromCatalog();
+    }else if(selection == 1){
+        addContainerFromVolume(destantion, contanerName);
+    }else if(selection == 2){
 
-    if(dlg->result() == QDialog::Accepted){
+    }
 
-        //QString query;
-        auto bindQuery = QBSqlQuery();
 
-        if(dlg->currentSelection() == 0){
+}
 
-            QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
-                                                         QDir::homePath(),
-                                                         QFileDialog::ShowDirsOnly
-                                                         | QFileDialog::DontResolveSymlinks);
-            if(dir != ""){
-                QFile file(dir + QDir::separator() + "name.key");
-                if(file.open(QIODevice::ReadOnly)){
-                    QString data = QString::fromLocal8Bit(file.readAll());
-                    int ind = data.indexOf("\026");
-                    if(ind != -1){
-                        QString name = data.right(data.length() - ind - 2);
-                        auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(name));
-                        if(result == QMessageBox::Yes){
-                            auto cnt = KeysContainer();
-                            cnt.fromFolder(dir);
-                            if(cnt.isValid()){
-                                if(isCyrillic(name)){
-                                    auto dlg = DialogContainerName(name, this);
-                                    dlg.setModal(true);
-                                    dlg.exec();
-                                    if(dlg.result() == QDialog::Accepted){
-                                        name = dlg.name();
-                                        cnt.setNewOriginalName(name);
-                                    }else
-                                        return;
-                                }
-                                cnt.fromContainerName(name);
-                                if(isContainerExists(name)){
-                                    QMessageBox::critical(this, "Ошибка",
-                                                          QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
-                                    return;
-                                }else{
-                                    bindQuery = cnt.getSqlQueryObject(QBSqlCommand::QSqlInsert);
-                                }
+void MainWindow::addContainerFromCatalog()
+{
+    auto bindQuery = QBSqlQuery();
+
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Выбрать каталог"),
+                                                 QDir::homePath(),
+                                                 QFileDialog::ShowDirsOnly
+                                                 | QFileDialog::DontResolveSymlinks);
+    if(dir != ""){
+        QFile file(dir + QDir::separator() + "name.key");
+        if(file.open(QIODevice::ReadOnly)){
+            QString data = QString::fromLocal8Bit(file.readAll());
+            int ind = data.indexOf("\026");
+            if(ind != -1){
+                QString name = data.right(data.length() - ind - 2);
+                auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(name));
+                if(result == QMessageBox::Yes){
+                    auto cnt = KeysContainer();
+                    cnt.fromFolder(dir);
+                    if(cnt.isValid()){
+                        if(isCyrillic(name)){
+                            auto dlg = DialogContainerName(name, this);
+                            dlg.setModal(true);
+                            dlg.exec();
+                            if(dlg.result() == QDialog::Accepted){
+                                name = dlg.name();
+                                cnt.setNewOriginalName(name);
                             }else
-                                QMessageBox::critical(this, "Ошибка", "Ошибка импорта!");
+                                return;
+                        }
+                        cnt.fromContainerName(name);
+                        if(isContainerExists(name)){
+                            QMessageBox::critical(this, "Ошибка",
+                                                  QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
+                            return;
+                        }else{
+                            bindQuery = cnt.getSqlQueryObject(QBSqlCommand::QSqlInsert);
                         }
                     }else
-                       QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
-                }else{
-                    QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+                        QMessageBox::critical(this, "Ошибка", "Ошибка импорта!");
                 }
-            }
-        }else if(dlg->currentSelection() == 1){
-
-            auto model = new QStandardItemModel(this);
-            model->setHorizontalHeaderLabels({"Устройство", "Наименование", "Контейнер"});
-            int row = 0;
-            foreach(auto cntPt, currentUser->containers()){
-                auto cnt = currentUser->container(cntPt);
-                if(cnt){
-                    model->setRowCount(row + 1);
-                    auto item = new QStandardItem(cnt->volume());
-                    model->setItem(row, 0, item);
-                    item = new QStandardItem(cnt->bindName());
-                    model->setItem(row, 1, item);
-                    item = new QStandardItem(cntPt);
-                    model->setItem(row, 2, item);
-                    row++;
-                }
-            }
-
-            auto dlgSel = DialogSelectInList(model, "Выбор устройства", this);
-            dlgSel.setModal(true);
-            dlgSel.exec();
-
-            if(dlgSel.result() == QDialog::Accepted){
-                QStringList dlgResult = dlgSel.dialogResult();
-                if(dlgResult.size() == 0)
-                    return;
-                QString contaner = dlgResult[2];
-                QString volume = dlgResult[0];
-                //QString path = dlgResult[1];
-                QString name;
-                auto cnt = currentUser->container(contaner);
-                if(cnt){
-                    if(cnt->keyName().isEmpty())
-                        cnt->fromContainerName(contaner);
-                    if(volume.indexOf(REGISTRY_) != -1){
-                        cnt->fromRegistry(currentUser->sid(), cnt->originalName());
-                        cnt->originalName();
-                    }else{
-                       QDir dir(cnt->volumePath() + cnt->keyName() + ".000");
-                      // qDebug() << dir.path();
-                       if(dir.exists()){
-                           cnt->fromFolder(dir.path());
-                           name = cnt->originalName();
-                       }else{
-                           QMessageBox::critical(this, "Ошибка", "Произошла ошибка чтения с каталога!");
-                           return;
-                       }
-                    }
-
-                    if(cnt->isValid()){
-                         auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(cnt->bindName()));
-
-                         if(result == QMessageBox::Yes){
-                             name = cnt->originalName();
-                            if(isCyrillic(cnt->originalName())){
-                                auto dlg = DialogContainerName(name, this);
-                                dlg.setModal(true);
-                                dlg.exec();
-                                if(dlg.result() == QDialog::Accepted){
-                                    name = dlg.name();
-                                    if(name != cnt->originalName())
-                                         cnt->setNewOriginalName(name);
-                                }else
-                                    return;
-                            }
-                         }else
-                            return;
-
-                         if(isContainerExists(name)){
-                             QMessageBox::critical(this, "Ошибка",
-                                                   QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
-                             return;
-                         }else{
-                             bindQuery = cnt->getSqlQueryObject(QBSqlCommand::QSqlInsert);
-                         }
-                    }
-
-                }
-            }
-        }else if(dlg->currentSelection() == 2){
-
+            }else
+               QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
+        }else{
+            QMessageBox::critical(this, "Ошибка", "В выбранном каталоге контейнер закрытого ключа не найден!");
         }
+    }
+
+    if(bindQuery.isValid()){
+        if(_sett->launch_mode() == mixed){
+            QSqlQuery sql = bindQuery.query(db->getDatabase());
+            sql.exec();
+            if(sql.lastError().type() != QSqlError::NoError){
+                qDebug() << __FUNCTION__ << sql.lastError().text();
+            }else{
+                QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
+                getDataContainersList();
+            }
+        }else{
+            if(m_client->isStarted()){
+                auto doc = QJsonDocument();
+                auto objMain = QJsonObject();
+                objMain.insert("query", bindQuery.to_json());
+                objMain.insert("id_command", insertContainerToData);
+                doc.setObject(objMain);
+                QString param = doc.toJson();
+                m_client->sendCommand("exec_query_qt", "", param);
+            }
+        }
+    }else
+        QMessageBox::critical(this, "Ошибка", "Произошла ошибка импорта!");
+}
+
+void MainWindow::addContainerFromVolume(const QString& destantion, const QString& contanerName)
+{
+
+    QString container;
+    QString volume;
+
+    if(destantion.isEmpty())
+        return;
+
+    if(contanerName.isEmpty()){
+        if(!selectVolume(volume, container))
+            return;
+    }
+
+    QString name;
+    auto cnt = currentUser->container(contanerName);
+    if(cnt){
+        if(cnt->keyName().isEmpty())
+            cnt->fromContainerName(contanerName);
+        if(volume.indexOf(REGISTRY_) != -1){
+            cnt->fromRegistry(currentUser->sid(), cnt->originalName());
+            cnt->originalName();
+        }else{
+           QDir dir(cnt->volumePath() + cnt->keyName() + ".000");
+           if(dir.exists()){
+               cnt->fromFolder(dir.path());
+               name = cnt->originalName();
+           }else{
+               QMessageBox::critical(this, "Ошибка", "Произошла ошибка чтения с каталога!");
+               return;
+           }
+        }
+
+        if(cnt->isValid()){
+             auto result =  QMessageBox::question(this, "Импорт контейнера", QString("Импортировать контейнер: \n%1?").arg(cnt->bindName()));
+
+             if(result == QMessageBox::Yes){
+                 name = cnt->originalName();
+                if(isCyrillic(cnt->originalName())){
+                    auto dlg = DialogContainerName(name, this);
+                    dlg.setModal(true);
+                    dlg.exec();
+                    if(dlg.result() == QDialog::Accepted){
+                        name = dlg.name();
+                        if(name != cnt->originalName())
+                             cnt->setNewOriginalName(name);
+                    }else
+                        return;
+                }
+             }else
+                return;
+
+             if(isContainerExists(name)){
+                 QMessageBox::critical(this, "Ошибка",
+                                       QString("Контейнер с именем: \n'%1' уже загружен в базу!").arg(name));
+                 return;
+//             }else{
+//                 bindQuery = cnt->getSqlQueryObject(QBSqlCommand::QSqlInsert);
+             }
+        }else
+            return;
+    }else
+        return;
+
+    if(destantion == ToDatabase){
+
+        auto bindQuery = cnt->getSqlQueryObject(QBSqlCommand::QSqlInsert);
 
         if(bindQuery.isValid()){
             if(_sett->launch_mode() == mixed){
@@ -977,6 +1016,9 @@ void MainWindow::addContainer()
             }
         }else
             QMessageBox::critical(this, "Ошибка", "Произошла ошибка импорта!");
+    }else if(destantion == ToRegistry){
+
+
 
     }
 }
@@ -1083,6 +1125,87 @@ void MainWindow::addCertUser()
 
 }
 
+void MainWindow::resetCertData(CertUser *usr, const QString& node)
+{
+    if(node == currentUserContainers || node == currentUserRegistry || node == currentUserDivace){
+        if(usr == currentUser){
+            terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+        }
+    }else if(node == currentUserCertificates){
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+    }
+
+}
+
+void MainWindow::resetCertUsersTree()
+{
+    auto root = findTreeItem(SqlUsers);
+
+    if(!root)
+        return;
+
+    for(int i = 0; i < root->childCount();  ++i){
+        root->removeChild(root->child(i));
+    }
+
+    int iUser = modelSqlUsers->getColumnIndex("FirstField");
+    int iHost = modelSqlUsers->getColumnIndex("host");
+    int iUuid = modelSqlUsers->getColumnIndex("uuid");
+
+    for(int i = 0; i < modelSqlUsers->rowCount(); ++i){
+        QString name = modelSqlUsers->index(i, iUser).data(Qt::UserRole + iUser).toString();
+        QString host = modelSqlUsers->index(i, iHost).data(Qt::UserRole + iHost).toString();
+        QString uuid = modelSqlUsers->index(i, iUuid).data(Qt::UserRole + iUuid).toString();
+        QPair<QString, QString> index = qMakePair(name, host);
+        auto itr = m_users.find(index);
+        CertUser * user = nullptr;
+        if(itr == m_users.end()){
+            user = new CertUser(this);
+            user->setName(name);
+            user->setDomain(host);
+            user->setUuid(QUuid::fromString(uuid));
+            qDebug() << name << host << uuid << user->uuid().toString();
+        }else
+            user = itr.value();
+
+        auto itemUser = addTreeNode(name + " (" + host + ")", user->uuid().toString(), ":/img/certUsers.png");
+        root->addChild(itemUser);
+    }
+
+}
+
+bool MainWindow::selectVolume(QString &volume, QString &container)
+{
+    auto model = new QStandardItemModel(this);
+    model->setHorizontalHeaderLabels({"Устройство", "Наименование", "Контейнер"});
+    int row = 0;
+    foreach(auto cntPt, currentUser->containers()){
+        auto cnt = currentUser->container(cntPt);
+        if(cnt){
+            model->setRowCount(row + 1);
+            auto item = new QStandardItem(cnt->volume());
+            model->setItem(row, 0, item);
+            item = new QStandardItem(cnt->bindName());
+            model->setItem(row, 1, item);
+            item = new QStandardItem(cntPt);
+            model->setItem(row, 2, item);
+            row++;
+        }
+    }
+    auto dlgSel = DialogSelectInList(model, "Выбор устройства", this);
+    dlgSel.setModal(true);
+    dlgSel.exec();
+
+    if(dlgSel.result() != QDialog::Accepted){
+        return false;
+    }
+        QStringList dlgResult = dlgSel.dialogResult();
+        if(dlgResult.size() == 0)
+            return false;
+    container = dlgResult[2];
+    volume = dlgResult[0];
+}
+
 QStandardItemModel *MainWindow::getLocalMountedVolumes()
 {
     auto model = new QStandardItemModel(this);
@@ -1136,20 +1259,20 @@ void MainWindow::updateCertUsersOnlineStstus()
     modelSqlUsers->reset();
 }
 
-void MainWindow::treeSetCurrentContainers(const QString& filter)
+void MainWindow::treeSetCurrentContainers(const QString& filter, QJsonTableModel * model, QProxyModel * proxy)
 {
         auto tableView = ui->tableView;
         tableView->setModel(nullptr);
 
 //        currentList.filter = "{\"IsGroup\": 1,
 //                               \"Parent\": \"" + uuid + "\"}"
-        proxyModelUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
-        tableView->setModel(proxyModelUserConteiners);
+        proxy->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
+        tableView->setModel(proxy);
 
-        int ind = modelUserContainers->getColumnIndex("name");
+        int ind = model->getColumnIndex("name");
         if(ind != -1)
             tableView->setColumnHidden(ind, true);
-        ind = modelUserContainers->getColumnIndex("nameInStorgare");
+        ind = model->getColumnIndex("nameInStorgare");
         if(ind != -1)
             tableView->setColumnHidden(ind, true);
 
@@ -1157,13 +1280,13 @@ void MainWindow::treeSetCurrentContainers(const QString& filter)
 
 }
 
-void MainWindow::treeSetFromCurrentUserCerts()
+void MainWindow::treeSetFromCurrentUserCerts(QJsonTableModel* model)
 {
     auto table = ui->tableView;
     table->setModel(nullptr);
-    if(modelUserCertificates){
-        table->setModel(modelUserCertificates);
-        int col = modelUserCertificates->getColumnIndex("serial");
+    if(model){
+        table->setModel(model);
+        int col = model->getColumnIndex("serial");
         table->setColumnHidden(col, true);
         table->resizeColumnsToContents();
     }
@@ -1180,6 +1303,7 @@ void MainWindow::treeSetCertUserData(CertUser *usr)
     if(!root)
         return;
     auto user = findTreeItem(usr->uuid().toString(), root);
+    qDebug() << usr->uuid().toString();
     if(!user){
         user = addTreeNode(usr->name(), usr->uuid().toString(), ":/img/certUsers.png");
         root->addChild(user);
@@ -1410,7 +1534,7 @@ void MainWindow::onOutputCommandLine(const QString &data, int command)
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + data);
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
-    qDebug() << __FUNCTION__ << "command: " << (CmdCommand)command;
+    //qDebug() << __FUNCTION__ << "command: " << (CmdCommand)command;
 
     if(data.indexOf("Error:") > 0)
         return;
@@ -1444,11 +1568,11 @@ void MainWindow::createTree()
 
     auto root = addTreeNode("root", "root", ":/img/system_config_root.ico");
     tree->addTopLevelItem(root);
-    auto curr_user = addTreeNode("Текущий пользователь", "currentUser", ":/img/userOptions.ico");
+    auto curr_user = addTreeNode("Текущий пользователь", СurrentUser, ":/img/userOptions.ico");
     root->addChild(curr_user);
-    auto server = addTreeNode("База", "SqlServer", ":/img/sqlServer.png");
+    auto server = addTreeNode("База", SqlServer, ":/img/sqlServer.png");
     root->addChild(server);
-    auto ws = addTreeNode("Сервер взаимодействия", "WsServer", ":/img/socket_16_only.ico");
+    auto ws = addTreeNode("Сервер взаимодействия", WsServer, ":/img/socket_16_only.ico");
     root->addChild(ws);
 
 ////    QString usrName = currentUser->name();
@@ -1635,6 +1759,9 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
                rootDb->addChild(itemUsers);
             }
         }
+
+        //заполняем в дереве далее
+        resetCertUsersTree();
     }
 }
 
@@ -1809,42 +1936,11 @@ void MainWindow::getDataUsersList()
     }
 }
 
-void MainWindow::resetCurrentUserCertModel()
+void MainWindow::resetUserCertModel(CertUser* usr, QJsonTableModel* model)
 {
 
-    auto doc = QJsonDocument();
-    auto objCols = QJsonArray();
-    objCols.append("Empty");
-    objCols.append("subject");
-    objCols.append("issuer");
-    objCols.append("notValidBefore");
-    objCols.append("notValidAfter");
-    objCols.append("parentUser");
-    objCols.append("container");
-    objCols.append("serial");
-
-
-    auto objRows = QJsonArray();
-    foreach(auto itr, currentUser->certificates()){
-        auto row = QJsonObject();
-        row.insert("Empty", QString());
-        row.insert("subject", itr->subject());
-        row.insert("issuer", itr->issuer());
-        row.insert("notValidBefore", itr->notValidBefore());
-        row.insert("notValidAfter", itr->notValidAfter());
-        row.insert("parentUser", itr->parentUser());
-        row.insert("container", itr->container());
-        row.insert("serial", itr->serial());
-        objRows.append(row);
-    }
-
-    auto objMain = QJsonObject();
-    objMain.insert("columns", objCols);
-    objMain.insert("rows", objRows);
-    doc.setObject(objMain);
-
-    modelUserCertificates->setJsonText(doc.toJson());
-    modelUserCertificates->reset();
+    model->setJsonText(usr->modelCertificatesText());
+    model->reset();
 }
 
 //void MainWindow::LoadUsersList()
@@ -2010,7 +2106,7 @@ void MainWindow::getAvailableContainers(CertUser *usr)
 
 void MainWindow::disableToolBar()
 {
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
     ui->btnAdd->setEnabled(false);
     ui->btnEdit->setEnabled(false);
     ui->btnDelete->setEnabled(false);
@@ -2018,7 +2114,7 @@ void MainWindow::disableToolBar()
     ui->btnToDatabase->setEnabled(false);
 }
 
-bool MainWindow::isContainerExists(const QString &name)
+bool MainWindow::isContainerExists(const QString &name, CertUser* usr)
 {
     qDebug() << __FUNCTION__;
     if(_sett->launch_mode() == mixed){
@@ -2321,7 +2417,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
 
 
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
     QString key = item->data(0, Qt::UserRole).toString();
 
     inVisibleToolBars();
@@ -2333,13 +2429,13 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     }else{   
         if(key == currentUserRegistry){
            toolBarSetVisible(ui->wToolBarCurrentUser, true);
-           treeSetCurrentContainers("REGISTRY");
+           treeSetCurrentContainers("REGISTRY", modelUserContainers, proxyModelUserConteiners);
            ui->btnCurrentCopyToRegistry->setEnabled(true);
            ui->btnCurrentCopyToSql->setEnabled(true);
            ui->btnCurrentUserAdd->setEnabled(false);
         }else if(key == currentUserDivace){
            toolBarSetVisible(ui->wToolBarCurrentUser, true);
-           treeSetCurrentContainers("!REGISTRY");
+           treeSetCurrentContainers("!REGISTRY", modelUserContainers, proxyModelUserConteiners);
            ui->btnCurrentCopyToRegistry->setEnabled(true);
            ui->btnCurrentCopyToSql->setEnabled(true);
            ui->btnCurrentUserAdd->setEnabled(false);
@@ -2357,7 +2453,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             treeSetFromSqlUsers();
         }else if(key == currentUserCertificates){
             toolBarSetVisible(ui->wToolBarCurrentUser, true);
-            treeSetFromCurrentUserCerts();
+            treeSetFromCurrentUserCerts(modelUserCertificates);
             ui->btnCurrentCopyToRegistry->setEnabled(false);
             ui->btnCurrentCopyToSql->setEnabled(false);
             ui->btnCurrentUserAdd->setEnabled(true);
@@ -2370,24 +2466,11 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto itr = m_users.find(index);
                 if(itr != m_users.end()){
-                    QString filter = "REGISTRY";
                     modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
                     modelCertUserContainers->reset();
-                    //proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
-                    proxyModeCertlUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
-                    ui->tableView->setModel(proxyModeCertlUserConteiners);
-                    ui->tableView->resizeColumnsToContents();
+                    treeSetCurrentContainers("REGISTRY", modelCertUserContainers, proxyModeCertlUserConteiners);
                 }
-                int ind = modelCertUserContainers->getColumnIndex("name");
-                if(ind != -1)
-                    ui->tableView->setColumnHidden(ind, true);
-                ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-                if(ind != -1)
-                    ui->tableView->setColumnHidden(ind, true);
-
-                ui->tableView->resizeColumnsToContents();
             }else if(key.left(4) == "vol_"){
-                QString filter = "!REGISTRY";
                 QStringList m_key = key.split("_");
                 QStringList m_userHost = m_key[1].split("/");
                 QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
@@ -2395,82 +2478,20 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 if(itr != m_users.end()){
                     modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
                     modelCertUserContainers->reset();
-                    //proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
-                    proxyModeCertlUserConteiners->setFilter(QString("{\"volume\":\"%1\"}").arg(filter));
-                    ui->tableView->setModel(proxyModeCertlUserConteiners);
-                    ui->tableView->resizeColumnsToContents();
+                    treeSetCurrentContainers("!REGISTRY", modelCertUserContainers, proxyModeCertlUserConteiners);
                 }
-                int ind = modelCertUserContainers->getColumnIndex("name");
-                if(ind != -1)
-                    ui->tableView->setColumnHidden(ind, true);
-                ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-                if(ind != -1)
-                    ui->tableView->setColumnHidden(ind, true);
-
-                ui->tableView->resizeColumnsToContents();
+            }else if(key.left(5) == "cert_"){
+                QStringList m_key = key.split("_");
+                QStringList m_userHost = m_key[1].split("/");
+                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto itr = m_users.find(index);
+                if(itr != m_users.end()){
+                    resetUserCertModel(itr.value(), modelCertUserCertificates);
+                    treeSetFromCurrentUserCerts(modelCertUserCertificates);
+                }
             }
         }
     }
-//        return;
-
-//        QString itemText = item->text(0);
-//        if(itemText == "Реестр"){
-////            ui->btnAdd->setEnabled(true);
-
-////            if(item->parent()->text(0).compare("Текущий пользователь")){
-////                getAvailableContainers(currentUser);
-////            }else{
-
-////            }
-//        }else if(itemText == "Контейнеры"){
-//            toolBarSetVisible(ui->wToolBarAU, false);
-//            toolBarSetVisible(ui->wToolBarMain, false);
-//            toolBarSetVisible(ui->wToolbarContainers, true);
-//            //getDataContainersList();
-//        }else if(itemText == "Пользователи"){
-//            toolBarSetVisible(ui->wToolBarAU, false);
-//            toolBarSetVisible(ui->wToolBarMain, true);
-//            toolBarSetVisible(ui->wToolbarContainers, false);
-//            LoadUsersList();
-//        }else if(itemText == "Компьютеры"){
-//            toolBarSetVisible(ui->wToolBarAU, false);
-//            toolBarSetVisible(ui->wToolBarMain, true);
-//            toolBarSetVisible(ui->wToolbarContainers, false);
-//            loadCimputers();
-//        }else if(itemText == "Активные пользователи"){
-//            toolBarSetVisible(ui->wToolBarAU, true);
-//            toolBarSetVisible(ui->wToolBarMain, false);
-//            toolBarSetVisible(ui->wToolbarContainers, false);
-//            disableToolBar();
-//            loadOnlineUsers();
-//        }else if(itemText == "Сертификаты"){
-//            loadCertList();
-//            toolBarSetVisible(ui->wToolBarAU, false);
-//            toolBarSetVisible(ui->wToolBarMain, true);
-//            toolBarSetVisible(ui->wToolbarContainers, false);
-//        }else{
-//            toolBarSetVisible(ui->wToolBarAU, false);
-//            toolBarSetVisible(ui->wToolBarMain, true);
-//            toolBarSetVisible(ui->wToolbarContainers, false);
-//            disableToolBar();
-//            ui->tableView->setModel(nullptr);
-//        }
-//    }
-//    QString itemText = item->text(0);
-//    if(itemText == "root"){
-//        createRootList();
-//        enableToolbar(false);
-//    }else if(itemText == "Контейнеры"){
-//        createContainersList();
-//        enableToolbar(true);
-//    }else if(itemText == "Сертификаты"){
-//        createCertList();
-//        enableToolbar(true);
-//    }else if(itemText == "Пользователи"){
-//        createUsersList();
-//        enableToolbar(true);
-//    }else
-//        enableToolbar(true);
 
 }
 
@@ -3033,7 +3054,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
     auto objResp = doc.object();
     QString uuid = objResp.value("uuid").toString();
     if(uuid == m_client->getUuidSession()){
-        auto item = findTreeItem("currentUser");
+        auto item = findTreeItem(СurrentUser);
         if(item){
             item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
             if(item->childCount() == 0){
@@ -3357,7 +3378,9 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
 {
     if(command == CmdCommand::echoUserName){
         currentUser->setName(result.toString());
-        //currentUser->treeItem()->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
+        auto treeItem = findTreeItem(СurrentUser);
+        if(treeItem)
+            treeItem->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
         //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
     }else if(command == CmdCommand::wmicGetSID){
         currentUser->setSid(result.toString());
@@ -3394,7 +3417,7 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
             currentUser->certificates().insert(cert->serial(), cert);
         }
 
-        resetCurrentUserCertModel();
+        resetUserCertModel(currentUser, modelUserCertificates);
 
     }
 }
@@ -3419,7 +3442,7 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 
 void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
-    //qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__;
 //    qDebug() <<  __FUNCTION__ << recipient << command;
 //    qDebug() <<  __FUNCTION__ << qPrintable(message);
     if(command == AvailableContainers){
@@ -3442,8 +3465,10 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
 
         int iName = modelWsUsers->getColumnIndex("name");
         int iHost = modelWsUsers->getColumnIndex("host_name");
+        int iUuidUser = modelWsUsers->getColumnIndex("uuid_user");
         QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
         QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
+        QString uuidUser = modelWsUsers->index(index.row(), iUuidUser).data(Qt::UserRole + iUuidUser).toString();
         if(!name.isEmpty() && !host.isEmpty()){
             auto itr = m_users.find(qMakePair(name, host));
             CertUser * usr = nullptr;
@@ -3453,6 +3478,7 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
                 usr = new CertUser(this);
                 usr->setName(name);
                 usr->setDomain(host);
+                usr->setUuid(QUuid::fromString(uuidUser));
                 m_users.insert(qMakePair(name, host), usr);
             }
             usr->setContainers(containers);
@@ -3780,6 +3806,7 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
 
 void MainWindow::on_btnCurrentCopyToRegistry_clicked()
 {
+
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
@@ -3787,76 +3814,89 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
         return;
     }
 
-    QString name = table->model()->index(index.row(), 2).data().toString();
+    int ind = modelUserContainers->getColumnIndex("nameInStorgare");
+    auto container = modelUserContainers->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+    container.replace("\r", "");
+    addContainer(ToRegistry, container);
 
-    auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер: \n%1 \n в реестр?").arg(name));
 
-    if(result != QMessageBox::Yes){
-        return;
-    }
+//    auto table = ui->tableView;
+//    auto index = table->currentIndex();
+//    if(!index.isValid()){
+//        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+//        return;
+//    }
 
-    auto dlg = new DialogContainerName(name,this);
-    dlg->setModal(true);
-    dlg->exec();
+//    QString name = table->model()->index(index.row(), 2).data().toString();
 
-    if(dlg->result() != QDialog::Accepted)
-        return;
+//    auto result =  QMessageBox::question(this, "Копирование контейнера", QString("Копировать контейнер: \n%1 \n в реестр?").arg(name));
 
-    QString newName = dlg->keyName() + dlg->name();
+//    if(result != QMessageBox::Yes){
+//        return;
+//    }
 
-    QString nameBase64 = QString("\\\\.\\REGISTRY\\%1").arg(QByteArray(newName.toUtf8()).toBase64());
+//    auto dlg = new DialogContainerName(name,this);
+//    dlg->setModal(true);
+//    dlg->exec();
 
-    QStringList lst = currentUser->getRigstryData();
-    QString tmp =  QString("\\\\.\\REGISTRY\\%1").arg(newName);
-    if(lst.indexOf(tmp) != -1 || lst.indexOf(nameBase64) != -1){
-        QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
-        return;
-    }
+//    if(dlg->result() != QDialog::Accepted)
+//        return;
 
-#ifdef _WINDOWS
-    QModelIndex _index = table->model()->index(index.row(), 1);
-    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
-    if(isCyrillic(device)){
-        if(currentUser->sid().isEmpty()){
-            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
-            terminal->send(cmd, csptestContainerCopy);
-            return;
-        }
-        auto m_device = parseDeviceString(device);
-        QString volume = m_device.value("volume").toString();
-        if(volume.length() == 1){
-            volume = volume + ":\\";
-        }
-        QDir dir(volume + m_device.value("key_name").toString() + ".000");
-        if(dir.exists()){
-            auto keyCon = KeysContainer();
-            keyCon.fromContainerName(device);
-//            keyCon.parseAdressKey(device);
-//            keyCon.setWindowsSid(currentUser->sid());
-            keyCon.fromFolder(dir.path());
-            if(keyCon.isValid()){
-                //keyCon.setPath(currentUser->sid(), QByteArray(newName.toUtf8()).toBase64());
-                bool result = keyCon.syncRegystry(currentUser->sid());
-                if(result){
-                    QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
-                    getAvailableContainers(currentUser);
-                }else{
-                    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
-                    terminal->send(cmd, csptestContainerCopy);
-                }
-            }
-        }else{
-            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
-            terminal->send(cmd, csptestContainerCopy);
-        }
-    }else{
-        QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
-        terminal->send(cmd, csptestContainerCopy);
-    }
-#else
-    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
-    terminal->send(cmd, csptestContainerCopy);
-#endif
+//    QString newName = dlg->keyName() + dlg->name();
+
+//    QString nameBase64 = QString("\\\\.\\REGISTRY\\%1").arg(QByteArray(newName.toUtf8()).toBase64());
+
+//    QStringList lst = currentUser->getRigstryData();
+//    QString tmp =  QString("\\\\.\\REGISTRY\\%1").arg(newName);
+//    if(lst.indexOf(tmp) != -1 || lst.indexOf(nameBase64) != -1){
+//        QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем %1 уже существует в реестре!").arg(newName));
+//        return;
+//    }
+
+//#ifdef _WINDOWS
+//    QModelIndex _index = table->model()->index(index.row(), 1);
+//    QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+//    if(isCyrillic(device)){
+//        if(currentUser->sid().isEmpty()){
+//            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//            terminal->send(cmd, csptestContainerCopy);
+//            return;
+//        }
+//        auto m_device = parseDeviceString(device);
+//        QString volume = m_device.value("volume").toString();
+//        if(volume.length() == 1){
+//            volume = volume + ":\\";
+//        }
+//        QDir dir(volume + m_device.value("key_name").toString() + ".000");
+//        if(dir.exists()){
+//            auto keyCon = KeysContainer();
+//            keyCon.fromContainerName(device);
+////            keyCon.parseAdressKey(device);
+////            keyCon.setWindowsSid(currentUser->sid());
+//            keyCon.fromFolder(dir.path());
+//            if(keyCon.isValid()){
+//                //keyCon.setPath(currentUser->sid(), QByteArray(newName.toUtf8()).toBase64());
+//                bool result = keyCon.syncRegystry(currentUser->sid());
+//                if(result){
+//                    QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
+//                    getAvailableContainers(currentUser);
+//                }else{
+//                    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//                    terminal->send(cmd, csptestContainerCopy);
+//                }
+//            }
+//        }else{
+//            QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//            terminal->send(cmd, csptestContainerCopy);
+//        }
+//    }else{
+//        QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//        terminal->send(cmd, csptestContainerCopy);
+//    }
+//#else
+//    QString cmd = QString("csptest -keycopy -contsrc \"%1\" -contdest \"%2\" -pindest=\"\"").arg(device, nameBase64);
+//    terminal->send(cmd, csptestContainerCopy);
+//#endif
 }
 
 void MainWindow::on_btnCurrentCopyToSql_clicked()
@@ -3868,139 +3908,96 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
         return;
     }
 
-    QString volume = table->model()->index(index.row(), 1).data().toString();
-    QString name = table->model()->index(index.row(), 2).data().toString();
-
-    //ToDo: Сделать проверку на кирилицу
-
-    QDir folder;
-
-            if(QString(volume).left(6) == "FAT12_"){
-                QString tom = QString(volume).right(volume.length() - 6);
-
-                QStorageInfo storage(tom + ":" + QDir::separator());
-                if(!storage.isReady())
-                {
-                    QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
-                    return;
-                }
-
-                ////Для теста
-                //terminal->send(keySetInfo.arg(container), unknown);
-
-                QStringList lst = name.split("@");
-                folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
-
-                if(!folder.exists()){
-                    return;
-                }
-            }
-            KeysContainer cnt = KeysContainer(this);
-            cnt.setName(name);
-            if(QString(volume).left(6) == "FAT12_"){
-                cnt.fromFolder(folder.path());
-            }else if(volume == "REGISTRY"){
-                if(currentUser->sid().isEmpty()){
-                    qCritical() <<__FUNCTION__ << "Требуется SID!";
-                    return;
-                }
-                //cnt.setPath(currentUser->sid(), cnt.nameBase64());
-                cnt.fromRegistry(currentUser->sid(), cnt.bindName());
-            }
-
-            if(!cnt.isValid())
-            {
-                qCritical() <<__FUNCTION__ << "Ошибка: Ошибка загрузки данных контейнера с устройства!";
-                return;
-            }else{
-                if(isContainerExists(name)){
-                    QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем '%1' уже есть на сервере!").arg(name));
-                    return;
-                }
-                auto bOK =  QMessageBox::question(this, "Экспорт контейнера", QString("Экспортировать на сервер контейнер %1?").arg(name));
-                if(bOK == QMessageBox::No){
-                    return;
-                }
-
-                QString uuid = QUuid::createUuid().toString();
-                uuid = uuid.mid(1, uuid.length() - 2);
-                QByteArray data = cnt.toBase64();
-
-                auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "Containers");
-                QJsonObject obj = QJsonObject();
-                obj.insert("name", "Ref");
-                obj.insert("value", uuid);
-                bindQuery.add_field(obj, bFieldType::qVariant);
-
-                obj = QJsonObject();
-                obj.insert("name", "FirstField");
-                obj.insert("value", QString(name.toUtf8().toBase64()));
-                bindQuery.add_field(obj, bFieldType::qVariant);
-                bindQuery.add_field_is_exists(obj);
-
-                obj = QJsonObject();
-                obj.insert("name", "SecondField");
-                obj.insert("value", name);
-                bindQuery.add_field(obj, bFieldType::qVariant);
-                bindQuery.add_field_is_exists(obj);
-
-                obj = QJsonObject();
-                obj.insert("name", "data");
-                obj.insert("value", QString(data.toBase64()));
-                bindQuery.add_field(obj, bFieldType::qByteArray);
+    int ind = modelUserContainers->getColumnIndex("nameInStorgare");
+    auto container = modelUserContainers->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+    container.replace("\r", "");
+    addContainer(ToDatabase, container);
 
 
-                //qDebug() << qPrintable(result);
+//    QString volume = table->model()->index(index.row(), 1).data().toString();
+//    QString name = table->model()->index(index.row(), 2).data().toString();
 
-                if(_sett->launch_mode() == mixed){
-                    QSqlQuery sql = bindQuery.query(db->getDatabase());
-                    sql.exec();
-                    if(sql.lastError().type() != QSqlError::NoError){
-                        qDebug() << __FUNCTION__ << sql.lastError().text();
-                    }else{
-                        QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
-                        getDataContainersList();
-                    }
-                }else{
-                    if(m_client->isStarted()){
-                        QString result = bindQuery.to_json();
-                        auto doc = QJsonDocument();
-                        auto objMain = QJsonObject();
-                        objMain.insert("query", result);
-                        objMain.insert("id_command", "insertContainerToData");
-                        doc.setObject(objMain);
-                        QString param = doc.toJson();
-                        m_client->sendCommand("exec_query_qt", "", param);
-                    }
-                }
+//    QDir folder;
 
-            }
-//                obj.insert("Ref", uuid);
-//                obj.insert("FirstField", name);
-//                obj.insert("data", QString(data.toBase64()));
+//    if(QString(volume).left(6) == "FAT12_"){
+//        QString tom = QString(volume).right(volume.length() - 6);
 
-//                doc.setObject(obj);
-//                QString jsonObject = doc.toJson();
+//        QStorageInfo storage(tom + ":" + QDir::separator());
+//        if(!storage.isReady())
+//        {
+//            QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
+//            return;
+//        }
 
-//                QJsonDocument docRef = QJsonDocument();
-//                QJsonObject objRef = QJsonObject();
-//                objRef.insert("FirstField", name);
-//                docRef.setObject(objRef);
-//                QString jsonObjectRef = docRef.toJson();
+//        QStringList lst = name.split("@");
+//        folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
 
-//                if(_sett->launch_mode() == mixed){
-//                    db->insert("Containers", jsonObject, jsonObjectRef);
-//                }
+//        if(!folder.exists()){
+//            return;
+//        }
+//    }
+//    KeysContainer cnt = KeysContainer(this);
+//    cnt.setName(name);
+//    if(QString(volume).left(6) == "FAT12_"){
+//        cnt.fromFolder(folder.path());
+//    }else if(volume == "REGISTRY"){
+//        if(currentUser->sid().isEmpty()){
+//            qCritical() << __FUNCTION__ << "Требуется SID!";
+//            return;
+//        }
+//        cnt.fromRegistry(currentUser->sid(), cnt.bindName());
+//    }
 
-//                qDebug() << SqlInterface::getParametersFromString("INSERT INTO [dbo].[Containers] ([Ref], [FirstField], [data]) "
-//                                                                  "VALUES (?, ?, ?)");
+//    if(!cnt.isValid())
+//    {
+//        qCritical() << __FUNCTION__ << "Ошибка: Ошибка загрузки данных контейнера с устройства!";
+//        return;
+//    }else{
+//        if(isContainerExists(name)){
+//            QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем '%1' уже есть на сервере!").arg(name));
+//            return;
+//        }
+//        auto bOK =  QMessageBox::question(this, "Экспорт контейнера", QString("Экспортировать на сервер контейнер %1?").arg(name));
+//        if(bOK == QMessageBox::No){
+//            return;
+//        }
 
+//        QString uuid = QUuid::createUuid().toString();
+//        uuid = uuid.mid(1, uuid.length() - 2);
+//        QByteArray data = cnt.toBase64();
 
+//        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "Containers");
+//        bindQuery.addField("Ref", uuid);
+//        bindQuery.addField("FirstField", QString(name.toUtf8().toBase64()));
+//        bindQuery.addField("SecondField", name);
+//        bindQuery.addField("data", QString(data.toBase64()));
 
-            //}
-        //}
+//        bindQuery.addFieldIsExists("FirstField", QString(name.toUtf8().toBase64()));
+//        bindQuery.addFieldIsExists("SecondField", name);
 
-    //}
+//        if(_sett->launch_mode() == mixed){
+//            QSqlQuery sql = bindQuery.query(db->getDatabase());
+//            sql.exec();
+//            if(sql.lastError().type() != QSqlError::NoError){
+//                qDebug() << __FUNCTION__ << sql.lastError().text();
+//            }else{
+//                QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
+//                getDataContainersList();
+//            }
+//        }else{
+//            if(m_client->isStarted()){
+//                QString result = bindQuery.to_json();
+//                auto doc = QJsonDocument();
+//                auto objMain = QJsonObject();
+//                objMain.insert("query", result);
+//                objMain.insert("id_command", insertContainerToData);
+//                doc.setObject(objMain);
+//                QString param = doc.toJson();
+//                m_client->sendCommand("exec_query_qt", "", param);
+//            }
+//        }
+
+//    }
 
 }
 
@@ -4086,16 +4083,17 @@ void MainWindow::on_btnCurrentDelete_clicked()
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
-        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
         return;
     }
 
     auto tree = ui->treeWidget;
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
-    QString deleteKey = node == currentUserRegistry ? "из реестра" : "с устройства";
+    if(node != currentUserCertificates){
 
-    //if(node == "currentUserRegistry"){
+        QString deleteKey = node == currentUserRegistry ? "из реестра" : "с устройства";
+
         QString name = table->model()->index(index.row(), 2).data().toString();
         auto result =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить контейнер: \n%1 \n%2?").arg(name, deleteKey));
 
@@ -4147,6 +4145,9 @@ void MainWindow::on_btnCurrentDelete_clicked()
 #endif
 
         terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+    }else{
+
+    }
 }
 
 
@@ -4435,5 +4436,22 @@ void MainWindow::resetInfoUserContainers()
             modelUserContainers->reset();
         }
     }
+}
+
+
+void MainWindow::on_toolCurrentUserUpdate_clicked()
+{
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString currentNode = treeItem->data(0, Qt::UserRole).toString();
+
+    qDebug() << __FUNCTION__ << currentNode;
+    resetCertData(currentUser, currentNode);
+
+
 }
 

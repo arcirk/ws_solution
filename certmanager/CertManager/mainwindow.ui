@@ -435,6 +435,14 @@
           </widget>
          </item>
          <item>
+          <widget class="QToolButton" name="toolCurrentUserUpdate">
+           <property name="icon">
+            <iconset resource="certmaster.qrc">
+             <normaloff>:/img/update.png</normaloff>:/img/update.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="btnConInfo">
            <property name="text">
             <string>...</string>

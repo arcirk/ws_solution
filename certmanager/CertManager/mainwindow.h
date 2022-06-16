@@ -31,6 +31,8 @@ QT_END_NAMESPACE
 #define DataUsersList                   "DataUsersList"
 #define SqlServer                       "SqlServer"
 #define SqlUsers                        "SqlUsers"
+#define СurrentUser                     "currentUser"
+#define WsServer                        "WsServer"
 #define currentUserRegistry             "currentUserRegistry"
 #define currentUserCertificates         "currentUserCertificates"
 #define currentUserContainers           "currentUserContainers"
@@ -48,6 +50,16 @@ QT_END_NAMESPACE
 #define AvailableContainers             "available_containers"
 #define GetAvailableContainers          "get_available_containers"
 #define mplCertData                     "mpl_cert_data"
+
+#define ToDatabase                      "toDatabase"
+#define ToRegistry                      "toRegistry"
+#define ToVolume                        "toVolume"
+#define ToFolder                        "toFolder"
+#define ToUser                          "toFolder"
+#define FromDatabase                    "fromDatabase"
+#define FromRegistry                    "fromRegistry"
+#define FromVolume                      "fromVolume"
+#define FromFolder                      "fromFolder"
 
 class MainWindow : public QMainWindow
 {
@@ -99,7 +111,6 @@ private slots:
 
     void on_btnEdit_clicked();
 
-
     void on_actionTest_triggered();
 
     void on_btnTermOptions_clicked();
@@ -141,6 +152,8 @@ private slots:
     void onWhenDataIsLoaded();
     void onEndInitConnection();
     void onStartGetCertUsersData();
+
+    void on_toolCurrentUserUpdate_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -209,7 +222,7 @@ private:
     void getDataCertificatesList();
     void getDataUsersList();
 
-    void resetCurrentUserCertModel();
+    void resetUserCertModel(CertUser* usr, QJsonTableModel* model);
 
    // void LoadUsersList();
     void loadCertList();
@@ -244,13 +257,13 @@ private:
     QTreeWidgetItem * findTreeItem(const QString& key);
     QTreeWidgetItem * findTreeItem(const QString& key, QTreeWidgetItem * parent);
 
-    void treeSetCurrentContainers(const QString& filter);
+    void treeSetCurrentContainers(const QString& filter, QJsonTableModel * model, QProxyModel * proxy);
     void treeSetFromSqlContainers();
     void treeSetFromSqlUsers();
     void treeSetFromSqlCertificates();
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
-    void treeSetFromCurrentUserCerts();
+    void treeSetFromCurrentUserCerts(QJsonTableModel* model);
     void treeSetCertUserData(CertUser * usr);
 
     void resetTableJsonModel(const QJsonObject& obj, const QString& cmd);
@@ -277,10 +290,16 @@ private:
 
     void addCertificate();
     void delCertificate();
-    void addContainer();
+    void addContainer(const QString& destantion = "", const QString& contanerName = "");
+    void addContainerFromCatalog();
+    void addContainerFromVolume(const QString& destantion = "", const QString& contanerName = "");
     void delContainer();
     void delCertUser();
     void addCertUser();
+    void resetCertData(CertUser * usr, const QString& node);
+    void resetCertUsersTree();
+
+    bool selectVolume(QString& volume, QString& container);
 
     QStandardItemModel *getLocalMountedVolumes();
 
