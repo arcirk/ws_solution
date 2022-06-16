@@ -236,7 +236,7 @@ private:
 
     //void loadOnlineUsers();
     void disableToolBar();
-    bool isContainerExists(const QString& name);
+    bool isContainerExists(const QString& name, CertUser* usr = nullptr, const QString& dest = "");
     bool isCertUserExists(const QString& name, const QString& host = "");
     bool isWsUserExists(const QString& name, const QString& host = "");
     bool isHostExists(const QString& name);
@@ -292,7 +292,7 @@ private:
     void delCertificate();
     void addContainer(const QString& destantion = "", const QString& contanerName = "");
     void addContainerFromCatalog();
-    void addContainerFromVolume(const QString& destantion = "", const QString& contanerName = "");
+    void addContainerFromVolume(const QString& destantion = "", const QString& contanerName = "", CertUser* usr = nullptr);
     void delContainer();
     void delCertUser();
     void addCertUser();

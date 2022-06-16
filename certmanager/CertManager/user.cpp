@@ -36,18 +36,21 @@ void CertUser::setSid(const QString &value)
 }
 
 void CertUser::setContainers(const QStringList &value)
-{
+{   
     _containers.clear();
     foreach(auto n, value){
-        if(!n.isEmpty())
-            _containers.append(n);
+        QString __name = n;
+        __name.replace("\r", "");
+        if(!__name.isEmpty())
+            _containers.append(__name);
     }
 
     m_cnt.clear();
-    foreach(auto cntName, _containers){
+    foreach(auto n, _containers){
         auto _cnt = new KeysContainer(this);
-        _cnt->fromContainerName(cntName);
-        m_cnt.insert(cntName, _cnt);
+
+        _cnt->fromContainerName(n);
+        m_cnt.insert(n, _cnt);
     }
 }
 

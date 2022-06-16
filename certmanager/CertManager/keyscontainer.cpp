@@ -357,12 +357,12 @@ bool KeysContainer::syncRegystry(const QString& sid)
         return false;
     }
 
-    if(_name.isEmpty()){
+    if(_originalName.isEmpty()){
         qCritical() << __FUNCTION__ << "Не указано имя контейнера!";
         return false;
     }
 
-    QString ph = QString("SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, _name);
+    QString ph = QString("SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys\\%2").arg(sid, _originalName);
     winreg::RegKey regKey = winreg::CreateKey(HKEY_LOCAL_MACHINE, ph.toStdWString().c_str());
 
 
