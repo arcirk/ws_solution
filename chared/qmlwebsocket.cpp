@@ -324,7 +324,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
         }else if (resp->command == "set_webdav_settings"){
             //обновились настройки webdav на сервере
         }else if (resp->command == "command_to_qt_agent"){
-#if defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER)
+#if defined(QT_AGENT_APP) || defined(QT_CERT_MANAGER) || defined(QT_MPL_CLIENT)
             responseCommand(resp);
 #endif
         }else if (resp->command == "exec_query"){
@@ -685,8 +685,10 @@ QStringList bWebSocket::getImageMimeType()
 void bWebSocket::responseCommand(ServeResponse * resp)
 {
     QJsonDocument doc = QJsonDocument::fromJson(resp->message.toUtf8());
-    if(!doc.isObject())
+    if(!doc.isObject()){
+        emit wsCommandToClient(resp->uuid_session, resp->command, resp->message);
         return;
+    }
     QJsonObject obj = doc.object();
 
     QString command = obj.value("command").toString();
@@ -726,9 +728,11 @@ void bWebSocket::responseCommand(ServeResponse * resp)
 
         emit wsGetAvailableContainers(resp->recipient);
 
-    }else if(command == "available_containers"){//Ответ
-        emit wsCommandToClient(resp->recipient, command, message);
-    }else if(command == "mpl_cert_data"){//Ответ
+//    }else if(command == "available_containers"){//Ответ
+//        emit wsCommandToClient(resp->recipient, command, message);
+//    }else if(command == "mpl_cert_data"){//Ответ
+//        emit wsCommandToClient(resp->uuid_session, command, message);
+    }else{
         emit wsCommandToClient(resp->uuid_session, command, message);
     }
 }

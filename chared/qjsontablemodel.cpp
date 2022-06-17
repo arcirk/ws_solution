@@ -45,7 +45,6 @@ bool QJsonTableModel::setJson(const QJsonDocument &json)
 
     auto _rows = json.object().value("rows").toArray();
     setJson( _rows );
-
     return true;
 }
 
@@ -53,6 +52,10 @@ bool QJsonTableModel::setJson( const QJsonArray& array )
 {
     beginResetModel();
     m_json = array;
+    m_rowKeys.clear();
+    m_rowKeys.resize(array.size());
+    m_rowIcon.clear();
+    m_fmtText.clear();
     endResetModel();
     return true;
 }
@@ -300,29 +303,22 @@ void QJsonTableModel::setIcon(const QModelIndex& index, const QIcon &ico)
     m_rowIcon.insert(qMakePair(index.row(), index.column()), ico);
 }
 
-void QJsonTableModel::setRowKey(int row, const QString &key)
+void QJsonTableModel::setRowKey(const QPair<QString, QString> &key)
 {
-    m_rowKeys.insert(row, key);
+    m_rowKeys.append(key);
 }
 
-QString QJsonTableModel::rowKey(int index)
+QPair<QString, QString> QJsonTableModel::rowKey(int index) const
 {
-    auto iter = m_rowKeys.find(index);
-    if(iter != m_rowKeys.end())
-        return iter.value();
+    if(index < m_rowKeys.size())
+        return m_rowKeys[index];
     else
-        return "";
-
+        return qMakePair("","");
 }
 
-int QJsonTableModel::row(const QString& key)
+int QJsonTableModel::row(const QPair<QString, QString>& key)
 {
-    for(auto item = m_rowKeys.begin(); item != m_rowKeys.end();  ++item){
-       if(item.value() == key){
-           return item.key();
-       }
-    }
-    return -1;
+    return m_rowKeys.indexOf(key);
 }
 
 void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
@@ -337,9 +333,8 @@ void QJsonTableModel::removeRow(int row)
         auto iter = m_fmtText.find(row);
         if(iter != m_fmtText.end())
             m_fmtText.erase(iter);
-        iter = m_rowKeys.find(row);
-        if(iter != m_rowKeys.end())
-            m_rowKeys.erase(iter);
+
+        m_rowKeys.removeAt(row);
 
         for(int i = 0; i < _header.count(); ++i){
             auto pr = qMakePair(row, i);
@@ -361,7 +356,8 @@ void QJsonTableModel::addRow(const QJsonObject &row)
         if(val != row.end()){
             obj.insert(key.toString(), val.value());
         }
-    }
+    }    
     m_json.append(obj);
     reset();
+    m_rowKeys.resize(m_json.size());
 }

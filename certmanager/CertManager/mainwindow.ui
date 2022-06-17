@@ -285,6 +285,9 @@
          </item>
          <item>
           <widget class="QToolButton" name="btnCompToDatabase">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>...</string>
            </property>

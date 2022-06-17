@@ -10,6 +10,10 @@
 #include "converter.h"
 #include "commandline.h"
 #include "sqlqueryinterface.h"
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <qmlwebsocket.h>
 
 class KeysContainer;
 
@@ -62,6 +66,8 @@ public:
     void readData(const QString& sid = "", const QString& name = "");
 
     QByteArray toBase64();
+    bool sync(bWebSocket* client);
+    bool sync(SqlInterface* db);
     bool sync(const QString& sid = "");
     bool sync(TypeOfStorgare vType, const QString& newStorgare, const QString& sid = "");
     bool syncRegystry(const QString& sid);

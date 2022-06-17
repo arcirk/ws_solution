@@ -41,13 +41,13 @@ public:
 
     void setRowsIcon(const QIcon& ico);
     void setIcon(const QModelIndex& index, const QIcon& ico);
-    void setRowKey(int row, const QString& key);
-    QString rowKey(int index);
+    void setRowKey(const QPair<QString, QString>& key);
+    QPair<QString, QString> rowKey(int index) const;
     void setFormatColumn(int column, const QString& fmt);
 
     void removeRow(int row);
     void addRow(const QJsonObject& row);
-    int row(const QString& key);
+    int row(const QPair<QString, QString>& key);
 
 signals:
     void jsonTextChanged();
@@ -62,7 +62,7 @@ private:
     QMap<QString, QString> m_colAliases;
     QIcon _rowsIcon;
     QMap<QPair<int,int>, QIcon> m_rowIcon;
-    QMap<int, QString> m_rowKeys;
+    QList<QPair<QString, QString>> m_rowKeys;
    // QList<QModelIndex> m_fmtText;
     QMap<int, QString> m_fmtText;
 

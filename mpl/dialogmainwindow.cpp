@@ -374,13 +374,13 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
-    //if(!to_agent){
+    if(!to_agent){
         obj.insert("uuid_agent", recipient);
         obj.insert("uuid_client", m_client->getUuidSession());
-//    }else{
-//        obj.insert("uuid_agent", m_client->getUuidSession());
-//        obj.insert("uuid_client", recipient);
-//    }
+    }else{
+        obj.insert("uuid_agent", m_client->getUuidSession());
+        obj.insert("uuid_client", recipient);
+    }
 
     obj.insert("command", command);
     obj.insert("message", _message);
@@ -390,6 +390,66 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
         m_client->sendCommand("command_to_qt_client", "", param);
     else
         m_client->sendCommand("command_to_qt_agent", "", param);
+
+}
+
+void DialogMainWindow::addContainer(const QString &from, const QString &to, const QString &byteArrayBase64)
+{
+    QString container;
+    QString volume;
+    KeysContainer* cnt = new KeysContainer(this);
+    QString resultText;
+
+    if(to != ToRegistry && to != ToDatabase){
+        resultText = "Клиент поддерживает экспорт/экспорт контейнера только в реестр и в базу данных!";
+        qCritical() << __FUNCTION__ << resultText;
+        delete cnt;
+        if(!currentRecipient.isEmpty())
+            sendToRecipient(currentRecipient, "error", resultText);
+        return;
+    }
+
+    if(!from.isEmpty())
+        cnt->fromContainerName(from);
+    else{
+        resultText = "Не указан источник для копирования контейнера!";
+        qCritical() << __FUNCTION__ << resultText;
+        delete cnt;
+        if(!currentRecipient.isEmpty())
+            sendToRecipient(currentRecipient, "error", resultText);
+        return;
+    }
+    cnt->readData(currentUser->sid());
+
+    if(!cnt->isValid()){
+        resultText = "Ошибка инициализации источника!";
+        qCritical() << __FUNCTION__ << resultText;
+        delete cnt;
+        if(!currentRecipient.isEmpty())
+            sendToRecipient(currentRecipient, "error", resultText);
+        return;
+    }
+
+    bool result = false;
+
+    if(to == ToRegistry){
+        result = cnt->sync(KeysContainer::TypeOfStorgare::storgareTypeRegistry, "", currentUser->sid());
+    }else if(to == ToDatabase){
+        if(_sett->launch_mode() == mixed)
+            result = cnt->sync(db);
+        else
+            result = cnt->sync(m_client);
+    }
+
+    if(result){
+        if(!currentRecipient.isEmpty())
+            sendToRecipient(currentRecipient, to, "Контейнер успешно скопирован!");
+    }else
+        if(!currentRecipient.isEmpty())
+            sendToRecipient(currentRecipient, "error", "Ошибка копирования контейнера");
+
+    delete cnt;
+    return;
 
 }
 
@@ -425,6 +485,13 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
         currentRecipient = recipient;
         terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
     }
+}
+
+void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
+{
+
+    currentRecipient = recipient;
+
 }
 
 void DialogMainWindow::onParseCommand(const QVariant &result, int command)
@@ -963,6 +1030,7 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::execQuery, this, &DialogMainWindow::onWsExecQuery);
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &DialogMainWindow::onWsGetAvailableContainers);
     connect(m_client, &bWebSocket::wsGetCryptData, this, &DialogMainWindow::onGetCryptData);
+    connect(m_client, &bWebSocket::wsCommandToClient, this, &DialogMainWindow::onWsCommandToClient);
 }
 
 void DialogMainWindow::on_btnSettings_clicked()

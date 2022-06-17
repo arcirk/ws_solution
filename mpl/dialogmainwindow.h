@@ -22,6 +22,11 @@
 #include <user.h>
 #include <httpservice.h>
 
+#define ToDatabase                      "toDatabase"
+#define ToRegistry                      "toRegistry"
+#define FromDatabase                    "fromDatabase"
+#define FromRegistry                    "fromRegistry"
+
 namespace Ui {
 class DialogMainWindow;
 }
@@ -62,6 +67,7 @@ private slots:
     void onDisplayError(const QString& what, const QString& err);
     void onWsExecQuery(const QString& result);
     void onWsGetAvailableContainers(const QString& recipient);
+    void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
 
     void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
@@ -140,7 +146,9 @@ private:
     const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
 
     /////
-    void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent);
+    void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent = false);
+
+    void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
 
 signals:
     void whenDataIsLoaded();

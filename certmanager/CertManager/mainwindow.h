@@ -241,7 +241,9 @@ private:
     bool isWsUserExists(const QString& name, const QString& host = "");
     bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
-    void loadCimputers();
+    QString getSessionUuid(const QString &name, const QString &host) const;
+
+    //void loadCimputers();
 
     void toolBarSetVisible(QWidget * bar, bool value);
 
@@ -275,24 +277,21 @@ private:
     QString fromBase64(const QString& value);
 
     void onGetDataFromDatabase(const QString& table, const QString param);
-//    static inline bool byte_is_base64(unsigned char c) {
-//        return (isalnum(c) || (c == '+') || (c == '/'));
-//    }
 
     bool isCyrillic(const QString& source);
     QJsonObject parseDeviceString(const QString& key);
 
     void saveAsCurrentUserContainer();
     void saveAsCurrentUserCertificate();
-    void saveAsDatabaseContainer();
+    void getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param);
     void saveAsDatabaseCertificate();
 
 
     void addCertificate();
     void delCertificate();
-    void addContainer(const QString& from = "", const QString& to = "");
+    void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
     //void addContainerFromCatalog(const QString& from, const QString& to = "");
-    void addContainerFromVolume(const QString& from, const QString& to = "");
+    void addContainerFromVolume(const QString& from, const QString& to = "", const QString& byteArrayBase64 = "");
     void delContainer();
     void delCertUser();
     void addCertUser();

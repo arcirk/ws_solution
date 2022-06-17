@@ -735,6 +735,42 @@ QByteArray KeysContainer::toBase64()
 
 }
 
+bool KeysContainer::sync(bWebSocket *client)
+{
+    auto bindQuery = getSqlQueryObject(QBSqlCommand::QSqlInsert);
+    if(!_isValid)
+        return false;
+
+    if(client->isStarted()){
+        auto doc = QJsonDocument();
+        auto objMain = QJsonObject();
+        objMain.insert("query", bindQuery.to_json());
+        objMain.insert("id_command", "insertContainerToData");
+        doc.setObject(objMain);
+        QString param = doc.toJson();
+        client->sendCommand("exec_query_qt", "", param);
+        return true;
+    }
+
+    return false;
+}
+
+bool KeysContainer::sync(SqlInterface *db)
+{
+    auto bindQuery = getSqlQueryObject(QBSqlCommand::QSqlInsert);
+    if(!_isValid)
+        return false;
+
+    QSqlQuery sql = bindQuery.query(db->getDatabase());
+    sql.exec();
+    if(sql.lastError().type() != QSqlError::NoError){
+        qDebug() << __FUNCTION__ << sql.lastError().text();
+        return false;
+    }else{
+        return true;
+    }
+}
+
 //void KeysContainer::parseAdressKey(const QString& key){
 
 //    QStringList m_data = key.split("\\");
