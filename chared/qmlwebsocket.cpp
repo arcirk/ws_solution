@@ -727,11 +727,6 @@ void bWebSocket::responseCommand(ServeResponse * resp)
     }else if(command == "get_available_containers"){ //Запрос
 
         emit wsGetAvailableContainers(resp->recipient);
-
-//    }else if(command == "available_containers"){//Ответ
-//        emit wsCommandToClient(resp->recipient, command, message);
-//    }else if(command == "mpl_cert_data"){//Ответ
-//        emit wsCommandToClient(resp->uuid_session, command, message);
     }else{
         emit wsCommandToClient(resp->uuid_session, command, message);
     }

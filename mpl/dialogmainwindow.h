@@ -24,6 +24,9 @@
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"
+#define ToVolume                        "toVolume"
+#define ToRemoteVolume                  "ToRemoteVolume"
+#define ToRemoteRegistry                "ToRemoteRegistry"
 #define FromDatabase                    "fromDatabase"
 #define FromRegistry                    "fromRegistry"
 

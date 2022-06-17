@@ -41,7 +41,7 @@ public:
 
     void setRowsIcon(const QIcon& ico);
     void setIcon(const QModelIndex& index, const QIcon& ico);
-    void setRowKey(const QPair<QString, QString>& key);
+    void setRowKey(int row, const QPair<QString, QString>& key);
     QPair<QString, QString> rowKey(int index) const;
     void setFormatColumn(int column, const QString& fmt);
 

@@ -303,14 +303,15 @@ void QJsonTableModel::setIcon(const QModelIndex& index, const QIcon &ico)
     m_rowIcon.insert(qMakePair(index.row(), index.column()), ico);
 }
 
-void QJsonTableModel::setRowKey(const QPair<QString, QString> &key)
+void QJsonTableModel::setRowKey(int row, const QPair<QString, QString> &key)
 {
-    m_rowKeys.append(key);
+    if(row < m_rowKeys.size() && row >= 0)
+        m_rowKeys[row] = key;
 }
 
 QPair<QString, QString> QJsonTableModel::rowKey(int index) const
 {
-    if(index < m_rowKeys.size())
+    if(index < m_rowKeys.size() && index >= 0)
         return m_rowKeys[index];
     else
         return qMakePair("","");

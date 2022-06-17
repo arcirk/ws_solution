@@ -55,7 +55,9 @@ QT_END_NAMESPACE
 #define ToRegistry                      "toRegistry"
 #define ToVolume                        "toVolume"
 #define ToFolder                        "toFolder"
-#define ToUser                          "toFolder"
+#define ToRemoteVolume                  "ToRemoteVolume"
+#define ToRemoteRegistry                "ToRemoteRegistry"
+#define ToUser                          "ToUser"
 #define FromDatabase                    "fromDatabase"
 #define FromRegistry                    "fromRegistry"
 #define FromVolume                      "fromVolume"
@@ -267,6 +269,7 @@ private:
     void updateContainerInfoOnData(const QString& info);
     void treeSetFromCurrentUserCerts(QJsonTableModel* model);
     void treeSetCertUserData(CertUser * usr);
+    void wsSetMplCertData(const QString& recipient, const QString& message);
 
     void resetTableJsonModel(const QJsonObject& obj, const QString& cmd);
 

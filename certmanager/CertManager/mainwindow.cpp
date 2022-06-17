@@ -1005,7 +1005,15 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
         }
     }else{
         if(!from.isEmpty())
-            cnt->fromContainerName(from);
+            if(byteArrayBase64.isEmpty())
+                cnt->fromContainerName(from);
+            else{
+                QByteArray data = QByteArray::fromBase64(byteArrayBase64.toUtf8());
+                cnt->fromJson(data);
+                cnt->fromContainerName(from);
+            }
+
+
         else{
             QMessageBox::critical(this, "Ошибка", "Дописать!");
             delete cnt;
@@ -1502,6 +1510,48 @@ void MainWindow::treeSetCertUserData(CertUser *usr)
         userCrt = addTreeNode("Установленные сертификаты", "cert_" + pair, ":/img/cert.png");
         user->addChild(userCrt);
     }
+}
+
+void MainWindow::wsSetMplCertData(const QString& recipient, const QString& message)
+{
+    int iUuid = modelWsUsers->getColumnIndex("uuid");
+    auto index = findInTable(modelWsUsers, recipient, iUuid, false);
+    if(!index.isValid())
+        return;
+
+    QString result = QByteArray::fromBase64(message.toUtf8());
+    auto doc = QJsonDocument::fromJson(result.toUtf8());
+    if(doc.isEmpty())
+        return;
+
+    auto obj = doc.object();
+    QStringList containers = obj.value("cnt").toString().split("\n");
+    auto certs = obj.value("certs").toObject();
+
+    int iName = modelWsUsers->getColumnIndex("name");
+    int iHost = modelWsUsers->getColumnIndex("host_name");
+    int iUuidUser = modelWsUsers->getColumnIndex("uuid_user");
+    QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
+    QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
+    QString uuidUser = modelWsUsers->index(index.row(), iUuidUser).data(Qt::UserRole + iUuidUser).toString();
+    if(!name.isEmpty() && !host.isEmpty()){
+        auto itr = m_users.find(qMakePair(name, host));
+        CertUser * usr = nullptr;
+        if(itr != m_users.end())
+            usr = itr.value();
+        else{
+            usr = new CertUser(this);
+            usr->setName(name);
+            usr->setDomain(host);
+            usr->setUuid(QUuid::fromString(uuidUser));
+            m_users.insert(qMakePair(name, host), usr);
+        }
+        usr->setContainers(containers);
+        usr->certsFromModel(certs);
+        treeSetCertUserData(usr);
+    }
+    //Отправим следующему запрос
+    onStartGetCertUsersData();
 }
 
 
@@ -3281,7 +3331,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
         obj.insert("host_name", host_name);
 
         modelWsUsers->addRow(obj);
-        modelWsUsers->setRowKey(qMakePair(name, host_name));
+        modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, qMakePair(name, host_name));
         qDebug() << __FUNCTION__ << qPrintable(resp);
 
         updateCertUsersOnlineStstus();
@@ -3493,7 +3543,7 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         auto host = modelWsUsers->index(i, iHost).data(Qt::UserRole + iHost).toString();
         auto app = modelWsUsers->index(i, iApp).data(Qt::UserRole + iApp).toString();
         auto uuid = modelWsUsers->index(i, iUuid).data(Qt::UserRole + iUuid).toString();
-        modelWsUsers->setRowKey(qMakePair(user, host));
+        modelWsUsers->setRowKey(i, qMakePair(user, host));
         QList<QPair<QString, QString>> temp;
         if(app == "qt_mpl_client" && isCertUserExists(user, host)){
             if(!currentUser->thisIsTheUser(user, host)){
@@ -3637,51 +3687,19 @@ void MainWindow::onWsGetAvailableContainers(const QString &recipient)
 
 void MainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
-//    qDebug() << __FUNCTION__;
+    qDebug() << __FUNCTION__ << command;
 //    qDebug() <<  __FUNCTION__ << recipient << command;
-    qDebug() <<  __FUNCTION__ << qPrintable(message);
+//    qDebug() <<  __FUNCTION__ << qPrintable(message);
     if(command == AvailableContainers){
 
     }else if(command == mplCertData){
-
-        int iUuid = modelWsUsers->getColumnIndex("uuid");
-        auto index = findInTable(modelWsUsers, recipient, iUuid, false);
-        if(!index.isValid())
-            return;
-
-        QString result = QByteArray::fromBase64(message.toUtf8());
-        auto doc = QJsonDocument::fromJson(result.toUtf8());
-        if(doc.isEmpty())
-            return;
-
-        auto obj = doc.object();
-        QStringList containers = obj.value("cnt").toString().split("\n");
-        auto certs = obj.value("certs").toObject();
-
-        int iName = modelWsUsers->getColumnIndex("name");
-        int iHost = modelWsUsers->getColumnIndex("host_name");
-        int iUuidUser = modelWsUsers->getColumnIndex("uuid_user");
-        QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
-        QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
-        QString uuidUser = modelWsUsers->index(index.row(), iUuidUser).data(Qt::UserRole + iUuidUser).toString();
-        if(!name.isEmpty() && !host.isEmpty()){
-            auto itr = m_users.find(qMakePair(name, host));
-            CertUser * usr = nullptr;
-            if(itr != m_users.end())
-                usr = itr.value();
-            else{
-                usr = new CertUser(this);
-                usr->setName(name);
-                usr->setDomain(host);
-                usr->setUuid(QUuid::fromString(uuidUser));
-                m_users.insert(qMakePair(name, host), usr);
-            }
-            usr->setContainers(containers);
-            usr->certsFromModel(certs);
-            treeSetCertUserData(usr);
-        }
-        //Отправим следующему запрос
-        onStartGetCertUsersData();
+        wsSetMplCertData(recipient, command);
+    }else if(command == ToDatabase){
+        getDataContainersList();
+    }else if(command == ToVolume){
+        QByteArray msg = QByteArray::fromBase64(message.toUtf8());
+        auto obj = QJsonDocument::fromJson(msg).object();
+        addContainer(obj.value("from").toString(), ToVolume, obj.value("data").toString());
     }
 }
 
@@ -3999,8 +4017,8 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
         return;
     }
 
-    int ind = modelUserContainers->getColumnIndex("nameInStorgare");
-    auto object = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+    int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+    auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
     object.replace("\r", "");
 
     if(node == currentUserRegistry || node == currentUserDivace){        
@@ -4022,7 +4040,7 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
         auto param = QJsonObject();
         param.insert("command", "addContainer");
         param.insert("from", object);
-        param.insert("from", ToVolume);
+        param.insert("to", ToRemoteVolume);
 
         sendToRecipient(sess, "addContainer", QJsonDocument(param).toJson().toBase64(), true);
 
@@ -4129,7 +4147,8 @@ void MainWindow::on_btnCurrentCopyToRegistry_clicked()
 
 void MainWindow::on_btnCurrentCopyToSql_clicked()
 {
-    auto table = ui->tableView;
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();   auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
         QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
@@ -4137,10 +4156,33 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
     }
 
     int ind = modelUserContainers->getColumnIndex("nameInStorgare");
-    auto container = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-    container.replace("\r", "");
-    addContainer(container, ToDatabase);
+    auto object = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+    object.replace("\r", "");
 
+
+    if(node == currentUserRegistry || node == currentUserDivace){
+        addContainer(object, ToDatabase);
+    }else if(node == currentUserCertificates){
+        //saveAsCurrentUserCertificate();
+    }else{
+        auto m_key = node.split("/");
+        QString name = m_key[0];
+        QString host = m_key[1];
+        if(node.left(4) == "reg_"){
+            name.replace("reg_", "");
+        }else if(node.left(4) == "vol_"){
+            name.replace("vol_", "");
+        }else if(node.left(5) == "cert_"){
+            name.replace("cert_", "");
+        }
+        QString sess = getSessionUuid(name, host);
+        auto param = QJsonObject();
+        param.insert("command", "addContainer");
+        param.insert("from", object);
+        param.insert("to", ToDatabase);
+
+        sendToRecipient(sess, "addContainer", QJsonDocument(param).toJson().toBase64(), true);
+    }
 
 //    QString volume = table->model()->index(index.row(), 1).data().toString();
 //    QString name = table->model()->index(index.row(), 2).data().toString();
