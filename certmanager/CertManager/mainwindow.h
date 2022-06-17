@@ -290,9 +290,9 @@ private:
 
     void addCertificate();
     void delCertificate();
-    void addContainer(const QString& destantion = "", const QString& contanerName = "");
-    void addContainerFromCatalog();
-    void addContainerFromVolume(const QString& destantion = "", const QString& contanerName = "", CertUser* usr = nullptr);
+    void addContainer(const QString& from = "", const QString& to = "");
+    //void addContainerFromCatalog(const QString& from, const QString& to = "");
+    void addContainerFromVolume(const QString& from, const QString& to = "");
     void delContainer();
     void delCertUser();
     void addCertUser();

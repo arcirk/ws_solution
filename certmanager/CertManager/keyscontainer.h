@@ -16,23 +16,13 @@ class KeysContainer;
 typedef std::function<void(const ByteArray&)> set_keys;
 typedef std::function<void(ByteArray&)> get_keys;
 
-//struct ContainerName{
-//    QString key_name;
-//    QString end_date;
-//    QString name;
-//    explicit ContainerName(){};
 
-//    QString getName(){
-//        QString _end_date = end_date;
-//        _end_date.replace(".", "-");
-//        return key_name + "@" + _end_date + "-" + name;
-//    }
-//};
 
-#define FAT12_      "FAT12"
-#define REGISTRY_   "REGISTRY"
-#define HDIMAGE_    "HDIMAGE"
-#define DATABASE_   "DATABASE"
+#define FAT12_          "FAT12"
+#define REGISTRY_       "REGISTRY"
+#define HDIMAGE_        "HDIMAGE"
+#define DATABASE_       "DATABASE"
+#define REMOTEBASE_     "REMOTEBASE"
 
 class KeysContainer : public QObject
 {
@@ -47,12 +37,14 @@ public:
 //        serialization
 //    };
 
-//    enum VolumeType{
-//        FAT12 = 0,
-//        REGISTRY,
-//        HDIMAGE,
-//        DATABASE
-//    };
+    enum TypeOfStorgare{
+        storgareTypeRegistry = 0,
+        storgareTypeLocalVolume,
+        storgareTypeDatabase,
+        storgareTypeRemoteBase,
+        storgareTypeUnknown
+    };
+
 //    const QStringList VolumeTypeString{
 //        "FAT12",
 //        "REGISTRY",
@@ -60,20 +52,27 @@ public:
 //        "DATABASE"
 //    };
 
+    TypeOfStorgare typeOfStorgare();
+    static TypeOfStorgare typeOfStorgare(const QString& source);
+
     void fromFolder(const QString& folder);
     void fromContainerName(const QString& cntName);
     void fromRegistry(const QString& sid, const QString& name);
     void fromJson(const QByteArray& data);
+    void readData(const QString& sid = "", const QString& name = "");
 
     QByteArray toBase64();
     bool sync(const QString& sid = "");
+    bool sync(TypeOfStorgare vType, const QString& newStorgare, const QString& sid = "");
     bool syncRegystry(const QString& sid);
-    bool syncVolume();
+    bool syncVolume(const QString& dir = "");
     bool isValid();
     QString bindName() const;
+
     QString originalName() const;
     void setOriginalName(ByteArray name_key_data);
     void setNewOriginalName(const QString& new_name);
+    static QString readOriginalName(const QString& pathToStorgare);
 
     void header_key(ByteArray& value);
     void masks_key(ByteArray& value);

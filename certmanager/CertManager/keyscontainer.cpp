@@ -46,6 +46,47 @@ KeysContainer::KeysContainer(QObject *parent)
     _cache = QJsonObject();
 }
 
+KeysContainer::TypeOfStorgare KeysContainer::typeOfStorgare()
+{
+    if(_volume.isEmpty())
+        return storgareTypeUnknown;
+    else{
+        if(_volume.indexOf(FAT12_) != -1 || _volume.indexOf(HDIMAGE_) != -1)
+            return storgareTypeLocalVolume;
+        else if(_volume.indexOf(REGISTRY_) != -1)
+            return storgareTypeRegistry;
+        else if(_volume.indexOf(DATABASE_) != -1)
+            return storgareTypeDatabase;
+        else if(_volume.indexOf(REMOTEBASE_) != -1)
+            return storgareTypeDatabase;
+        else
+            return storgareTypeUnknown;
+    }
+}
+
+KeysContainer::TypeOfStorgare KeysContainer::typeOfStorgare(const QString &source)
+{
+    if(source.isEmpty())
+        return storgareTypeUnknown;
+    else{
+        if(source.indexOf(FAT12_) != -1 || source.indexOf(HDIMAGE_) != -1)
+            return storgareTypeLocalVolume;
+        else if(source.indexOf(REGISTRY_) != -1)
+            return storgareTypeRegistry;
+        else if(source.indexOf(DATABASE_) != -1)
+            return storgareTypeDatabase;
+        else if(source.indexOf(REMOTEBASE_) != -1)
+            return storgareTypeDatabase;
+        else{
+            QDir dir(source);
+            if(dir.exists())
+                return storgareTypeLocalVolume;
+            else
+                return storgareTypeUnknown;
+        }
+    }
+}
+
 void KeysContainer::setName(const QString &value)
 {
     _name = value;
@@ -98,6 +139,21 @@ bool KeysContainer::sync(const QString& sid)
         return false;
 }
 
+bool KeysContainer::sync(TypeOfStorgare vType, const QString &newStorgare, const QString &sid)
+{
+    bool result = false;
+
+    if(vType == TypeOfStorgare::storgareTypeDatabase){
+        //
+    }else if(vType == TypeOfStorgare::storgareTypeLocalVolume){
+        result = syncVolume(newStorgare);
+    }else if(vType == TypeOfStorgare::storgareTypeRegistry){
+        result = syncRegystry(sid);
+    }
+
+    return result;
+}
+
 void KeysContainer::setRef(const QString &value)
 {
     _ref = value;
@@ -147,8 +203,19 @@ void KeysContainer::fromContainerName(const QString &cntName)
     _storgare = "";
     _volumePath = "";
 
-    _nameInStorgare = cntName;
-    QStringList m_data = cntName.split("\\");
+    QString _storg = cntName;
+
+    QDir dir(cntName);
+    if(dir.exists()){
+        _volumePath = cntName;
+        _originalName = readOriginalName(cntName);
+        if(!_originalName.isEmpty())
+            _isValid = true;
+        _storg = QString("\\\\.\\%1\\").arg(REMOTEBASE_); ;
+    }
+
+    _nameInStorgare = _storg;
+    QStringList m_data = _storg.split("\\");
     QString _nameTmp;
 
     if(m_data.size() > 3){
@@ -156,7 +223,7 @@ void KeysContainer::fromContainerName(const QString &cntName)
         _volume = m_data[3].replace("\r", "");
         _storgare = QString("\\\\.\\%1\\").arg(_volume);
         if(_originalName.isEmpty() && !isValid())
-            _originalName = cntName.right(cntName.length() - _storgare.length()).replace("\r", "").replace("\n", "");
+            _originalName = _storg.right(_storg.length() - _storgare.length()).replace("\r", "").replace("\n", "");
 
         QStringList m_vol =  _volume.split("_");
         setVolumePath("");
@@ -170,7 +237,7 @@ void KeysContainer::fromContainerName(const QString &cntName)
         _nameTmp = stringFromBase64(m_data[4]);
 
      }else
-        _nameTmp = cntName;
+        _nameTmp = _storg;
 
     QStringList m_nameTmp= _nameTmp.split("@");
     if(m_nameTmp.size() > 1){
@@ -382,25 +449,36 @@ bool KeysContainer::syncRegystry(const QString& sid)
     return true;
 }
 
-bool KeysContainer::syncVolume()
+bool KeysContainer::syncVolume(const QString& dir)
 {
     if(!isValid()){
         qCritical() << __FUNCTION__ << "класс не инициализирован!";
         return false;
     }
 
-    QString folder = volumePath() + keyName() + ".000";
-    QDir dir(folder);
-    if(dir.exists()){
-        qCritical() << __FUNCTION__ << "Каталог контейнера уже существует!";
+    QString folder;
+
+    if(dir.isEmpty()){
+        if(volumePath().isEmpty() || keyName().isEmpty())
+            return false;
+        for (int index = 0; index < 10; ++index) {
+            folder = volumePath() + keyName() + ".00" + QString::number(index);
+            QDir dir(folder);
+            if(!dir.exists()){
+                break;
+            }
+        }
+
+        QDir d(folder);
+        if(!d.mkdir(folder))
         return false;
+    }else{
+        folder = dir;
     }
 
-    QDir d(volumePath());
-    if(!d.mkdir(keyName() + ".000"))
+    QDir d(folder);
+    if(!d.exists())
         return false;
-
-    qDebug() << folder;
 
     for(int i = 0; i < KeyFiles.size(); ++i){
         QString key = KeyFiles[i];
@@ -409,7 +487,7 @@ bool KeysContainer::syncVolume()
         funcGet(data);
         if(data.size() == 0)
             return false;
-        Base64Converter::writeFile(QDir::toNativeSeparators(dir.path() + QDir::separator() + key).toStdString(),
+        Base64Converter::writeFile(QDir::toNativeSeparators(d.path() + QDir::separator() + key).toStdString(),
                   data);
     }
     return true;
@@ -505,9 +583,15 @@ get_keys KeysContainer::get_get_function(int index)
 void KeysContainer::fromFolder(const QString &folder)
 {
 
+    _isValid = false;
+
+    QDir dir(folder);
+    if(!dir.exists())
+        return;
+
     erase();
     auto func = set_function();
-    _isValid = false;
+
     for(int i = 0; i < KeyFiles.size(); ++i){
         QString key = KeyFiles[i];
         QString filename = QDir::toNativeSeparators(folder + QDir::separator() + key);
@@ -582,6 +666,45 @@ void KeysContainer::fromJson(const QByteArray &data)
     setOriginalName(buffer);
 
     _isValid = true;
+}
+
+void KeysContainer::readData(const QString& sid, const QString& name)
+{
+    _isValid = false;
+
+    if(typeOfStorgare() == storgareTypeDatabase){
+      //
+    }else if(typeOfStorgare() == storgareTypeLocalVolume){
+      QString folder;
+      if(_originalName.isEmpty()){
+          qCritical() << __FUNCTION__ << "storgareTypeLcalVolume" << "Не инициализировано наименование контейнера!";
+          return;
+      }
+      for (int i = 0; i < 10; ++i) {
+          folder = _volumePath + _key_name + ".00" + QString::number(i);
+          QDir dir(folder);
+          if(dir.exists()){
+              if(readOriginalName(folder) == _originalName){
+                  fromFolder(folder);
+                  return;
+              }
+          }
+      }
+      qCritical() << __FUNCTION__ << "storgareTypeLcalVolume" << "Не найден каталог контейнера!";
+    }else if(typeOfStorgare() == storgareTypeRegistry){
+        QString __name = name;
+        if(__name.isEmpty())
+            __name = _originalName;
+      if(sid.isEmpty() || __name.isEmpty()){
+          qCritical() << __FUNCTION__ << "storgareTypeRegistry" << "Не инициализировано наименование или sid пользователя!";
+          return;
+      }
+      fromRegistry(sid, __name);
+    }else if(typeOfStorgare() == storgareTypeRemoteBase){
+      if(!_volumePath.isEmpty())
+          if(!readOriginalName(_volumePath).isEmpty())
+              fromFolder(_volumePath);
+    }
 }
 
 QByteArray KeysContainer::toBase64()
@@ -745,6 +868,33 @@ void KeysContainer::setNewOriginalName(const QString &new_name)
     _originalName = new_name;
 
     fromContainerName(new_name);
+}
+
+QString KeysContainer::readOriginalName(const QString &pathToStorgare)
+{
+    QDir dir(pathToStorgare);
+    if(!dir.exists())
+        return "";
+
+    QString filename = QDir::toNativeSeparators(dir.path() + QDir::separator() + "name.key");
+    if(!QFile::exists(filename))
+        return "";
+    ByteArray buffer;
+    Base64Converter::readFile(filename.toStdString(), buffer);
+    if(buffer.size() == 0)
+        return "";
+
+    std::string b64 = Base64Converter::byte_to_base64(&buffer[0], buffer.size());
+    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
+    int ind = qbyte.indexOf("\026");
+    if(ind != -1){
+        QString s_name = qbyte.right(qbyte.length() - ind - 2);
+        if(!s_name.isEmpty())
+            return s_name;
+        else
+            return "";
+    }else
+        return "";
 }
 
 QBSqlQuery KeysContainer::getSqlQueryObject(QBSqlCommand command)

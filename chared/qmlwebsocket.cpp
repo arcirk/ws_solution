@@ -59,6 +59,7 @@ bWebSocket::~bWebSocket()
     //_isRun = false;
     if (client->started()) {
         client->close(true);
+
     }
 
     m_agentClients.clear();
