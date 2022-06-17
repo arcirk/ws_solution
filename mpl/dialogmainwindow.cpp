@@ -374,7 +374,7 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
-    if(!to_agent){
+    if(to_agent){
         obj.insert("uuid_agent", recipient);
         obj.insert("uuid_client", m_client->getUuidSession());
     }else{
@@ -449,6 +449,7 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
             sendToRecipient(currentRecipient, "error", "Ошибка копирования контейнера");
 
     delete cnt;
+    currentRecipient = "";
     return;
 
 }
@@ -490,7 +491,16 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
 
-    currentRecipient = recipient;
+    if(command == "addContainer"){
+        currentRecipient = recipient;
+
+        auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
+        auto obj = doc.object();
+        QString from = obj.value("from").toString();
+        QString to = obj.value("to").toString();
+
+        addContainer(from, to);
+    }
 
 }
 
