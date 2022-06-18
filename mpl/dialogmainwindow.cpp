@@ -20,6 +20,20 @@
 #include <QSqlError>
 #include "dialogconnection.h"
 
+const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
+        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
+
+static bool isCyrillic(const QString &source)
+{
+    for (int i = 0; i < source.length();  ++i) {
+
+        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
+            return true;
+    }
+
+    return false;
+}
+
 DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogMainWindow)
@@ -418,6 +432,12 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
         if(!currentRecipient.isEmpty())
             sendToRecipient(currentRecipient, "error", resultText);
         return;
+    }else{
+        //на клиенте автоматом корректируем имя
+        if(isCyrillic(cnt->originalName())){
+            cnt->setNewOriginalName(cnt->keyName() + "@" + cnt->objectName().toUtf8().toBase64());
+            qDebug() << __FUNCTION__ << "В имени контейнера обнаружена кириллица. Переведено в base64 автоматичесвки";
+        }
     }
 
     bool result = false;

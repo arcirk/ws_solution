@@ -947,7 +947,7 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
 {
 
     QString container;
-    //QString volume;
+    bool fromByteArray = false;
     KeysContainer* cnt = new KeysContainer(this);
     QString dest = to;
 
@@ -1011,6 +1011,7 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
                 QByteArray data = QByteArray::fromBase64(byteArrayBase64.toUtf8());
                 cnt->fromJson(data);
                 cnt->fromContainerName(from);
+                fromByteArray = true;
             }
 
 
@@ -1022,7 +1023,8 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
 
     }
 
-    cnt->readData(currentUser->sid());
+    if(!fromByteArray)
+        cnt->readData(currentUser->sid());
 
     if(!cnt->isValid()){
         QMessageBox::critical(this, "Ошибка", "Ошибка инициализации источника!");
@@ -1039,6 +1041,10 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
         containerName = dlg.name();
         if(containerName != cnt->originalName())
              cnt->setNewOriginalName(containerName);
+    }else{
+        QMessageBox::critical(this, "Ошибка", "Операция отменена!");
+        delete cnt;
+        return;
     }
 
     bool result = false;
@@ -1072,7 +1078,10 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
         if(result)
             on_toolCurrentUserUpdate_clicked();
     }else if(dest == ToDatabase){
-        //result = cnt->sync(KeysContainer::TypeOfStorgare::storgareTypeDatabase, "");
+        if(_sett->launch_mode() == mixed)
+            result = cnt->sync(db);
+        else
+            result = cnt->sync(m_client);
     }else
         result = cnt->sync(KeysContainer::typeOfStorgare(dest), dest, currentUser->sid());
 
@@ -3693,13 +3702,13 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
     if(command == AvailableContainers){
 
     }else if(command == mplCertData){
-        wsSetMplCertData(recipient, command);
+        wsSetMplCertData(recipient, message);
     }else if(command == ToDatabase){
         getDataContainersList();
-    }else if(command == ToVolume){
+    }else if(command == ToVolume || command == ToRegistry){
         QByteArray msg = QByteArray::fromBase64(message.toUtf8());
         auto obj = QJsonDocument::fromJson(msg).object();
-        addContainer(obj.value("from").toString(), ToVolume, obj.value("data").toString());
+        addContainer(obj.value("from").toString(), command, obj.value("data").toString());
     }
 }
 
@@ -4017,15 +4026,17 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
         return;
     }
 
-    int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-    auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-    object.replace("\r", "");
-
-    if(node == currentUserRegistry || node == currentUserDivace){        
+    if(node == currentUserRegistry || node == currentUserDivace){
+        int ind = modelUserContainers->getColumnIndex("nameInStorgare");
+        auto object = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
         addContainer(object, ToVolume);
     }else if(node == currentUserCertificates){
         //saveAsCurrentUserCertificate();
     }else{
+        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+        auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
         auto m_key = node.split("/");
         QString name = m_key[0];
         QString host = m_key[1];
@@ -4053,18 +4064,44 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
 void MainWindow::on_btnCurrentCopyToRegistry_clicked()
 {
 
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
         QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
         return;
     }
+    if(node == currentUserRegistry || node == currentUserDivace){
+        int ind = modelUserContainers->getColumnIndex("nameInStorgare");
+        auto object = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
+        addContainer(object, ToRegistry);
+    }else if(node == currentUserCertificates){
+        //saveAsCurrentUserCertificate();
+    }else{
+        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+        auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
+        auto m_key = node.split("/");
+        QString name = m_key[0];
+        QString host = m_key[1];
+        if(node.left(4) == "reg_"){
+            name.replace("reg_", "");
+        }else if(node.left(4) == "vol_"){
+            name.replace("vol_", "");
+        }else if(node.left(5) == "cert_"){
+            name.replace("cert_", "");
+        }
+        QString sess = getSessionUuid(name, host);
+        auto param = QJsonObject();
+        param.insert("command", "addContainer");
+        param.insert("from", object);
+        param.insert("to", ToRemoteRegistry);
 
-    int ind = modelUserContainers->getColumnIndex("nameInStorgare");
-    auto container = proxyModelUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-    container.replace("\r", "");
-    addContainer(container, ToRegistry);
+        sendToRecipient(sess, "addContainer", QJsonDocument(param).toJson().toBase64(), true);
 
+    }
 
 //    auto table = ui->tableView;
 //    auto index = table->currentIndex();

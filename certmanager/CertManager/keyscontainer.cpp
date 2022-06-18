@@ -876,11 +876,14 @@ void KeysContainer::setOriginalName(ByteArray name_key_data)
     if(name_key_data.size() == 0)
         return;
 
-    std::string b64 = Base64Converter::byte_to_base64(&name_key_data[0], name_key_data.size());
-    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
-    int ind = qbyte.indexOf("\026");
+    QByteArray* qbyte = new QByteArray(reinterpret_cast<const char*>(name_key_data.data()), name_key_data.size());
+    QString _qbyte = QTextCodec::codecForName("Windows-1251")->toUnicode(*qbyte);
+
+//    std::string b64 = Base64Converter::byte_to_base64(&name_key_data[0], name_key_data.size());
+//    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
+    int ind = _qbyte.indexOf("\026");
     if(ind != -1){
-        QString s_name = qbyte.right(qbyte.length() - ind - 2);
+        QString s_name = _qbyte.right(_qbyte.length() - ind - 2);
         if(!s_name.isEmpty())
             _originalName = s_name;
     }
@@ -915,13 +918,19 @@ QString KeysContainer::readOriginalName(const QString &pathToStorgare)
     QString filename = QDir::toNativeSeparators(dir.path() + QDir::separator() + "name.key");
     if(!QFile::exists(filename))
         return "";
-    ByteArray buffer;
-    Base64Converter::readFile(filename.toStdString(), buffer);
-    if(buffer.size() == 0)
-        return "";
 
-    std::string b64 = Base64Converter::byte_to_base64(&buffer[0], buffer.size());
-    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
+//    ByteArray buffer;
+//    Base64Converter::readFile(filename.toStdString(), buffer);
+//    if(buffer.size() == 0)
+//        return "";
+
+//    std::string b64 = Base64Converter::byte_to_base64(&buffer[0], buffer.size());
+//    QByteArray qbyte = QByteArray::fromBase64(QString::fromStdString(b64).toUtf8());
+
+    QFile f(filename);
+    f.open(QIODevice::ReadOnly);
+    QString qbyte = QTextCodec::codecForName("Windows-1251")->toUnicode(f.readAll());
+    f.close();
     int ind = qbyte.indexOf("\026");
     if(ind != -1){
         QString s_name = qbyte.right(qbyte.length() - ind - 2);
