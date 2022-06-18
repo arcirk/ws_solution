@@ -395,19 +395,9 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
 void DialogMainWindow::addContainer(const QString &from, const QString &to, const QString &byteArrayBase64)
 {
-    //QString container;
-    //QString volume;
+
     KeysContainer* cnt = new KeysContainer(this);
     QString resultText;
-
-//    if(to != ToRegistry && to != ToDatabase){
-//        resultText = "Клиент поддерживает экспорт/экспорт контейнера только в реестр и в базу данных!";
-//        qCritical() << __FUNCTION__ << resultText;
-//        delete cnt;
-//        if(!currentRecipient.isEmpty())
-//            sendToRecipient(currentRecipient, "error", resultText);
-//        return;
-//    }
 
     if(!from.isEmpty())
         cnt->fromContainerName(from);
@@ -439,15 +429,16 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
             result = cnt->sync(db);
         else
             result = cnt->sync(m_client);
-    }else if(to == ToRemoteVolume){
+    }else if(to == ToRemoteVolume || to == ToRemoteRegistry){
+        QString remoteCommand = to == ToRemoteVolume ? ToVolume : ToRegistry;
         QString base64 = cnt->toBase64();
         auto obj = QJsonObject();
         obj.insert("data", base64);
-        obj.insert("from", QString("\\\\.\\%1\\2%").arg(REMOTEBASE_, cnt->originalName()));
-        obj.insert("to", ToVolume);
+        obj.insert("from", QString("\\\\.\\%1\\%2").arg(REMOTEBASE_, cnt->originalName()));
+        obj.insert("to", remoteCommand);
         QString resp = QJsonDocument(obj).toJson().toBase64();
         if(!currentRecipient.isEmpty())
-            sendToRecipient(currentRecipient, "ToVolume", resp);
+            sendToRecipient(currentRecipient, remoteCommand, resp, true);
         delete cnt;
         currentRecipient = "";
         qDebug() << __FUNCTION__ << "Данные контейнера отправлены по удаленному запросу.";
