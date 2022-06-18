@@ -450,6 +450,7 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
             sendToRecipient(currentRecipient, "ToVolume", resp);
         delete cnt;
         currentRecipient = "";
+        qDebug() << __FUNCTION__ << "Данные контейнера отправлены по удаленному запросу.";
         return;
     }
 
