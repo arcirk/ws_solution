@@ -299,6 +299,7 @@ private:
 
 
     void addCertificate();
+    void addCertificate(const QString& data);
     void delCertificate();
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
     //void addContainerFromCatalog(const QString& from, const QString& to = "");

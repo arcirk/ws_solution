@@ -781,6 +781,50 @@ void MainWindow::addCertificate()
 
 }
 
+void MainWindow::addCertificate(const QString &data)
+{
+    QString s = data.trimmed();
+    QRegularExpression re("^[a-zA-Z0-9\\+/]*={0,3}$");
+    bool isBase64 = (s.length() % 4 == 0) && re.match(s).hasMatch();
+    if(!isBase64)
+        return;
+
+    //ByteArray _data = Base64Converter::base64_to_byte(data.toStdString());
+    //QString json = QByteArray::fromBase64(data.toUtf8());
+    auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(data.toUtf8()));
+    auto cert = Certificate();
+    cert.fromObject(doc.object());
+
+    if(cert.data().size() > 0){
+
+        auto bindQuery = cert.getSqlQueryObject(QBSqlCommand::QSqlInsert);
+        QString result = bindQuery.to_json();
+        if(_sett->launch_mode() == mixed){
+            QSqlQuery sql = bindQuery.query(db->getDatabase());
+            sql.exec();
+            if(sql.lastError().type() != QSqlError::NoError){
+                qDebug() << __FUNCTION__ << sql.lastError().text();
+            }else{
+                QMessageBox::information(this, "Копирование на сервер", "Сертификат успешно скопирован на сервер!");
+                getDataContainersList();
+            }
+        }else{
+            if(m_client->isStarted()){
+                auto doc = QJsonDocument();
+                auto objMain = QJsonObject();
+                objMain.insert("query", result);
+                objMain.insert("id_command", insertCertificateToData);
+                doc.setObject(objMain);
+                QString param = doc.toJson();
+                m_client->sendCommand("exec_query_qt", "", param);
+            }
+        }
+
+
+    }
+
+}
+
 void MainWindow::delCertificate()
 {
 
@@ -3791,6 +3835,15 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
                     emit ui->treeWidget->itemClicked(ui->treeWidget->currentItem(), 0);
             }
         }
+    }else if(command == "addCertificate"){
+        //qDebug() << __FUNCTION__ << command  << message;
+        if(message == "error"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
+        }else{
+            addCertificate(message);
+            //QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен!");
+//            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
+        }
     }else
         qDebug() << __FUNCTION__ << command << message;
 }
@@ -4138,8 +4191,10 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
             object = QString(STORGARE_LOCALHOST) + "/" + object;
             Volume = ToRemoteCertificate;
             command = "addCertificate";
+            name.replace(node.left(5), "");
         }
         QString sess = getSessionUuid(name, host);
+        qDebug() << sess << name << host;
         auto param = QJsonObject();
         param.insert("command", command);
         param.insert("from", object);
