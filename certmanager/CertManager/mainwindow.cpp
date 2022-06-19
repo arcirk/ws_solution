@@ -1512,7 +1512,7 @@ void MainWindow::treeSetFromCurrentUserCerts(QJsonTableModel* model)
     if(model){
         table->setModel(model);
         int col = model->getColumnIndex("serial");
-        table->setColumnHidden(col, true);
+        //table->setColumnHidden(col, true);
         table->resizeColumnsToContents();
     }
 }
@@ -3779,7 +3779,7 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         }
     }else if(command == "deleteCertificate"){
         //qDebug() << __FUNCTION__ << command  << message;
-        if(message == "Ошибка удаления сертификата!"){
+        if(message != "sucsess"){
             QMessageBox::critical(this, "Ошибка", "Не удалось удалить сертификат!");
         }else{
             QMessageBox::information(this, "Удаление сертификата", "Сертификат успешно удален!");
@@ -4627,14 +4627,14 @@ void MainWindow::on_btnCurrentDelete_clicked()
             Volume = ToRemoteVolume;
             command = "deleteContainer";
         }else if(node.left(5) == "cert_"){
-            int ind = modelCertUserContainers->getColumnIndex("serial");
-            auto serial = modelCertUserCertificates->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-            if(!serial.isEmpty()){
-                auto iter = currentUser->certificates().find(serial);
-                if(iter != currentUser->certificates().end()){
-                    QString object = iter.value()->sha1Hash();
-                }
-            }
+            int ind = modelCertUserCertificates->getColumnIndex("sha1");
+            object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+//            if(!sha1.isEmpty()){
+//                auto iter = currentUser->certificates().find(serial);
+//                if(iter != currentUser->certificates().end()){
+//                    QString object = iter.value()->sha1Hash();
+//                }
+//            }
             if(object.isEmpty()){
                 qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
                 return;
@@ -4659,6 +4659,7 @@ void MainWindow::on_btnCurrentDelete_clicked()
         auto param = QJsonObject();
         param.insert("command", command);
         param.insert("from", object);
+        //qDebug() << object;
         param.insert("to", Volume);
 
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);

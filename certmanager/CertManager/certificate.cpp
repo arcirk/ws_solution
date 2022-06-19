@@ -273,69 +273,20 @@ QJsonObject Certificate::getObject()
 QBSqlQuery Certificate::getSqlQueryObject(QBSqlCommand command)
 {
     auto bindQuery = QBSqlQuery(command, "[Certificates]");
-//    QJsonObject obj = QJsonObject();
-//    obj.insert("name", "Ref");
-//    obj.insert("value", ref());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("Ref", ref());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "FirstField");
-//    obj.insert("value",);
-
     bindQuery.addField("FirstField", QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter()));
-
-    //bindQuery.add_field(obj, bFieldType::qVariant);
-
-//    obj = QJsonObject();
-//    obj.insert("name", "subject");
-//    obj.insert("value", subject());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("subject", subject());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "issuer");
-//    obj.insert("value", issuer());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("issuer", issuer());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "privateKey");
-//    obj.insert("value", container());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
-     bindQuery.addField("privateKey", container());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "notValidBefore");
-//    obj.insert("value", notValidBefore());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("privateKey", container());
     bindQuery.addField("notValidBefore", notValidBefore());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "notValidAfter");
-//    obj.insert("value", notValidAfter());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("notValidAfter", notValidAfter());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "parentUser");
-//    obj.insert("value", parentUser());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("parentUser", parentUser());
-
-//    obj = QJsonObject();
-//    obj.insert("name", "serial");
-//    obj.insert("value", serial());
-//    bindQuery.add_field(obj, bFieldType::qVariant);
     bindQuery.addField("serial", serial());
+    bindQuery.addField("sha1", sha1Hash());
 
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());
         QByteArray dt = base64.data();
-//        obj = QJsonObject();
-//        obj.insert("name", "data");
-//        obj.insert("value", QString(dt.toBase64()));
-//        bindQuery.add_field(obj, bFieldType::qByteArray);
         bindQuery.addField("data", QString(dt.toBase64()), bFieldType::qByteArray);
     }
 
