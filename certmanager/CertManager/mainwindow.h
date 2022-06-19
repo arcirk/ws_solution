@@ -57,6 +57,7 @@ QT_END_NAMESPACE
 #define ToFolder                        "toFolder"
 #define ToRemoteVolume                  "ToRemoteVolume"
 #define ToRemoteRegistry                "ToRemoteRegistry"
+#define ToRemoteCertificate             "ToRemoteCertificate"
 #define ToUser                          "ToUser"
 #define FromDatabase                    "fromDatabase"
 #define FromRegistry                    "fromRegistry"

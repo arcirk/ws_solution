@@ -278,6 +278,8 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
                 emit wsGetAvailableContainers(resp->uuid_session);
             }else if(resp->message == "get_crypt_data"){
                 emit wsGetCryptData(resp->uuid_session);
+            }else if(resp->message == "get_installed_certificates"){
+                emit wsGetInstalledCertificates(resp->uuid_session);
             }
 #else
 

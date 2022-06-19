@@ -1353,9 +1353,7 @@ void MainWindow::addCertUser()
 void MainWindow::resetCertData(CertUser *usr, const QString& node)
 {
     if(node == currentUserContainers || node == currentUserRegistry || node == currentUserDivace){
-        if(usr == currentUser){
-            terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
-        }
+        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
     }else if(node == currentUserCertificates){
         terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
     }
@@ -3746,7 +3744,23 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
 //    qDebug() <<  __FUNCTION__ << recipient << command;
 //    qDebug() <<  __FUNCTION__ << qPrintable(message);
     if(command == AvailableContainers){
-
+        QString s = QByteArray::fromBase64(message.toUtf8());
+        int iUuid = modelWsUsers->getColumnIndex("uuid");
+        auto index = findInTable(modelWsUsers, recipient, iUuid, false);
+        if(index.isValid()){
+            QStringList containers = s.split("\n");
+            int iName = modelWsUsers->getColumnIndex("name");
+            int iHost = modelWsUsers->getColumnIndex("host_name");
+            QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
+            QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
+            auto itr = m_users.find(qMakePair(name, host));
+            if(itr != m_users.end()){
+                CertUser *usr = itr.value();
+                usr->setContainers(containers);
+                if(ui->treeWidget->currentIndex().isValid())
+                    emit ui->treeWidget->itemClicked(ui->treeWidget->currentItem(), 0);
+            }
+        }
     }else if(command == mplCertData){
         wsSetMplCertData(recipient, message);
     }else if(command == ToDatabase){
@@ -3755,7 +3769,24 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         QByteArray msg = QByteArray::fromBase64(message.toUtf8());
         auto obj = QJsonDocument::fromJson(msg).object();
         addContainer(obj.value("from").toString(), command, obj.value("data").toString());
-    }
+    }else if(command == "deleteContainer"){
+        //qDebug() << __FUNCTION__ << command  << message;
+        if(message == "Ошибка удаления контейнера!"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка удаления контейнера! Возможно не достаточно прав у клиента!");
+        }else{
+            QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
+            sendToRecipient(recipient, "get_available_containers", "get_available_containers", false);
+        }
+    }else if(command == "deleteCertificate"){
+        //qDebug() << __FUNCTION__ << command  << message;
+        if(message == "Ошибка удаления сертификата!"){
+            QMessageBox::critical(this, "Ошибка", "Не удалось удалить сертификат!");
+        }else{
+            QMessageBox::information(this, "Удаление сертификата", "Сертификат успешно удален!");
+            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
+        }
+    }else
+        qDebug() << __FUNCTION__ << command << message;
 }
 
 void MainWindow::onWsMplClientFormLoaded(const QString &resp)
@@ -4548,26 +4579,52 @@ void MainWindow::on_btnCurrentDelete_clicked()
             }
         }
     }else{
-        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-        auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-        object.replace("\r", "");
+        QString deleteKey;
+        QString Volume;
+        QString object;
         auto m_key = node.split("/");
         QString name = m_key[0];
         QString host = m_key[1];
+        QString command;
         if(node.left(4) == "reg_"){
+            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+            object.replace("\r", "");
             name.replace("reg_", "");
+            deleteKey = "из реестра пользователя";
+            Volume = ToRemoteRegistry;
+            command = "deleteContainer";
         }else if(node.left(4) == "vol_"){
+            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+            object.replace("\r", "");
             name.replace("vol_", "");
+            deleteKey = "с устройства у пользователя";
+            Volume = ToRemoteVolume;
+            command = "deleteContainer";
         }else if(node.left(5) == "cert_"){
+            int ind = modelCertUserContainers->getColumnIndex("serial");
+            auto serial = modelCertUserCertificates->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+            object = "сертификат";
             name.replace("cert_", "");
+            deleteKey = "у пользователя";
+            Volume = ToRemoteCertificate;
+            command = "deleteCertificate";
         }
+
+        auto result =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить: \n%1 \n%2?").arg(object, deleteKey));
+
+        if(result != QMessageBox::Yes){
+            return;
+        }
+
         QString sess = getSessionUuid(name, host);
         auto param = QJsonObject();
-        param.insert("command", "deleteContainer");
+        param.insert("command", command);
         param.insert("from", object);
-        param.insert("to", ToRemoteVolume);
+        param.insert("to", Volume);
 
-        sendToRecipient(sess, "deleteContainer", QJsonDocument(param).toJson().toBase64(), true);
+        sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
     }
 }
 
@@ -4803,10 +4860,10 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
 
     if(currentNode == currentUserCertificates){
         addCertificate();
+    }else if(currentNode == currentUserDivace || currentNode == currentUserRegistry){
+        addContainer();
     }else{
-        if(currentNode == currentUserDivace || currentNode == currentUserRegistry){
-            addContainer();
-        }
+
     }
 }
 

@@ -232,6 +232,7 @@ signals:
 
     ///////////// mpl signals
     void wsGetAvailableContainers(const QString& recipient);
+    void wsGetInstalledCertificates(const QString& recipient);
     void wsCommandToClient(const QString& recipient, const QString& command, const QString& message);
     void wsGetCryptData(const QString& recipient);
 
