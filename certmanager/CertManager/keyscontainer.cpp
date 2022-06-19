@@ -557,7 +557,12 @@ bool KeysContainer::deleteContainer(const QString& sid)
           QDir dir(folder);
           if(dir.exists()){
               if(readOriginalName(folder) == _originalName){
-                  return dir.removeRecursively();
+                  dir.removeRecursively();
+                  if(dir.exists()){
+                      qCritical() << __FUNCTION__ << "dir.removeRecursively()" << "Ошибка удаления каталога!";
+                      return false;
+                  }else
+                      return true;
               }
           }
       }

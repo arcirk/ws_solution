@@ -401,6 +401,7 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
         return;
 
     QString _message = QString("{\"command\": \"%1\", \"message\": \"%2\"}").arg(command, message);
+    //qDebug() << message;
     QJsonObject obj = QJsonObject();
     //obj.insert("uuid_agent", m_client->getUuidSession());
     //obj.insert("uuid_agent", m_client->getUuidSession());
@@ -536,7 +537,11 @@ bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QStrin
             result = cnt.deleteContainer();
         }
     }else if(objectType == OBJECT_TYPE_CERTIFICATE){
-        terminal->send(objectName, certmgrDeletelCert);
+        QString sha1 = objectName;
+        QString _qbyte = QString("certmgr -delete -thumbprint \"%1\"\n").arg(sha1);
+        if(!sha1.isEmpty())
+            terminal->send(_qbyte, certmgrDeletelCert);
+       result = true;
     }
 
     return result;
@@ -546,7 +551,7 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
     if(currentUser->containers().size() > 0){
-        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n"), true);
+        sendToRecipient(recipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
     }else{
         currentRecipient = recipient;
         terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
@@ -573,7 +578,19 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
         QString from = obj.value("from").toString();
         QString to = obj.value("to").toString();
 
-        deleteLocalObject(from, OBJECT_TYPE_CONTAINER);
+        bool result = deleteLocalObject(from, OBJECT_TYPE_CONTAINER);
+
+        if(!currentRecipient.isEmpty()){
+            if(!result){
+                sendToRecipient(currentRecipient, command, "Ошибка удаления контейнера!", true);
+                currentRecipient = "";
+            }else{
+                sendToRecipient(currentRecipient, command, "Контейнер успешно удален!", true);
+                currentRecipient = "";
+                terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+            }
+        }
+
 
     }else if(command == "deleteCertificate"){
 
@@ -606,7 +623,7 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         QStringList keys = res.split("\n");
         currentUser->setContainers(keys);
         if(!currentRecipient.isEmpty()){
-            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
+            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
             currentRecipient = "";
         }
         //получаем список сертификатов
