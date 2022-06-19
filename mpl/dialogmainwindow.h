@@ -32,6 +32,9 @@
 
 #define OBJECT_TYPE_CONTAINER           "Container"
 #define OBJECT_TYPE_CERTIFICATE         "Certificate"
+#define STORGARE_DATABASE               "StorgareDatabase"
+#define STORGARE_LOCALHOST              "StorgareLocalhost"
+#define STORGARE_REMOTEHOST             "StorgareRemotehost"
 
 namespace Ui {
 class DialogMainWindow;
@@ -156,6 +159,7 @@ private:
     void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent = false);
 
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
+    void addCertificate(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
     bool deleteLocalObject(const QString& objectName, const QString& objectType);
 
 signals:

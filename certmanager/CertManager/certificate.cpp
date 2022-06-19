@@ -156,6 +156,18 @@ QString Certificate::getParam(const QString &key, const QString &name)
     return "";
 }
 
+void Certificate::fromSha1(const QString &sha)
+{
+
+    QTemporaryDir tmpDir;
+    auto cmd = new CommandLine(this, false, "CP1251");
+    cmd->setMethod(3);
+    QEventLoop loop;
+    QJsonObject res;
+
+
+}
+
 void Certificate::fromFile(const QString& fileName, bool removeSource){
 
    _isValid = false;

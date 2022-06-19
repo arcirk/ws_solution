@@ -499,6 +499,90 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
 
 }
 
+void DialogMainWindow::addCertificate(const QString &from, const QString &to, const QString &byteArrayBase64)
+{
+    Certificate* cert = new Certificate(this);
+    QString resultText;
+
+    QStringList lst = from.split("/");
+    QString storgare = lst.size() > 0 ? lst[0] :  STORGARE_LOCALHOST;
+    QString _from = lst.size() > 0 ? lst[1] : from;
+
+    if(storgare == STORGARE_DATABASE){
+
+    }else if(storgare == STORGARE_LOCALHOST){
+        //cert->fr
+    }
+
+//    if(!from.isEmpty())
+//        cnt->fromContainerName(from);
+//    else{
+//        resultText = "Не указан источник для копирования контейнера!";
+//        qCritical() << __FUNCTION__ << resultText;
+//        delete cnt;
+//        if(!currentRecipient.isEmpty())
+//            sendToRecipient(currentRecipient, "error", resultText);
+//        return;
+//    }
+//    cnt->readData(currentUser->sid());
+
+//    if(!cnt->isValid()){
+//        resultText = "Ошибка инициализации источника!";
+//        qCritical() << __FUNCTION__ << resultText;
+//        delete cnt;
+//        if(!currentRecipient.isEmpty())
+//            sendToRecipient(currentRecipient, "error", resultText);
+//        return;
+//    }else{
+//        //на клиенте автоматом корректируем имя
+//        if(isCyrillic(cnt->originalName())){
+//            QString dt = cnt->notValidAfter();
+//            dt.replace(".", "-");
+//            if(!dt.isEmpty())
+//                dt.append("-");
+//            cnt->setNewOriginalName(cnt->keyName() + "@" + dt + cnt->name().toUtf8().toBase64());
+//            qDebug() << __FUNCTION__ << "В имени контейнера обнаружена кириллица. Переведено в base64 автоматичесвки";
+//        }
+//    }
+
+//    bool result = false;
+
+//    if(to == ToRegistry){
+//        result = cnt->sync(KeysContainer::TypeOfStorgare::storgareTypeRegistry, "", currentUser->sid());
+//    }else if(to == ToDatabase){
+//        if(_sett->launch_mode() == mixed)
+//            result = cnt->sync(db);
+//        else
+//            result = cnt->sync(m_client);
+//    }else if(to == ToRemoteVolume || to == ToRemoteRegistry){
+//        QString remoteCommand = to == ToRemoteVolume ? ToVolume : ToRegistry;
+//        QString base64 = cnt->toBase64();
+//        auto obj = QJsonObject();
+//        obj.insert("data", base64);
+//        obj.insert("from", QString("\\\\.\\%1\\%2").arg(REMOTEBASE_, cnt->originalName()));
+//        obj.insert("to", remoteCommand);
+//        QString resp = QJsonDocument(obj).toJson().toBase64();
+//        if(!currentRecipient.isEmpty())
+//            sendToRecipient(currentRecipient, remoteCommand, resp, true);
+//        delete cnt;
+//        currentRecipient = "";
+//        qDebug() << __FUNCTION__ << "Данные контейнера отправлены по удаленному запросу.";
+//        return;
+//    }
+
+//    if(result){
+//        if(!currentRecipient.isEmpty())
+//            sendToRecipient(currentRecipient, to, "Операция успешно выполнена!");
+//    }else
+//        if(!currentRecipient.isEmpty())
+//            sendToRecipient(currentRecipient, "error", "Ошибка выполнения операции!");
+
+//    delete cnt;
+//    currentRecipient = "";
+//    return;
+
+}
+
 void DialogMainWindow::onGetCryptData(const QString &recipient)
 {
 
@@ -541,6 +625,8 @@ bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QStrin
         QString _qbyte = QString("certmgr -delete -thumbprint \"%1\"\n").arg(sha1);
         if(!sha1.isEmpty())
             terminal->send(_qbyte, certmgrDeletelCert);
+        else
+            return false;
        result = true;
     }
 
@@ -561,15 +647,15 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 void DialogMainWindow::onWsGetInstalledCertificates(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
-    if(currentUser->certificates().size() > 0){
-        auto objCerts = QJsonObject();
-        objCerts.insert("certs", currentUser->certModel());
-        QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
-        sendToRecipient(recipient, "installed_certificates", object.toUtf8().toBase64(), true);
-    }else{
+//    if(currentUser->certificates().size() > 0){
+//        auto objCerts = QJsonObject();
+//        objCerts.insert("certs", currentUser->certModel());
+//        QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
+//        sendToRecipient(recipient, "installed_certificates", object.toUtf8().toBase64(), true);
+//    }else{
         currentRecipient = recipient;
         terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
-    }
+//    }
 }
 
 void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
@@ -616,6 +702,15 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
 
         deleteLocalObject(from, OBJECT_TYPE_CERTIFICATE);
 
+    }else if(command == "addCertificate"){
+
+        currentRecipient = recipient;
+        auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
+        auto obj = doc.object();
+        QString from = obj.value("from").toString();
+        QString to = obj.value("to").toString();
+
+        addContainer(from, to);
     }
 
 }
@@ -658,12 +753,40 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 
         if(!isFormLoaded) //оповещяем о окончании загрузки данных
             emit whenDataIsLoaded();
+
+        if(!currentRecipient.isEmpty()){
+            auto objCerts = QJsonObject();
+            objCerts.insert("certs", currentUser->certModel());
+            QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
+            sendToRecipient(currentRecipient, "installed_certificates", object.toUtf8().toBase64(), true);
+            currentRecipient = "";
+        }
+    }else if(command == CmdCommand::certmgrDeletelCert){
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "deleteCertificate", "sucsess", true);
+            currentRecipient = "";
+        }
     }
 }
 
 void DialogMainWindow::onCommandError(const QString &result, int command)
 {
     qCritical() << __FUNCTION__ << "error: " <<  result;
+    if(result.indexOf("Empty certificate list") != 1){
+        if(!isFormLoaded) //оповещяем о окончании загрузки данных
+            emit whenDataIsLoaded();
+
+
+        currentUser->certificates().clear();
+
+        if(!currentRecipient.isEmpty()){
+            auto objCerts = QJsonObject();
+            objCerts.insert("certs", currentUser->certModel());
+            QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
+            sendToRecipient(currentRecipient, "installed_certificates", object.toUtf8().toBase64(), true);
+            currentRecipient = "";
+        }
+    }
 }
 
 void DialogMainWindow::onOutputCommandLine(const QString &data, int command)
