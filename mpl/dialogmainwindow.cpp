@@ -507,11 +507,30 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
     QStringList lst = from.split("/");
     QString storgare = lst.size() > 0 ? lst[0] :  STORGARE_LOCALHOST;
     QString _from = lst.size() > 0 ? lst[1] : from;
+    bool result = false;
+
+    QString resultData;
 
     if(storgare == STORGARE_DATABASE){
 
     }else if(storgare == STORGARE_LOCALHOST){
-        //cert->fr
+        result = cert->fromSha1(_from);
+        if(result){
+            QJsonObject obj = cert->getObject();
+            resultData  = QJsonDocument(obj).toJson().toBase64();
+        }
+    }
+
+    if(result){
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "addCertificate", resultData, true);
+            currentRecipient = "";
+        }
+    }else{
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "addCertificate", "error", true);
+            currentRecipient = "";
+        }
     }
 
 //    if(!from.isEmpty())
@@ -710,7 +729,7 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
         QString from = obj.value("from").toString();
         QString to = obj.value("to").toString();
 
-        addContainer(from, to);
+        addCertificate(from, to);
     }
 
 }

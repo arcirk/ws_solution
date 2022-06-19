@@ -84,6 +84,7 @@ void CommandLine::stateChanged(QProcess::ProcessState newState) {
     switch (newState) {
         case QProcess::NotRunning:
             emit output("Not running", unknown);
+            emit complete();
             break;
         case QProcess::Starting:
             emit output("Starting ...", unknown);

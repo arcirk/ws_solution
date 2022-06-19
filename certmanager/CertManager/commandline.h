@@ -78,11 +78,14 @@ public slots:
 
     void setProgram(const QString& name);
 
+
+
 signals:
     void output(const QString& data, int command);
     void endParse(const QVariant& result, int command);
     void error(const QString& data, int command);
     void cmdStarted();
+    void complete();
 
 private slots:
     void errorOccured(QProcess::ProcessError err);
@@ -92,7 +95,6 @@ private slots:
     void started();
     void stateChanged(QProcess::ProcessState newState);
     void readyRead();
-
 
 private:
     QProcess m_process;

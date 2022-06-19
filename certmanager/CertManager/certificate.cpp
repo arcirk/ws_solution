@@ -159,25 +159,30 @@ QString Certificate::getParam(const QString &key, const QString &name)
 bool Certificate::fromSha1(const QString &sha)
 {
 
-    QTemporaryDir tmpDir;
-    auto cmd = new CommandLine(this, false);
+    //QTemporaryDir tmpDir;
+    QString tmpDir = std::getenv("TEMP"); //только так победил кодировку, как она заябала
+    auto cmd = new CommandLine(this, false);//);"ISO 8859-1"
     QEventLoop loop;
     QJsonObject res;
 
-    QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
-
+    QString fileName = tmpDir + QDir::separator() + QUuid::createUuid().toString() + ".cer";
+    //qDebug() << fileName;
     auto started = [cmd, &fileName, &sha]() -> void
     {
-        QString _qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName);
-        cmd->send(_qbyte, certmgrExportlCert);
+        QString qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName);
+        cmd->send(qbyte, certmgrExportlCert);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
     auto output = [cmd, &loop](const QString& data, int command) -> void
     {
-        if(command == CmdCommand::certmgrExportlCert){
+        qDebug() << __FUNCTION__ << data;
+        if(command == CmdCommand::certmgrExportlCert){            
             if(data.indexOf("Microsoft Corporation") == -1){
                 if(data.indexOf("ReturnCode:") != -1){
+                    cmd->stop();
+                    loop.quit();
+                }else if(data.indexOf("ErrorCode:") != -1){
                     cmd->stop();
                     loop.quit();
                 }
@@ -193,6 +198,12 @@ bool Certificate::fromSha1(const QString &sha)
         loop.quit();
     };
     loop.connect(cmd, &CommandLine::error, err);
+
+    auto state = [&loop]() -> void
+    {
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::complete, state);
 
     cmd->start();
     loop.exec();
@@ -299,6 +310,23 @@ void Certificate::fromModelObject(const QJsonObject &obj)
     _serial = obj.value("serial").toString();
     sourceObject = getObject();
     sourceObject.insert("SHA1 Hash", obj.value("sha1").toString());
+}
+
+void Certificate::fromObject(const QJsonObject &obj)
+{
+    _ref = obj.value("Ref").toString();
+    _subject = obj.value("subject").toString();
+    _ref = obj.value("Ref").toString();
+    _issuer = obj.value("issuer").toString();
+    _container = obj.value("privateKey").toString();
+    _notValidBefore = obj.value("notValidBefore").toString();
+    _notValidAfter = obj.value("notValidAfter").toString();
+    _parentUser = obj.value("parentUser").toString();
+    _serial = obj.value("serial").toString();
+    _sha1 = obj.value("sha1").toString();
+    std::string base64 = obj.value("data").toString().toStdString();
+    _data = Base64Converter::base64_to_byte(base64);
+
 }
 QJsonObject Certificate::getObject()
 {
@@ -414,7 +442,7 @@ void Certificate::fromData(ByteArray &cer)
         QString s = "certutil \"" + fileName + "\"";
         cmd->send(s, CmdCommand::certutilGetCertificateInfo);
     };
-    connect(cmd, &CommandLine::cmdStarted, started);
+    loop.connect(cmd, &CommandLine::cmdStarted, started);
 
     auto output = [cmd](const QString& data, int command) -> void
     {
@@ -422,7 +450,7 @@ void Certificate::fromData(ByteArray &cer)
             cmd->parseCommand(data, command);
         }
     };
-    connect(cmd, &CommandLine::output, output);
+    loop.connect(cmd, &CommandLine::output, output);
 
     auto parse = [&loop, cmd, &res](const QVariant& result, int command) -> void
     {
@@ -440,7 +468,7 @@ void Certificate::fromData(ByteArray &cer)
         }
 
     };
-    connect(cmd, &CommandLine::endParse, parse);
+    loop.connect(cmd, &CommandLine::endParse, parse);
 
     auto err = [&loop, cmd](const QString& data, int command) -> void
     {
@@ -448,7 +476,7 @@ void Certificate::fromData(ByteArray &cer)
         cmd->stop();
         loop.quit();
     };
-    connect(cmd, &CommandLine::error, err);
+    loop.connect(cmd, &CommandLine::error, err);
 
     cmd->start();
     loop.exec();

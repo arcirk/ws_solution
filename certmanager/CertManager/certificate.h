@@ -35,6 +35,7 @@ public:
     void fromData(ByteArray &cer);
     void fromFile(const QString& fileName, bool removeSource = false);
     void fromModelObject(const QJsonObject& obj);
+    void fromObject(const QJsonObject& obj);
     QJsonObject getObject();
     QBSqlQuery getSqlQueryObject(QBSqlCommand command);
 
