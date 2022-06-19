@@ -574,7 +574,6 @@ void MainWindow::saveAsCurrentUserContainer()
 
 void MainWindow::saveAsCurrentUserCertificate()
 {
-    //terminal->send("certmgr.msc", unknown);
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
@@ -587,11 +586,6 @@ void MainWindow::saveAsCurrentUserCertificate()
                                                  "Файл сертификата (*.cer)");
     if(fileName != ""){
         QFile file(fileName);
-        //QFileInfo fileInfo(file.fileName());
-        //if(file.open(QIODevice::ReadOnly)){
-
-        //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer
-
         int col = modelUserCertificates->getColumnIndex("serial");
         QString serial = modelUserCertificates->index(index.row(), col).data(Qt::UserRole + col).toString();
         if(!serial.isEmpty()){
@@ -603,19 +597,8 @@ void MainWindow::saveAsCurrentUserCertificate()
                     terminal->send(_qbyte, certmgrExportlCert);
                 }
             }
-            //terminal->send(QString("certutil -exportPFX -p "" my %1 \"%2\"").arg(serial, fileName), certutilPfxExport);
         }
-
-//        auto certItr = currentUser->certificates().find(serial);
-//        if(certItr != currentUser->certificates().end()){
-//            QString CN = certItr.value()->getParam("Subject", "CN");
-//            if(!CN.isEmpty()){
-//                //QString cmd = QString("certmgr -export -dn \"CN=%1\" -dest \"%2\"\n").arg(CN, fileName);
-//                QString cmd = QString("certmgr -export -dest \"%1\"\n").arg(fileName);
-//                terminal->send(cmd, unknown);
-//            }
-//        }
-        }
+    }
 }
 
 void MainWindow::getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param)
@@ -4134,26 +4117,35 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
     }else if(node == currentUserCertificates){
         saveAsCurrentUserCertificate();
     }else{
-        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-        auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-        object.replace("\r", "");
         auto m_key = node.split("/");
         QString name = m_key[0];
         QString host = m_key[1];
-        if(node.left(4) == "reg_"){
-            name.replace("reg_", "");
-        }else if(node.left(4) == "vol_"){
-            name.replace("vol_", "");
+        QString Volume = ToRemoteVolume;
+        QString object, command = "addContainer";
+        if(node.left(4) == "reg_" || node.left(4) == "vol_"){
+            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+            object.replace("\r", "");
+            name.replace(node.left(4), "");
         }else if(node.left(5) == "cert_"){
-            name.replace("cert_", "");
+            int ind = modelCertUserCertificates->getColumnIndex("sha1");
+            object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+            if(object.isEmpty()){
+                qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
+                return;
+            }
+            object.replace("cert_", "");
+            object = QString(STORGARE_LOCALHOST) + "/" + object;
+            Volume = ToRemoteCertificate;
+            command = "addCertificate";
         }
         QString sess = getSessionUuid(name, host);
         auto param = QJsonObject();
-        param.insert("command", "addContainer");
+        param.insert("command", command);
         param.insert("from", object);
-        param.insert("to", ToRemoteVolume);
+        param.insert("to", Volume);
 
-        sendToRecipient(sess, "addContainer", QJsonDocument(param).toJson().toBase64(), true);
+        sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
 
     }
 
@@ -4629,12 +4621,6 @@ void MainWindow::on_btnCurrentDelete_clicked()
         }else if(node.left(5) == "cert_"){
             int ind = modelCertUserCertificates->getColumnIndex("sha1");
             object = modelCertUserCertificates->index(index.row(), ind).data().toString();
-//            if(!sha1.isEmpty()){
-//                auto iter = currentUser->certificates().find(serial);
-//                if(iter != currentUser->certificates().end()){
-//                    QString object = iter.value()->sha1Hash();
-//                }
-//            }
             if(object.isEmpty()){
                 qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
                 return;
@@ -4659,7 +4645,6 @@ void MainWindow::on_btnCurrentDelete_clicked()
         auto param = QJsonObject();
         param.insert("command", command);
         param.insert("from", object);
-        //qDebug() << object;
         param.insert("to", Volume);
 
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);

@@ -65,6 +65,10 @@ QT_END_NAMESPACE
 #define FromVolume                      "fromVolume"
 #define FromFolder                      "fromFolder"
 
+#define STORGARE_DATABASE               "StorgareDatabase"
+#define STORGARE_LOCALHOST              "StorgareLocalhost"
+#define STORGARE_REMOTEHOST             "StorgareRemotehost"
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT

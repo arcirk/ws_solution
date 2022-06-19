@@ -156,16 +156,54 @@ QString Certificate::getParam(const QString &key, const QString &name)
     return "";
 }
 
-void Certificate::fromSha1(const QString &sha)
+bool Certificate::fromSha1(const QString &sha)
 {
 
     QTemporaryDir tmpDir;
-    auto cmd = new CommandLine(this, false, "CP1251");
-    cmd->setMethod(3);
+    auto cmd = new CommandLine(this, false);
     QEventLoop loop;
     QJsonObject res;
 
+    QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
 
+    auto started = [cmd, &fileName, &sha]() -> void
+    {
+        QString _qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName);
+        cmd->send(_qbyte, certmgrExportlCert);
+    };
+    loop.connect(cmd, &CommandLine::cmdStarted, started);
+
+    auto output = [cmd, &loop](const QString& data, int command) -> void
+    {
+        if(command == CmdCommand::certmgrExportlCert){
+            if(data.indexOf("Microsoft Corporation") == -1){
+                if(data.indexOf("ReturnCode:") != -1){
+                    cmd->stop();
+                    loop.quit();
+                }
+            }
+        }
+    };
+    loop.connect(cmd, &CommandLine::output, output);
+
+    auto err = [&loop, cmd](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << data << command;
+        cmd->stop();
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::error, err);
+
+    cmd->start();
+    loop.exec();
+    delete cmd;
+
+    if(!QFile(fileName).exists())
+        return false;
+
+    fromFile(fileName, true);
+
+    return _isValid;
 }
 
 void Certificate::fromFile(const QString& fileName, bool removeSource){
