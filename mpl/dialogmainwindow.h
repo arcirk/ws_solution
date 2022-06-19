@@ -73,6 +73,7 @@ private slots:
     void onDisplayError(const QString& what, const QString& err);
     void onWsExecQuery(const QString& result);
     void onWsGetAvailableContainers(const QString& recipient);
+    void onWsGetInstalledCertificates(const QString& recipient);
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
 
     void onParseCommand(const QVariant& result, int command);

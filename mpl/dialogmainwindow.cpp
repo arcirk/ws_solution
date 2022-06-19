@@ -558,6 +558,20 @@ void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
     }
 }
 
+void DialogMainWindow::onWsGetInstalledCertificates(const QString &recipient)
+{
+    qDebug() << __FUNCTION__;
+    if(currentUser->certificates().size() > 0){
+        auto objCerts = QJsonObject();
+        objCerts.insert("certs", currentUser->certModel());
+        QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
+        sendToRecipient(recipient, "installed_certificates", object.toUtf8().toBase64(), true);
+    }else{
+        currentRecipient = recipient;
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+    }
+}
+
 void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
 
@@ -1145,6 +1159,7 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &DialogMainWindow::onWsGetAvailableContainers);
     connect(m_client, &bWebSocket::wsGetCryptData, this, &DialogMainWindow::onGetCryptData);
     connect(m_client, &bWebSocket::wsCommandToClient, this, &DialogMainWindow::onWsCommandToClient);
+    connect(m_client, &bWebSocket::wsGetInstalledCertificates, this, &DialogMainWindow::onWsGetInstalledCertificates);
 }
 
 void DialogMainWindow::on_btnSettings_clicked()

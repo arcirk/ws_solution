@@ -206,7 +206,7 @@ QJsonObject CertUser::certModel()
     objCols.append("parentUser");
     objCols.append("container");
     objCols.append("serial");
-
+    objCols.append("sha1");
 
     auto objRows = QJsonArray();
     foreach(auto itr, certificates()){
@@ -219,6 +219,7 @@ QJsonObject CertUser::certModel()
         row.insert("parentUser", itr->parentUser());
         row.insert("container", itr->container());
         row.insert("serial", itr->serial());
+        row.insert("serial", itr->sha1Hash());
         objRows.append(row);
     }
 
