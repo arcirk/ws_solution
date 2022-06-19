@@ -451,7 +451,11 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
     }else{
         //на клиенте автоматом корректируем имя
         if(isCyrillic(cnt->originalName())){
-            cnt->setNewOriginalName(cnt->keyName() + "@" + cnt->objectName().toUtf8().toBase64());
+            QString dt = cnt->notValidAfter();
+            dt.replace(".", "-");
+            if(!dt.isEmpty())
+                dt.append("-");
+            cnt->setNewOriginalName(cnt->keyName() + "@" + dt + cnt->name().toUtf8().toBase64());
             qDebug() << __FUNCTION__ << "В имени контейнера обнаружена кириллица. Переведено в base64 автоматичесвки";
         }
     }
