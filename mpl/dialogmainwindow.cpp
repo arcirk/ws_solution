@@ -377,6 +377,22 @@ void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 void DialogMainWindow::onWsExecQuery(const QString &result)
 {
     qDebug() << __FUNCTION__;
+
+    auto doc = QJsonDocument::fromJson(result.toUtf8());
+    auto obj = doc.object();
+    if(doc.isEmpty())
+        return;
+
+    QString id_command = obj.value("id_command").toString();
+
+    if(id_command == "deleteCertificateFromData"){
+        qDebug() << __FUNCTION__ << "Сертификат успешно удален с сервера!";
+
+    }else if(id_command == "deleteContainerFromData"){
+        qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
+
+    }
+
 }
 
 void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)
@@ -501,6 +517,27 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
     QString param = doc.toJson();// QJsonDocument(objMain).toJson(QJsonDocument::Indented);
     m_client->sendCommand("command_to_qt_agent", "", param);
 }
+
+bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QString& objectType)
+{
+
+    bool result = false;
+
+    if(objectType == OBJECT_TYPE_CONTAINER){
+        auto cnt = KeysContainer();
+        cnt.fromContainerName(objectName);
+        if(cnt.typeOfStorgare() == KeysContainer::TypeOfStorgare::storgareTypeRegistry){
+            result = cnt.deleteContainer(currentUser->sid());
+        }else if(cnt.typeOfStorgare() == KeysContainer::TypeOfStorgare::storgareTypeLocalVolume){
+            result = cnt.deleteContainer();
+        }
+    }else if(objectType == OBJECT_TYPE_CERTIFICATE){
+        terminal->send(objectName, certmgrDeletelCert);
+    }
+
+    return result;
+
+}
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
@@ -516,17 +553,39 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
 {
 
     if(command == "addContainer"){
-        currentRecipient = recipient;
 
+        currentRecipient = recipient;
         auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
         auto obj = doc.object();
         QString from = obj.value("from").toString();
         QString to = obj.value("to").toString();
 
         addContainer(from, to);
+    }else if(command == "deleteContainer"){
+
+        currentRecipient = recipient;
+        auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
+        auto obj = doc.object();
+        QString from = obj.value("from").toString();
+        QString to = obj.value("to").toString();
+
+        deleteLocalObject(from, OBJECT_TYPE_CONTAINER);
+
+    }else if(command == "deleteCertificate"){
+
+        currentRecipient = recipient;
+        auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
+        auto obj = doc.object();
+        QString from = obj.value("from").toString();
+        QString to = obj.value("to").toString();
+
+        deleteLocalObject(from, OBJECT_TYPE_CERTIFICATE);
+
     }
 
 }
+
+
 
 void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 {

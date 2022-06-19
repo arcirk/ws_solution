@@ -492,6 +492,86 @@ bool KeysContainer::syncVolume(const QString& dir)
     }
     return true;
 }
+bool KeysContainer::deleteContainer(SqlInterface* db, const QString& ref){
+
+    QString __ref = ref;
+    if(__ref.isEmpty())
+        __ref = _ref;
+    if(__ref.isEmpty()){
+        qCritical() << __FUNCTION__ << "Не указан идентификатор контейнера на сервере!";
+        return false;
+    }
+    if(db->isOpen()){
+      qCritical() << __FUNCTION__ << "База данных не открыта!";
+      return false;
+    }
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Containers");
+    bindQuery.addWhere("Ref", __ref);
+    QSqlQuery sql = bindQuery.query(db->getDatabase());
+    sql.exec();
+    if(sql.lastError().type() != QSqlError::NoError){
+        qDebug() << __FUNCTION__ << sql.lastError().text();
+    }else
+    {
+        return true;
+    }
+    return false;
+}
+
+bool KeysContainer::deleteContainer(bWebSocket* client, const QString& ref){
+
+    QString __ref = ref;
+    if(__ref.isEmpty())
+        __ref = _ref;
+    if(__ref.isEmpty()){
+        qCritical() << __FUNCTION__ << "Не указан идентификатор контейнера на сервере!";
+        return false;
+    }
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Containers");
+    bindQuery.addWhere("Ref", __ref);
+
+    if(client->isStarted()){
+        QString result = bindQuery.to_json();
+        auto doc = QJsonDocument();
+        auto obj = QJsonObject();
+        obj.insert("query", result);
+        obj.insert("id_command", "deleteContainerFromData");
+        doc.setObject(obj);
+        QString param = doc.toJson();
+        client->sendCommand("exec_query_qt", "", param);
+    }
+    return false;
+}
+
+bool KeysContainer::deleteContainer(const QString& sid)
+{
+    if(typeOfStorgare() == storgareTypeLocalVolume){
+      QString folder;
+      if(_originalName.isEmpty()){
+          qCritical() << __FUNCTION__ << "storgareTypeLcalVolume" << "Не инициализировано наименование контейнера!";
+          return false;
+      }
+      for (int i = 0; i < 10; ++i) {
+          folder = _volumePath + _key_name + ".00" + QString::number(i);
+          QDir dir(folder);
+          if(dir.exists()){
+              if(readOriginalName(folder) == _originalName){
+                  return dir.removeRecursively();
+              }
+          }
+      }
+      qCritical() << __FUNCTION__ << "storgareTypeLcalVolume" << "Не найден каталог контейнера!";
+    }else if(typeOfStorgare() == storgareTypeRegistry){
+      if(sid.isEmpty() || _originalName.isEmpty()){
+          qCritical() << __FUNCTION__ << "storgareTypeRegistry" << "Не инициализировано имя или sid пользователя!";
+          return false;
+      }
+      return removeContainerFromRegistry(sid, _originalName);
+    }
+
+    return false;
+}
 
 bool KeysContainer::removeContainerFromRegistry(const QString &sid, const QString &containerName)
 {

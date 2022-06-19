@@ -33,6 +33,9 @@ enum CmdCommand{
     csptestContainerDelete,
     csptestGetCertificates,
     certutilGetCertificateInfo,
+    certmgrInstallCert,
+    certmgrExportlCert,
+    certmgrDeletelCert,
     unknown
 };
 

@@ -31,6 +31,7 @@
 #include "certificate.h"
 #include "converter.h"
 #include <QQueue>
+#include <dialogabout.h>
 
 #include <sstream>
 
@@ -96,7 +97,28 @@ MainWindow::MainWindow(QWidget *parent)
 //    cpconfig -hardware reader -add HDIMAGE store
 
     //Экспортировать сертификат из локального хранилища в файл:
-    //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer !!!
+    //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer !!! не работает ни хера, нет инфы как правильно использовать
+
+    //
+    //certutil -exportPFX -p "Пароль" my 790000fa279f2bd96421c6e2bc00010000fa27 export-cert-2.pfx
+    //certutil -importPFX -p "Пароль" my pyatilistnik.pfx
+
+    //рабочий вариант экспорта
+    //
+    //cryptcp -CSPcert -km -cont "\\.\FAT12_D\HDIMAGE\bob" -df C:\temp\test.cer -der
+//    -provtype указать тип криптопровайдера (N) (по умолчанию 75);
+//    -provname указать имя криптопровайдера (CSP);
+//    -cont задать имя ключевого контейнера (по умолчанию выбор из списка);
+//**   -ku* использовать контейнер пользователя (CURRENT_USER);
+//**    -km использовать контейнер компьютера (LOCAL_MACHINE);
+//    -ex* использовать ключ для обмена зашифрованными данными;
+//    -sg использовать ключ для работы с подписями;
+//    -dm копирование в хранилище компьютера (LOCAL_MACHINE);
+//    -du* копирование в хранилище пользователя (CURRENT_USER);
+//    имя название конечного хранилища (по умолчанию “My”);
+//    -df в качестве хранилища используется сообщение или файл сертификата;
+//    файл имя файла;
+//    -der использовать формат DER вместо BASE64.
 
     //isFormLoaded = false;
 
@@ -340,6 +362,10 @@ bool MainWindow::isDbOpen()
 void MainWindow::formControl()
 {
     qDebug() << __FUNCTION__;
+    QAction *pQCmd = ui->dockWidgetObjects->toggleViewAction();
+    ui->mnuView->addAction(pQCmd);
+    pQCmd = ui->dockWidgetTerminal->toggleViewAction();
+    ui->mnuView->addAction(pQCmd);
     inVisibleToolBars();
     createTree();
     infoBar = new QLabel(this);
@@ -548,26 +574,37 @@ void MainWindow::saveAsCurrentUserContainer()
 
 void MainWindow::saveAsCurrentUserCertificate()
 {
-    terminal->send("certmgr.msc", unknown);
-//    auto table = ui->tableView;
-//    auto index = table->currentIndex();
-//    if(!index.isValid()){
-//        QMessageBox::critical(this, "Ошибка", "Не выбран сертификат!");
-//        return;
-//    }
+    //terminal->send("certmgr.msc", unknown);
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран сертификат!");
+        return;
+    }
 
-//    QString fileName = QFileDialog::getSaveFileName(this, tr("Выбрать файл"),
-//                                                 QDir::homePath(),
-//                                                 "Файл сертификата (*.cer)");
-//    if(fileName != ""){
-//        QFile file(fileName);
-//        //QFileInfo fileInfo(file.fileName());
-//        //if(file.open(QIODevice::ReadOnly)){
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Выбрать файл"),
+                                                 QDir::homePath(),
+                                                 "Файл сертификата (*.cer)");
+    if(fileName != ""){
+        QFile file(fileName);
+        //QFileInfo fileInfo(file.fileName());
+        //if(file.open(QIODevice::ReadOnly)){
 
-//        //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer
+        //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer
 
-//        int col = modelCurrentUserCerts->getColumnIndex("serial");
-//        QString serial = modelCurrentUserCerts->index(index.row(), col).data().toString();
+        int col = modelUserCertificates->getColumnIndex("serial");
+        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
+        if(!serial.isEmpty()){
+            auto iter = currentUser->certificates().find(serial);
+            if(iter != currentUser->certificates().end()){
+                QString sha1 = iter.value()->sha1Hash();
+                QString _qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\"\n").arg(sha1, fileName);
+                if(!sha1.isEmpty()){
+                    terminal->send(_qbyte, certmgrExportlCert);
+                }
+            }
+            //terminal->send(QString("certutil -exportPFX -p "" my %1 \"%2\"").arg(serial, fileName), certutilPfxExport);
+        }
 
 //        auto certItr = currentUser->certificates().find(serial);
 //        if(certItr != currentUser->certificates().end()){
@@ -578,7 +615,7 @@ void MainWindow::saveAsCurrentUserCertificate()
 //                terminal->send(cmd, unknown);
 //            }
 //        }
-    //    }
+        }
 }
 
 void MainWindow::getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param)
@@ -751,7 +788,7 @@ void MainWindow::addCertificate()
                     }
 
                 }else if(node == currentUserCertificates){
-
+                     terminal->send(QString("certmgr -inst -file \"%1\"").arg(fileName), certmgrInstallCert);
                 }
             }
 
@@ -1213,48 +1250,48 @@ void MainWindow::addContainerFromVolume(const QString& from, const QString& to, 
 
 void MainWindow::delContainer()
 {
-    qDebug() << __FUNCTION__;
+//    qDebug() << __FUNCTION__;
 
-    auto table = ui->tableView;
-    auto index = table->currentIndex();
+//    auto table = ui->tableView;
+//    auto index = table->currentIndex();
 
-    if(!index.isValid()){
-        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
-        return;
-    }
+//    if(!index.isValid()){
+//        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+//        return;
+//    }
 
-    QString ref = table->model()->index(index.row(), 1).data().toString();
-    QString name = table->model()->index(index.row(), 2).data().toString();
-    auto bOK =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить контейнер %1 с сервера?").arg(name));
-    if(bOK == QMessageBox::No){
-        return;
-    }
+//    QString ref = table->model()->index(index.row(), 1).data().toString();
+//    QString name = table->model()->index(index.row(), 2).data().toString();
+//    auto bOK =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить контейнер %1 с сервера?").arg(name));
+//    if(bOK == QMessageBox::No){
+//        return;
+//    }
 
-    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Containers");
-    bindQuery.addWhere("Ref", ref);
+//    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, "Containers");
+//    bindQuery.addWhere("Ref", ref);
 
-    if(_sett->launch_mode() == mixed){
-        QSqlQuery sql = bindQuery.query(db->getDatabase());
-        sql.exec();
-        if(sql.lastError().type() != QSqlError::NoError){
-            qDebug() << __FUNCTION__ << sql.lastError().text();
-        }else
-        {
-            QMessageBox::information(this, "Удаление", "Контейнер успешно удален!");
-            getDataContainersList();
-        }
-    }else{
-        if(m_client->isStarted()){
-            QString result = bindQuery.to_json();
-            auto doc = QJsonDocument();
-            auto obj = QJsonObject();
-            obj.insert("query", result);
-            obj.insert("id_command", deleteContainerFromData);
-            doc.setObject(obj);
-            QString param = doc.toJson();
-            m_client->sendCommand("exec_query_qt", "", param);
-        }
-    }
+//    if(_sett->launch_mode() == mixed){
+//        QSqlQuery sql = bindQuery.query(db->getDatabase());
+//        sql.exec();
+//        if(sql.lastError().type() != QSqlError::NoError){
+//            qDebug() << __FUNCTION__ << sql.lastError().text();
+//        }else
+//        {
+//            QMessageBox::information(this, "Удаление", "Контейнер успешно удален!");
+//            getDataContainersList();
+//        }
+//    }else{
+//        if(m_client->isStarted()){
+//            QString result = bindQuery.to_json();
+//            auto doc = QJsonDocument();
+//            auto obj = QJsonObject();
+//            obj.insert("query", result);
+//            obj.insert("id_command", deleteContainerFromData);
+//            doc.setObject(obj);
+//            QString param = doc.toJson();
+//            m_client->sendCommand("exec_query_qt", "", param);
+//        }
+//    }
 }
 
 void MainWindow::delCertUser()
@@ -1392,6 +1429,8 @@ bool MainWindow::selectVolume(QString &volume, QString &container)
             return false;
     container = dlgResult[2];
     volume = dlgResult[0];
+
+    return true;
 }
 
 QStandardItemModel *MainWindow::getLocalMountedVolumes()
@@ -1739,7 +1778,7 @@ QString MainWindow::fromBase64(const QString &value)
     QString result;
     try {
         return QByteArray::fromBase64(value.toUtf8());
-    }  catch (std::exception &e) {
+    }  catch (std::exception&) {
         return value;
     }
 }
@@ -2338,10 +2377,10 @@ void MainWindow::disableToolBar()
 {
     //qDebug() << __FUNCTION__;
     ui->btnAdd->setEnabled(false);
-    ui->btnEdit->setEnabled(false);
+    //ui->btnEdit->setEnabled(false);
     ui->btnDelete->setEnabled(false);
-    ui->btnImportFromDatabase->setEnabled(false);
-    ui->btnToDatabase->setEnabled(false);
+    //ui->btnImportFromDatabase->setEnabled(false);
+    //ui->btnToDatabase->setEnabled(false);
 }
 
 bool MainWindow::isContainerExists(const QString &name, CertUser* usr, const QString& dest)
@@ -2711,11 +2750,13 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                     modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
                     modelCertUserContainers->reset();
                     treeSetCurrentContainers("REGISTRY", modelCertUserContainers, proxyModeCertlUserConteiners);
+                    resetInfoUserContainers(itr.value());
                 }
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
                 ui->btnCurrentCopyToSql->setEnabled(true);
                 ui->btnCurrentUserAdd->setEnabled(false);
+
             }else if(key.left(4) == "vol_"){
                 QStringList m_key = key.split("_");
                 QStringList m_userHost = m_key[1].split("/");
@@ -2725,6 +2766,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                     modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
                     modelCertUserContainers->reset();
                     treeSetCurrentContainers("!REGISTRY", modelCertUserContainers, proxyModeCertlUserConteiners);
+                    resetInfoUserContainers(itr.value());
                 }
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
@@ -3673,6 +3715,10 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
 
         resetUserCertModel(currentUser, modelUserCertificates);
 
+    }else if(command == CmdCommand::certmgrInstallCert){
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+    }else if(command == CmdCommand::certmgrDeletelCert){
+        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
     }
 }
 
@@ -4032,7 +4078,7 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
         object.replace("\r", "");
         addContainer(object, ToVolume);
     }else if(node == currentUserCertificates){
-        //saveAsCurrentUserCertificate();
+        saveAsCurrentUserCertificate();
     }else{
         int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
         auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
@@ -4324,8 +4370,18 @@ void MainWindow::on_btnDatabaseDelete_clicked()
     auto tree = ui->treeWidget;
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
+    auto model = (QJsonTableModel*)table->model();
+    int iRef = model->getColumnIndex("Ref");
+
+    QString ref = model->index(index.row(), iRef).data(Qt::UserRole + iRef).toString();
+
     if(node == SqlContainers){
-        delContainer();
+        auto cnt = KeysContainer();
+        if(_sett->launch_mode() == mixed){
+            cnt.deleteContainer(db, ref);
+        }else{
+            cnt.deleteContainer(m_client, ref);
+        }
     }if(node == SqlCertificates){
         delCertificate();
     }if(node == SqlUsers){
@@ -4337,24 +4393,38 @@ void MainWindow::on_btnDatabaseDelete_clicked()
 void MainWindow::on_btnConInfo_clicked()
 {
     qDebug() << __FUNCTION__;
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
-        QMessageBox::critical(this, "Ошибка", "Не выбран контейнер!");
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
         return;
     }
 
-    int col = modelUserContainers->getColumnIndex("nameInStorgare");
+    if(node == currentUserDivace || node == currentUserRegistry){
+        int col = modelUserContainers->getColumnIndex("nameInStorgare");
 
-    QModelIndex _index = table->model()->index(index.row(), col);
+        QModelIndex _index = table->model()->index(index.row(), col);
 
-    QString device = _index.model()->data(_index, Qt::UserRole + col).toString().replace("\r", "");
+        QString device = _index.model()->data(_index, Qt::UserRole + col).toString().replace("\r", "");
 
-    QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
+        QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
 
-    terminal->send(cmd, csptestContainerFnfo);
-
+        terminal->send(cmd, csptestContainerFnfo);
+    }else if(node == currentUserCertificates){
+        int col = modelUserCertificates->getColumnIndex("serial");
+        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
+        if(!serial.isEmpty()){
+            auto iter = currentUser->certificates().find(serial);
+            if(iter != currentUser->certificates().end()){
+                auto dlg = DialogContainerInfo(iter.value()->getSourceObject(), iter.value()->bindName(), this);
+                dlg.setModal(true);
+                dlg.exec();
+            }
+        }
+    }
 }
 
 void MainWindow::createColumnAliases()
@@ -4398,7 +4468,7 @@ void MainWindow::on_btnCurrentDelete_clicked()
     QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
 
-    if(node != currentUserCertificates){
+    if(node == currentUserDivace || node == currentUserRegistry){
 
         QString deleteKey = node == currentUserRegistry ? "из реестра" : "с устройства";
 
@@ -4414,6 +4484,9 @@ void MainWindow::on_btnCurrentDelete_clicked()
 
         QModelIndex _index = table->model()->index(index.row(), 1);
         QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+
+        QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(container);
+        terminal->send(cmd, CmdCommand::csptestContainerDelete);
 
 //#ifdef _WINDOWS
 //        if(isCyrillic(device)){
@@ -4451,11 +4524,50 @@ void MainWindow::on_btnCurrentDelete_clicked()
 //            terminal->send(cmd, CmdCommand::csptestContainerDelete);
 //        }
 //#else
-        QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(container);
-        terminal->send(cmd, CmdCommand::csptestContainerDelete);
-//#endif
-    }else{
 
+//#endif
+    }else if(node == currentUserCertificates){
+        int col = modelUserCertificates->getColumnIndex("serial");
+        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
+        if(!serial.isEmpty()){
+            auto iter = currentUser->certificates().find(serial);
+            if(iter != currentUser->certificates().end()){
+                auto result =  QMessageBox::question(this, "Удаление сертификата", QString("Удалить сертификат: \n%1?").arg(iter.value()->bindName()));
+
+                if(result != QMessageBox::Yes){
+                    return;
+                }
+
+                if(iter != currentUser->certificates().end()){
+                    QString sha1 = iter.value()->sha1Hash();
+                    QString _qbyte = QString("certmgr -delete -thumbprint \"%1\"\n").arg(sha1);
+                    if(!sha1.isEmpty()){
+                        terminal->send(_qbyte, certmgrDeletelCert);
+                    }
+                }
+            }
+        }
+    }else{
+        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+        auto object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
+        auto m_key = node.split("/");
+        QString name = m_key[0];
+        QString host = m_key[1];
+        if(node.left(4) == "reg_"){
+            name.replace("reg_", "");
+        }else if(node.left(4) == "vol_"){
+            name.replace("vol_", "");
+        }else if(node.left(5) == "cert_"){
+            name.replace("cert_", "");
+        }
+        QString sess = getSessionUuid(name, host);
+        auto param = QJsonObject();
+        param.insert("command", "deleteContainer");
+        param.insert("from", object);
+        param.insert("to", ToRemoteVolume);
+
+        sendToRecipient(sess, "deleteContainer", QJsonDocument(param).toJson().toBase64(), true);
     }
 }
 
@@ -4681,16 +4793,6 @@ void MainWindow::on_btnDatabaseInfo_clicked()
 
 void MainWindow::on_btnCurrentUserAdd_clicked()
 {
-    auto table = ui->tableView;
-
-    if(!table->currentIndex().isValid())
-        return;
-
-    int row = table->currentIndex().row();
-
-    if(row < 0){
-        return;
-    }
 
     auto treeItem = ui->treeWidget->currentItem();
     if(!treeItem){
@@ -4769,42 +4871,49 @@ void MainWindow::sendToRecipient(const QString &recipient, const QString &comman
 
 }
 
-void MainWindow::resetInfoUserContainers()
+void MainWindow::resetInfoUserContainers(CertUser* usr)
 {
+    QJsonTableModel* model = nullptr;
+    CertUser* _usr;
+    if(!usr){
+       model = modelUserContainers;
+       _usr = currentUser;
+    }else{
+       model = modelCertUserContainers;
+       _usr = usr;
+    }
     //обновляем иформацию о контейнерах у пользователя
     bool isReset = false;
-    if(currentUser->containers().size() > 0){
-        for(int i = 0; i < modelSqlContainers->rowCount(); ++i){
-            int indName = modelSqlContainers->getColumnIndex("FirstField");
-            QString name = modelSqlContainers->index(i, indName).data(Qt::UserRole + indName).toString();
-            if(!name.isEmpty()){
-                int indName = modelUserContainers->getColumnIndex("name");
-                auto index = findInTable(modelUserContainers, name, indName, false);
-                if(index.isValid()){
-                    int indNameInStorgare = modelUserContainers->getColumnIndex("nameInStorgare");
-                    QString nameInStorgare = modelUserContainers->index(index.row(), indNameInStorgare).data(Qt::UserRole + indNameInStorgare).toString();
-                    KeysContainer * cnt = currentUser->container(nameInStorgare);
-                    if(cnt){
-                       if(cnt->cache().isEmpty()){
-                           int indCache = modelSqlContainers->getColumnIndex("cache");
-                           QString cache = modelSqlContainers->index(i, indCache).data(Qt::UserRole + indCache).toString();
-                           if(!cache.isEmpty()){
-                                cnt->infoFromDataBaseJson(cache);
-                                isReset = true;
-                           }
-                       }
+    int iSqlName = modelSqlContainers->getColumnIndex("FirstField");
+    int iName = model->getColumnIndex("name");
+    int indNameInStorgare = model->getColumnIndex("nameInStorgare");
+    int indCache = modelSqlContainers->getColumnIndex("cache");
 
-                    }
-                }
+    for(int i = 0; i < model->rowCount(); ++i){
+        QString name = model->index(i, iName).data(Qt::UserRole + iName).toString();
+        QString storgare = model->index(i, indNameInStorgare).data(Qt::UserRole + indNameInStorgare).toString();
+        auto index = findInTable(modelSqlContainers, name, iSqlName, false);
+        if(index.isValid()){
+            KeysContainer * cnt = _usr->container(storgare);
+            if(cnt){
+               if(cnt->cache().isEmpty()){
+                   QString cache = modelSqlContainers->index(index.row(), indCache).data(Qt::UserRole + indCache).toString();
+                   if(!cache.isEmpty()){
+                        cnt->infoFromDataBaseJson(cache);
+                        isReset = true;
+                   }
+               }
+
             }
         }
-
-        if(isReset){
-            QString json = currentUser->modelContainersText();
-            modelUserContainers->setJsonText(json);
-            modelUserContainers->reset();
-        }
     }
+
+    if(isReset){
+        QString json = _usr->modelContainersText();
+        model->setJsonText(json);
+        model->reset();
+    }
+
 }
 
 
@@ -4822,5 +4931,13 @@ void MainWindow::on_toolCurrentUserUpdate_clicked()
     resetCertData(currentUser, currentNode);
 
 
+}
+
+
+void MainWindow::on_mnuAbout_triggered()
+{
+    auto dlg = DialogAbout(this);
+    dlg.setModal(true);
+    dlg.exec();
 }
 

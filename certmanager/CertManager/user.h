@@ -52,10 +52,7 @@ public:
 
     KeysContainer *cntDetails(const QString& name);
 
-//    QProxyModel* modelContainers();
-//    QJsonTableModel* modelCertificates();
-
-   //void setModel();
+    QString sha1Hash();
 
 private:
     QString _domain;

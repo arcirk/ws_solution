@@ -72,6 +72,10 @@ public:
     bool sync(TypeOfStorgare vType, const QString& newStorgare, const QString& sid = "");
     bool syncRegystry(const QString& sid);
     bool syncVolume(const QString& dir = "");
+    bool deleteContainer(const QString& sid = "");
+    bool deleteContainer(SqlInterface* db, const QString& ref);
+    bool deleteContainer(bWebSocket* client, const QString& ref);
+    bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
     bool isValid();
     QString bindName() const;
 
@@ -124,7 +128,7 @@ public:
     QJsonObject parseCsptestInfo(const QString& info);
     void infoFromDataBaseJson(const QString& json);
 
-    bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
+
     QBSqlQuery getSqlQueryObject(QBSqlCommand command);
 
 private:

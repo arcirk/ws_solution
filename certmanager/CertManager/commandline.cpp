@@ -581,6 +581,8 @@ QString CommandLine::parseCommand(const QString &result, int command)
                 }
             }
         }
+    }else{
+        emit endParse("", command);
     }
     return result;
 }

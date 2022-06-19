@@ -53,5 +53,7 @@
         <file>img/sql.png</file>
         <file>img/cont.png</file>
         <file>img/update.png</file>
+        <file>img/cmd.png</file>
+        <file>img/cls.png</file>
     </qresource>
 </RCC>

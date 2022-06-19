@@ -21,6 +21,7 @@ void Certificate::setSourceObject(const QJsonObject &obj)
     _isValid = false;
 
     sourceObject = obj;
+    //_dnFindString.clear();
 
     QString sSubj = obj.value("Subject").toString();
     int ind = sSubj.indexOf("CN=");
@@ -31,18 +32,29 @@ void Certificate::setSourceObject(const QJsonObject &obj)
     QString g;
     QString sn;
     ind = sSubj.indexOf("T=");
-    if(ind != -1)
+    if(ind != -1){
         t = getStringValue(ind + 2, sSubj).replace("\r", "").trimmed();
+        //_dnFindString.append("T=" + t);
+    }
 
     ind = sSubj.indexOf("G=");
-    if(ind != -1)
+    if(ind != -1){
         g = getStringValue(ind + 2, sSubj).replace("\r", "").trimmed();
+        //_dnFindString.append("G=" + g);
+    }
 
     ind = sSubj.indexOf("SN=");
-    if(ind != -1)
+    if(ind != -1){
         sn = getStringValue(ind + 3, sSubj).replace("\r", "").trimmed();
-
+        //_dnFindString.append("SN=" + sn);
+    }
     _parentUser = t + ", " + sn + " " + g;
+
+    ind = sSubj.indexOf("ИНН=");
+    if(ind != -1){
+        sn = getStringValue(ind + 3, sSubj).replace("\r", "").trimmed();
+        //_dnFindString.append("SN=" + sn);
+    }
 
     sSubj = obj.value("Issuer").toString();
     ind = sSubj.indexOf("CN=");
@@ -104,6 +116,11 @@ QString Certificate::serial() const
     return _serial;
 }
 
+QString Certificate::dataformat() const
+{
+    return _dataformat;
+}
+
 ByteArray Certificate::data()
 {
     return _data;
@@ -140,6 +157,9 @@ QString Certificate::getParam(const QString &key, const QString &name)
 void Certificate::fromFile(const QString& fileName, bool removeSource){
 
    _isValid = false;
+
+   QFileInfo inf(fileName);
+   QString suffix = inf.completeSuffix();
 
    auto cmd = new CommandLine(this, false, "CP1251");
    cmd->setMethod(3);
@@ -210,7 +230,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
 
    setSourceObject(res);
    setData(data);
-
+   _dataformat = suffix;
    _isValid = true;
 
    return;
@@ -249,53 +269,109 @@ QJsonObject Certificate::getObject()
 QBSqlQuery Certificate::getSqlQueryObject(QBSqlCommand command)
 {
     auto bindQuery = QBSqlQuery(command, "[Certificates]");
-    QJsonObject obj = QJsonObject();
-    obj.insert("name", "Ref");
-    obj.insert("value", ref());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "FirstField");
-    obj.insert("value", QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter()));
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "subject");
-    obj.insert("value", subject());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "issuer");
-    obj.insert("value", issuer());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "privateKey");
-    obj.insert("value", container());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "notValidBefore");
-    obj.insert("value", notValidBefore());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "notValidAfter");
-    obj.insert("value", notValidAfter());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "parentUser");
-    obj.insert("value", parentUser());
-    bindQuery.add_field(obj, bFieldType::qVariant);
-    obj = QJsonObject();
-    obj.insert("name", "serial");
-    obj.insert("value", serial());
-    bindQuery.add_field(obj, bFieldType::qVariant);
+//    QJsonObject obj = QJsonObject();
+//    obj.insert("name", "Ref");
+//    obj.insert("value", ref());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("Ref", ref());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "FirstField");
+//    obj.insert("value",);
+
+    bindQuery.addField("FirstField", QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter()));
+
+    //bindQuery.add_field(obj, bFieldType::qVariant);
+
+//    obj = QJsonObject();
+//    obj.insert("name", "subject");
+//    obj.insert("value", subject());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("subject", subject());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "issuer");
+//    obj.insert("value", issuer());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("issuer", issuer());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "privateKey");
+//    obj.insert("value", container());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+     bindQuery.addField("privateKey", container());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "notValidBefore");
+//    obj.insert("value", notValidBefore());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("notValidBefore", notValidBefore());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "notValidAfter");
+//    obj.insert("value", notValidAfter());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("notValidAfter", notValidAfter());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "parentUser");
+//    obj.insert("value", parentUser());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("parentUser", parentUser());
+
+//    obj = QJsonObject();
+//    obj.insert("name", "serial");
+//    obj.insert("value", serial());
+//    bindQuery.add_field(obj, bFieldType::qVariant);
+    bindQuery.addField("serial", serial());
+
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());
         QByteArray dt = base64.data();
-        obj = QJsonObject();
-        obj.insert("name", "data");
-        obj.insert("value", QString(dt.toBase64()));
-        bindQuery.add_field(obj, bFieldType::qByteArray);
+//        obj = QJsonObject();
+//        obj.insert("name", "data");
+//        obj.insert("value", QString(dt.toBase64()));
+//        bindQuery.add_field(obj, bFieldType::qByteArray);
+        bindQuery.addField("data", QString(dt.toBase64()), bFieldType::qByteArray);
     }
+
+    bindQuery.addField("dataformat", dataformat());
 
     return  bindQuery;
 
+}
+
+QString Certificate::dnFindString()
+{
+    if(sourceObject.isEmpty())
+        return "";
+
+    QString sSubj = sourceObject.value("Subject").toString();
+    QString str = sSubj.replace("\r", "").trimmed();
+    int ind = str.indexOf("OID.");
+    if(ind != -1){
+        QString result = getStringValue(ind, str);
+        str = str.replace(result, "");
+        ind = str.indexOf("OID.");
+        result = result + "," + getStringValue(ind, str);
+        return result;
+    }else
+        return str;
+}
+
+QString Certificate::sha1Hash()
+{
+    return sourceObject.value("SHA1 Hash").toString().replace("\r", "").trimmed();
+}
+
+QJsonObject Certificate::getSourceObject()
+{
+    return sourceObject;
+}
+
+QString Certificate::bindName()
+{
+    return  QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter());
 }
 
 

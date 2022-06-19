@@ -157,6 +157,8 @@ private slots:
 
     void on_toolCurrentUserUpdate_clicked();
 
+    void on_mnuAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -181,7 +183,7 @@ private:
     QString currentRecipient;
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
 
-    void resetInfoUserContainers();
+    void resetInfoUserContainers(CertUser* usr = nullptr);
 
     void createModels();
 

@@ -6,12 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>391</width>
     <height>335</height>
    </rect>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>672</width>
+    <height>16777215</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Инфомация о контейнере</string>
+   <string>Инфомация о объекте</string>
   </property>
   <property name="windowIcon">
    <iconset resource="certmaster.qrc">

@@ -22,6 +22,7 @@ public:
     QString notValidAfter() const;
     QString parentUser() const;
     QString serial() const;
+    QString dataformat() const;
     ByteArray data();
     QString ref();
     void setRef(const QString& uuid);
@@ -34,6 +35,14 @@ public:
     void fromModelObject(const QJsonObject& obj);
     QJsonObject getObject();
     QBSqlQuery getSqlQueryObject(QBSqlCommand command);
+
+    QString dnFindString();
+
+    QString sha1Hash();
+    QJsonObject getSourceObject();
+
+    QString bindName();
+
 private:
     QJsonObject sourceObject;
     QString _subject;
@@ -46,6 +55,10 @@ private:
     ByteArray _data;
     bool _isValid;
     QString _ref;
+    QString _dataformat;
+
+    //QStringList _dnFindString;
+
     QString getStringValue(int start, const QString& source);
 
 signals:

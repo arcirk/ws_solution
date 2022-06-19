@@ -33,7 +33,7 @@ void DialogContainerInfo::loadInfo(const QJsonObject &info)
             int i = 0;
             foreach(auto key , obj.keys()){
                 QString n = i == 0 ? "" : "\n";
-                str.append(n + key + ": " + obj.value(key).toString());
+                str.append(n + key + ": " + obj.value(key).toString().split(",").join("\n").trimmed());
                 i++;
             }
             lbl->setText(str);
@@ -41,7 +41,7 @@ void DialogContainerInfo::loadInfo(const QJsonObject &info)
         }else
         {
            auto lbl = new QLabel();
-           lbl->setText(val.toString());
+           lbl->setText(val.toString().split(",").join("\n").trimmed());
            cnt->addWidget(lbl, row, 1);
         }
 

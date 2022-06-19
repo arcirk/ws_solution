@@ -2,6 +2,10 @@
 #include "ui_dialogselectfromdatabase.h"
 #include <QMessageBox>
 
+#ifdef _WINDOWS
+    #pragma warning(disable:4100)
+#endif
+
 DialogSelectFromDataBase::DialogSelectFromDataBase(QSqlQueryModel * model, const QString title, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogSelectFromDataBase)
