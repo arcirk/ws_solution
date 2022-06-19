@@ -245,7 +245,8 @@ void Certificate::fromModelObject(const QJsonObject &obj)
     _parentUser = obj.value("parentUser").toString();
     _container = obj.value("container").toString();
     _serial = obj.value("serial").toString();
-
+    sourceObject = getObject();
+    sourceObject.insert("SHA1 Hash", obj.value("sha1").toString());
 }
 QJsonObject Certificate::getObject()
 {
@@ -259,6 +260,7 @@ QJsonObject Certificate::getObject()
     obj.insert("notValidAfter", notValidAfter());
     obj.insert("parentUser", parentUser());
     obj.insert("serial", serial());
+    obj.insert("sha1", sha1Hash());
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());
         obj.insert("data", QString::fromStdString(base64));

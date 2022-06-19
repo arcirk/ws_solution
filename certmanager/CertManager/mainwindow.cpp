@@ -593,7 +593,7 @@ void MainWindow::saveAsCurrentUserCertificate()
         //certmgr -export -dn 'CN=Ли Александр Сергеевич' -dest test.cer
 
         int col = modelUserCertificates->getColumnIndex("serial");
-        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
+        QString serial = modelUserCertificates->index(index.row(), col).data(Qt::UserRole + col).toString();
         if(!serial.isEmpty()){
             auto iter = currentUser->certificates().find(serial);
             if(iter != currentUser->certificates().end()){
@@ -3785,6 +3785,29 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             QMessageBox::information(this, "Удаление сертификата", "Сертификат успешно удален!");
             sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
         }
+    }else if(command == InstalledCertificates){
+        QString result = QByteArray::fromBase64(message.toUtf8());
+        auto doc = QJsonDocument::fromJson(result.toUtf8());
+        if(doc.isEmpty())
+            return;
+
+        auto obj = doc.object();
+        auto certs = obj.value("certs").toObject();
+        int iUuid = modelWsUsers->getColumnIndex("uuid");
+        auto index = findInTable(modelWsUsers, recipient, iUuid, false);
+        if(index.isValid()){
+            int iName = modelWsUsers->getColumnIndex("name");
+            int iHost = modelWsUsers->getColumnIndex("host_name");
+            QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
+            QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
+            auto itr = m_users.find(qMakePair(name, host));
+            if(itr != m_users.end()){
+                CertUser *usr = itr.value();
+                usr->certsFromModel(certs);
+                if(ui->treeWidget->currentIndex().isValid())
+                    emit ui->treeWidget->itemClicked(ui->treeWidget->currentItem(), 0);
+            }
+        }
     }else
         qDebug() << __FUNCTION__ << command << message;
 }
@@ -4582,6 +4605,7 @@ void MainWindow::on_btnCurrentDelete_clicked()
         QString deleteKey;
         QString Volume;
         QString object;
+        QString _object;
         auto m_key = node.split("/");
         QString name = m_key[0];
         QString host = m_key[1];
@@ -4605,14 +4629,27 @@ void MainWindow::on_btnCurrentDelete_clicked()
         }else if(node.left(5) == "cert_"){
             int ind = modelCertUserContainers->getColumnIndex("serial");
             auto serial = modelCertUserCertificates->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-            object = "сертификат";
+            if(!serial.isEmpty()){
+                auto iter = currentUser->certificates().find(serial);
+                if(iter != currentUser->certificates().end()){
+                    QString object = iter.value()->sha1Hash();
+                }
+            }
+            if(object.isEmpty()){
+                qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
+                return;
+            }
+
+            _object = "сертификат sha1:" + object;
             name.replace("cert_", "");
             deleteKey = "у пользователя";
             Volume = ToRemoteCertificate;
             command = "deleteCertificate";
         }
 
-        auto result =  QMessageBox::question(this, "Удаление контейнера", QString("Удалить: \n%1 \n%2?").arg(object, deleteKey));
+        if(_object.isEmpty())
+            _object = object;
+        auto result =  QMessageBox::question(this, "Удаление объекта", QString("Удалить: \n%1 \n%2?").arg(_object, deleteKey));
 
         if(result != QMessageBox::Yes){
             return;
