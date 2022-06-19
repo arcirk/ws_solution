@@ -25,6 +25,7 @@ public:
     QString dataformat() const;
     ByteArray data();
     QString ref();
+    QString sha1();
     void setRef(const QString& uuid);
     void setData(const ByteArray& dt);
 
@@ -39,6 +40,7 @@ public:
     QString dnFindString();
 
     QString sha1Hash();
+
     QJsonObject getSourceObject();
 
     QString bindName();
@@ -56,6 +58,7 @@ private:
     bool _isValid;
     QString _ref;
     QString _dataformat;
+    QString _sha1;
 
     //QStringList _dnFindString;
 

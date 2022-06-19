@@ -73,6 +73,8 @@ void Certificate::setSourceObject(const QJsonObject &obj)
     sSubj = obj.value("Serial").toString().replace("\r", "");
     _serial = sSubj.trimmed();
 
+    _sha1 = sha1Hash();
+
    _isValid = true;
 }
 
@@ -260,7 +262,7 @@ QJsonObject Certificate::getObject()
     obj.insert("notValidAfter", notValidAfter());
     obj.insert("parentUser", parentUser());
     obj.insert("serial", serial());
-    obj.insert("sha1", sha1Hash());
+    obj.insert("sha1", _sha1);
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());
         obj.insert("data", QString::fromStdString(base64));

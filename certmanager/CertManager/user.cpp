@@ -219,7 +219,7 @@ QJsonObject CertUser::certModel()
         row.insert("parentUser", itr->parentUser());
         row.insert("container", itr->container());
         row.insert("serial", itr->serial());
-        row.insert("serial", itr->sha1Hash());
+        row.insert("sha1", itr->sha1Hash());
         objRows.append(row);
     }
 
