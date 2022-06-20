@@ -29,22 +29,31 @@ QT_END_NAMESPACE
 #define DataCertificatesList            "DataCertificatesList"
 #define DataContainersList              "DataContainersList"
 #define DataUsersList                   "DataUsersList"
+
 #define SqlServer                       "SqlServer"
 #define SqlUsers                        "SqlUsers"
-#define СurrentUser                     "currentUser"
+
 #define WsServer                        "WsServer"
+#define WsActiveUsers                   "WsActiveUsers"
+
+#define СurrentUser                     "currentUser"
 #define currentUserRegistry             "currentUserRegistry"
 #define currentUserCertificates         "currentUserCertificates"
 #define currentUserContainers           "currentUserContainers"
 #define currentUserDivace               "currentUserDivace"
 #define currentUserAvailableContainers  "currentUserAvailableContainers"
+
+#define remoteUserRegistry             "remoteUserRegistry"
+#define remoteUserCertificates         "remoteUserRegistry"
+#define remoteUserContainers           "remoteUserRegistry"
+
 #define insertCertificateToData         "insertCertificateToData"
 #define deleteContainerFromData         "deleteContainerFromData"
 #define deleteCertificateFromData       "deleteCertificateFromData"
 #define deleteUserFromData              "deleteUserFromData"
 #define insertContainerToData           "insertContainerToData"
 #define insertUserToData                "insertContainerToData"
-#define WsActiveUsers                   "WsActiveUsers"
+
 
 //Команды клиенту
 #define AvailableContainers             "available_containers"
@@ -208,7 +217,9 @@ private:
 
     QMap<QString, QString> m_colAliases;
 
-    //bool isFormLoaded;
+
+    QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node);
+
 
     void createColumnAliases();
 

@@ -197,6 +197,40 @@ void MainWindow::createModels(){
     proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
 }
 
+QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, const QString &node)
+{
+
+    QMap<QString, QString> result;
+
+    auto m_key = node.split("/");
+    QString name = m_key[0];
+    QString host = m_key[1];
+
+    result.insert("name", name.replace("\r", ""));
+    result.insert("host", host.replace("\r", ""));
+    if(node.left(4) == "reg_"){
+        result.insert("key", remoteUserRegistry);
+    }else if(node.left(4) == "vol_"){
+        result.insert("key", remoteUserContainers);
+    }else if(node.left(5) == "cert_"){
+        result.insert("key", remoteUserCertificates);
+    }
+
+    if(result["key"] == remoteUserRegistry || result["key"] == remoteUserContainers){
+        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+        QString object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        object.replace("\r", "");
+        result.insert("object", object);
+    }else if(result["key"] == remoteUserCertificates){
+        int ind = modelCertUserCertificates->getColumnIndex("sha1");
+        QString object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+        object.replace("\r", "");
+        result.insert("object", object);
+    }
+
+    return result;
+}
+
 void MainWindow::toolBarSetVisible(QWidget * bar, bool value){
     //qDebug() << __FUNCTION__;
     bar->setVisible(value);
@@ -4649,6 +4683,18 @@ void MainWindow::on_btnCurrentDelete_clicked()
             }
         }
     }else{
+
+        QMap<QString, QString> nodeParam = remoteItemParam(index, node);
+
+        if(nodeParam["key"] == remoteUserRegistry){
+
+        }else if(nodeParam["key"] == remoteUserContainers){
+
+        }else if(nodeParam["key"] == remoteUserCertificates){
+
+        }
+
+
         QString deleteKey;
         QString Volume;
         QString object;
