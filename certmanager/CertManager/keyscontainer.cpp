@@ -501,7 +501,7 @@ bool KeysContainer::deleteContainer(SqlInterface* db, const QString& ref){
         qCritical() << __FUNCTION__ << "Не указан идентификатор контейнера на сервере!";
         return false;
     }
-    if(db->isOpen()){
+    if(!db->isOpen()){
       qCritical() << __FUNCTION__ << "База данных не открыта!";
       return false;
     }

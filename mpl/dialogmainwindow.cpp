@@ -745,6 +745,7 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         currentUser->setSid(sid);
         //получаем список контейнеров
         terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+
      }else if(command == CmdCommand::csptestGetConteiners){
         QString res = result.toString();
         res.replace("\r", "");
@@ -754,8 +755,10 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
             currentRecipient = "";
         }
+
         //получаем список сертификатов
         terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+
     }else if(command == CmdCommand::csptestGetCertificates){
 
         auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
@@ -769,6 +772,7 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             cert->setSourceObject(obj);
             currentUser->certificates().insert(cert->serial(), cert);
         }
+
 
         if(!isFormLoaded) //оповещяем о окончании загрузки данных
             emit whenDataIsLoaded();
@@ -790,6 +794,29 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 
 void DialogMainWindow::onCommandError(const QString &result, int command)
 {
+    if(command == CmdCommand::wmicGetSID){
+//        QString sid = result.toString();
+//        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
+//        currentUser->setSid(sid);
+//        //получаем список контейнеров
+//        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+        //QMessageBox::critical(this, "tmp error", "wmicGetSID");
+     }else if(command == CmdCommand::csptestGetConteiners){
+//        QString res = result.toString();
+//        res.replace("\r", "");
+//        QStringList keys = res.split("\n");
+//        currentUser->setContainers(keys);
+//        if(!currentRecipient.isEmpty()){
+//            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
+//            currentRecipient = "";
+//        }
+//        //получаем список сертификатов
+//        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+        //QMessageBox::critical(this, "tmp error", "csptestGetConteiners");
+    }else if(command == CmdCommand::csptestGetCertificates){
+        //QMessageBox::critical(this, "tmp error", "csptestGetCertificates");
+    }
+
     qCritical() << __FUNCTION__ << "error: " <<  result;
     if(result.indexOf("Empty certificate list") != 1){
         if(!isFormLoaded) //оповещяем о окончании загрузки данных

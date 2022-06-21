@@ -457,12 +457,12 @@ std::string &ws_client::get_app_name() {
 
 void ws_client::send_command(const std::string &cmd, const std::string &uuid_form, const std::string &param, session * sess) {
 
-//        std::string _uuid_form = uuid_form;
+        std::string _uuid_form = uuid_form;
 //
 //        if (cmd.empty())
 //            return;
-//        if (_uuid_form.empty())
-//            _uuid_form = "00000000-0000-0000-0000-000000000000";
+        if (_uuid_form.empty())
+            _uuid_form = "00000000-0000-0000-0000-000000000000";
 
         auto _msg = ws_message();
         _msg.message().uuid = get_uuid();
@@ -470,7 +470,7 @@ void ws_client::send_command(const std::string &cmd, const std::string &uuid_for
         _msg.message().name = get_name();
         _msg.message().app_name = get_app_name();
         _msg.message().command = cmd;
-        _msg.message().uuid_form = arcirk::string_to_uuid(uuid_form, false);
+        _msg.message().uuid_form = arcirk::string_to_uuid(_uuid_form, false);
         _msg.message().user_name = _user_name;
 
         std::string msg = "cmd " + _msg.get_json(true);

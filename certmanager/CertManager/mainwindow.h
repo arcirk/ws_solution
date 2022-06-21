@@ -43,6 +43,7 @@ QT_END_NAMESPACE
 #define currentUserDivace               "currentUserDivace"
 #define currentUserAvailableContainers  "currentUserAvailableContainers"
 
+#define remoteUser                     "remoteUser"
 #define remoteUserRegistry             "remoteUserRegistry"
 #define remoteUserCertificates         "remoteUserRegistry"
 #define remoteUserContainers           "remoteUserRegistry"
@@ -77,6 +78,8 @@ QT_END_NAMESPACE
 #define STORGARE_DATABASE               "StorgareDatabase"
 #define STORGARE_LOCALHOST              "StorgareLocalhost"
 #define STORGARE_REMOTEHOST             "StorgareRemotehost"
+
+typedef std::function<void()> async_await;
 
 class MainWindow : public QMainWindow
 {
@@ -117,6 +120,7 @@ private slots:
     void onOutputCommandLine(const QString& data, int command);
     void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
+    void onCommandLineStart();
 
     void onWsGetAvailableContainers(const QString& recipient);
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
@@ -174,15 +178,30 @@ private slots:
 
     void on_mnuAbout_triggered();
 
+    void on_btnDataListUpdate_clicked();
+
 private:
     Ui::MainWindow *ui;
 
+    QQueue<async_await> m_async_await;
     QQueue<QString> m_queue; //загрузка данных контейнеров и сертификатов пользователей online
 
     QList<QToolButton*> toolBar;
     QList<QToolButton*> toolBarActiveUsers;
     Settings * _sett;
+    QString _cprocsp_exe;
+    bool isUseCsptest;
+    QString _cprocsp_dir;
+    QString _launch_mode;
+    SqlInterface * db;
+    QLabel * infoBar;
+    CertUser * currentUser;
+    QMap<QPair<QString, QString>, CertUser*> m_users;
+    bWebSocket* m_client;
+    CommandLine * terminal;
+    QMap<QString, QString> m_colAliases;
 
+    void createModels();
     QJsonTableModel * modelUserContainers;
     QProxyModel     * proxyModelUserConteiners;
     QJsonTableModel * modelUserCertificates;
@@ -190,7 +209,6 @@ private:
     QJsonTableModel * modelSqlCertificates;
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
-
     QJsonTableModel * modelCertUserContainers;
     QProxyModel     * proxyModeCertlUserConteiners;
     QJsonTableModel * modelCertUserCertificates;
@@ -199,28 +217,7 @@ private:
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
 
     void resetInfoUserContainers(CertUser* usr = nullptr);
-
-    void createModels();
-
-    SqlInterface * db;
-    QLabel * infoBar;
-    CertUser * currentUser;
-    QMap<QPair<QString, QString>, CertUser*> m_users;
-    bWebSocket* m_client;
-
-    CommandLine * terminal;
-
-    QString _cprocsp_exe;
-    bool isUseCsptest;
-    QString _cprocsp_dir;
-    QString _launch_mode;
-
-    QMap<QString, QString> m_colAliases;
-
-
     QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node);
-
-
     void createColumnAliases();
 
 #ifdef _WINDOWS
@@ -228,12 +225,15 @@ private:
 #endif
     void createConnectionsObjects();
 
-    void connectToWsServer();
+
     void createWsObject();
     void setWsConnectedSignals();
-    void connectToDatabase(Settings * sett, const QString& pwd);
 
     void createTerminal();
+    void currentUserSid();
+    void connectToWsServer();
+    void connectToDatabase();
+    void wsGetOnlineUsers();
 
     void createTree();
 
@@ -243,7 +243,9 @@ private:
     void getDataCertificatesList();
     void getDataUsersList();
 
-    void resetUserCertModel(CertUser* usr, QJsonTableModel* model);
+    void currentUserSetTreeItems();
+    void currentUserGetConteiners();
+    void currentUserGetCertificates();
 
    // void LoadUsersList();
     void loadCertList();
@@ -270,7 +272,7 @@ private:
 
     void inVisibleToolBars();
     void setKeysToRegistry();
-    bool isDbOpen();
+    bool updateStatusBar();
     void formControl();
     void initCsptest();
 
@@ -319,6 +321,7 @@ private:
     void delCertUser();
     void addCertUser();
     void resetCertData(CertUser * usr, const QString& node);
+    void resetUserCertModel(CertUser* usr, QJsonTableModel* model);
     void resetCertUsersTree();
 
     bool selectVolume(QString& volume, QString& container);
