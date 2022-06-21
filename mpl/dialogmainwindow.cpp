@@ -40,50 +40,40 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    isFormLoaded = false;
-
-    QString dir = QDir::homePath();
-
-#ifdef Q_OS_WINDOWS
-    dir.append("/AppData/Roaming/");
-    dirName = "mpl/";
-#else
-    dirName = ".mpl";
-#endif
+    setWindowTitle("Настройки профилей пользователя");
 
     connect(this, &DialogMainWindow::whenDataIsLoaded, this, &DialogMainWindow::onWhenDataIsLoaded);
     connect(this, &DialogMainWindow::endInitConnection, this, &DialogMainWindow::onEndInitConnection);
 
-    appHome = QDir(dir + dirName);
-
-    if(!appHome.exists())
-       appHome.mkpath(".");
-
-    infoBar = ui->lblStatus;
-
-    setWindowTitle("Настройки профилей пользователя");
-
     formControl();
 
-    ui->tableWidget->resizeRowsToContents();
-////    mozillaApp = new QProcess(this);
-
-    getCurrentUser();
-
-    createConnectionsObjects();
+    initCsptest();
 
     _sett = new Settings(this, appHome.path());
     if(_sett->httpHost().isEmpty())
         _sett->setHttpHost(defaultHttpaddrr);
 
-    if(_sett->useSettingsFromHttp())
-        getSettingsFromHttp();
+    createConnectionsObjects();
 
-    initCsptest();
+    m_async_await.append(std::bind(&DialogMainWindow::currentUserSid, this));
+    m_async_await.append(std::bind(&DialogMainWindow::currentUserGetConteiners, this));
+    m_async_await.append(std::bind(&DialogMainWindow::currentUserGetCertificates, this));
+    m_async_await.append(std::bind(&DialogMainWindow::getSettingsFromHttp, this));
+    m_async_await.append(std::bind(&DialogMainWindow::connectToWsServer, this));
+    m_async_await.append(std::bind(&DialogMainWindow::connectToDatabase, this));
 
+    currentUser = new CertUser(this);
+    QString curentHost = QSysInfo::machineHostName();
+    currentUser->setDomain(curentHost);
+
+    //запуск асинхронных вызовов
     createTerminal();
 
-    setWsConnectedSignals();
+
+
+
+
+    //setWsConnectedSignals();
 
 //    if(_sett->launch_mode() == mixed){
 //        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
@@ -98,7 +88,7 @@ void DialogMainWindow::createConnectionsObjects()
 {
     db = new SqlInterface(this);
 
-    createWsObject(/*usr, pwd */);
+    //createWsObject(/*usr, pwd */);
 
 }
 
@@ -254,6 +244,24 @@ QWidget *DialogMainWindow::getItemWidget(const QString &text, int row, int col, 
 
 void DialogMainWindow::formControl()
 {
+    isFormLoaded = false;
+
+    QString dir = QDir::homePath();
+
+#ifdef Q_OS_WINDOWS
+    dir.append("/AppData/Roaming/");
+    dirName = "mpl/";
+#else
+    dirName = ".mpl";
+#endif
+
+    appHome = QDir(dir + dirName);
+
+    if(!appHome.exists())
+       appHome.mkpath(".");
+
+    infoBar = ui->lblStatus;
+
     QTableWidget * table = ui->tableWidget;
     table->setColumnCount(5);
     table->setHorizontalHeaderLabels(QStringList{"Профиль", "Вид операции", "Адрес", "Сертификаты", "Идентификатор"}); // "IsRelative", "Default"});
@@ -273,6 +281,8 @@ void DialogMainWindow::formControl()
     createTrayActions();
     createTrayIcon();
     trayIcon->show();
+
+    ui->tableWidget->resizeRowsToContents();
 }
 
 void DialogMainWindow::createTrayActions()
@@ -346,8 +356,12 @@ void DialogMainWindow::onConnectionSuccess()
 {
     qDebug() << __FUNCTION__;
     updateConnectionStatus();
-    if(!isFormLoaded)
-        emit endInitConnection();
+//    if(!isFormLoaded)
+//        emit endInitConnection();
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void DialogMainWindow::onCloseConnection()
@@ -369,8 +383,12 @@ void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 {
     qCritical() << __FUNCTION__ << what << err;
-    if(err == "В соединении отказано"){
-        emit endInitConnection();
+//    if(err == "В соединении отказано"){
+//        emit endInitConnection();
+//    }
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
     }
 }
 
@@ -740,25 +758,36 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 {
 
     if(command == CmdCommand::wmicGetSID){
-        QString sid = result.toString();
-        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
-        currentUser->setSid(sid);
-        //получаем список контейнеров
-        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
-
+//        QString sid = result.toString();
+//        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
+//        currentUser->setSid(sid);
+//        //получаем список контейнеров
+//        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+        currentUser->setSid(result.toString());
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
      }else if(command == CmdCommand::csptestGetConteiners){
+//        QString res = result.toString();
+//        res.replace("\r", "");
+//        QStringList keys = res.split("\n");
+//        currentUser->setContainers(keys);
+//        if(!currentRecipient.isEmpty()){
+//            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
+//            currentRecipient = "";
+//        }
+
+//        //получаем список сертификатов
+//        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
         QString res = result.toString();
         res.replace("\r", "");
-        QStringList keys = res.split("\n");
-        currentUser->setContainers(keys);
-        if(!currentRecipient.isEmpty()){
-            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
-            currentRecipient = "";
+        csptestCurrentUserGetContainers(result.toString());
+
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
         }
-
-        //получаем список сертификатов
-        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
-
     }else if(command == CmdCommand::csptestGetCertificates){
 
         auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
@@ -773,9 +802,13 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             currentUser->certificates().insert(cert->serial(), cert);
         }
 
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
 
-        if(!isFormLoaded) //оповещяем о окончании загрузки данных
-            emit whenDataIsLoaded();
+//        if(!isFormLoaded) //оповещяем о окончании загрузки данных
+//            emit whenDataIsLoaded();
 
         if(!currentRecipient.isEmpty()){
             auto objCerts = QJsonObject();
@@ -789,39 +822,44 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             sendToRecipient(currentRecipient, "deleteCertificate", "sucsess", true);
             currentRecipient = "";
         }
+    }else if(command == CmdCommand::certmgrInstallCert){
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "installCertificate", "sucsess", true);
+            currentRecipient = "";
+        }
     }
 }
 
 void DialogMainWindow::onCommandError(const QString &result, int command)
 {
-    if(command == CmdCommand::wmicGetSID){
-//        QString sid = result.toString();
-//        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
-//        currentUser->setSid(sid);
-//        //получаем список контейнеров
-//        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
-        //QMessageBox::critical(this, "tmp error", "wmicGetSID");
-     }else if(command == CmdCommand::csptestGetConteiners){
-//        QString res = result.toString();
-//        res.replace("\r", "");
-//        QStringList keys = res.split("\n");
-//        currentUser->setContainers(keys);
-//        if(!currentRecipient.isEmpty()){
-//            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
-//            currentRecipient = "";
-//        }
-//        //получаем список сертификатов
-//        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
-        //QMessageBox::critical(this, "tmp error", "csptestGetConteiners");
-    }else if(command == CmdCommand::csptestGetCertificates){
-        //QMessageBox::critical(this, "tmp error", "csptestGetCertificates");
-    }
+//    if(command == CmdCommand::wmicGetSID){
+////        QString sid = result.toString();
+////        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
+////        currentUser->setSid(sid);
+////        //получаем список контейнеров
+////        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+//        //QMessageBox::critical(this, "tmp error", "wmicGetSID");
+
+//     }else if(command == CmdCommand::csptestGetConteiners){
+////        QString res = result.toString();
+////        res.replace("\r", "");
+////        QStringList keys = res.split("\n");
+////        currentUser->setContainers(keys);
+////        if(!currentRecipient.isEmpty()){
+////            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
+////            currentRecipient = "";
+////        }
+////        //получаем список сертификатов
+////        terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+//        //QMessageBox::critical(this, "tmp error", "csptestGetConteiners");
+//    }else if(command == CmdCommand::csptestGetCertificates){
+//        //QMessageBox::critical(this, "tmp error", "csptestGetCertificates");
+//    }
 
     qCritical() << __FUNCTION__ << "error: " <<  result;
     if(result.indexOf("Empty certificate list") != 1){
-        if(!isFormLoaded) //оповещяем о окончании загрузки данных
-            emit whenDataIsLoaded();
-
+//        if(!isFormLoaded) //оповещяем о окончании загрузки данных
+//            emit whenDataIsLoaded();
 
         currentUser->certificates().clear();
 
@@ -831,6 +869,19 @@ void DialogMainWindow::onCommandError(const QString &result, int command)
             QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
             sendToRecipient(currentRecipient, "installed_certificates", object.toUtf8().toBase64(), true);
             currentRecipient = "";
+        }
+
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+
+    if(command == CmdCommand::wmicGetSID){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
         }
     }
 }
@@ -843,6 +894,34 @@ void DialogMainWindow::onOutputCommandLine(const QString &data, int command)
         return;
 
     terminal->parseCommand(data, command);
+}
+
+void DialogMainWindow::onCommandLineStart()
+{
+    if(isUseCsptest)
+        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
+
+#ifdef _WINDOWS
+        std::string envUSER = "username";
+        if(_sett->charset() != "CP866")
+            terminal->setChcp();
+       //terminal->send("echo %username%\n", CommandLine::cmdCommand::echoUserName);// ; exit\n
+
+        QByteArray data(std::getenv(envUSER.c_str()));
+        QString uname = QString::fromLocal8Bit(data);
+        currentUser->setName(uname);
+#else
+        std::string envUSER = "USER";
+        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+        terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
+#endif
+
+        createWsObject();
+
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
 }
 
 void DialogMainWindow::on_btnAdd_clicked()
@@ -943,6 +1022,48 @@ void DialogMainWindow::onLineEditCursorPositionChanged(int oldPos, int newPos)
     qDebug() << oldPos << newPos;
 }
 
+void DialogMainWindow::currentUserSid()
+{
+    qDebug() << __FUNCTION__;
+#ifdef _WINDOWS
+    if(currentUser->sid().isEmpty())
+        terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+#else
+    onParseCommand("", CmdCommand::wmicGetSID);
+#endif
+}
+
+void DialogMainWindow::currentUserGetConteiners()
+{
+    qDebug() << __FUNCTION__;
+    terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
+}
+
+void DialogMainWindow::currentUserGetCertificates()
+{
+    qDebug() << __FUNCTION__;
+    terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+}
+
+void DialogMainWindow::csptestCurrentUserGetContainers(const QString &result)
+{
+    qDebug() << __FUNCTION__;
+
+    if(result.isEmpty())
+        return;
+
+    if(!currentUser)
+        return;
+
+    QStringList keys = result.split("\n");
+    currentUser->setContainers(keys);
+
+    if(!currentRecipient.isEmpty()){
+        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
+        currentRecipient = "";
+    }
+}
+
 void DialogMainWindow::createTerminal()
 {
 
@@ -952,14 +1073,16 @@ void DialogMainWindow::createTerminal()
     connect(terminal, &CommandLine::output, this, &DialogMainWindow::onOutputCommandLine);
     connect(terminal, &CommandLine::endParse, this, &DialogMainWindow::onParseCommand);
     connect(terminal, &CommandLine::error, this, &DialogMainWindow::onCommandError);
+    connect(terminal, &CommandLine::cmdStarted, this, &DialogMainWindow::onCommandLineStart);
 
     terminal->start();
-    if(isUseCsptest)
-        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
 
-#ifdef _WINDOWS
-    terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
-#endif
+//    if(isUseCsptest)
+//        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
+
+//#ifdef _WINDOWS
+//    terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+//#endif
 
 }
 
@@ -1127,14 +1250,24 @@ void DialogMainWindow::onAppExit()
 }
 
 
-void DialogMainWindow::connectToDatabase(Settings *sett, const QString &pwd)
+void DialogMainWindow::connectToDatabase()
 {
 
     qDebug() << __FUNCTION__;
 
-    QString host = sett->server();
+    if(_sett->launch_mode() != mixed)
+    {
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+
+    QString host = _sett->server();
     QString database = "arcirk";
-    QString userName = sett->user();
+    QString userName = _sett->user();
+    QString pwd = _sett->pwd();
     QString password = bWebSocket::crypt(pwd, "my_key");
 
     db->setSqlUser(userName);
@@ -1143,11 +1276,9 @@ void DialogMainWindow::connectToDatabase(Settings *sett, const QString &pwd)
     db->setDatabaseName(database);
     db->connect();
 
+    connectToWsServer();
 
-    if(sett->launch_mode() == mixed)
-        connectToWsServer();
-
-    sett->save();
+    _sett->save();
 
     if (!db->isOpen()){
         QMessageBox::critical(this, "Ошибка", QString("Ошибка подключения к базе данных: %2").arg(db->lastError()));
@@ -1172,15 +1303,28 @@ void DialogMainWindow::updateConnectionStatus()
         status.append("WS: " + m_client->getHost() + ":" + QString::number(m_client->getPort()));
     }
 
+    if(status.isEmpty()){
+        status.append("Не подключен.");
+    }
+
+    status.append(_sett->launch_mode() == mixed ? " Lanch mode: mixed" : " Lanch mode: ws_server");
+
     infoBar->setText(status);
 
-    if(status.isEmpty()){
-        infoBar->setText("Не подключен");
-    }
 }
 
 void DialogMainWindow::getSettingsFromHttp()
 {
+    qDebug() << __FUNCTION__;
+
+    if(!_sett->useSettingsFromHttp()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+
     if(_sett->httpHost().isEmpty())
         return;
 
@@ -1219,7 +1363,7 @@ void DialogMainWindow::getSettingsFromHttp()
 
     loop.exec();
 
-    qDebug() << result;
+    //qDebug() << result;
 
     if(result.isEmpty())
         return;
@@ -1249,36 +1393,48 @@ void DialogMainWindow::getSettingsFromHttp()
     QString pwd = row.value("sqlPwd").toString();
     if(!pwd.isEmpty())
         _sett->setPwd(bWebSocket::crypt(pwd, "my_key"));
-}
 
-void DialogMainWindow::getCurrentUser()
-{
-    currentUser = new CertUser(this);
-    QString curentHost = QSysInfo::machineHostName();
-    currentUser->setDomain(curentHost);
-#ifdef _WINDOWS
-        std::string envUSER = "username";
-        QByteArray data(std::getenv(envUSER.c_str()));
-        QString uname = QString::fromLocal8Bit(data);
-        currentUser->setName(uname);
-#else
-//        std::string envUSER = "USER";
-//        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
-//        terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
-#endif
-
-    if(uname.isEmpty()){
-        qCritical() << __FUNCTION__ << "Ошибка получения имени пользователя!";
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
     }
+
 }
+
+//void DialogMainWindow::getCurrentUser()
+//{
+////    currentUser = new CertUser(this);
+////    QString curentHost = QSysInfo::machineHostName();
+////    currentUser->setDomain(curentHost);
+////#ifdef _WINDOWS
+////        std::string envUSER = "username";
+////        QByteArray data(std::getenv(envUSER.c_str()));
+////        QString uname = QString::fromLocal8Bit(data);
+////        currentUser->setName(uname);
+////#else
+//////        std::string envUSER = "USER";
+//////        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+//////        terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
+////#endif
+
+////    if(uname.isEmpty()){
+////        qCritical() << __FUNCTION__ << "Ошибка получения имени пользователя!";
+////    }
+//}
 
 void DialogMainWindow::connectToWsServer()
 {
     qDebug() << __FUNCTION__;
 
     if(_sett->launch_mode() == mixed){
-        if(!db->isOpen())
+        if(!db->isOpen()){
+            if(m_async_await.size() > 0)
+            {
+                auto f = m_async_await.dequeue();
+                f();
+            }
             return;
+        }
     }
     if(!m_client)
         return;
@@ -1314,6 +1470,7 @@ void DialogMainWindow::createWsObject()
     qDebug() << __FUNCTION__;
     m_client = new bWebSocket(this, "conf_qt_mpl.json", currentUser->name());
     m_client->setAppName("qt_mpl_client");
+    setWsConnectedSignals();
 }
 
 void DialogMainWindow::setWsConnectedSignals()
@@ -1357,7 +1514,6 @@ void DialogMainWindow::on_btnSettings_clicked()
 
             if(_sett->launch_mode() == mixed){
                 if(_sett->customWsUser()){
-                    QString pass;
                     QString pwd = clientSett["Password"].toString();
                     QString usr = clientSett["ServerUser"].toString();
                     if(clientSett["pwdEdit"].toBool()){
@@ -1369,9 +1525,8 @@ void DialogMainWindow::on_btnSettings_clicked()
                     m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
                     m_client->options().save();
                 }
-                connectToDatabase(_sett, dlg.pwd());
+                connectToDatabase();
             }else{
-                QString pass;
                 QString pwd = clientSett["Password"].toString();
                 QString usr = clientSett["ServerUser"].toString();
                 if(!_sett->useSettingsFromHttp()){
@@ -1416,7 +1571,7 @@ void DialogMainWindow::onWhenDataIsLoaded()
     if(_sett->launch_mode() == mixed){
         if(!db->isOpen()){
             if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-                 connectToDatabase(_sett, _sett->pwd());
+                 connectToDatabase();
         }
     }else{
         if(!m_client->isStarted())

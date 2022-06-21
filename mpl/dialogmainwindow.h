@@ -21,6 +21,7 @@
 #include <sqlinterface.h>
 #include <user.h>
 #include <httpservice.h>
+#include <QQueue>
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"
@@ -35,6 +36,8 @@
 #define STORGARE_DATABASE               "StorgareDatabase"
 #define STORGARE_LOCALHOST              "StorgareLocalhost"
 #define STORGARE_REMOTEHOST             "StorgareRemotehost"
+
+typedef std::function<void()> async_await;
 
 namespace Ui {
 class DialogMainWindow;
@@ -82,6 +85,7 @@ private slots:
     void onParseCommand(const QVariant& result, int command);
     void onCommandError(const QString& result, int command);
     void onOutputCommandLine(const QString& data, int command);
+    void onCommandLineStart();
 
     void on_btnSettings_clicked();
 
@@ -92,7 +96,12 @@ private slots:
 public slots:
     void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
+
     Ui::DialogMainWindow *ui;
+
+    QQueue<async_await> m_async_await;
+
+
     ProfileManager * _profiles;
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -117,8 +126,20 @@ private:
 
     bool isFormLoaded;
 
+    void currentUserSid();
+    void currentUserGetConteiners();
+    void currentUserGetCertificates();
+    void getSettingsFromHttp();
+    void connectToWsServer();
+    void connectToDatabase();
+    void csptestCurrentUserGetContainers(const QString &result);
+    void createWsObject();
+    void setWsConnectedSignals();
+
+
+
     void createTerminal();
-    void getCurrentUser();
+    //void getCurrentUser();
     void initCsptest();
 
     const QString _bankClientFile = "sslgate.url";
@@ -142,15 +163,14 @@ private:
     QString toBankClientFile();
 
     ///////////////////////////
-    void connectToWsServer();
-    void createWsObject();
-    void setWsConnectedSignals();
-    void connectToDatabase(Settings * sett, const QString& pwd);
+
+
+
     void updateConnectionStatus();
     void createConnectionsObjects();
 
     //////////////////////////
-    void getSettingsFromHttp();
+
 
     /////////////////////////
     const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
