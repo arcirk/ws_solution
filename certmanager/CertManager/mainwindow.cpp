@@ -3,7 +3,6 @@
 #include "dialogconnection.h"
 #include <QMessageBox>
 #include <QSqlError>
-//#include "registry.h"
 #include <QSqlQuery>
 #include <QFileDialog>
 #include "dialogselectinlist.h"
@@ -225,28 +224,34 @@ QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, con
     QString name = m_key[0];
     QString host = m_key[1];
 
-    result.insert("name", name.replace("\r", ""));
+
     result.insert("host", host.replace("\r", ""));
     if(node.left(4) == "reg_"){
         result.insert("key", remoteUserRegistry);
+        name.replace("reg_", "");
     }else if(node.left(4) == "vol_"){
         result.insert("key", remoteUserContainers);
+        name.replace("vol_", "");
     }else if(node.left(5) == "cert_"){
         result.insert("key", remoteUserCertificates);
+        name.replace("cert_", "");
     }
 
-    if(result["key"] == remoteUserRegistry || result["key"] == remoteUserContainers){
-        int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-        QString object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-        object.replace("\r", "");
-        result.insert("object", object);
-    }else if(result["key"] == remoteUserCertificates){
-        int ind = modelCertUserCertificates->getColumnIndex("sha1");
-        QString object = modelCertUserCertificates->index(index.row(), ind).data().toString();
-        object.replace("\r", "");
-        result.insert("object", object);
-    }
+    result.insert("name", name.replace("\r", ""));
 
+    if(index.isValid()){
+        if(result["key"] == remoteUserRegistry || result["key"] == remoteUserContainers){
+            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+            QString object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+            object.replace("\r", "");
+            result.insert("object", object);
+        }else if(result["key"] == remoteUserCertificates){
+            int ind = modelCertUserCertificates->getColumnIndex("sha1");
+            QString object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+            object.replace("\r", "");
+            result.insert("object", object);
+        }
+    }
     return result;
 }
 
@@ -327,6 +332,8 @@ void MainWindow::wsGetOnlineUsers()
             auto f = m_async_await.dequeue();
             f();
         }
+        updateStatusBar();
+        return;
     }
     QJsonDocument doc = QJsonDocument();
     QJsonObject obj = QJsonObject();
@@ -820,7 +827,7 @@ void MainWindow::addCertificate()
                             qDebug() << __FUNCTION__ << sql.lastError().text();
                         }else{
                             QMessageBox::information(this, "Копирование на сервер", "Сертификат успешно скопирован на сервер!");
-                            getDataContainersList();
+                            getDataCertificatesList();
                         }
                     }else{
                         if(m_client->isStarted()){
@@ -870,7 +877,7 @@ void MainWindow::addCertificate(const QString &data)
                 qDebug() << __FUNCTION__ << sql.lastError().text();
             }else{
                 QMessageBox::information(this, "Копирование на сервер", "Сертификат успешно скопирован на сервер!");
-                getDataContainersList();
+                getDataCertificatesList();
             }
         }else{
             if(m_client->isStarted()){
@@ -1488,6 +1495,7 @@ void MainWindow::resetCertUsersTree()
             user->setName(name);
             user->setDomain(host);
             user->setUuid(QUuid::fromString(uuid));
+            m_users.insert(index, user);
             qDebug() << name << host << uuid << user->uuid().toString();
         }else
             user = itr.value();
@@ -2645,6 +2653,7 @@ void MainWindow::connectToWsServer()
     if(m_client->isStarted())
         return;
 
+    m_client->setAppName("qt_cert_manager");
     if(_sett->launch_mode() == mixed){
         QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
         if(result.lastError().type() == QSqlError::NoError){
@@ -2870,7 +2879,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
                 ui->btnCurrentCopyToSql->setEnabled(true);
-                ui->btnCurrentUserAdd->setEnabled(false);
+                ui->btnCurrentUserAdd->setEnabled(true);
 
             }else if(key.left(4) == "vol_"){
                 QStringList m_key = key.split("_");
@@ -2886,7 +2895,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
                 ui->btnCurrentCopyToSql->setEnabled(true);
-                ui->btnCurrentUserAdd->setEnabled(false);
+                ui->btnCurrentUserAdd->setEnabled(true);
             }else if(key.left(5) == "cert_"){
                 QStringList m_key = key.split("_");
                 QStringList m_userHost = m_key[1].split("/");
@@ -2920,6 +2929,7 @@ void MainWindow::connectToDatabase()
             auto f = m_async_await.dequeue();
             f();
         }
+        return;
     }
 
     QString host = _sett->server();
@@ -3475,32 +3485,42 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 //        //m_actUsers.insert(uuid, usr);
 //    }
 
-    auto doc = QJsonDocument::fromJson(resp.toUtf8());
+    auto message = QByteArray::fromBase64(resp.toUtf8());
+    auto doc = QJsonDocument::fromJson(message);
     auto objResp = doc.object();
     QString uuid = objResp.value("uuid").toString();
-    if(uuid == m_client->getUuidSession()){
+    QString user_uuid = objResp.value("user_uuid").toString();
+    QString name = objResp.value("name").toString();
+    QString _host_name = objResp.value("host_name").toString();
+    QString _ip_address = objResp.value("ip_address").toString();
+    QString _app_name = objResp.value("app_name").toString();
+
+    if(name == currentUser->name() && _host_name == currentUser->domain()){
 
     }else{
-        QString uuid_user = objResp.value("uuid_user").toString();
-        QString name = objResp.value("name").toString();
 
         auto obj = QJsonObject();
         obj.insert("Empty", "");
         obj.insert("uuid", uuid);
         obj.insert("name", name);
-        obj.insert("user_uuid", uuid_user);
-        obj.insert("app_name", app_name);
+        obj.insert("user_uuid", user_uuid);
+        obj.insert("app_name", _app_name);
         obj.insert("user_name", name);
-        obj.insert("ip_address", ip_address);
-        obj.insert("host_name", host_name);
+        obj.insert("ip_address", _ip_address);
+        obj.insert("host_name", _host_name);
 
         modelWsUsers->addRow(obj);
-        modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, qMakePair(name, host_name));
-        qDebug() << __FUNCTION__ << qPrintable(resp);
+        modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, qMakePair(name, _host_name));
+        //qDebug() << __FUNCTION__ << qPrintable(resp);
 
-//        updateCertUsersOnlineStstus();
-//        m_queue.append(uuid);
-//        onStartGetCertUsersData();
+//        auto itr = m_users.find(qMakePair(name, _host_name));
+//        if(itr != m_users.end()){
+
+//        }
+
+        updateCertUsersOnlineStstus();
+        m_queue.append(uuid);
+        onStartGetCertUsersData();
     }
 //    auto treeItem = ui->treeWidget->currentItem();
 //    if(!treeItem){
@@ -3562,6 +3582,9 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
 {
 
     qCritical() << __FUNCTION__ << what << ": " << err ;
+
+    ui->txtTerminal->setText("\n" + ui->txtTerminal->toPlainText() + "\n" + "ws error: " + what + ": " + err + "\n");
+    ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
@@ -3927,7 +3950,7 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
     }else if(command == mplCertData){
         wsSetMplCertData(recipient, message);
     }else if(command == ToDatabase){
-        getDataContainersList();
+        //getDataContainersList();
     }else if(command == ToVolume || command == ToRegistry){
         QByteArray msg = QByteArray::fromBase64(message.toUtf8());
         auto obj = QJsonDocument::fromJson(msg).object();
@@ -4739,44 +4762,6 @@ void MainWindow::on_btnCurrentDelete_clicked()
         QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(container);
         terminal->send(cmd, CmdCommand::csptestContainerDelete);
 
-//#ifdef _WINDOWS
-//        if(isCyrillic(device)){
-//            bool isDisk = false;
-//            auto m_device = parseDeviceString(device);
-//            QString volume = m_device.value("volume").toString();
-//            if(volume.length() == 1){
-//                volume = volume + ":\\";
-//                isDisk = true;
-//            }
-//            if(isDisk){
-//                QDir dir(volume + m_device.value("key_name").toString() + ".000");
-//                if(dir.exists()){
-//                    dir.removeRecursively();
-//                    QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
-//                    return;
-//                }
-//            }else{
-//                if(currentUser->sid().isEmpty()){
-//                    QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-//                    terminal->send(cmd, CmdCommand::csptestContainerDelete);
-//                    return;
-//                }
-//                auto keyCon = KeysContainer();
-//                //keyCon.setPath(m_device.value("fullName").toString(), currentUser->sid());
-//                bool result = keyCon.removeContainerFromRegistry(currentUser->sid(), m_device.value("name").toString());
-//                if(result){
-//                    QMessageBox::information(this, "Удаление контейнера", "Контейнер успешно удален!");
-//                    getAvailableContainers(currentUser);
-//                }
-//            }
-
-//        }else{
-//            QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(device);
-//            terminal->send(cmd, CmdCommand::csptestContainerDelete);
-//        }
-//#else
-
-//#endif
     }else if(node == currentUserCertificates){
         int col = modelUserCertificates->getColumnIndex("serial");
         QString serial = modelUserCertificates->index(index.row(), col).data().toString();
@@ -4800,71 +4785,88 @@ void MainWindow::on_btnCurrentDelete_clicked()
         }
     }else{
 
+        QString Volume;
+        QString command;
+        QString msg;
+
         QMap<QString, QString> nodeParam = remoteItemParam(index, node);
 
         if(nodeParam["key"] == remoteUserRegistry){
-
-        }else if(nodeParam["key"] == remoteUserContainers){
-
-        }else if(nodeParam["key"] == remoteUserCertificates){
-
-        }
-
-
-        QString deleteKey;
-        QString Volume;
-        QString object;
-        QString _object;
-        auto m_key = node.split("/");
-        QString name = m_key[0];
-        QString host = m_key[1];
-        QString command;
-        if(node.left(4) == "reg_"){
-            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-            object.replace("\r", "");
-            name.replace("reg_", "");
-            deleteKey = "из реестра пользователя";
             Volume = ToRemoteRegistry;
             command = "deleteContainer";
-        }else if(node.left(4) == "vol_"){
-            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-            object.replace("\r", "");
-            name.replace("vol_", "");
-            deleteKey = "с устройства у пользователя";
+            msg = QString("Удалить контейнер: \n%1 \n%2?").arg(nodeParam["object"], "из реестра пользователя");
+        }else if(nodeParam["key"] == remoteUserContainers){
             Volume = ToRemoteVolume;
             command = "deleteContainer";
-        }else if(node.left(5) == "cert_"){
-            int ind = modelCertUserCertificates->getColumnIndex("sha1");
-            object = modelCertUserCertificates->index(index.row(), ind).data().toString();
-            if(object.isEmpty()){
-                qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
-                return;
-            }
-
-            _object = "сертификат sha1:" + object;
-            name.replace("cert_", "");
-            deleteKey = "у пользователя";
+            msg = QString("Удалить контейнер: \n%1 \n%2?").arg(nodeParam["object"], "с устройства у пользователя");
+        }else if(nodeParam["key"] == remoteUserCertificates){
             Volume = ToRemoteCertificate;
             command = "deleteCertificate";
+            msg = QString("Удалить сертификат sha1: \n%1").arg(nodeParam["object"]);
         }
 
-        if(_object.isEmpty())
-            _object = object;
-        auto result =  QMessageBox::question(this, "Удаление объекта", QString("Удалить: \n%1 \n%2?").arg(_object, deleteKey));
+        auto result =  QMessageBox::question(this, "Удаление объекта", msg);
 
         if(result != QMessageBox::Yes){
             return;
         }
 
-        QString sess = getSessionUuid(name, host);
+        QString sess = getSessionUuid(nodeParam["name"], nodeParam["host"]);
         auto param = QJsonObject();
         param.insert("command", command);
-        param.insert("from", object);
+        param.insert("from", nodeParam["object"]);
         param.insert("to", Volume);
 
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
+
+
+//        QString object;
+//        QString _object;
+//        auto m_key = node.split("/");
+//        QString name = m_key[0];
+//        QString host = m_key[1];
+
+//        if(node.left(4) == "reg_"){
+//            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+//            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+//            object.replace("\r", "");
+//            name.replace("reg_", "");
+//            deleteKey = "из реестра пользователя";
+//            Volume = ToRemoteRegistry;
+//            command = "deleteContainer";
+
+//        }else if(node.left(4) == "vol_"){
+//            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+//            object = proxyModeCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+//            object.replace("\r", "");
+//            name.replace("vol_", "");
+//            deleteKey = "с устройства у пользователя";
+//            Volume = ToRemoteVolume;
+//            command = "deleteContainer";
+//        }else if(node.left(5) == "cert_"){
+//            int ind = modelCertUserCertificates->getColumnIndex("sha1");
+//            object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+//            if(object.isEmpty()){
+//                qCritical() << __FUNCTION__ << "Слепок сертификата не найден!";
+//                return;
+//            }
+
+//            _object = "сертификат sha1:" + object;
+//            name.replace("cert_", "");
+//            deleteKey = "у пользователя";
+//            Volume = ToRemoteCertificate;
+//            command = "deleteCertificate";
+//        }
+
+//        if(_object.isEmpty())
+//            _object = object;
+//        auto result =  QMessageBox::question(this, "Удаление объекта", QString("Удалить: \n%1 \n%2?").arg(_object, deleteKey));
+
+//        if(result != QMessageBox::Yes){
+//            return;
+//        }
+
+
     }
 }
 
@@ -5084,7 +5086,6 @@ void MainWindow::on_btnDatabaseInfo_clicked()
 
     }
 
-
 }
 
 
@@ -5096,14 +5097,54 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
         return;
     }
 
-    QString currentNode = treeItem->data(0, Qt::UserRole).toString();
+    QString node = treeItem->data(0, Qt::UserRole).toString();
 
-    if(currentNode == currentUserCertificates){
+    if(node == currentUserCertificates){
         addCertificate();
-    }else if(currentNode == currentUserDivace || currentNode == currentUserRegistry){
+    }else if(node == currentUserDivace || node == currentUserRegistry){
         addContainer();
     }else{
+        QString Volume;
+        QString command;
+        QString msg;
 
+        QMap<QString, QString> nodeParam = remoteItemParam(QModelIndex(), node);
+
+        if(nodeParam["key"] == remoteUserRegistry){
+            Volume = ToRemoteRegistry;
+            command = "addContainer";
+        }else if(nodeParam["key"] == remoteUserContainers){
+            Volume = ToRemoteVolume;
+            command = "addContainer";
+        }else if(nodeParam["key"] == remoteUserCertificates){
+            Volume = ToRemoteCertificate;
+            command = "addCertificate";
+        }
+
+        QList<int> vCols = {0};
+        int col = modelSqlContainers->getColumnIndex("SecondField");
+        vCols.append(col);
+        col = modelSqlContainers->getColumnIndex("notValidAfter");
+        vCols.append(col);
+        col = modelSqlContainers->getColumnIndex("parentUser");
+        vCols.append(col);
+        auto dlg = DialogSelectInList(modelSqlContainers, "Выбор контейнера", vCols, this);
+        dlg.setModal(true);
+        dlg.exec();
+
+        if(dlg.result() == QDialog::Accepted){
+            QStringList dlgResult = dlg.dialogResult();
+            QString ref = dlgResult[1];
+
+            QString sess = getSessionUuid(nodeParam["name"], nodeParam["host"]);
+            auto param = QJsonObject();
+            param.insert("command", command);
+            param.insert("from", FromDatabase);
+            param.insert("to", Volume);
+            param.insert("ref", ref);
+
+            sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
+        }
     }
 }
 

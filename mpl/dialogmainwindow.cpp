@@ -409,6 +409,15 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
     }else if(id_command == "deleteContainerFromData"){
         qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
 
+    }else if(id_command == "get_data"){
+        QString base64 = obj.value("table").toString();
+        if(base64.isEmpty())
+            return;
+        QString json = QByteArray::fromBase64(base64.toUtf8());
+        QString run_on_return = obj.value("run_on_return").toString();
+        if(!run_on_return.isEmpty()){
+            onGetDataFromDatabase(json, run_on_return);
+        }
     }
 
 }
@@ -442,23 +451,38 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
 }
 
-void DialogMainWindow::addContainer(const QString &from, const QString &to, const QString &byteArrayBase64)
+void DialogMainWindow::addContainer(const QString &from, const QString &to, const QString &byteArrayBase64, const QString& ref)
 {
 
     KeysContainer* cnt = new KeysContainer(this);
     QString resultText;
 
-    if(!from.isEmpty())
-        cnt->fromContainerName(from);
-    else{
-        resultText = "Не указан источник для копирования контейнера!";
-        qCritical() << __FUNCTION__ << resultText;
-        delete cnt;
-        if(!currentRecipient.isEmpty())
-            sendToRecipient(currentRecipient, "error", resultText);
+    if(from == FromDatabase){
+        auto param = QJsonObject();
+        param.insert("command", "addContainer");
+        param.insert("from", "\\\\.\\DATABASE\\");
+        param.insert("to", to);
+        getDatabaseData("Containers", ref, param);
         return;
     }
-    cnt->readData(currentUser->sid());
+    else{
+        if(from.isEmpty()){
+            resultText = "Не указан источник для копирования контейнера!";
+            qCritical() << __FUNCTION__ << resultText;
+            delete cnt;
+            if(!currentRecipient.isEmpty())
+                sendToRecipient(currentRecipient, "error", resultText);
+            return;
+        }else
+           cnt->fromContainerName(from);
+    }
+
+    if(byteArrayBase64.isEmpty())
+        cnt->readData(currentUser->sid());
+    else{
+        QByteArray data = QByteArray::fromBase64(byteArrayBase64.toUtf8());
+        cnt->fromJson(data);
+    }
 
     if(!cnt->isValid()){
         resultText = "Ошибка инициализации источника!";
@@ -468,15 +492,15 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
             sendToRecipient(currentRecipient, "error", resultText);
         return;
     }else{
-        //на клиенте автоматом корректируем имя
-        if(isCyrillic(cnt->originalName())){
-            QString dt = cnt->notValidAfter();
-            dt.replace(".", "-");
-            if(!dt.isEmpty())
-                dt.append("-");
-            cnt->setNewOriginalName(cnt->keyName() + "@" + dt + cnt->name().toUtf8().toBase64());
-            qDebug() << __FUNCTION__ << "В имени контейнера обнаружена кириллица. Переведено в base64 автоматичесвки";
-        }
+//        //на клиенте автоматом корректируем имя
+//        if(isCyrillic(cnt->originalName())){
+//            QString dt = cnt->notValidAfter();
+//            dt.replace(".", "-");
+//            if(!dt.isEmpty())
+//                dt.append("-");
+//            cnt->setNewOriginalName(cnt->keyName() + "@" + dt + cnt->name().toUtf8().toBase64());
+//            qDebug() << __FUNCTION__ << "В имени контейнера обнаружена кириллица. Переведено в base64 автоматичесвки";
+//        }
     }
 
     bool result = false;
@@ -517,7 +541,7 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
 
 }
 
-void DialogMainWindow::addCertificate(const QString &from, const QString &to, const QString &byteArrayBase64)
+void DialogMainWindow::addCertificate(const QString &from, const QString &to, const QString &byteArrayBase64, const QString& ref)
 {
     Certificate* cert = new Certificate(this);
     QString resultText;
@@ -670,6 +694,66 @@ bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QStrin
     return result;
 
 }
+
+void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString param)
+{
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+    auto _param = QJsonDocument::fromJson(param.toUtf8()).object();
+    auto rows = _table.value("rows").toArray();
+    if(rows.isEmpty()){
+        qCritical() << __FUNCTION__ << "Контейнер на сервере не найден!";
+        return;
+    }
+
+    auto row = rows[0].toObject();
+    QString dataBase64 = row.value("data").toString();
+    QString command = _param.value("command").toString();
+
+    if(command == "addContainer"){
+        QString from = _param.value("from").toString();
+        QString to = _param.value("to").toString();
+        addContainer(from, to, dataBase64);
+    }
+
+}
+
+void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param)
+{
+        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, table);
+
+        bindQuery.addField("Ref", "Ref");
+        bindQuery.addField("FirstField", "FirstField");
+        bindQuery.addField("data", "data");
+
+        bindQuery.addWhere("Ref", ref);
+
+        QString query = bindQuery.to_json();
+
+        if(_sett->launch_mode() == mixed){
+            if(!db->isOpen())
+                return;
+            QString resultQuery;
+            QString _error;
+            db->exec_qt(query, resultQuery, _error);
+            auto doc = QJsonDocument();
+            doc.setObject(param);
+            onGetDataFromDatabase(resultQuery, doc.toJson());
+        }else{
+            if(m_client->isStarted()){
+                auto obj = QJsonObject();
+                obj.insert("query", query);
+                obj.insert("header", true);
+                obj.insert("id_command", "get_data");
+                obj.insert("run_on_return", param);
+                auto doc = QJsonDocument();
+                doc.setObject(obj);
+                QString paramData = doc.toJson();
+                m_client->sendCommand("exec_query_qt", "", paramData);
+            }
+        }
+
+}
+
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
 {
     qDebug() << __FUNCTION__;
@@ -705,8 +789,11 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
         auto obj = doc.object();
         QString from = obj.value("from").toString();
         QString to = obj.value("to").toString();
-
-        addContainer(from, to);
+        QString ref = obj.value("ref").toString();
+        if(ref.isEmpty())
+            addContainer(from, to);
+        else
+           addContainer(from, to, "", ref);
     }else if(command == "deleteContainer"){
 
         currentRecipient = recipient;
@@ -787,6 +874,10 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
             f();
+        }
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
+            currentRecipient = "";
         }
     }else if(command == CmdCommand::csptestGetCertificates){
 
@@ -1025,6 +1116,9 @@ void DialogMainWindow::onLineEditCursorPositionChanged(int oldPos, int newPos)
 void DialogMainWindow::currentUserSid()
 {
     qDebug() << __FUNCTION__;
+
+    infoBar->setText("Получение данных пользователя ..");
+
 #ifdef _WINDOWS
     if(currentUser->sid().isEmpty())
         terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
@@ -1035,12 +1129,14 @@ void DialogMainWindow::currentUserSid()
 
 void DialogMainWindow::currentUserGetConteiners()
 {
+    infoBar->setText("Получение данных о доступных контейнерах ...");
     qDebug() << __FUNCTION__;
     terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
 }
 
 void DialogMainWindow::currentUserGetCertificates()
 {
+    infoBar->setText("Получение данных о доступных сертификатах ...");
     qDebug() << __FUNCTION__;
     terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
 }
@@ -1264,6 +1360,8 @@ void DialogMainWindow::connectToDatabase()
         return;
     }
 
+    infoBar->setText("Подключение к SQL серверу ...");
+
     QString host = _sett->server();
     QString database = "arcirk";
     QString userName = _sett->user();
@@ -1324,6 +1422,8 @@ void DialogMainWindow::getSettingsFromHttp()
         }
         return;
     }
+
+    infoBar->setText("Получение данных с http сервиса 1C ...");
 
     if(_sett->httpHost().isEmpty())
         return;
@@ -1436,6 +1536,9 @@ void DialogMainWindow::connectToWsServer()
             return;
         }
     }
+
+    infoBar->setText("Подключение к серверу WS ...");
+
     if(!m_client)
         return;
 

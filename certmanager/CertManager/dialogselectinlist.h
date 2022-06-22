@@ -19,6 +19,8 @@ public:
     explicit DialogSelectInList(const QStringList& list, const QString& title, QWidget *parent = nullptr);
     explicit DialogSelectInList(QAbstractTableModel* list, const QString& title, QWidget *parent = nullptr);
     explicit DialogSelectInList(QAbstractItemModel* list, const QString& title, QWidget *parent = nullptr);
+    explicit DialogSelectInList(QAbstractItemModel* list, const QString& title, QList<int> visibleColumns, QWidget *parent = nullptr);
+    explicit DialogSelectInList(QAbstractTableModel* list, const QString& title, QList<int> visibleColumns, QWidget *parent = nullptr);
     ~DialogSelectInList();
 
     void accept() override;

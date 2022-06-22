@@ -45,8 +45,8 @@ QT_END_NAMESPACE
 
 #define remoteUser                     "remoteUser"
 #define remoteUserRegistry             "remoteUserRegistry"
-#define remoteUserCertificates         "remoteUserRegistry"
-#define remoteUserContainers           "remoteUserRegistry"
+#define remoteUserCertificates         "remoteUserCertificates"
+#define remoteUserContainers           "remoteUserContainers"
 
 #define insertCertificateToData         "insertCertificateToData"
 #define deleteContainerFromData         "deleteContainerFromData"

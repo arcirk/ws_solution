@@ -705,16 +705,23 @@ shared_state::set_client_param(boost::uuids::uuid &uuid, arcirk::bJson* params, 
             session->set_host_name(host_name);
 
             sessions_.insert(std::pair<boost::uuids::uuid, websocket_session*>(session->get_uuid(), session));
+
+            auto _message = createMessage(session);
+            _message.message = "sucsess";
+            _message.command = "client_join";
+
+            std::string message = arcirk::ws_message(_message).get_json(true);
+
             // Оповещаем всех клиентов о регистрации нового клиент
-            std::string m_ = arcirk::str_sample("{\"name\": \"%1%\", \"uuid\": \"%2%\", \"uuid_user\": \"%3%\", \"active\": %4%}",
-                                               session->get_name(),
-                                               boost::to_string(session->get_uuid()),
-                                               boost::to_string(session->get_user_uuid()),
-                                               "true");
+//            std::string m_ = arcirk::str_sample("{\"name\": \"%1%\", \"uuid\": \"%2%\", \"uuid_user\": \"%3%\", \"active\": %4%}",
+//                                               session->get_name(),
+//                                               boost::to_string(session->get_uuid()),
+//                                               boost::to_string(session->get_user_uuid()),
+//                                               "true");
 
             //используется синхронное подключение, не оповещаем
             if(app_name != "client_sync")
-                send(m_, "client_join");
+                send(message, "client_join");
 
             std::cout << "Успешная аутентификация пользователя: " + session->get_name() << std::endl;
 

@@ -40,6 +40,46 @@ DialogSelectInList::DialogSelectInList(QAbstractItemModel *list, const QString &
     ui->tableView->resizeColumnsToContents();
 }
 
+DialogSelectInList::DialogSelectInList(QAbstractItemModel *list, const QString &title, QList<int> visibleColumns, QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::DialogSelectInList)
+{
+    ui->setupUi(this);
+
+    ui->tableView->setModel(list);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setWindowTitle(title);
+    if(visibleColumns.size() > 0){
+        for (int i = 0; i < list->columnCount(); ++i) {
+            if(visibleColumns.indexOf(i) == -1){
+                ui->tableView->setColumnHidden(i, true);
+            }
+        }
+    }
+    ui->tableView->resizeColumnsToContents();
+}
+
+DialogSelectInList::DialogSelectInList(QAbstractTableModel *list, const QString &title, QList<int> visibleColumns, QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::DialogSelectInList)
+{
+    ui->setupUi(this);
+
+    ui->tableView->setModel(list);
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setWindowTitle(title);
+
+    if(visibleColumns.size() > 0){
+        for (int i = 0; i < list->columnCount(); ++i) {
+            if(visibleColumns.indexOf(i) == -1){
+                ui->tableView->setColumnHidden(i, true);
+            }
+        }
+    }
+
+    ui->tableView->resizeColumnsToContents();
+}
+
 DialogSelectInList::~DialogSelectInList()
 {
     delete ui;
