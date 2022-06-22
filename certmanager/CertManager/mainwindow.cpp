@@ -4003,6 +4003,13 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             //QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен!");
 //            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
         }
+    }else if(command == ToRemoteRegistry){
+        //qDebug() << __FUNCTION__ << command  << message;
+        if(message == "error"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
+        }else{
+            QMessageBox::information(this, "Установка контейнера", "Контейнер успешно установлен у пользователя!");
+        }
     }else
         qDebug() << __FUNCTION__ << command << message;
 }
@@ -5111,13 +5118,13 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
         QMap<QString, QString> nodeParam = remoteItemParam(QModelIndex(), node);
 
         if(nodeParam["key"] == remoteUserRegistry){
-            Volume = ToRemoteRegistry;
+            Volume = ToRegistry;
             command = "addContainer";
         }else if(nodeParam["key"] == remoteUserContainers){
-            Volume = ToRemoteVolume;
+            Volume = ToVolume;
             command = "addContainer";
         }else if(nodeParam["key"] == remoteUserCertificates){
-            Volume = ToRemoteCertificate;
+            Volume = ToCertificate;
             command = "addCertificate";
         }
 
