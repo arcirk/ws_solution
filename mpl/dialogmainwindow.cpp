@@ -20,19 +20,19 @@
 #include <QSqlError>
 #include "dialogconnection.h"
 
-const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
-        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
+//const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
+//        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
 
-static bool isCyrillic(const QString &source)
-{
-    for (int i = 0; i < source.length();  ++i) {
+//static bool isCyrillic(const QString &source)
+//{
+//    for (int i = 0; i < source.length();  ++i) {
 
-        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
-            return true;
-    }
+//        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
+//            return true;
+//    }
 
-    return false;
-}
+//    return false;
+//}
 
 DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QDialog(parent),
@@ -244,6 +244,8 @@ QWidget *DialogMainWindow::getItemWidget(const QString &text, int row, int col, 
 
 void DialogMainWindow::formControl()
 {
+    qDebug() << __FUNCTION__;
+
     isFormLoaded = false;
 
     QString dir = QDir::homePath();
@@ -394,7 +396,7 @@ void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 
 void DialogMainWindow::onWsExecQuery(const QString &result)
 {
-    qDebug() << __FUNCTION__;
+
 
     auto doc = QJsonDocument::fromJson(result.toUtf8());
     auto obj = doc.object();
@@ -403,6 +405,8 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
 
     QString id_command = obj.value("id_command").toString();
 
+    qDebug() << __FUNCTION__ << id_command;
+
     if(id_command == "deleteCertificateFromData"){
         qDebug() << __FUNCTION__ << "Сертификат успешно удален с сервера!";
 
@@ -410,20 +414,24 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
         qDebug() << __FUNCTION__ << "Контейнер успешно удален с сервера!";
 
     }else if(id_command == "get_data"){
-        QString base64 = obj.value("table").toString();
-        if(base64.isEmpty())
+        QString table = obj.value("table").toString();
+        if(table.isEmpty())
             return;
-        QString json = QByteArray::fromBase64(base64.toUtf8());
+
+        //QString json = QByteArray::fromBase64(base64.toUtf8());
         QString run_on_return = obj.value("run_on_return").toString();
         if(!run_on_return.isEmpty()){
-            onGetDataFromDatabase(json, run_on_return);
-        }
+            onGetDataFromDatabase(table, run_on_return);
+        }else
+            qCritical() << __FUNCTION__ << "Не верные параметры команды!";
     }
 
 }
 
 void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)
 {
+    qDebug() << __FUNCTION__ << command;
+
     if(!m_client->isStarted())
         return;
 
@@ -453,6 +461,7 @@ void DialogMainWindow::sendToRecipient(const QString &recipient, const QString &
 
 void DialogMainWindow::addContainer(const QString &from, const QString &to, const QString &byteArrayBase64, const QString& ref)
 {
+    qDebug() << __FUNCTION__ << from << to;
 
     KeysContainer* cnt = new KeysContainer(this);
     QString resultText;
@@ -504,9 +513,11 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
     }
 
     bool result = false;
-
+    QString _to;
     if(to == ToRegistry){
         result = cnt->sync(KeysContainer::TypeOfStorgare::storgareTypeRegistry, "", currentUser->sid());
+        if(!currentRecipient.isEmpty())
+            _to = ToRemoteRegistry;
     }else if(to == ToDatabase){
         if(_sett->launch_mode() == mixed)
             result = cnt->sync(db);
@@ -529,8 +540,11 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
     }
 
     if(result){
-        if(!currentRecipient.isEmpty())
-            sendToRecipient(currentRecipient, to, "Операция успешно выполнена!");
+        if(!currentRecipient.isEmpty()){
+            if(_to.isEmpty())
+                _to = to;
+            sendToRecipient(currentRecipient, _to, "Операция успешно выполнена!");
+        }
     }else
         if(!currentRecipient.isEmpty())
             sendToRecipient(currentRecipient, "error", "Ошибка выполнения операции!");
@@ -543,6 +557,8 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
 
 void DialogMainWindow::addCertificate(const QString &from, const QString &to, const QString &byteArrayBase64, const QString& ref)
 {
+    qDebug() << __FUNCTION__ <<from << to;
+
     Certificate* cert = new Certificate(this);
     QString resultText;
 
@@ -646,6 +662,7 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
 
 void DialogMainWindow::onGetCryptData(const QString &recipient)
 {
+    qDebug() << __FUNCTION__ << recipient;
 
     auto doc = QJsonDocument();
     auto obj = QJsonObject();
@@ -670,6 +687,8 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
 
 bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QString& objectType)
 {
+
+    qDebug() << __FUNCTION__ << objectName << objectType;
 
     bool result = false;
 
@@ -697,6 +716,8 @@ bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QStrin
 
 void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString param)
 {
+    qDebug() << __FUNCTION__;
+
     auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
     auto _param = QJsonDocument::fromJson(param.toUtf8()).object();
     auto rows = _table.value("rows").toArray();
@@ -708,9 +729,12 @@ void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString
     auto row = rows[0].toObject();
     QString dataBase64 = row.value("data").toString();
     QString command = _param.value("command").toString();
+    QString name = _param.value("FirstField").toString();
 
     if(command == "addContainer"){
         QString from = _param.value("from").toString();
+        if(!name.isEmpty())
+            from = from + name;
         QString to = _param.value("to").toString();
         addContainer(from, to, dataBase64);
     }
@@ -719,6 +743,8 @@ void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString
 
 void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param)
 {
+        qDebug() << __FUNCTION__ << table;
+
         auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, table);
 
         bindQuery.addField("Ref", "Ref");
@@ -742,9 +768,9 @@ void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref,
             if(m_client->isStarted()){
                 auto obj = QJsonObject();
                 obj.insert("query", query);
-                obj.insert("header", true);
+                obj.insert("table", true);
                 obj.insert("id_command", "get_data");
-                obj.insert("run_on_return", param);
+                obj.insert("run_on_return", QString(QJsonDocument(param).toJson()));
                 auto doc = QJsonDocument();
                 doc.setObject(obj);
                 QString paramData = doc.toJson();
@@ -781,6 +807,8 @@ void DialogMainWindow::onWsGetInstalledCertificates(const QString &recipient)
 
 void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QString &command, const QString &message)
 {
+
+    qDebug() << __FUNCTION__ << recipient << command;
 
     if(command == "addContainer"){
 
