@@ -146,7 +146,7 @@ endif()
 #endif ()
 #
 #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#    set (NMOS_CPP_SYSTEM_LIBS bcrypt.lib)
+#    set (NMOS_CPP_SYSTEM_LIBS bcrypt.winreg)
 #else()
 #    set (NMOS_CPP_SYSTEM_LIBS )
 #endif()
@@ -189,14 +189,14 @@ if(WIN32)
 #[[    ADD_CUSTOM_COMMAND(
             TARGET ${TARGET}
             POST_BUILD
-            COMMENT "Update lib..."
+            COMMENT "Update winreg..."
             COMMAND ${CMAKE_COMMAND} -E rm ../../ws_admin_qt/ws_admin_qt/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 
     ADD_CUSTOM_COMMAND(
             TARGET ${TARGET}
             POST_BUILD
-            COMMENT "Copying lib..."
+            COMMENT "Copying winreg..."
             COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX}
             ../../ws_admin_qt/ws_admin_qt/cmake-build-debug
     )]]

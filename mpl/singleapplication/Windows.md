@@ -23,7 +23,7 @@ Here is an example:
 
 ```cpp
 if( app.isSecondary() ) {
-    // This API requires LIBS += User32.lib to be added to the project
+    // This API requires LIBS += User32.winreg to be added to the project
     AllowSetForegroundWindow( DWORD( app.primaryPid() ) );
 }
 

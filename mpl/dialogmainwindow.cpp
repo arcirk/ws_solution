@@ -516,8 +516,18 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
     QString _to;
     if(to == ToRegistry){
         result = cnt->sync(KeysContainer::TypeOfStorgare::storgareTypeRegistry, "", currentUser->sid());
-        if(!currentRecipient.isEmpty())
-            _to = ToRemoteRegistry;
+        if(result && !currentRecipient.isEmpty()){
+            lastResult.clear();
+            lastResult.append("InstallContainerToRemoteUser");
+            lastResult.append("sucsess");
+            m_async_await.append(std::bind(&DialogMainWindow::currentUserGetConteiners, this));
+            m_async_await.append(std::bind(&DialogMainWindow::sendResultToClient, this));
+            asyncWait();
+            return;
+        }
+//        if(!currentRecipient.isEmpty())
+//            _to = "InstallContainerToRemoteUser";
+
     }else if(to == ToDatabase){
         if(_sett->launch_mode() == mixed)
             result = cnt->sync(db);
@@ -543,11 +553,11 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
         if(!currentRecipient.isEmpty()){
             if(_to.isEmpty())
                 _to = to;
-            sendToRecipient(currentRecipient, _to, "Операция успешно выполнена!");
+            sendToRecipient(currentRecipient, _to, "Операция успешно выполнена!", true);
         }
     }else
         if(!currentRecipient.isEmpty())
-            sendToRecipient(currentRecipient, "error", "Ошибка выполнения операции!");
+            sendToRecipient(currentRecipient, "error", "Ошибка выполнения операции!", true);
 
     delete cnt;
     currentRecipient = "";
@@ -899,14 +909,16 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         res.replace("\r", "");
         csptestCurrentUserGetContainers(result.toString());
 
-        if(m_async_await.size() > 0){
-            auto f = m_async_await.dequeue();
-            f();
-        }
         if(!currentRecipient.isEmpty()){
             sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
             currentRecipient = "";
         }
+
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+
     }else if(command == CmdCommand::csptestGetCertificates){
 
         auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
@@ -1617,6 +1629,29 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::wsGetCryptData, this, &DialogMainWindow::onGetCryptData);
     connect(m_client, &bWebSocket::wsCommandToClient, this, &DialogMainWindow::onWsCommandToClient);
     connect(m_client, &bWebSocket::wsGetInstalledCertificates, this, &DialogMainWindow::onWsGetInstalledCertificates);
+}
+
+void DialogMainWindow::sendResultToClient()
+{
+    if(lastResult.size() == 2){
+        if(!currentRecipient.isEmpty()){
+            sendToRecipient(currentRecipient, lastResult[0], lastResult[1], true);
+            currentRecipient = "";
+        }
+        lastResult.clear();
+    }
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
+}
+
+void DialogMainWindow::asyncWait()
+{
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void DialogMainWindow::on_btnSettings_clicked()

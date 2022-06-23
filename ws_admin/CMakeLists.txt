@@ -7,8 +7,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH C:/Qt/6.2.3/msvc2019_64/lib/cmake)
+#set(CMAKE_PREFIX_PATH "/home/arcady/Qt/6.2.1/gcc_64/winreg/cmake")
+#set(CMAKE_PREFIX_PATH C:/Qt/6.2.3/msvc2019_64/winreg/cmake)
 
 if(WIN32)
      add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -94,7 +94,7 @@ include_directories("../ws_client/include")
 #include_directories("../qt_models/project/include")
 include_directories("../chared")
 
-#link_directories(${CMAKE_BINARY_DIR}/lib)
+#link_directories(${CMAKE_BINARY_DIR}/winreg)
 
 
 

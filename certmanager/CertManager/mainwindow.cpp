@@ -760,7 +760,7 @@ void MainWindow::getDatabaseData(const QString& table, const QString& ref, const
             if(m_client->isStarted()){
                 auto obj = QJsonObject();
                 obj.insert("query", query);
-                obj.insert("header", true);
+                obj.insert("table", true);
                 obj.insert("id_command", "get_data");
                 obj.insert("run_on_return", param);
                 auto doc = QJsonDocument();
@@ -2076,7 +2076,7 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
         QString base64 = obj.value("table").toString();
         if(base64.isEmpty())
             return;
-        QString jsonConteiners = QByteArray::fromBase64(base64.toUtf8());
+        QString jsonConteiners = fromBase64(base64.toUtf8());
 
         modelSqlContainers->setJsonText(jsonConteiners);
         modelSqlContainers->reset();
@@ -2121,7 +2121,7 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
         QString base64 = obj.value("table").toString();
         if(base64.isEmpty())
             return;
-        QString jsonUsers = QByteArray::fromBase64(base64.toUtf8());
+        QString jsonUsers = fromBase64(base64.toUtf8());
 
         modelSqlUsers->setJsonText(jsonUsers);
 
@@ -2184,7 +2184,7 @@ void MainWindow::getDataContainersList()
             return;
         auto obj = QJsonObject();
         obj.insert("query", query);
-        obj.insert("header", true);
+        obj.insert("table", true);
         obj.insert("id_command", "DataContainersList");
         auto doc = QJsonDocument();
         doc.setObject(obj);
@@ -2277,7 +2277,7 @@ void MainWindow::getDataUsersList()
             return;
         auto obj = QJsonObject();
         obj.insert("query", result);
-        obj.insert("header", true);
+        obj.insert("table", true);
         obj.insert("id_command", DataUsersList);
         auto doc = QJsonDocument();
         doc.setObject(obj);
@@ -3490,7 +3490,7 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
     auto objResp = doc.object();
     QString uuid = objResp.value("uuid").toString();
     QString user_uuid = objResp.value("user_uuid").toString();
-    QString name = objResp.value("name").toString();
+    QString name = user_name;// objResp.value("name").toString();
     QString _host_name = objResp.value("host_name").toString();
     QString _ip_address = objResp.value("ip_address").toString();
     QString _app_name = objResp.value("app_name").toString();
@@ -3956,7 +3956,6 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         auto obj = QJsonDocument::fromJson(msg).object();
         addContainer(obj.value("from").toString(), command, obj.value("data").toString());
     }else if(command == "deleteContainer"){
-        //qDebug() << __FUNCTION__ << command  << message;
         if(message == "Ошибка удаления контейнера!"){
             QMessageBox::critical(this, "Ошибка", "Ошибка удаления контейнера! Возможно не достаточно прав у клиента!");
         }else{
@@ -3964,12 +3963,18 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             sendToRecipient(recipient, "get_available_containers", "get_available_containers", false);
         }
     }else if(command == "deleteCertificate"){
-        //qDebug() << __FUNCTION__ << command  << message;
         if(message != "sucsess"){
             QMessageBox::critical(this, "Ошибка", "Не удалось удалить сертификат!");
         }else{
             QMessageBox::information(this, "Удаление сертификата", "Сертификат успешно удален!");
             sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
+        }
+    }else if(command == InstallContainerToRemoteUser){
+        if(message == "Ошибка выполнения операции!"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка установки контейнера! Возможно не достаточно прав у клиента!");
+        }else{
+            QMessageBox::information(this, "Установка контейнера", "Контейнер успешно установлен!");
+            sendToRecipient(recipient, "get_available_containers", "get_available_containers", false);
         }
     }else if(command == InstalledCertificates){
         QString result = QByteArray::fromBase64(message.toUtf8());
@@ -4021,14 +4026,19 @@ void MainWindow::onWsMplClientFormLoaded(const QString &resp)
 
 void MainWindow::onWsExecQuery(const QString &result)
 {
-    qDebug() << __FUNCTION__;// << result;
+    // << result;
 
     auto doc = QJsonDocument::fromJson(result.toUtf8());
     auto obj = doc.object();
-    if(doc.isEmpty())
+    if(doc.isEmpty()){
+        qDebug() << __FUNCTION__;
         return;
+    }
 
     QString id_command = obj.value("id_command").toString();
+
+    qDebug() << __FUNCTION__ << id_command;
+
     if(id_command == "DataContainersList" || id_command == "DataCertificatesList" ){
         resetTableJsonModel(obj, id_command);
         if(m_async_await.size() > 0){

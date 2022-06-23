@@ -6164,7 +6164,7 @@ SQLITE_API int sqlite3_table_column_metadata(
 ** If that does not work, it constructs a name "sqlite3_X_init" where the
 ** X is consists of the lower-case equivalent of all ASCII alphabetic
 ** characters in the filename from the last "/" to the first following
-** "." and omitting any initial "lib".)^
+** "." and omitting any initial "winreg".)^
 ** ^The sqlite3_load_extension() interface returns
 ** [SQLITE_OK] on success and [SQLITE_ERROR] if something goes wrong.
 ** ^If an error occurs and pzErrMsg is not 0, then the

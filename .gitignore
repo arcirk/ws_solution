@@ -102,3 +102,9 @@ tests/
 /static_Debug/
 /release-qt-static/
 /ws_server/.vscode/
+/MPL-Debug/
+/MPL-Release/
+/arcirk-Debug/
+/arcirk-Release/
+/ws_client-Debug/
+/ws_client-Release/

@@ -1697,6 +1697,11 @@ bool shared_state::exec_query_qt(boost::uuids::uuid &uuid, arcirk::bJson *params
         return false;   //std::string szResult;
 
 
+    if(!sqlite3Db->isOpen()){
+        err = "База данных не открыта!";
+        return false;
+    }
+
     std::string table;
     bool result;
     if(isTable)
@@ -1744,6 +1749,11 @@ bool shared_state::exec_query(boost::uuids::uuid &uuid, arcirk::bJson *params, w
 
     if (query.empty())
         return false;
+
+    if(!sqlite3Db->isOpen()){
+        err = "База данных не открыта!";
+        return false;
+    }
 
     err = "";
     std::string szResult;

@@ -13,7 +13,6 @@ SOURCES += \
     ../certmanager/CertManager/certificate.cpp \
     ../certmanager/CertManager/commandline.cpp \
     ../certmanager/CertManager/keyscontainer.cpp \
-    ../certmanager/CertManager/lib/WinReg.cpp \
     ../certmanager/CertManager/settings.cpp \
     ../certmanager/CertManager/user.cpp \
     ../chared/clientsettings.cpp \
@@ -23,6 +22,7 @@ SOURCES += \
     ../chared/serveresponse.cpp \
     ../sqlwrapper/sqlinterface.cpp \
     ../sqlwrapper/sqlqueryinterface.cpp \
+    ../winreg/WinReg.cpp \
     dialogconnection.cpp \
     dialogmainwindow.cpp \
     dialogselectedrow.cpp \
@@ -39,7 +39,6 @@ HEADERS += \
     ../certmanager/CertManager/commandline.h \
     ../certmanager/CertManager/converter.h \
     ../certmanager/CertManager/keyscontainer.h \
-    ../certmanager/CertManager/lib/WinReg.hpp \
     ../certmanager/CertManager/settings.h \
     ../certmanager/CertManager/user.h \
     ../chared/clientsettings.h \
@@ -49,6 +48,7 @@ HEADERS += \
     ../chared/serveresponse.h \
     ../sqlwrapper/sqlinterface.h \
     ../sqlwrapper/sqlqueryinterface.h \
+    ../winreg/WinReg.hpp \
     dialogconnection.h \
     dialogmainwindow.h \
     dialogselectedrow.h \
@@ -86,8 +86,8 @@ DEFINES += QAPPLICATION_CLASS=QApplication
 DISTFILES += \
     mpl_static.exe.manifest
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client/release/ -lws_client
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client/debug/ -lws_client
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Release/release/ -lws_client
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Debug/debug/ -lws_client
 else:unix: LIBS += -L$$OUT_PWD/../ws_client/ -lws_client
 
 unix:LIBS += -lboost_filesystem
@@ -98,6 +98,7 @@ DEPENDPATH += $$PWD/../ws_client
 INCLUDEPATH += $$PWD/../chared
 INCLUDEPATH += $$PWD/../sqlwrapper
 INCLUDEPATH += $$PWD/../certmanager/CertManager
+INCLUDEPATH += $$PWD/../winreg
 
 DEFINES += USE_QT_CREATOR
 DEFINES += QT_MPL_CLIENT

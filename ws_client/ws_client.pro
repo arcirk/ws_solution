@@ -29,17 +29,17 @@ unix {
 }
 !isEmpty(target.path): INSTALLS += target
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../arcirk/release/ -larcirk
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../arcirk/debug/ -larcirk
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../arcirk-Release/release/ -larcirk
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../arcirk-Debug/debug/ -larcirk
 else:unix: LIBS += -L$$OUT_PWD/../arcirk/ -larcirk
 
 INCLUDEPATH += $$PWD/../arcirk
 DEPENDPATH += $$PWD/../arcirk
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk/release/libarcirk.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk/debug/libarcirk.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk/release/arcirk.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk/debug/arcirk.lib
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Release/release/libarcirk.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Debug/debug/libarcirk.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Release/release/arcirk.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Debug/debug/arcirk.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../arcirk/libarcirk.a
 
 windows:INCLUDEPATH += $(BOOST_INCLDUE) #C:/lib/vcpkg/vcpkg/installed/x64-windows/include
@@ -50,3 +50,6 @@ windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:LIBS += -lbcrypt
 
 DEFINES += USE_QT_CREATOR
+
+SUBDIRS += \
+    ../arcirk/arcirk.pro

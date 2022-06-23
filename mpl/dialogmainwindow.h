@@ -124,6 +124,8 @@ private:
     QString _launch_mode;
     CommandLine * terminal;
 
+    QList<QString> lastResult;
+
     bool isFormLoaded;
 
     void currentUserSid();
@@ -136,6 +138,9 @@ private:
     void createWsObject();
     void setWsConnectedSignals();
 
+    void sendResultToClient();
+
+    void asyncWait();
 
     void createTerminal();
     //void getCurrentUser();

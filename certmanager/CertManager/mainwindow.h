@@ -61,6 +61,8 @@ QT_END_NAMESPACE
 #define GetAvailableContainers          "get_available_containers"
 #define mplCertData                     "mpl_cert_data"
 #define InstalledCertificates           "installed_certificates"
+#define InstallContainerToRemoteUser    "InstallContainerToRemoteUser"
+
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"

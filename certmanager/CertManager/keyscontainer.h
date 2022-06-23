@@ -6,7 +6,7 @@
 #include <sqlinterface.h>
 #include <QJsonObject>
 #include <QJsonValue>
-#include "lib/WinReg.hpp"
+#include <WinReg.hpp>
 #include "converter.h"
 #include "commandline.h"
 #include "sqlqueryinterface.h"

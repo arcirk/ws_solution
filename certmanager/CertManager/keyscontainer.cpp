@@ -19,7 +19,7 @@
 #ifdef _WINDOWS
     #pragma warning(disable:4100)
     //#include <Windows.h>
-    //#pragma comment(lib, "advapi32")
+    //#pragma comment(winreg, "advapi32")
 #endif
 
 //#include <fstream>

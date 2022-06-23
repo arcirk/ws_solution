@@ -6,6 +6,7 @@
 #include <boost/format.hpp>
 #ifdef _WINDOWS
 #include <filesystem>
+#pragma warning(disable:4267)
 #else
 #include <boost/filesystem.hpp>
 #endif

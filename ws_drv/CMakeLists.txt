@@ -104,7 +104,7 @@ set(MySuffix2 "")
 #    if (NOT MSVC)
 #        message(FATAL_ERROR "Must be compiled with MSVC on Windows")
 #    endif(NOT MSVC)
-#    set(MyPrefix "lib")
+#    set(MyPrefix "winreg")
 #    set(MySuffix1 "Win")
 #endif(UNIX)
 
@@ -156,7 +156,7 @@ if (WIN32)
             Boost::thread
             )
 
-    #boost_thread-vc140-mt.lib)
+    #boost_thread-vc140-mt.winreg)
 
     include_directories (
             ${Boost_INCLUDE_DIRS}
