@@ -108,3 +108,9 @@ tests/
 /arcirk-Release/
 /ws_client-Debug/
 /ws_client-Release/
+/ws_server-Debug/
+/ws_server-Release/
+/mpl-Debug/
+/mpl-Release/
+/CertManager-Debug/
+/CertManager-Release/
