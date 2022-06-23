@@ -31,6 +31,8 @@ public:
     QString ref();
     QUuid uuid();
 
+    void eraseData();
+
     QStringList containers();
 
     void setContainers(const QStringList& value);

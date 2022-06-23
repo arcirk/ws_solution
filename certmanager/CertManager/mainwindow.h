@@ -101,13 +101,13 @@ private slots:
 
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
-    void on_btnToDatabase_clicked();
+    //void on_btnToDatabase_clicked();
 
     void on_btnDelete_clicked();
 
     void on_btnInstallToUser_clicked();
 
-    void on_mnuOptions_triggered();
+    //void on_mnuOptions_triggered();
 
     void onConnectionSuccess();
     void onCloseConnection();
@@ -220,6 +220,14 @@ private:
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
 
     void resetInfoUserContainers(CertUser* usr = nullptr);
+    void queueInfoUserContainers(){
+        resetInfoUserContainers();
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    };
+
     QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node);
     void createColumnAliases();
 
@@ -240,7 +248,7 @@ private:
 
     void createTree();
 
-    Certificate* selectCertFromLocalHost();
+    //Certificate* selectCertFromLocalHost();
 
     void getDataContainersList();
     void getDataCertificatesList();
@@ -254,8 +262,7 @@ private:
     void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
-    void loadItemChilds(QTreeWidgetItem *item);
-    void loadItemSpecific(QTreeWidgetItem *item);
+    void setDefaultItemChilds(QTreeWidgetItem *item);
 
     void getAvailableContainers(CertUser * usr);
 
@@ -317,10 +324,9 @@ private:
     void addCertificate();
     void addCertificate(const QString& data);
     void delCertificate();
-    void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "");
+    void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");
     //void addContainerFromCatalog(const QString& from, const QString& to = "");
     void addContainerFromVolume(const QString& from, const QString& to = "", const QString& byteArrayBase64 = "");
-    void delContainer();
     void delCertUser();
     void addCertUser();
     void resetCertData(CertUser * usr, const QString& node);
@@ -328,6 +334,8 @@ private:
     void resetCertUsersTree();
 
     bool selectVolume(QString& volume, QString& container);
+
+    QStringList getObjectsFromdataBase();
 
     QStandardItemModel *getLocalMountedVolumes();
 

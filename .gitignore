@@ -114,3 +114,5 @@ tests/
 /mpl-Release/
 /CertManager-Debug/
 /CertManager-Release/
+/certmanager/CertManager-Debug/
+/certmanager/CertManager-Release/

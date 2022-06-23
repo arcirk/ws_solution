@@ -166,6 +166,12 @@ QUuid CertUser::uuid()
     return _uuid;
 }
 
+void CertUser::eraseData()
+{
+    m_cnt.clear();
+    m_cert.clear();
+}
+
 QStringList CertUser::containers()
 {
     return _containers;
