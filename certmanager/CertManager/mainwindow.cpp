@@ -1500,7 +1500,7 @@ void MainWindow::resetCertUsersTree()
         }else
             user = itr.value();
 
-        auto itemUser = addTreeNode(name + " (" + host + ")", user->uuid().toString(), ":/img/certUsers.png");
+        auto itemUser = addTreeNode(name + " (" + host + ")", name + host, ":/img/certUsers.png");
         root->addChild(itemUser);
     }
 
@@ -1636,10 +1636,11 @@ void MainWindow::treeSetCertUserData(CertUser *usr)
     auto root = findTreeItem(SqlUsers);
     if(!root)
         return;
-    auto user = findTreeItem(usr->uuid().toString(), root);
+    QString key = usr->name() + usr->domain();
+    auto user = findTreeItem(key, root);
     qDebug() << usr->uuid().toString();
-    if(!user){
-        user = addTreeNode(usr->name(), usr->uuid().toString(), ":/img/certUsers.png");
+    if(!user){        
+        user = addTreeNode(usr->name(), key, ":/img/certUsers.png");
         root->addChild(user);
     }
 
@@ -1683,7 +1684,7 @@ void MainWindow::wsSetMplCertData(const QString& recipient, const QString& messa
     QStringList containers = obj.value("cnt").toString().split("\n");
     auto certs = obj.value("certs").toObject();
 
-    int iName = modelWsUsers->getColumnIndex("name");
+    int iName = modelWsUsers->getColumnIndex("user_name");
     int iHost = modelWsUsers->getColumnIndex("host_name");
     int iUuidUser = modelWsUsers->getColumnIndex("uuid_user");
     QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
@@ -2527,20 +2528,29 @@ bool MainWindow::isContainerExists(const QString &name, CertUser* usr, const QSt
 bool MainWindow::isCertUserExists(const QString &name, const QString& host)
 {
     qDebug() << __FUNCTION__;
-    if(db->isOpen()){
-        QString _host;
-        if(!host.isEmpty()){
-            _host = QString(" AND [host] = '%1'").arg(host);
-        }
-        QString str = QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1'%2").arg(name, _host);
-        //qDebug() << str;
-        QSqlQuery query(str, db->getDatabase());
-        while (query.next()) {
-            return true;
-        }
-    }
+//    if(_sett->launch_mode() == mixed){
+//        if(db->isOpen()){
+//            QString _host;
+//            if(!host.isEmpty()){
+//                _host = QString(" AND [host] = '%1'").arg(host);
+//            }
+//            QString str = QString("SELECT [_id] , [FirstField] AS name FROM [arcirk].[dbo].[CertUsers] WHERE [FirstField] = '%1'%2").arg(name, _host);
+//            //qDebug() << str;
+//            QSqlQuery query(str, db->getDatabase());
+//            while (query.next()) {
+//                return true;
+//            }
+//        }
+//    }else{
 
-    return false;
+//    }
+
+    auto p = qMakePair(name, host);
+    auto itr = m_users.find(p);
+
+    return itr != m_users.end();
+
+    //return false;
 }
 
 bool MainWindow::isWsUserExists(const QString &name, const QString &host)
@@ -3930,12 +3940,12 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
 //    qDebug() <<  __FUNCTION__ << recipient << command;
 //    qDebug() <<  __FUNCTION__ << qPrintable(message);
     if(command == AvailableContainers){
-        QString s = QByteArray::fromBase64(message.toUtf8());
+        QString s = fromBase64(message.toUtf8());
         int iUuid = modelWsUsers->getColumnIndex("uuid");
         auto index = findInTable(modelWsUsers, recipient, iUuid, false);
         if(index.isValid()){
             QStringList containers = s.split("\n");
-            int iName = modelWsUsers->getColumnIndex("name");
+            int iName = modelWsUsers->getColumnIndex("user_name");
             int iHost = modelWsUsers->getColumnIndex("host_name");
             QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
             QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
