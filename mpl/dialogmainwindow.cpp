@@ -917,7 +917,8 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
             f();
-        }
+        }else
+            updateConnectionStatus();
 
     }else if(command == CmdCommand::csptestGetCertificates){
 
@@ -936,7 +937,8 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
             f();
-        }
+        }else
+            updateConnectionStatus();
 
 //        if(!isFormLoaded) //оповещяем о окончании загрузки данных
 //            emit whenDataIsLoaded();
@@ -1195,7 +1197,7 @@ void DialogMainWindow::csptestCurrentUserGetContainers(const QString &result)
     currentUser->setContainers(keys);
 
     if(!currentRecipient.isEmpty()){
-        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n"), true);
+        sendToRecipient(currentRecipient, "available_containers", currentUser->containers().join("\n").toUtf8().toBase64(), true);
         currentRecipient = "";
     }
 }
@@ -1445,7 +1447,7 @@ void DialogMainWindow::updateConnectionStatus()
         status.append("Не подключен.");
     }
 
-    status.append(_sett->launch_mode() == mixed ? " Lanch mode: mixed" : " Lanch mode: ws_server");
+    status.append(_sett->launch_mode() == mixed ? " mode: mixed" : " mode: ws_server");
 
     infoBar->setText(status);
 
