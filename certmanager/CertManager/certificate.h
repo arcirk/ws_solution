@@ -31,6 +31,8 @@ public:
 
     QString getParam(const QString &key, const QString& name);
 
+    bool install();
+
     bool fromSha1(const QString& sha);
     void fromData(ByteArray &cer);
     void fromFile(const QString& fileName, bool removeSource = false);

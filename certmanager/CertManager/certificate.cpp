@@ -156,6 +156,66 @@ QString Certificate::getParam(const QString &key, const QString &name)
     return "";
 }
 
+bool Certificate::install()
+{
+    if(_data.size() == 0)
+        return false;
+
+    QString tmpDir = std::getenv("TEMP");
+    auto cmd = new CommandLine(this, false);
+    QEventLoop loop;
+    QJsonObject res;
+    bool result = false;
+
+    QString fileName = tmpDir + QDir::separator() + QUuid::createUuid().toString() + ".cer";
+    Base64Converter::writeFile(fileName.toStdString(), _data);
+
+    QFile file(fileName);
+    if(!file.exists())
+        return false;
+
+    auto started = [cmd, &fileName]() -> void
+    {
+        cmd->send(QString("certmgr -inst -file \"%1\" & exit").arg(fileName), certmgrInstallCert);
+    };
+    loop.connect(cmd, &CommandLine::cmdStarted, started);
+
+    auto output = [cmd, &loop, &result](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << qPrintable(data);
+        if(command == CmdCommand::certmgrInstallCert){
+            result = true;
+//            cmd->stop();
+//            loop.quit();
+        }
+    };
+    loop.connect(cmd, &CommandLine::output, output);
+
+    auto err = [&loop, cmd](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << data << command;
+        cmd->stop();
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::error, err);
+
+    auto state = [&loop]() -> void
+    {
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::complete, state);
+
+    cmd->start();
+    loop.exec();
+    delete cmd;
+
+    //QFile file(fileName);
+    if(file.exists())
+        file.remove();
+
+    return result;
+}
+
 bool Certificate::fromSha1(const QString &sha)
 {
 

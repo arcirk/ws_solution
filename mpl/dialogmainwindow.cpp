@@ -574,29 +574,49 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
 
     QStringList lst = from.split("/");
     QString storgare = lst.size() > 0 ? lst[0] :  STORGARE_LOCALHOST;
-    QString _from = lst.size() > 0 ? lst[1] : from;
+    QString _from = lst.size() > 1 ? lst[1] : from;
     bool result = false;
 
     QString resultData;
+    QString command = "addCertificate";
 
     if(storgare == STORGARE_DATABASE){
+        QString _ref = from;
+        if(!ref.isEmpty())
+            _ref = ref;
 
+        auto param = QJsonObject();
+        param.insert("command", "addCertificate");
+        param.insert("from", STORGARE_LOCALHOST);
+        param.insert("to", STORGARE_LOCALHOST);
+        getDatabaseData("Certificates", _ref, param);
+        return;
     }else if(storgare == STORGARE_LOCALHOST){
-        result = cert->fromSha1(_from);
-        if(result){
-            QJsonObject obj = cert->getObject();
-            resultData  = QJsonDocument(obj).toJson().toBase64();
+        if(byteArrayBase64.isEmpty()){
+            result = cert->fromSha1(_from);
+            if(result){
+                QJsonObject obj = cert->getObject();
+                resultData  = QJsonDocument(obj).toJson().toBase64();
+            }
+        }else{
+            if(to == STORGARE_LOCALHOST){
+                command = "installSertificate";
+                ByteArray data = Base64Converter::base64_to_byte(QString(byteArrayBase64.toUtf8()).toStdString());
+                cert->setData(data);
+                result = cert->install();
+                resultData = "Сертификат успешно установлен!";
+            }
         }
     }
 
     if(result){
         if(!currentRecipient.isEmpty()){
-            sendToRecipient(currentRecipient, "addCertificate", resultData, true);
+            sendToRecipient(currentRecipient, command, resultData, true);
             currentRecipient = "";
         }
     }else{
         if(!currentRecipient.isEmpty()){
-            sendToRecipient(currentRecipient, "addCertificate", "error", true);
+            sendToRecipient(currentRecipient, command, "error", true);
             currentRecipient = "";
         }
     }
@@ -747,6 +767,12 @@ void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString
             from = from + name;
         QString to = _param.value("to").toString();
         addContainer(from, to, dataBase64);
+    }else if(command == "addCertificate"){
+        QString from = _param.value("from").toString();
+        if(!name.isEmpty())
+            from = from + name;
+        QString to = _param.value("to").toString();
+        addCertificate(from, to, dataBase64);
     }
 
 }
@@ -871,8 +897,11 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
         auto obj = doc.object();
         QString from = obj.value("from").toString();
         QString to = obj.value("to").toString();
-
-        addCertificate(from, to);
+        QString ref = obj.value("ref").toString();
+        if(ref.isEmpty())
+           addCertificate(from, to);
+        else
+           addCertificate(from, to, "", ref);
     }
 
 }
@@ -1639,7 +1668,8 @@ void DialogMainWindow::sendResultToClient()
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
         f();
-    }
+    }else
+        updateConnectionStatus();
 }
 
 void DialogMainWindow::asyncWait()
