@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QFile>
 
 CommandLine::CommandLine(QObject *parent, bool usesysstem, const QString& enc)
     : QObject{parent}
@@ -388,7 +389,7 @@ QString CommandLine::parseCommand(const QString &result, int command)
         int length = QString("S-1").length();
         int l = result.lastIndexOf(re, length);
         int in = result.indexOf(re, length);
-        int fwd = l > in ? l : in;
+        int fwd = l > in ? l : in;        
         if(fwd >= 0){
             for(int i = fwd; i < str.length(); ++i){
                 QString s = str.mid(i, 1);
@@ -398,6 +399,11 @@ QString CommandLine::parseCommand(const QString &result, int command)
                     break;
                 }
             }
+        }
+        QFile log("std.log");
+        if(log.open(QIODevice::WriteOnly)){
+            log.write(str.toStdString().c_str(), str.length());
+            log.close();
         }
     }else if(command == echoGetEncoding){
         QString str(result);

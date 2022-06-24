@@ -160,7 +160,7 @@ bool Certificate::fromSha1(const QString &sha)
 {
 
     //QTemporaryDir tmpDir;
-    QString tmpDir = std::getenv("TEMP"); //только так победил кодировку, как она заябала
+    QString tmpDir = std::getenv("TEMP");
     auto cmd = new CommandLine(this, false);//);"ISO 8859-1"
     QEventLoop loop;
     QJsonObject res;
@@ -326,6 +326,13 @@ void Certificate::fromObject(const QJsonObject &obj)
     _sha1 = obj.value("sha1").toString();
     std::string base64 = obj.value("data").toString().toStdString();
     _data = Base64Converter::base64_to_byte(base64);
+
+}
+
+void Certificate::loadFromTemporaryFile()
+{
+
+
 
 }
 QJsonObject Certificate::getObject()

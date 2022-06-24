@@ -883,11 +883,6 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 {
 
     if(command == CmdCommand::wmicGetSID){
-//        QString sid = result.toString();
-//        qDebug() << __FUNCTION__ << "set sid:" <<  sid;
-//        currentUser->setSid(sid);
-//        //получаем список контейнеров
-//        terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
         currentUser->setSid(result.toString());
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
@@ -1162,8 +1157,7 @@ void DialogMainWindow::currentUserSid()
     infoBar->setText("Получение данных пользователя ..");
 
 #ifdef _WINDOWS
-    if(currentUser->sid().isEmpty())
-        terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
+    terminal->send("WHOAMI /USER\n", CmdCommand::wmicGetSID);
 #else
     onParseCommand("", CmdCommand::wmicGetSID);
 #endif

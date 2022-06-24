@@ -77,6 +77,9 @@ QT_END_NAMESPACE
 #define FromRegistry                    "fromRegistry"
 #define FromVolume                      "fromVolume"
 #define FromFolder                      "fromFolder"
+#define FromFile                        "fromFile";
+
+#define FromLocalStorgare               "fromLocalStorgare"
 
 #define STORGARE_DATABASE               "StorgareDatabase"
 #define STORGARE_LOCALHOST              "StorgareLocalhost"
@@ -321,8 +324,8 @@ private:
     void saveAsDatabaseCertificate();
 
 
-    void addCertificate();
-    void addCertificate(const QString& data);
+    void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "");
+    void addCertificateFromBase64ToDatabase(const QString& data);
     void delCertificate();
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");
     //void addContainerFromCatalog(const QString& from, const QString& to = "");

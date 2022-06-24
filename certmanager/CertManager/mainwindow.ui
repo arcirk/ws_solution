@@ -357,7 +357,7 @@
          <item>
           <widget class="QToolButton" name="btnCurrentCopyToRegistry">
            <property name="toolTip">
-            <string>Копировать контейнер в реестр текущему пользователю</string>
+            <string>Копировать в реестр текущему пользователю</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -371,7 +371,7 @@
          <item>
           <widget class="QToolButton" name="btnCurrentCopyToSql">
            <property name="toolTip">
-            <string>Копировать контейнер на севрвер</string>
+            <string>Копировать на севрвер</string>
            </property>
            <property name="text">
             <string>...</string>
