@@ -186,6 +186,8 @@ private slots:
 
     void on_btnDataListUpdate_clicked();
 
+    void on_btnBindContainer_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -324,7 +326,7 @@ private:
     void saveAsDatabaseCertificate();
 
 
-    void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "", const QString& byteArrayBase64 = "");
+    void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "", const QString& byteArrayBase64 = "", const QString& cntName = "", const QString& cntByteArrayBase64 = "");
     void addCertificateFromBase64ToDatabase(const QString& data);
     void delCertificate();
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");

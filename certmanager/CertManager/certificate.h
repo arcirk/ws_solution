@@ -31,7 +31,7 @@ public:
 
     QString getParam(const QString &key, const QString& name);
 
-    bool install();
+    bool install(const QString& cnt = "");
     bool save(const QString& fileName);
 
     bool fromSha1(const QString& sha);

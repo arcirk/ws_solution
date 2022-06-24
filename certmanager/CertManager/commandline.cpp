@@ -597,7 +597,7 @@ QString CommandLine::parseCommand(const QString &result, int command)
     }else if(command == certmgrInstallCert){
         int ind = result.indexOf("ErrorCode: 0x00000000");
         if(ind != -1)
-            emit endParse("cucsess", command);
+            emit endParse("sucsess", command);
     }else{
         emit endParse("", command);
     }

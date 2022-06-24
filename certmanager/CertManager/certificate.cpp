@@ -156,17 +156,26 @@ QString Certificate::getParam(const QString &key, const QString &name)
     return "";
 }
 
-bool Certificate::install()
+bool Certificate::install(const QString& cnt)
 {
     if(_data.size() == 0)
         return false;
 
     QTemporaryDir tmpDir;
-    //QString tmpDir = std::getenv("TEMP");
     auto cmd = new CommandLine(this, false);
     QEventLoop loop;
-    //QJsonObject res;
     bool res = false;
+    QString certmgrParentFolder = "C:\\Program Files (x86)\\Crypto Pro\\CSP";
+
+#ifndef Q_OS_WINDOWS
+    certmgrParentFolder == "ToDo";
+#endif
+
+    QDir dir(certmgrParentFolder);
+    if(!dir.exists()){
+        qCritical() << __FUNCTION__ << "Не установлен КриптоПро!";
+        return false;
+    }
 
     QString fileName = QDir::toNativeSeparators(tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer");
     Base64Converter::writeFile(QTextCodec::codecForName("CP1251")->fromUnicode(fileName).toStdString(), _data);
@@ -175,9 +184,12 @@ bool Certificate::install()
     if(!file.exists())
         return false;
 
-    auto started = [cmd, &fileName]() -> void
+    auto started = [cmd, &fileName, &certmgrParentFolder, &cnt]() -> void
     {
-        cmd->send(QString("cd \"C:\\Program Files (x86)\\Crypto Pro\\CSP\" & certmgr -inst -file \"%1\"").arg(fileName), certmgrInstallCert);
+        if(cnt.isEmpty())
+            cmd->send(QString("cd \"%1\" & certmgr -inst -file \"%2\" & exit").arg(certmgrParentFolder, fileName), certmgrInstallCert);
+        else
+            cmd->send(QString("cd \"%1\" & certmgr -inst -file \"%2\" -cont \"%3\" & exit").arg(certmgrParentFolder, fileName, cnt), certmgrInstallCert);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
@@ -186,9 +198,7 @@ bool Certificate::install()
         qDebug() << __FUNCTION__ << qPrintable(data);
         if(command == CmdCommand::certmgrInstallCert){
             if(data.indexOf("Microsoft Corporation") == -1){
-                 if(data.indexOf("CertUtil: -dump") != -1){
-                     cmd->parseCommand(data, command);
-                 }
+               cmd->parseCommand(data, command);
             }
         }
     };
@@ -223,7 +233,6 @@ bool Certificate::install()
     loop.exec();
     delete cmd;
 
-    //QFile file(fileName);
     if(file.exists())
         file.remove();
 

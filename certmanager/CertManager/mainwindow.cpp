@@ -563,7 +563,10 @@ void MainWindow::getDatabaseData(const QString& table, const QString& ref, const
     bindQuery.addField("Ref", "Ref");
     bindQuery.addField("FirstField", "FirstField");
     bindQuery.addField("data", "data");
-
+    if(table == "CertificatesView"){
+       bindQuery.addField("CntData", "CntData");
+       bindQuery.addField("CntFirstField", "CntFirstField");
+    }
     bindQuery.addWhere("Ref", ref);
 
     QString query = bindQuery.to_json();
@@ -598,7 +601,7 @@ void MainWindow::saveAsDatabaseCertificate()
 
 }
 
-void MainWindow::addCertificate(const QString& from, const QString& to, const QString& id, const QString& byteArrayBase64)
+void MainWindow::addCertificate(const QString& from, const QString& to, const QString& id, const QString& byteArrayBase64, const QString& cntName, const QString& cntByteArrayBase64)
 {
     qDebug() << __FUNCTION__;
 
@@ -609,17 +612,27 @@ void MainWindow::addCertificate(const QString& from, const QString& to, const QS
     bool removeTmp = false;
     QString sha1;
 
-    if(from == STORGARE_LOCALHOST){
-        if(id.isEmpty()){
-            //selet dialog
-        }else{
-            sha1 = id;
-        }
-    }else if(from == STORGARE_DATABASE){
-
-    }
-
     if(byteArrayBase64.isEmpty()){
+        if(from == STORGARE_LOCALHOST){
+            if(id.isEmpty()){
+                //selet dialog
+            }else{
+                sha1 = id;
+            }
+        }else if(from == STORGARE_DATABASE){
+            auto dlgResult = getObjectsFromDatabase(DataCertificatesList);
+            if(dlgResult.size() == 0)
+                return;
+            QString ref = dlgResult[1];
+            //QString privKey = dlgResult[11];
+            auto param = QJsonObject();
+            param.insert("command", "addCertificate");
+            param.insert("from", STORGARE_DATABASE);
+            param.insert("to", STORGARE_LOCALHOST);
+            //param.insert("privKey", privKey);
+            getDatabaseData("CertificatesView", ref, param);
+            return;
+        }
         if(sha1.isEmpty()){
             fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
                                                          QDir::homePath(),
@@ -641,13 +654,42 @@ void MainWindow::addCertificate(const QString& from, const QString& to, const QS
     }else{
         ByteArray data = Base64Converter::base64_to_byte(byteArrayBase64.toStdString());
         cert.setData(data);
-        if(to == STORGARE_LOCALHOST){
+        if(to == STORGARE_LOCALHOST && from == STORGARE_LOCALHOST){
             QString fileName = QFileDialog::getSaveFileName(this, tr("Выбрать файл"),
                                                          QDir::homePath(),
                                                          "Файл сертификата (*.cer)");
             if(fileName != ""){
                 cert.save(fileName);
             }
+        }else{
+            QString container;
+            if(!cntName.isEmpty()){
+                //Устанавливаем при необходимости контейнер в реестр и указываем для инсталяции
+                QString strCnts = currentUser->getRigstryData().join("|");
+                if(strCnts.indexOf(cntName) != -1)
+                    container = QString("\\\\.\\%1\\%2").arg(REGISTRY_, cntName);
+
+                if(container.isEmpty() && !cntByteArrayBase64.isEmpty()){
+                    //Устанавливаем контейнер
+                    auto cnt = KeysContainer(this);
+                    QByteArray data = QByteArray::fromBase64(cntByteArrayBase64.toUtf8());
+                    cnt.fromJson(data);
+                    bool rs = cnt.syncRegystry(currentUser->sid());
+                    if(!rs)
+                        qCritical() << __FUNCTION__ << "Ошибка установки контейнера при установке сертификата! Сертификат будет установлен без привязки к контейнеру.";
+                    else
+                        container = QString("\\\\.\\%1\\%2").arg(REGISTRY_, cntName);
+                }
+
+            }
+            bool result = cert.install(container);
+
+            if(result){
+                QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен текущему пользователю!");
+                currentUserGetCertificates();
+            }else
+                QMessageBox::critical(this, "Установка сертификата", "Ошибка установки сертификата!");
+
         }
         return;
     }
@@ -1140,6 +1182,8 @@ QStringList MainWindow::getObjectsFromDatabase(const QString& objectType)
         vCols.append(col);
         col = modelSqlCertificates->getColumnIndex("parentUser");
         vCols.append(col);
+        col = modelSqlCertificates->getColumnIndex("privateKey");
+        vCols.append(col);
         auto dlg = DialogSelectInList(modelSqlCertificates, "Выбор сертификата", vCols, this);
         dlg.setModal(true);
         dlg.exec();
@@ -1394,6 +1438,12 @@ void MainWindow::treeSetFromSqlCertificates()
         if(index > 0)
             table->setColumnHidden(index, true);
         index = modelSqlCertificates->getColumnIndex("serial");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlCertificates->getColumnIndex("privateKeyRef");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlCertificates->getColumnIndex("CntFirstField");
         if(index > 0)
             table->setColumnHidden(index, true);
         table->resizeColumnsToContents();
@@ -1673,7 +1723,7 @@ void MainWindow::getDataCertificatesList()
 
     infoBar->setText("Получение данных с сервера ...");
 
-    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Certificates");
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertificatesView");//, "Certificates");
     bindQuery.addField("EmptyTitle", "EmptyTitle");
     bindQuery.addField("Ref", "Ref");
     bindQuery.addField("FirstField", "FirstField");
@@ -1684,6 +1734,8 @@ void MainWindow::getDataCertificatesList()
     bindQuery.addField("parentUser", "parentUser");
     bindQuery.addField("serial", "serial");
     bindQuery.addField("privateKey", "privateKey");
+    bindQuery.addField("privateKeyRef", "privateKeyRef");
+    bindQuery.addField("CntFirstField", "CntFirstField");
 
     QString query = bindQuery.to_json();
 
@@ -1868,20 +1920,14 @@ bool MainWindow::isContainerExists(const QString &name, CertUser* usr, const QSt
     if(!user){
        user = currentUser;
     }
-    if(dest.isEmpty() || dest == ToDatabase || dest == FromDatabase || dest == DATABASE_){
+    if(dest.isEmpty() || dest == STORGARE_DATABASE){
         int ind = modelSqlContainers->getColumnIndex("FirstField");
-        if(ind != -1){
-            auto index = findInTable(modelSqlContainers, name, ind, false);
-            return index.isValid();
-        }
-    }else if(dest == ToRegistry || dest == FromRegistry || dest == REGISTRY_){
-        if(user->getRigstryData().indexOf(name) != -1)
-            return true;
-    }else
-        if(user->getDivaceData().indexOf(name) != -1)
-            return true;
-
-    return false;
+        auto index = findInTable(modelSqlContainers, name, ind, false);
+        return index.isValid();
+    }else{
+        QString cnts = user->containers().join("|");
+        return cnts.indexOf(name) != -1;
+    }
 }
 
 bool MainWindow::isCertUserExists(const QString &name, const QString& host)
@@ -2036,6 +2082,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             treeSetFromSqlContainers();
             ui->btnDatabaseAdd->setEnabled(true);
             ui->btnDatabaseSaveAs->setEnabled(true);
+            ui->btnBindContainer->setEnabled(false);
+            ui->btnDatabaseInfo->setEnabled(true);
         }else if(key == WsActiveUsers){
             toolBarSetVisible(ui->wToolBarAU, true);
             treeSetOnlineWsUsers();
@@ -2044,11 +2092,15 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             treeSetFromSqlCertificates();
             ui->btnDatabaseAdd->setEnabled(true);
             ui->btnDatabaseSaveAs->setEnabled(true);
+            ui->btnBindContainer->setEnabled(true);
+            ui->btnDatabaseInfo->setEnabled(true);
         }else if(key == SqlUsers){
             toolBarSetVisible(ui->wToolbarDatabase, true);
             treeSetFromSqlUsers();
             ui->btnDatabaseAdd->setEnabled(false);
             ui->btnDatabaseSaveAs->setEnabled(false);
+            ui->btnBindContainer->setEnabled(false);
+            ui->btnDatabaseInfo->setEnabled(false);
         }else if(key == currentUserCertificates){
             toolBarSetVisible(ui->wToolBarCurrentUser, true);
             treeSetFromCurrentUserCerts(modelUserCertificates);
@@ -2377,49 +2429,6 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 {
     qDebug() << __FUNCTION__; // << qPrintable(resp);
 //  qDebug() << __FUNCTION__ << ip_address << " " << host_name << " " << app_name;
-    //MainWindow::onClientJoinEx {"name": "admin", "uuid": "d1ca0bc6-b6cb-4b90-941c-85fb9faf70a9", "uuid_user": "e7429c10-8070-40da-ae2e-dea1cb9ae371", "active": true}
-    //MainWindow::onClientJoinEx "192.168.10.14"   "VMBUHSVR"   "qt_cert_manager"
-
-//    auto doc = QJsonDocument::fromJson(resp.toUtf8());
-//    auto obj = doc.object();
-//    QUuid uuid = QUuid::fromString(obj.value("uuid_user").toString());
-    //QString name = obj.value("user_name").toString();
-
-//    auto itr = m_actUsers.find(uuid);
-//    if(itr != m_actUsers.end()){
-//        itr.value()->setOnline(true);
-//    }else{
-//        if(!currentUser)
-//            return;
-//        CertUser * usr = nullptr;
-//        if(!currentUser->thisIsTheUser(user_name, host_name)){
-//            usr = new CertUser(this);
-//            usr->setName(user_name);
-//            usr->setDomain(host_name);
-//        }
-//        else {
-//            usr = currentUser;
-//            auto item = findTreeItem("currentUser");
-//            if(item){
-//                item->setText(0, QString("Текущий пользователь (%1)").arg(currentUser->name()) );
-//                if(item->childCount() == 0){
-//                    auto Root = addTreeNode("Доступные контейнеры", currentUserAvailableContainers, ":/img/key16.png");
-//                    item->addChild(Root);
-//                    auto certs = addTreeNode("Установленные сертификаты", currentUserCertificates, ":/img/cert.png");
-//                    item->addChild(certs);
-//                    auto reg = addTreeNode("Реестр", "currentUserRegistry", ":/img/registry16.png");
-//                    Root->addChild(reg);
-//                    auto dev = addTreeNode("Устройства", "currentUserDivace", ":/img/Card_Reader_16.ico");
-//                    Root->addChild(dev);
-
-//                    getAvailableContainers(usr);
-//                }
-//            }
-//        }
-//        usr->setOnline(true);
-//        usr->setUuid(uuid);
-//        //m_actUsers.insert(uuid, usr);
-//    }
 
     auto message = QByteArray::fromBase64(resp.toUtf8());
     auto doc = QJsonDocument::fromJson(message);
@@ -2447,29 +2456,11 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
 
         modelWsUsers->addRow(obj);
         modelWsUsers->setRowKey(modelWsUsers->rowCount() - 1, qMakePair(name, _host_name));
-        //qDebug() << __FUNCTION__ << qPrintable(resp);
-
-//        auto itr = m_users.find(qMakePair(name, _host_name));
-//        if(itr != m_users.end()){
-
-//        }
 
         updateCertUsersOnlineStstus();
         m_queue.append(uuid);
         onStartGetCertUsersData();
     }
-//    auto treeItem = ui->treeWidget->currentItem();
-//    if(!treeItem){
-//        return;
-//    }
-
-//    QString currentNode = treeItem->text(0);
-
-//    if(currentNode == "Активные пользователи")
-//    {
-//        loadOnlineUsers();
-//    }
-
 }
 
 void MainWindow::onClientLeave(const QString &resp)
@@ -2545,50 +2536,12 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
             emit ui->treeWidget->itemClicked(item, 0);
         }
     }
-////    auto item = ui->tableView-item(row, column);
-////    if(item){
-//        QString itemText = index.data().toString();
-//        QTreeWidgetItem * child = nullptr;
 
-//        if(itemText == "Контейнеры"){
-//            child = ui->treeWidget->topLevelItem(0)->child(0);
-//        }else if(itemText == "Сертификаты"){
-//            child = ui->treeWidget->topLevelItem(0)->child(1);
-//        }else if(itemText == "Пользователи"){
-//            child = ui->treeWidget->topLevelItem(0)->child(2);
-//        }
-
-//        if(child){
-//            ui->treeWidget->setCurrentItem(child, 0);
-//            emit ui->treeWidget->itemClicked(child, 0);
-//        }
-
-//    //}
 }
 
 
 void MainWindow::on_tableView_clicked(const QModelIndex &index)
 {
-//    auto treeItem = ui->treeWidget->currentItem();
-//    if(!treeItem){
-//        return;
-//    }
-
-//    QString currentNode = treeItem->text(0);
-
-//    if(currentNode == "Реестр"){
-//        ui->btnAdd->setEnabled(false);
-//        ui->btnEdit->setEnabled(false);
-//        ui->btnDelete->setEnabled(true);
-//        ui->btnImportFromDatabase->setEnabled(true);
-//        ui->btnToDatabase->setEnabled(true);
-//    }else if(currentNode == "Компьютеры"){
-//        ui->btnAdd->setEnabled(true);
-//        ui->btnEdit->setEnabled(true);
-//        ui->btnDelete->setEnabled(true);
-//    }else{
-//        disableToolBar();
-//    }
 
       qDebug() <<__FUNCTION__;
 }
@@ -2714,32 +2667,6 @@ void MainWindow::onGetActiveUsers(const QString& resp){
         }
         else{
              user = currentUser;
-//             if(_sett->launch_mode() == mixed){
-//                 if(db->isOpen()){
-//                     QString str = QString("select [Ref], [sid], [uuid] from [arcirk].[dbo].[CertUsers] where [FirstField] = '%1' AND [host] = '%2'").arg(name, host);
-//                     QSqlQuery query = QSqlQuery(str, db->getDatabase());
-//                     QString ref;
-//                     QString sid;
-//                     QString uuid;
-//                     QMap<QString, QVariant> _row;
-
-//                     while (query.next()) {
-//                         ref = query.value(0).toString();
-//                         sid = query.value(1).toString();
-//                         uuid = query.value(2).toString();
-//                         if(sid.isEmpty())
-//                             _row.insert("sid", currentUser->sid());
-//                         if(uuid.isEmpty())
-//                             _row.insert("uuid", user_uuid.toString());
-//                         break;
-//                     }
-//                     if(!ref.isEmpty() && _row.size() > 0){
-//                         currentUser->setRef(ref);
-//                         //update sid
-//                         db->updateSqlTableRow("CertUsers", _row, ref);
-//                     }
-//                 }
-//             }
         }
         user->setUuid(user_uuid);
         user->setOnline(true);
@@ -3018,6 +2945,9 @@ void MainWindow::onWsExecQuery(const QString &result)
     }else if(id_command == insertUserToData){
         qDebug() << __FUNCTION__ << "Пользователь успешно добавлен с сервер!";
         getDataUsersList();
+    }else if(id_command == "update_cert_privateKey"){
+        qDebug() << __FUNCTION__ << "Обновлено значение ключа сертификата на сервере!";
+        getDataCertificatesList();
     }
 }
 
@@ -3244,7 +3174,7 @@ void MainWindow::on_btnDatabaseAdd_clicked()
     if(currentNode == SqlContainers){
         addContainer();
     }else if(currentNode == SqlCertificates){
-        addCertificate("", ToDatabase);
+        addCertificate("", STORGARE_DATABASE);
     }else if(currentNode == SqlUsers){
         addCertUser();
     }
@@ -3839,7 +3769,6 @@ void MainWindow::updateInfoContainerOnDatabase(const QString &info, const QStrin
     if(_sett->launch_mode() == mixed){
         if(!db->isOpen())
             return;
-        QString query = bindQuery.to_json();
         QString _error;
         db->exec_qt(query, _error);
     }else{
@@ -3864,7 +3793,7 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
     auto _param = QJsonDocument::fromJson(param.toUtf8()).object();
     auto rows = _table.value("rows").toArray();
     if(rows.isEmpty()){
-        qCritical() << __FUNCTION__ << "Контейнер на сервере не найден!";
+        qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
         return;
     }
 
@@ -3884,7 +3813,9 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
         if(!name.isEmpty())
             from = from + name;
         QString to = _param.value("to").toString();
-        addCertificate(from, to, "", dataBase64);
+        QString cntName = row.value("CntFirstField").toString();
+        QString cntData = row.value("CntData").toString();
+        addCertificate(from, to, "", dataBase64, cntName, cntData);
     }
 
 
@@ -4241,3 +4172,48 @@ void MainWindow::on_btnDataListUpdate_clicked()
 
     }
 }
+
+void MainWindow::on_btnBindContainer_clicked()
+{
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    int iRef = modelSqlCertificates->getColumnIndex("Ref");
+    QString certRef = modelSqlCertificates->index(index.row(), iRef).data(Qt::UserRole + iRef).toString();
+    auto dlgResult = getObjectsFromDatabase(DataContainersList);
+    if(dlgResult.size() > 0){
+        QString ref = dlgResult[1];
+        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "Certificates");
+        bindQuery.addWhere("Ref", certRef);
+        bindQuery.addField("privateKey", ref);
+
+        QString query = bindQuery.to_json();
+        QJsonObject cmd = QJsonObject();
+        cmd.insert("command", "update_cert_privateKey");
+
+        if(_sett->launch_mode() == mixed){
+            if(!db->isOpen())
+                return;
+            QString _error;
+            db->exec_qt(query, _error);
+        }else{
+            if(m_client->isStarted()){
+                auto obj = QJsonObject();
+                obj.insert("query", query);
+                obj.insert("id_command", "update_cert_privateKey");
+                obj.insert("run_on_return", cmd);
+                auto doc = QJsonDocument();
+                doc.setObject(obj);
+                QString param = doc.toJson();
+                m_client->sendCommand("exec_query_qt", "", param);
+            }
+        }
+    }
+}
+
