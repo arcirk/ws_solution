@@ -161,13 +161,14 @@ bool Certificate::install()
     if(_data.size() == 0)
         return false;
 
-    QString tmpDir = std::getenv("TEMP");
+    QTemporaryDir tmpDir;
+    //QString tmpDir = std::getenv("TEMP");
     auto cmd = new CommandLine(this, false);
     QEventLoop loop;
-    QJsonObject res;
-    bool result = false;
+    //QJsonObject res;
+    bool res = false;
 
-    QString fileName = tmpDir + QDir::separator() + QUuid::createUuid().toString() + ".cer";
+    QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
     Base64Converter::writeFile(fileName.toStdString(), _data);
 
     QFile file(fileName);
@@ -180,16 +181,29 @@ bool Certificate::install()
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
-    auto output = [cmd, &loop, &result](const QString& data, int command) -> void
+    auto output = [cmd](const QString& data, int command) -> void
     {
         qDebug() << __FUNCTION__ << qPrintable(data);
         if(command == CmdCommand::certmgrInstallCert){
-            result = true;
-//            cmd->stop();
-//            loop.quit();
+            if(data.indexOf("Microsoft Corporation") == -1){
+                 if(data.indexOf("CertUtil: -dump") != -1){
+                     cmd->parseCommand(data, command);
+                 }
+            }
         }
     };
     loop.connect(cmd, &CommandLine::output, output);
+
+    auto parse = [&loop, cmd, &res](const QVariant& result, int command) -> void
+    {
+        if(command == CmdCommand::certmgrInstallCert){
+            res = true;
+            cmd->stop();
+            loop.quit();
+        }
+
+    };
+    loop.connect(cmd, &CommandLine::endParse, parse);
 
     auto err = [&loop, cmd](const QString& data, int command) -> void
     {
@@ -213,31 +227,31 @@ bool Certificate::install()
     if(file.exists())
         file.remove();
 
-    return result;
+    return res;
 }
 
 bool Certificate::fromSha1(const QString &sha)
 {
 
-    //QTemporaryDir tmpDir;
-    QString tmpDir = std::getenv("TEMP");
+    QTemporaryDir tmpDir;
+    //tring tmpDir = std::getenv("TEMP");
     auto cmd = new CommandLine(this, false);//);"ISO 8859-1"
     QEventLoop loop;
     QJsonObject res;
 
-    QString fileName = tmpDir + QDir::separator() + QUuid::createUuid().toString() + ".cer";
+    QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
     //qDebug() << fileName;
     auto started = [cmd, &fileName, &sha]() -> void
     {
         QString qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName);
-        cmd->send(qbyte, certmgrExportlCert);
+        cmd->send(qbyte, certmgrInstallCert);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
     auto output = [cmd, &loop](const QString& data, int command) -> void
     {
         qDebug() << __FUNCTION__ << data;
-        if(command == CmdCommand::certmgrExportlCert){            
+        if(command == CmdCommand::certmgrInstallCert){
             if(data.indexOf("Microsoft Corporation") == -1){
                 if(data.indexOf("ReturnCode:") != -1){
                     cmd->stop();
@@ -284,7 +298,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
    QFileInfo inf(fileName);
    QString suffix = inf.completeSuffix();
 
-   auto cmd = new CommandLine(this, false, "CP1251");
+   auto cmd = new CommandLine(this, false); //, "CP1251");
    cmd->setMethod(3);
    //cmd->setProgram("powershell");
    QEventLoop loop;
@@ -302,11 +316,12 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
    QString str;
    auto output = [cmd, &str](const QString& data, int command) -> void
    {
-       if(command == CmdCommand::certutilGetCertificateInfo){
+       if(command == CmdCommand::certutilGetCertificateInfo && cmd->listening()){
            if(data.indexOf("Microsoft Corporation") == -1){
                 str.append(data);
-                if(data.indexOf("CertUtil: -dump") != -1)
+                if(data.indexOf("CertUtil: -dump") != -1){
                     cmd->parseCommand(str, command);
+                }
            }
        }
    };
@@ -342,7 +357,7 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
    loop.exec();
 
    ByteArray data;
-   Base64Converter::readFile(fileName.toStdString(), data);
+   Base64Converter::readFile(QTextCodec::codecForName("CP1251")->fromUnicode(fileName).toStdString(), data);
 
    if(removeSource){
        QFile f(fileName);
@@ -417,7 +432,7 @@ QJsonObject Certificate::getObject()
 
 QBSqlQuery Certificate::getSqlQueryObject(QBSqlCommand command)
 {
-    auto bindQuery = QBSqlQuery(command, "[Certificates]");
+    auto bindQuery = QBSqlQuery(command, "Certificates");
     bindQuery.addField("Ref", ref());
     bindQuery.addField("FirstField", QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter()));
     bindQuery.addField("subject", subject());

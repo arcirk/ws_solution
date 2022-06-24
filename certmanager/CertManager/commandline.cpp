@@ -589,7 +589,25 @@ QString CommandLine::parseCommand(const QString &result, int command)
                     }
                 }else{
                     emit error(line, certutilGetCertificateInfo);
-                    return "";
+                    if(listening())
+                        return "";
+                }
+            }
+        }
+    }else if(command == certmgrInstallCert){
+
+        //qDebug() << qPrintable(result);
+        int ind = result.indexOf("CertUtil: -dump");
+        if(ind > 0){
+            QString line = getLine(result, ind);
+            if(!line.isEmpty()){
+                QStringList r = line.split(":");
+                if(r.size() == 2){
+                    QString s = r[1].trimmed();
+                    if(s == "-dump — команда успешно выполнена."){
+                        emit endParse("cucsess", command);
+                    }else
+                        emit error(line, command);
                 }
             }
         }

@@ -338,7 +338,7 @@ private:
 
     bool selectVolume(QString& volume, QString& container);
 
-    QStringList getObjectsFromdataBase();
+    QStringList getObjectsFromDatabase(const QString& objectType);
 
     QStandardItemModel *getLocalMountedVolumes();
 

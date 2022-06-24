@@ -627,9 +627,9 @@ void MainWindow::addCertificate(const QString& from, const QString& to, const QS
             return;
         }
 
-        cert.fromFile(fileName, removeTmp);
-    }else{
-
+        if(to != STORGARE_LOCALHOST)
+            cert.fromFile(fileName, removeTmp);
+    }else{        
         cert.fromSha1(sha1);
 
     }
@@ -1099,23 +1099,42 @@ bool MainWindow::selectVolume(QString &volume, QString &container)
     return true;
 }
 
-QStringList MainWindow::getObjectsFromdataBase()
+QStringList MainWindow::getObjectsFromDatabase(const QString& objectType)
 {
-    QList<int> vCols = {0};
-    int col = modelSqlContainers->getColumnIndex("SecondField");
-    vCols.append(col);
-    col = modelSqlContainers->getColumnIndex("notValidAfter");
-    vCols.append(col);
-    col = modelSqlContainers->getColumnIndex("parentUser");
-    vCols.append(col);
-    auto dlg = DialogSelectInList(modelSqlContainers, "Выбор контейнера", vCols, this);
-    dlg.setModal(true);
-    dlg.exec();
-
-    if(dlg.result() == QDialog::Accepted)
-        return dlg.dialogResult();
-    else
+    if(objectType == DataContainersList){
+        QList<int> vCols = {0};
+        int col = modelSqlContainers->getColumnIndex("SecondField");
+        vCols.append(col);
+        col = modelSqlContainers->getColumnIndex("notValidAfter");
+        vCols.append(col);
+        col = modelSqlContainers->getColumnIndex("parentUser");
+        vCols.append(col);
+        auto dlg = DialogSelectInList(modelSqlContainers, "Выбор контейнера", vCols, this);
+        dlg.setModal(true);
+        dlg.exec();
+        if(dlg.result() == QDialog::Accepted)
+            return dlg.dialogResult();
+        else
+            return {};
+    }else if(objectType == DataCertificatesList){
+        QList<int> vCols = {0};
+        int col = modelSqlCertificates->getColumnIndex("FirstField");
+        vCols.append(col);
+        col = modelSqlCertificates->getColumnIndex("notValidAfter");
+        vCols.append(col);
+        col = modelSqlCertificates->getColumnIndex("parentUser");
+        vCols.append(col);
+        auto dlg = DialogSelectInList(modelSqlCertificates, "Выбор сертификата", vCols, this);
+        dlg.setModal(true);
+        dlg.exec();
+        if(dlg.result() == QDialog::Accepted)
+            return dlg.dialogResult();
+        else
+            return {};
+    }else
         return {};
+
+
 
 }
 
@@ -3985,7 +4004,7 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
         addCertificate(dlg.currentSelection() == 0 ? STORGARE_DATABASE : STORGARE_LOCALHOST, STORGARE_LOCALHOST);
 
     }else if(node == currentUserDivace || node == currentUserRegistry){
-        QStringList dlgResult = getObjectsFromdataBase();
+        QStringList dlgResult = getObjectsFromDatabase(DataContainersList);
         if(dlgResult.size() == 0)
             return;
         QString ref = dlgResult[1];
@@ -3997,21 +4016,25 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
     }else{
         QString Volume;
         QString command;
+        QString objectType;
 
         QMap<QString, QString> nodeParam = remoteItemParam(QModelIndex(), node);
 
         if(nodeParam["key"] == remoteUserRegistry){
             Volume = ToRegistry;
             command = "addContainer";
+            objectType = DataContainersList;
         }else if(nodeParam["key"] == remoteUserContainers){
             Volume = ToVolume;
             command = "addContainer";
+            objectType = DataContainersList;
         }else if(nodeParam["key"] == remoteUserCertificates){
             Volume = ToCertificate;
             command = "addCertificate";
+            objectType = DataCertificatesList;
         }
 
-        QStringList dlgResult = getObjectsFromdataBase(); // dlg.dialogResult();
+        QStringList dlgResult = getObjectsFromDatabase(objectType); // dlg.dialogResult();
         if(dlgResult.size() == 0)
             return;
         QString ref = dlgResult[1];
@@ -4019,8 +4042,8 @@ void MainWindow::on_btnCurrentUserAdd_clicked()
         QString sess = getSessionUuid(nodeParam["name"], nodeParam["host"]);
         auto param = QJsonObject();
         param.insert("command", command);
-        param.insert("from", FromDatabase);
-        param.insert("to", Volume);
+        param.insert("from", STORGARE_DATABASE);
+        param.insert("to", STORGARE_LOCALHOST);
         param.insert("ref", ref);
 
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
