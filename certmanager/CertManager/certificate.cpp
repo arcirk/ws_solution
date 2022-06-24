@@ -168,8 +168,8 @@ bool Certificate::install()
     //QJsonObject res;
     bool res = false;
 
-    QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
-    Base64Converter::writeFile(fileName.toStdString(), _data);
+    QString fileName = QDir::toNativeSeparators(tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer");
+    Base64Converter::writeFile(QTextCodec::codecForName("CP1251")->fromUnicode(fileName).toStdString(), _data);
 
     QFile file(fileName);
     if(!file.exists())
@@ -177,7 +177,7 @@ bool Certificate::install()
 
     auto started = [cmd, &fileName]() -> void
     {
-        cmd->send(QString("certmgr -inst -file \"%1\" & exit").arg(fileName), certmgrInstallCert);
+        cmd->send(QString("cd \"C:\\Program Files (x86)\\Crypto Pro\\CSP\" & certmgr -inst -file \"%1\"").arg(fileName), certmgrInstallCert);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
