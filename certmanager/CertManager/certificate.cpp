@@ -230,6 +230,17 @@ bool Certificate::install()
     return res;
 }
 
+bool Certificate::save(const QString &fileName)
+{
+    if(_data.size() == 0)
+        return false;
+
+    Base64Converter::writeFile(QTextCodec::codecForName("CP1251")->fromUnicode(fileName).toStdString(), _data);
+    QFile file(fileName);
+
+    return file.exists();
+}
+
 bool Certificate::fromSha1(const QString &sha)
 {
 
@@ -446,8 +457,7 @@ QBSqlQuery Certificate::getSqlQueryObject(QBSqlCommand command)
 
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());
-        QByteArray dt = base64.data();
-        bindQuery.addField("data", QString(dt.toBase64()), bFieldType::qByteArray);
+        bindQuery.addField("data", QString::fromStdString(base64), bFieldType::qByteArray);
     }
 
     bindQuery.addField("dataformat", dataformat());

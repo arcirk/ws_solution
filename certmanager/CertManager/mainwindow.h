@@ -324,7 +324,7 @@ private:
     void saveAsDatabaseCertificate();
 
 
-    void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "");
+    void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "", const QString& byteArrayBase64 = "");
     void addCertificateFromBase64ToDatabase(const QString& data);
     void delCertificate();
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");

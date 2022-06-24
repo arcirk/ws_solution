@@ -598,7 +598,7 @@ void MainWindow::saveAsDatabaseCertificate()
 
 }
 
-void MainWindow::addCertificate(const QString& from, const QString& to, const QString& id)
+void MainWindow::addCertificate(const QString& from, const QString& to, const QString& id, const QString& byteArrayBase64)
 {
     qDebug() << __FUNCTION__;
 
@@ -619,19 +619,37 @@ void MainWindow::addCertificate(const QString& from, const QString& to, const QS
 
     }
 
-    if(sha1.isEmpty()){
-        fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
-                                                     QDir::homePath(),
-                                                     "Файл сертификата (*.cer)");
-        if(fileName.isEmpty()){
-            return;
+    if(byteArrayBase64.isEmpty()){
+        if(sha1.isEmpty()){
+            fileName = QFileDialog::getOpenFileName(this, tr("Выбрать файл"),
+                                                         QDir::homePath(),
+                                                         "Файл сертификата (*.cer)");
+            if(fileName.isEmpty()){
+                return;
+            }
+
+            if(to != STORGARE_LOCALHOST)
+                cert.fromFile(fileName, removeTmp);
+            else{
+                terminal->send(QString("certmgr -inst -file \"%1\"").arg(fileName), certmgrInstallCert);
+                return;
+            }
+        }else{
+            cert.fromSha1(sha1);
+
         }
-
-        if(to != STORGARE_LOCALHOST)
-            cert.fromFile(fileName, removeTmp);
-    }else{        
-        cert.fromSha1(sha1);
-
+    }else{
+        ByteArray data = Base64Converter::base64_to_byte(byteArrayBase64.toStdString());
+        cert.setData(data);
+        if(to == STORGARE_LOCALHOST){
+            QString fileName = QFileDialog::getSaveFileName(this, tr("Выбрать файл"),
+                                                         QDir::homePath(),
+                                                         "Файл сертификата (*.cer)");
+            if(fileName != ""){
+                cert.save(fileName);
+            }
+        }
+        return;
     }
 
     if(cert.isValid()){
@@ -661,8 +679,6 @@ void MainWindow::addCertificate(const QString& from, const QString& to, const QS
                 }
             }
 
-        }else if(to == STORGARE_LOCALHOST){
-             terminal->send(QString("certmgr -inst -file \"%1\"").arg(fileName), certmgrInstallCert);
         }
     }
 }
@@ -3784,6 +3800,14 @@ void MainWindow::on_btnDatabaseSaveAs_clicked()
         param.insert("from", QString("\\\\.\\DATABASE\\%1").arg(container));
         param.insert("to", ToVolume);
         getDatabaseData("Containers", ref, param);
+    }else if(node == SqlCertificates){
+        int ind = modelSqlCertificates->getColumnIndex("Ref");
+        auto ref = modelSqlCertificates->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+        auto param = QJsonObject();
+        param.insert("command", "addCertificate");
+        param.insert("from", STORGARE_LOCALHOST);
+        param.insert("to", STORGARE_LOCALHOST);
+        getDatabaseData("Certificates", ref, param);
     }
 
 //    if(node == SqlContainers){
@@ -3855,6 +3879,12 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
             from = from + name;
         QString to = _param.value("to").toString();
         addContainer(from, to, dataBase64);
+    }else if(command == "addCertificate"){
+        QString from = _param.value("from").toString();
+        if(!name.isEmpty())
+            from = from + name;
+        QString to = _param.value("to").toString();
+        addCertificate(from, to, "", dataBase64);
     }
 
 
