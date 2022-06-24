@@ -140,7 +140,7 @@ private:
 
     void sendResultToClient();
 
-    void asyncWait();
+    void asynAwait();
 
     void createTerminal();
     //void getCurrentUser();
@@ -183,7 +183,7 @@ private:
     void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent = false);
 
     void addContainer(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");
-    void addCertificate(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "");
+    void addCertificate(const QString& from = "", const QString& to = "", const QString& byteArrayBase64 = "", const QString& ref = "", const QString& cntName = "", const QString& cntByteArrayBase64 = "");
     bool deleteLocalObject(const QString& objectName, const QString& objectType);
 
     void getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param);
