@@ -2881,6 +2881,15 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         }else{
             QMessageBox::information(this, "Установка контейнера", "Контейнер успешно установлен у пользователя!");
         }
+    }else if(command == "installCertificate"){
+        //qDebug() << __FUNCTION__ << command  << message;
+        if(message == "error"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
+        }else{
+            QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен у пользователя!");
+            //QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен!");
+//            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
+        }
     }else
         qDebug() << __FUNCTION__ << command << message;
 }
@@ -3818,59 +3827,6 @@ void MainWindow::onGetDataFromDatabase(const QString &table, const QString param
         addCertificate(from, to, "", dataBase64, cntName, cntData);
     }
 
-
-
-//        QByteArray data = QByteArray::fromBase64(dataBase64.toUtf8());
-//        auto cnt = KeysContainer();
-//        cnt.fromJson(data);
-//        if(!cnt.isValid()){
-//            QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
-//            return;
-//        }
-//        cnt.fromContainerName(device);
-//        bool result = cnt.sync(currentUser->sid());
-//        if(result){
-//            QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
-//            terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
-//        }else
-//            QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
-
-
-
-
-
-
-
-//    if(command == "copy_container_from_data"){
-//        QString device = _param.value("toDevice").toString();
-//        if(device.isEmpty()){
-//            return;
-//        }else
-//        {
-//            if(currentUser->sid().isEmpty())
-//                return;
-//            auto rows = _table.value("rows").toArray();
-//            auto row = rows[0].toObject();
-//            if(!row.isEmpty()){
-//                QString dataBase64 = row.value("data").toString();
-//                QByteArray data = QByteArray::fromBase64(dataBase64.toUtf8());
-//                auto cnt = KeysContainer();
-//                cnt.fromJson(data);
-//                if(!cnt.isValid()){
-//                    QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
-//                    return;
-//                }
-//                cnt.fromContainerName(device);
-//                bool result = cnt.sync(currentUser->sid());
-//                if(result){
-//                    QMessageBox::information(this, "Копирование контейнера", "Контейнер успешно скопирован!");
-//                    terminal->send("csptest -keyset -enum_cont -fqcn -verifyc\n", CmdCommand::csptestGetConteiners);
-//                }else
-//                    QMessageBox::critical(this, "Ошибка", "При копировании контейнера произошла ошибка!");
-//            }
-//        }
-//    }
-
 }
 
 void MainWindow::on_btnDatabaseInfo_clicked()
@@ -4059,6 +4015,8 @@ void MainWindow::onWhenDataIsLoaded()
 
 void MainWindow::sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent)
 {
+    qDebug() << __FUNCTION__ << command;
+
     if(!m_client->isStarted())
         return;
 
