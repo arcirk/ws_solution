@@ -11,9 +11,10 @@ ProfileManager::ProfileManager(const QString& homePath, QObject *parent)
     _homePath = homePath;
     getConf();
     getSettings();
+    _bindCertificates = false;
 }
 
-QMap<QUuid, UserProfile *> ProfileManager::profiles()
+QMap<QUuid, UserProfile *> &ProfileManager::profiles()
 {
     return _profiles;
 }
@@ -36,10 +37,10 @@ void ProfileManager::getSettings()
                 auto profile = new UserProfile();
                 QString name = item.value("name").toString();
                 profile->setName(name);
+                QString _profile = item.value("profile").toString();
+                profile->setProfile(_profile);
                 QString address = item.value("address").toString();
                 profile->setDefaultAddress(address);
-                QString typeOperation = item.value("typeOperation").toString();
-                profile->setTypeOperation(typeOperation);
                 QUuid uuid = QUuid::fromString(item.value("uuid").toString());
                 profile->setUuid(uuid);
                 auto certs = item.value("certs");
@@ -69,11 +70,12 @@ void ProfileManager::saveSettings()
     QJsonDocument doc = QJsonDocument();
     QJsonArray arr = doc.array();
 
-    for (auto itr : _profiles) {
+    foreach (auto itr , _profiles) {
         QJsonObject obj = QJsonObject();
         obj.insert("name", itr->name());
+        obj.insert("profile", itr->profile());
         obj.insert("address", itr->defaultAddress());
-        obj.insert("typeOperation", itr->typeOperation());
+        //obj.insert("typeOperation", itr->typeOperation());
         obj.insert("uuid", itr->uuid().toString());
         QJsonArray lst = QJsonArray();
         for (auto cert : itr->serificates()) {
@@ -107,6 +109,10 @@ QString ProfileManager::mozillaProfilesFile()
            itr = obj.find("mozillaExeFile");
            if(itr->isString()){
                _mozillaExeFile = itr.value().toString();
+           }
+           itr = obj.find("bindCertificates");
+           if(itr->isBool()){
+               _bindCertificates = itr.value().toBool();
            }
        }
        conf.close();
@@ -165,10 +171,12 @@ void ProfileManager::setMozillaExeFile(const QString &value)
         QJsonObject obj = QJsonObject();
         obj.insert("profilesPath", mozillaProfilesFile());
         obj.insert("mozillaExeFile", _mozillaExeFile);
+        obj.insert("bindCertificates", _bindCertificates);
         doc.setObject(obj);
         conf.write(QJsonDocument(doc).toJson(QJsonDocument::Indented));
         conf.close();
     }
+
 }
 
 QStringList ProfileManager::profilesNames()
@@ -186,6 +194,129 @@ void ProfileManager::clear()
     _profiles.clear();
 }
 
+QJsonObject ProfileManager::cache()
+{
+    auto objMain = QJsonObject();
+    auto objmozilla = QJsonObject();
+    objmozilla.insert("profilesPath", mozillaProfilesFile());
+    objmozilla.insert("mozillaExeFile", _mozillaExeFile);
+    objmozilla.insert("bindCertificates", _bindCertificates);
+    objMain.insert("mozilla", objmozilla);
+
+
+    auto arr = QJsonArray();
+
+    foreach (auto itr , _profiles) {
+        QJsonObject obj = QJsonObject();
+        obj.insert("name", itr->name());
+        obj.insert("profile", itr->profile());
+        obj.insert("address", itr->defaultAddress());
+        //obj.insert("typeOperation", itr->typeOperation());
+        obj.insert("uuid", itr->uuid().toString());
+        QJsonArray lst = QJsonArray();
+        for (auto cert : itr->serificates()) {
+            lst.append(cert.toString());
+        }
+        obj.insert("certs", lst);
+        arr.append(obj);
+    }
+
+    objMain.insert("profiles", arr);
+
+    return objMain;
+}
+
+void ProfileManager::setCache(const QJsonObject &value)
+{
+
+    auto itr = value.find("mozilla");
+    if(itr != value.end()){
+        auto obj = itr.value().toObject();
+        if(!obj.empty()){
+            itr = obj.find("profilesPath");
+            if(itr->isString()){
+                _mozillaProfilesFile = itr.value().toString();
+            }
+            itr = obj.find("mozillaExeFile");
+            if(itr->isString()){
+                _mozillaExeFile = itr.value().toString();
+            }
+            itr = obj.find("bindCertificates");
+            if(itr->isBool()){
+                _bindCertificates = itr.value().toBool();
+            }
+        }
+    }
+
+    itr = value.find("profiles");
+
+    if(itr != value.end()){
+
+        auto arr = itr.value().toArray();
+
+        if(!arr.isEmpty()){
+            for (auto itr : arr) {
+                if(itr.isObject()){
+                    auto item = itr.toObject();
+                    auto profile = new UserProfile();
+                    QString name = item.value("name").toString();
+                    profile->setName(name);
+                    QString _profile = item.value("profile").toString();
+                    profile->setProfile(_profile);
+                    QString address = item.value("address").toString();
+                    profile->setDefaultAddress(address);
+                    QUuid uuid = QUuid::fromString(item.value("uuid").toString());
+                    profile->setUuid(uuid);
+                    auto certs = item.value("certs");
+                    if(certs.isArray()){
+                        auto arrLst = certs.toArray();
+                        QList<QUuid> lst;
+                        for(auto _uuid : arrLst){
+                            lst.append(QUuid::fromString(_uuid.toString()));
+                        }
+                        profile->setSertificates(lst);
+                    }
+                    _profiles.insert(uuid, profile);
+                }
+
+            }
+        }
+    }
+}
+
+QString ProfileManager::model()
+{
+    const QStringList _columns = {"Empty", "name", "profile", "address", "uuid", "cert"};
+    auto objMain = QJsonObject();
+    auto columns = QJsonArray();
+    auto rows = QJsonArray();
+
+    foreach(auto _col, _columns){
+        columns.append(_col);
+    }
+
+    objMain.insert("columns", columns);
+
+    foreach (auto itr , _profiles) {
+        auto obj = itr->to_modelObject();
+        rows.append(obj);
+    }
+
+    objMain.insert("rows", rows);
+
+    return QJsonDocument(objMain).toJson();
+}
+
+bool ProfileManager::bindCertificates()
+{
+    return _bindCertificates;
+}
+
+void ProfileManager::setBindCertificates(bool value)
+{
+    _bindCertificates = value;
+}
+
 void ProfileManager::getConf()
 {
     QFile conf(_homePath + "/mozilla.json");
@@ -201,6 +332,10 @@ void ProfileManager::getConf()
            itr = obj.find("mozillaExeFile");
            if(itr->isString()){
                _mozillaExeFile = itr.value().toString();
+           }
+           itr = obj.find("bindCertificates");
+           if(itr->isBool()){
+               _bindCertificates = itr.value().toBool();
            }
        }
        conf.close();
@@ -222,7 +357,6 @@ void ProfileManager::loadProfilesFromINI()
             if(key.endsWith("/Name")){
                 _profilesNames.append(ini.value(key).toString());
             }
-
         }
     }
 }

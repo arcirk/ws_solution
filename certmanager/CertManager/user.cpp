@@ -1,5 +1,5 @@
 #include "user.h"
-#include "registry.h"
+#include "../old/registry.h"
 //#include <qjsontablemodel.h>
 //#include <qproxymodel.h>
 
@@ -194,6 +194,16 @@ bool CertUser::thisIsTheUser(const QString &usr, const QString &host)
 QMap<QString, Certificate *>& CertUser::certificates()
 {
     return m_cert;
+}
+
+QString CertUser::available_certificates()
+{
+    return QJsonDocument(m_available_certs).toJson();
+}
+
+void CertUser::set_available_certificates(const QJsonObject &certsTable)
+{
+    m_available_certs = certsTable;
 }
 
 QString CertUser::modelCertificatesText()

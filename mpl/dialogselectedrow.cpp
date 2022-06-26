@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QStringListModel>
 
-DialogSelectedRow::DialogSelectedRow(UserProfile * prof, QWidget *parent) :
+DialogSelectedRow::DialogSelectedRow(UserProfile * prof, CertUser* user, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogSelectedRow)
 {
@@ -13,12 +13,24 @@ DialogSelectedRow::DialogSelectedRow(UserProfile * prof, QWidget *parent) :
     _prof = prof;
 
     loadProfiles();
+
     auto lst = new QStringListModel(m_profileNames);
     ui->cmbMozillaProfile->setModel(lst);
-    if(!prof->name().isEmpty())
-        ui->cmbMozillaProfile->setCurrentIndex(m_profileNames.indexOf(prof->name()));
-    ui->lblType->setText(prof->typeOperation());
+
+    if(!prof->profile().isEmpty())
+        ui->cmbMozillaProfile->setCurrentIndex(m_profileNames.indexOf(prof->profile()));
+    ui->lblName->setText(prof->name());
     ui->txtUrl->setText(prof->defaultAddress());
+
+    QStringList lstCerts = {""};
+    int i = 0;
+    for (auto itr = user->certificates().begin(); itr != user->certificates().end(); ++itr) {
+        lstCerts.append(itr.value()->bindName());
+        _certsList.insert(i, itr.value());
+    }
+
+    lst = new QStringListModel(lstCerts);
+    ui->cmbCertificates->setModel(lst);
 
     setWindowTitle("Настройка профиля");
 }
@@ -30,11 +42,11 @@ DialogSelectedRow::~DialogSelectedRow()
 
 void DialogSelectedRow::accept()
 {
-    _prof->setName(ui->cmbMozillaProfile->currentText());
+    _prof->setProfile(ui->cmbMozillaProfile->currentText());
     _prof->setDefaultAddress(ui->txtUrl->toPlainText());
     if(_prof->isNew())
         _prof->setUuid(QUuid::createUuid());
-    _prof->setTypeOperation(ui->lblType->text());
+    _prof->setName(ui->lblName->text());
 
     QDialog::accept();
 }

@@ -6,8 +6,8 @@
 #include <QUuid>
 #include <certificate.h>
 #include "keyscontainer.h"
-//#include <qjsontablemodel.h>
-//#include <qproxymodel.h>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace boost { namespace uuids { class uuid; } }
 
@@ -48,6 +48,9 @@ public:
 
 
     QMap<QString, Certificate*>& certificates();
+    QString available_certificates();
+    void set_available_certificates(const QJsonObject& certsTable);
+
     QString modelCertificatesText();
     QJsonObject certModel();
     void certsFromModel(const QJsonObject& certs);
@@ -68,6 +71,7 @@ private:
 
     QMap<QString, KeysContainer*> m_cnt;
     QMap<QString, Certificate*> m_cert;
+    QJsonObject m_available_certs;
 
 //    QJsonTableModel* _model;
 //    QProxyModel * _proxyModel;

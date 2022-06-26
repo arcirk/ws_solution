@@ -271,7 +271,7 @@ void MainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::execQuery, this, &MainWindow::onWsExecQuery);
     connect(m_client, &bWebSocket::wsGetAvailableContainers, this, &MainWindow::onWsGetAvailableContainers);
     connect(m_client, &bWebSocket::wsCommandToClient, this, &MainWindow::onWsCommandToClient);
-    connect(m_client, &bWebSocket::mplFormLoaded, this, &MainWindow::onWsMplClientFormLoaded);
+    //connect(m_client, &bWebSocket::mplFormLoaded, this, &MainWindow::onWsMplClientFormLoaded);
 }
 
 void MainWindow::createTerminal()
@@ -2894,10 +2894,10 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         qDebug() << __FUNCTION__ << command << message;
 }
 
-void MainWindow::onWsMplClientFormLoaded(const QString &resp)
-{
-    qDebug() << __FUNCTION__ << resp;
-}
+//void MainWindow::onWsMplClientFormLoaded(const QString &resp)
+//{
+//    qDebug() << __FUNCTION__ << resp;
+//}
 
 void MainWindow::onWsExecQuery(const QString &result)
 {

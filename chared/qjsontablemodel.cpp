@@ -322,6 +322,23 @@ int QJsonTableModel::row(const QPair<QString, QString>& key)
     return m_rowKeys.indexOf(key);
 }
 
+QJsonObject QJsonTableModel::getRowObject(int row)
+{
+    if(row < m_json.size())
+        return m_json[row].toObject();
+
+    return QJsonObject();
+}
+
+void QJsonTableModel::updateRow(const QJsonObject &obj, int row)
+{
+    if(row >= m_json.size())
+        return;
+
+    m_json[row] = obj;
+
+}
+
 void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
 {
     m_fmtText.insert(column, fmt);

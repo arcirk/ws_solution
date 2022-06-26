@@ -19,6 +19,7 @@
 #include <QFileDialog>
 #include <QSqlError>
 #include "dialogconnection.h"
+#include <tabledelegate.h>
 
 //const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
 //        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
@@ -42,8 +43,13 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     setWindowTitle("Настройки профилей пользователя");
 
-    connect(this, &DialogMainWindow::whenDataIsLoaded, this, &DialogMainWindow::onWhenDataIsLoaded);
-    connect(this, &DialogMainWindow::endInitConnection, this, &DialogMainWindow::onEndInitConnection);
+//    connect(this, &DialogMainWindow::whenDataIsLoaded, this, &DialogMainWindow::onWhenDataIsLoaded);
+//    connect(this, &DialogMainWindow::endInitConnection, this, &DialogMainWindow::onEndInitConnection);
+
+    _profiles = nullptr;
+    terminal = nullptr;
+    m_client = nullptr;
+    db = nullptr;
 
     formControl();
 
@@ -55,37 +61,35 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     createConnectionsObjects();
 
+    createColumnAliases();
+
     m_async_await.append(std::bind(&DialogMainWindow::currentUserSid, this));
     m_async_await.append(std::bind(&DialogMainWindow::currentUserGetConteiners, this));
     m_async_await.append(std::bind(&DialogMainWindow::currentUserGetCertificates, this));
+    m_async_await.append(std::bind(&DialogMainWindow::createWsObject, this));
     m_async_await.append(std::bind(&DialogMainWindow::getSettingsFromHttp, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToWsServer, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToDatabase, this));
+    m_async_await.append(std::bind(&DialogMainWindow::initProfiles, this));
+    m_async_await.append(std::bind(&DialogMainWindow::getUserData, this));
+    m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
+    m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
 
     currentUser = new CertUser(this);
     QString curentHost = QSysInfo::machineHostName();
     currentUser->setDomain(curentHost);
 
+    mozillaApp = new QProcess(this);
+
     //запуск асинхронных вызовов
     createTerminal();
-
-
-
-
-
-    //setWsConnectedSignals();
-
-//    if(_sett->launch_mode() == mixed){
-//        if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-//             connectToDatabase(_sett, _sett->pwd());
-//    }else
-//        connectToWsServer();
-
 
 }
 
 void DialogMainWindow::createConnectionsObjects()
 {
+    qDebug() << __FUNCTION__;
+
     db = new SqlInterface(this);
 
     //createWsObject(/*usr, pwd */);
@@ -101,8 +105,11 @@ void DialogMainWindow::accept()
 {
 
     updateData();
-    _profiles->saveSettings();
+    if(_profiles){
+        _profiles->saveSettings();        
+    }
     createDynamicMenu();
+
     QDialog::accept();
 }
 
@@ -132,69 +139,70 @@ void DialogMainWindow::closeEvent(QCloseEvent *event)
 
 void DialogMainWindow::updateData()
 {
-    QTableWidget * table = ui->tableWidget;
-    _profiles->clear();
+//    if(!_profiles)
+//        return;
+//    QTableWidget * table = ui->tableWidget;
+//    _profiles->clear();
 
-    for (int row = 0; row < table->rowCount(); row++) {
-        auto prof = new UserProfile();
-        auto line = getLineEdit(row, 0);
-        if(line)
-            prof->setName(line->text());
-        auto item = ui->tableWidget->item(row, 1);
-        if(item)
-           prof->setTypeOperation(item->text());
-        line = getLineEdit(row, 2);
-        if(line)
-            prof->setDefaultAddress(line->text());
-        item = ui->tableWidget->item(row, 4);
-        if(item)
-           prof->setUuid(QUuid::fromString(item->text()));
+//    for (int row = 0; row < table->rowCount(); row++) {
+//        auto prof = new UserProfile();
+//        auto line = getLineEdit(row, 0);
+//        if(line)
+//            prof->setProfile(line->text());
+//        auto item = ui->tableWidget->item(row, 1);
+//        if(item)
+//           prof->setName(item->text());
+//        line = getLineEdit(row, 2);
+//        if(line)
+//            prof->setDefaultAddress(line->text());
+//        item = ui->tableWidget->item(row, 4);
+//        if(item)
+//           prof->setUuid(QUuid::fromString(item->text()));
 
-        _profiles->setProfile(prof);
-    }
+//        _profiles->setProfile(prof);
+//    }
 
 }
 
 
 void DialogMainWindow::setRow(UserProfile *prof)
 {
-    QTableWidget * table = ui->tableWidget;
-    table->setRowCount(table->rowCount() + 1);
-    int row = table->rowCount() -1;
+//    QTableWidget * table = ui->tableWidget;
+//    table->setRowCount(table->rowCount() + 1);
+//    int row = table->rowCount() -1;
 
-    //имя профиля
-    auto *pWidget = getItemWidget(prof->name(), row, 0, SLOT(onSelectProfile()));
-    table->setCellWidget(table->rowCount()-1,0,pWidget);
-    //вид операции
-    auto itemName = new QTableWidgetItem(prof->typeOperation());
-    table->setItem(row, 1, itemName);
-    //Страница по умолчанию
-    pWidget = getItemWidget(prof->defaultAddress(), row, 2, SLOT(onSelectDefaultAddress()));
-    table->setCellWidget(table->rowCount()-1,2,pWidget);
-    //Сертификаты
-    pWidget = getItemWidget(prof->certToString(), row, 3, SLOT(onSelectDefaultCertificate()));
-    table->setCellWidget(table->rowCount()-1,3,pWidget);
-    //Идентификатор
-    auto itemUuid = new QTableWidgetItem(prof->uuid().toString());
-    itemUuid->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    table->setItem(row, 4, itemUuid);
+//    //имя профиля
+//    auto *pWidget = getItemWidget(prof->profile(), row, 0, SLOT(onSelectProfile()));
+//    table->setCellWidget(table->rowCount()-1,0,pWidget);
+//    //вид операции
+//    auto itemName = new QTableWidgetItem(prof->name());
+//    table->setItem(row, 1, itemName);
+//    //Страница по умолчанию
+//    pWidget = getItemWidget(prof->defaultAddress(), row, 2, SLOT(onSelectDefaultAddress()));
+//    table->setCellWidget(table->rowCount()-1,2,pWidget);
+//    //Сертификаты
+//    pWidget = getItemWidget(prof->certToString(), row, 3, SLOT(onSelectDefaultCertificate()));
+//    table->setCellWidget(table->rowCount()-1,3,pWidget);
+//    //Идентификатор
+//    auto itemUuid = new QTableWidgetItem(prof->uuid().toString());
+//    itemUuid->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+//    table->setItem(row, 4, itemUuid);
+
+    _profiles->setProfile(prof);
+
+    modelMplProfiles->addRow(prof->to_modelObject());
+    modelMplProfiles->reset();
+    ui->tableView->resizeColumnsToContents();
+    updateDataUserCache();
 
 }
 
 void DialogMainWindow::updateRow(UserProfile *prof, int row)
 {
-    auto line = getLineEdit(row, 0);
-    if(line)
-        line->setText(prof->name());
-    auto item = ui->tableWidget->item(row, 1);
-    if(item)
-        item->setText(prof->typeOperation());
-    line = getLineEdit(row, 2);
-    if(line)
-        line->setText(prof->defaultAddress());
-    item = ui->tableWidget->item(row, 4);
-    if(item)
-        item->setText(prof->uuid().toString());
+      modelMplProfiles->updateRow(prof->to_modelObject(), row);
+      modelMplProfiles->reset();
+      ui->tableView->resizeColumnsToContents();
+      updateDataUserCache();
 }
 
 void DialogMainWindow::setProfile(UserProfile *prof)
@@ -203,50 +211,51 @@ void DialogMainWindow::setProfile(UserProfile *prof)
     items.insert(prof->uuid(), prof);
 }
 
-QLineEdit *DialogMainWindow::getLineEdit(int row, int col)
-{
-    QWidget* pWidget = ui->tableWidget->cellWidget(row, col);
-    if(!pWidget)
-        return nullptr;
-    auto *line = pWidget->findChild<QLineEdit*>("lineEdit" + QString::number(row));
-    return line;
-}
+//QLineEdit *DialogMainWindow::getLineEdit(int row, int col)
+//{
+////    QWidget* pWidget = ui->tableWidget->cellWidget(row, col);
+////    if(!pWidget)
+////        return nullptr;
+////    auto *line = pWidget->findChild<QLineEdit*>("lineEdit" + QString::number(row));
+////    return line;
+//}
 
-QWidget *DialogMainWindow::getItemWidget(const QString &text, int row, int col, const char* member)
-{
-    auto *pWidget = new QWidget();
-    auto *pToolBtn = new QToolButton();
-    auto *pLayoutVal = new QHBoxLayout(pWidget);
-    auto *pLineEdit = new QLineEdit();
+//QWidget *DialogMainWindow::getItemWidget(const QString &text, int row, int col, const char* member)
+//{
+//    auto *pWidget = new QWidget();
+//    auto *pToolBtn = new QToolButton();
+//    auto *pLayoutVal = new QHBoxLayout(pWidget);
+//    auto *pLineEdit = new QLineEdit();
 
-    pToolBtn->setAutoRaise(true);
-    pToolBtn->setText("...");
-    pToolBtn->setProperty("row", row);
-    pToolBtn->setProperty("col", col);
-    pToolBtn->setObjectName("btn" + QString::number(row));
-    pLineEdit->setObjectName("lineEdit" + QString::number(row));
-    pLineEdit->setFrame(false);
-    pLineEdit->setReadOnly(true);
-    pLineEdit->setProperty("row", row);
-    pLineEdit->setProperty("col", col);
+//    pToolBtn->setAutoRaise(true);
+//    pToolBtn->setText("...");
+//    pToolBtn->setProperty("row", row);
+//    pToolBtn->setProperty("col", col);
+//    pToolBtn->setObjectName("btn" + QString::number(row));
+//    pLineEdit->setObjectName("lineEdit" + QString::number(row));
+//    pLineEdit->setFrame(false);
+//    pLineEdit->setReadOnly(true);
+//    pLineEdit->setProperty("row", row);
+//    pLineEdit->setProperty("col", col);
 
-    pLayoutVal->addWidget(pLineEdit);
-    pLayoutVal->addWidget(pToolBtn);
-    pLayoutVal->setContentsMargins(0,0,0,0);
-    pWidget->setLayout(pLayoutVal);
-    pLineEdit->setText(text);
+//    pLayoutVal->addWidget(pLineEdit);
+//    pLayoutVal->addWidget(pToolBtn);
+//    pLayoutVal->setContentsMargins(0,0,0,0);
+//    pWidget->setLayout(pLayoutVal);
+//    pLineEdit->setText(text);
 
-    connect(pToolBtn, SIGNAL(clicked()), this, member);
-    connect(pLineEdit, SIGNAL(cursorPositionChanged(int, int)), this, SLOT(onLineEditCursorPositionChanged(int, int)));
+//    connect(pToolBtn, SIGNAL(clicked()), this, member);
+//    connect(pLineEdit, SIGNAL(cursorPositionChanged(int, int)), this, SLOT(onLineEditCursorPositionChanged(int, int)));
 
-    return pWidget;
-}
+//    return pWidget;
+//}
 
 void DialogMainWindow::formControl()
 {
     qDebug() << __FUNCTION__;
 
-    isFormLoaded = false;
+    ui->tableView->setItemDelegate(new TableDelegate);
+    ui->tableView->setIconSize(QSize(16,16));
 
     QString dir = QDir::homePath();
 
@@ -264,27 +273,32 @@ void DialogMainWindow::formControl()
 
     infoBar = ui->lblStatus;
 
-    QTableWidget * table = ui->tableWidget;
-    table->setColumnCount(5);
-    table->setHorizontalHeaderLabels(QStringList{"Профиль", "Вид операции", "Адрес", "Сертификаты", "Идентификатор"}); // "IsRelative", "Default"});
-    table->setColumnHidden(3, true);
-    table->setColumnHidden(4, true);
+//
 
-    _profiles = new ProfileManager(appHome.path(), this);
-    if(_profiles->mozillaExeFile().isEmpty()){
-        _profiles->setMozillaExeFile("C:\\Program Files\\Mozilla Firefox\\firefox.exe");
-    }
-    updateFromData();
 
-    table->resizeColumnToContents(0);
-    table->resizeColumnToContents(1);
-    table->setSelectionMode(QTableWidget::SingleSelection);
+//    QTableWidget * table = ui->tableWidget;
+//    table->setColumnCount(5);
+//    table->setHorizontalHeaderLabels(QStringList{"Профиль", "Вид операции", "Адрес", "Сертификаты", "Идентификатор"}); // "IsRelative", "Default"});
+//    table->setColumnHidden(3, true);
+//    table->setColumnHidden(4, true);
+
+//
+
+
+
+
+
+//    updateFromData();
+
+//    table->resizeColumnToContents(0);
+//    table->resizeColumnToContents(1);
+//    table->setSelectionMode(QTableWidget::SingleSelection);
 
     createTrayActions();
     createTrayIcon();
     trayIcon->show();
 
-    ui->tableWidget->resizeRowsToContents();
+    //ui->tableWidget->resizeRowsToContents();
 }
 
 void DialogMainWindow::createTrayActions()
@@ -294,16 +308,23 @@ void DialogMainWindow::createTrayActions()
     showAction = new QAction(tr("&Открыть менеджер профилей"), this);
     connect(showAction, &QAction::triggered, this, &DialogMainWindow::onWindowShow);
 
-    if(_profiles->profiles().size() == 0){
-        trayIconMenu = new QMenu(this);
-        trayIconMenu->addAction(showAction);
-        trayIconMenu->addSeparator();
-        trayIconMenu->addAction(quitAction);
-    }
-    else{
-        trayIconMenu = new QMenu(this);
+    trayIconMenu = new QMenu(this);
+
+//    if(!_profiles){
+//        trayIconMenu->addAction(showAction);
+//        trayIconMenu->addSeparator();
+//        trayIconMenu->addAction(quitAction);
+//        return;
+//    }
+
+//    if(_profiles->profiles().size() == 0){
+//        trayIconMenu->addAction(showAction);
+//        trayIconMenu->addSeparator();
+//        trayIconMenu->addAction(quitAction);
+//    }
+//    else{
         createDynamicMenu();
-    }
+    //}
 }
 
 void DialogMainWindow::createTrayIcon()
@@ -324,24 +345,24 @@ void DialogMainWindow::createDynamicMenu()
     trayIconMenu->clear();
     trayIconMenu->addAction(showAction);
 
-    trayIconMenu->addSeparator();
+    if(_profiles){
+        trayIconMenu->addSeparator();
 
-    auto items = _profiles->profiles();
+        auto items = _profiles->profiles();
 
-    for (auto item : items){
+        for (auto item : items){
 
-        QString sz = item->name();
-        sz.append(" / ");
-        sz.append(item->typeOperation());
-        auto action = new QAction(sz, this);
-        action->setProperty("uuid", item->uuid());
-        trayIconMenu->addAction(action);
-        connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
+            QString sz = item->name();
+            sz.append(" / ");
+            sz.append(item->profile());
+            auto action = new QAction(sz, this);
+            action->setProperty("uuid", item->uuid());
+            trayIconMenu->addAction(action);
+            connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
+        }
     }
-
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
-
 }
 
 QString DialogMainWindow::toBankClientFile()
@@ -384,7 +405,7 @@ void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid
 
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 {
-    qCritical() << __FUNCTION__ << what << err;
+    qCritical() << __FUNCTION__ << what << qPrintable(err);
 //    if(err == "В соединении отказано"){
 //        emit endInitConnection();
 //    }
@@ -424,6 +445,8 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
             onGetDataFromDatabase(table, run_on_return);
         }else
             qCritical() << __FUNCTION__ << "Не верные параметры команды!";
+    }else if(id_command == "get_cert_user_cache"){
+        setFromDataUserCache(obj);
     }
 
 }
@@ -723,27 +746,56 @@ void DialogMainWindow::onGetDataFromDatabase(const QString &table, const QString
         return;
     }
 
-    auto row = rows[0].toObject();
-    QString dataBase64 = row.value("data").toString();
     QString command = _param.value("command").toString();
-    QString name = _param.value("FirstField").toString();
+    QStringList dataCommand = {"addContainer", "addCertificate"};
+    auto row = rows[0].toObject();
 
-    if(command == "addContainer"){
-        QString from = _param.value("from").toString();
-        if(!name.isEmpty())
-            from = from + name;
+    if(dataCommand.indexOf(command) != -1){
+
+        QString dataBase64 = row.value("data").toString();
+
+        QString name = _param.value("FirstField").toString();
+
+        if(command == "addContainer"){
+            QString from = _param.value("from").toString();
+            if(!name.isEmpty())
+                from = from + name;
+            QString to = _param.value("to").toString();
+            addContainer(from, to, dataBase64);
+        }else if(command == "addCertificate"){
+            QString from = _param.value("from").toString();
+            if(!name.isEmpty())
+                from = from + name;
+            QString to = _param.value("to").toString();
+            QString cntName = row.value("CntFirstField").toString();
+            QString cntData = row.value("CntData").toString();
+            addCertificate(from, to, dataBase64, "", cntName, cntData);
+        }
+    }else if(command == "getCache"){
+
+        QString cache = row.value("cache").toString();
+        QString name = _param.value("FirstField").toString();
+
         QString to = _param.value("to").toString();
-        addContainer(from, to, dataBase64);
-    }else if(command == "addCertificate"){
-        QString from = _param.value("from").toString();
-        if(!name.isEmpty())
-            from = from + name;
-        QString to = _param.value("to").toString();
-        QString cntName = row.value("CntFirstField").toString();
-        QString cntData = row.value("CntData").toString();
-        addCertificate(from, to, dataBase64, "", cntName, cntData);
+
+        if(to == "userCache"){
+            if(!_profiles){
+                if(m_async_await.size() > 0){
+                    auto f = m_async_await.dequeue();
+                    f();
+                }
+                return;
+            }
+
+            auto doc = QJsonDocument::fromJson(cache.toUtf8());
+            _profiles->setCache(doc.object());
+
+            if(m_async_await.size() > 0){
+                auto f = m_async_await.dequeue();
+                f();
+            }
+        }
     }
-
 }
 
 void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param)
@@ -786,6 +838,246 @@ void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref,
             }
         }
 
+}
+
+void DialogMainWindow::getDatabaseCache(const QString& table, const QString& ref, const QJsonObject& param)
+{
+        qDebug() << __FUNCTION__ << table;
+
+        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, table);
+
+        bindQuery.addField("Ref", "Ref");
+        bindQuery.addField("FirstField", "FirstField");
+        bindQuery.addField("cache", "data");
+
+        bindQuery.addWhere("Ref", ref);
+
+        QString query = bindQuery.to_json();
+
+        if(_sett->launch_mode() == mixed){
+            if(!db->isOpen())
+                return;
+            QString resultQuery;
+            QString _error;
+            db->exec_qt(query, resultQuery, _error);
+            auto doc = QJsonDocument();
+            doc.setObject(param);
+            onGetDataFromDatabase(resultQuery, doc.toJson());
+        }else{
+            if(m_client->isStarted()){
+                auto obj = QJsonObject();
+                obj.insert("query", query);
+                obj.insert("table", true);
+                obj.insert("id_command", "get_data");
+                obj.insert("run_on_return", QString(QJsonDocument(param).toJson()));
+                auto doc = QJsonDocument();
+                doc.setObject(obj);
+                QString paramData = doc.toJson();
+                m_client->sendCommand("exec_query_qt", "", paramData);
+            }
+        }
+
+}
+
+void DialogMainWindow::updateDataUserCache()
+{
+    qDebug() << __FUNCTION__;
+
+    if(!_profiles)
+        return;
+
+    if(currentUser->ref().isEmpty())
+        return;
+
+    auto obj = _profiles->cache();
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "CertUsers");
+    bindQuery.addField("cache", QJsonDocument(_profiles->cache()).toJson());
+
+    bindQuery.addWhere("Ref", currentUser->ref());
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "update_cert_user_cache");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString _error;
+        db->exec_qt(query, _error);
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "update_cert_user_cache");
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+
+}
+
+void DialogMainWindow::setFromDataUserCache(const QJsonObject &resp)
+{
+    qDebug() << __FUNCTION__;
+
+    QString table = resp.value("table").toString();
+    if(table.isEmpty())
+        return;
+
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+    auto rows = _table.value("rows").toArray();
+    if(rows.isEmpty()){
+        qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        return;
+    }
+
+    auto row = rows[0].toObject();
+
+    currentUser->setRef(row.value("Ref").toString());
+    currentUser->setUuid(QUuid::fromString(row.value("uuid").toString()));
+
+    QString jCache = row.value("cache").toString();
+    if(!jCache.isNull()){
+
+        if(_profiles){
+            auto doc = QJsonDocument::fromJson(jCache.toUtf8());
+            _profiles->setCache(doc.object());
+        }
+
+    }
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
+
+}
+
+void DialogMainWindow::getUserData()
+{
+
+    qDebug() << __FUNCTION__;
+
+    if(!_profiles)
+        return;
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertUsers");
+
+    bindQuery.addField("Ref", "Ref");
+    bindQuery.addField("cache", "cache");
+    bindQuery.addField("uuid", "uuid");
+
+    bindQuery.addWhere("FirstField", currentUser->name());
+    bindQuery.addWhere("host", currentUser->domain());
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "get_cert_user_cache");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+        auto doc = QJsonDocument::fromJson(resultQuery.toUtf8());
+        auto obj = doc.object();
+        setFromDataUserCache(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "get_cert_user_cache");
+            obj.insert("table", true);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+}
+
+void DialogMainWindow::getAvailableCerts()
+{
+    //доступные севртификаты
+    qDebug() << __FUNCTION__;
+
+    if(!_profiles)
+        return;
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "AvailableCertsView");
+
+    bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("CertRef", "CertRef");
+    bindQuery.addField("UserRef", "UserRef");
+    bindQuery.addField("sha1", "sha1");
+
+    bindQuery.addWhere("UserRef", currentUser->ref());
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "get_available_certs");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+        auto doc = QJsonDocument::fromJson(resultQuery.toUtf8());
+        auto obj = doc.object();
+        setAvailableCerts(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "get_available_certs");
+            obj.insert("table", true);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+}
+
+void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
+{
+    qDebug() << __FUNCTION__;
+
+    QString table = resp.value("table").toString();
+    if(table.isEmpty())
+        return;
+
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+    auto rows = _table.value("rows").toArray();
+    if(rows.isEmpty()){
+        qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        return;
+    }
+
+    currentUser->set_available_certificates(_table);
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
@@ -882,6 +1174,8 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
 
 void DialogMainWindow::onParseCommand(const QVariant &result, int command)
 {
+
+    qDebug() << __FUNCTION__ << command;
 
     if(command == CmdCommand::wmicGetSID){
         currentUser->setSid(result.toString());
@@ -1031,8 +1325,9 @@ void DialogMainWindow::onOutputCommandLine(const QString &data, int command)
 
 void DialogMainWindow::onCommandLineStart()
 {
-    if(isUseCsptest)
-        terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
+    qDebug() << __FUNCTION__;
+
+    terminal->send(QString("cd \"%1\"\n").arg(_cprocsp_dir), CmdCommand::unknown);
 
 #ifdef _WINDOWS
         std::string envUSER = "username";
@@ -1049,7 +1344,7 @@ void DialogMainWindow::onCommandLineStart()
         terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
 #endif
 
-        createWsObject();
+        //createWsObject();
 
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
@@ -1059,21 +1354,23 @@ void DialogMainWindow::onCommandLineStart()
 
 void DialogMainWindow::on_btnAdd_clicked()
 {
-    UserProfile * prof = new UserProfile();
-    prof->setTypeOperation("Новая настройка");
-    auto dlg = new DialogSelectedRow(prof);
-    dlg->setModal(true);
-    dlg->exec();
+    UserProfile * prof = new UserProfile(this);
+    prof->setName("Новая настройка");
+    auto dlg = DialogSelectedRow(prof, currentUser, this);
+    dlg.setModal(true);
+    dlg.exec();
 
-    if(dlg->result() == QDialog::Accepted){
+    if(dlg.result() == QDialog::Accepted){
         setRow(prof);
-        _profiles->setProfile(prof);
-    }
+    }else
+        delete prof;
 
 }
 
 void DialogMainWindow::onSelectProfile()
 {
+    qDebug() << __FUNCTION__;
+
     auto dlg = new DialogSelectProfile(_profiles->profilesNames(), this);
     dlg->setModal(true);
     dlg->exec();
@@ -1082,78 +1379,82 @@ void DialogMainWindow::onSelectProfile()
         auto *button = dynamic_cast<QToolButton*>( sender() );
         QVariant vRow = button->property("row");
         if(vRow.isValid()){
-            int row = vRow.toInt();
-            int curRow = ui->tableWidget->selectionModel()->currentIndex().row();
-            if(row != curRow)
-                ui->tableWidget->selectRow(row);
+//            int row = vRow.toInt();
+//            int curRow = ui->tableWidget->selectionModel()->currentIndex().row();
+//            if(row != curRow)
+//                ui->tableWidget->selectRow(row);
 
-             QWidget* pWidget = ui->tableWidget->cellWidget(row, 0);
-             if(pWidget){
-                 auto *line = pWidget->findChild<QLineEdit*>("lineEdit" + QString::number(row));
-                 if(line)
-                     line->setText(dlg->getResult());
-             }
-             ui->tableWidget->resizeColumnsToContents();
+//             QWidget* pWidget = ui->tableWidget->cellWidget(row, 0);
+//             if(pWidget){
+//                 auto *line = pWidget->findChild<QLineEdit*>("lineEdit" + QString::number(row));
+//                 if(line)
+//                     line->setText(dlg->getResult());
+//             }
+//             ui->tableWidget->resizeColumnsToContents();
         }
     }
 }
 
 void DialogMainWindow::onSelectDefaultAddress()
 {
-    auto *btn = dynamic_cast<QToolButton*>( sender() );
-    if(btn){
-        int row = btn->property("row").toInt();
-        int col = btn->property("col").toInt();
-        ui->tableWidget->setCurrentCell(row, col);
-        auto *lbl = getLineEdit(row, col);
-        if(lbl){
-            bool bOk;
-            QString str = QInputDialog::getText( this,
-                                                 "Адрес страницы",
-                                                 "Адрес:",
-                                                 QLineEdit::Normal,
-                                                 lbl->text(),
-                                                 &bOk
-                                                );
-            if (bOk) {
-                lbl->setText(str);
-            }
-        }
-    }
+//    qDebug() << __FUNCTION__;
+
+//    auto *btn = dynamic_cast<QToolButton*>( sender() );
+//    if(btn){
+//        int row = btn->property("row").toInt();
+//        int col = btn->property("col").toInt();
+//        ui->tableWidget->setCurrentCell(row, col);
+//        auto *lbl = getLineEdit(row, col);
+//        if(lbl){
+//            bool bOk;
+//            QString str = QInputDialog::getText( this,
+//                                                 "Адрес страницы",
+//                                                 "Адрес:",
+//                                                 QLineEdit::Normal,
+//                                                 lbl->text(),
+//                                                 &bOk
+//                                                );
+//            if (bOk) {
+//                lbl->setText(str);
+//            }
+//        }
+//    }
 }
 
 void DialogMainWindow::onSelectDefaultCertificate()
 {
-    auto *btn = dynamic_cast<QToolButton*>( sender() );
-    if(btn){
-        int row = btn->property("row").toInt();
-        int col = btn->property("col").toInt();
-        ui->tableWidget->setCurrentCell(row, col);
-    }
+//    qDebug() << __FUNCTION__;
+
+//    auto *btn = dynamic_cast<QToolButton*>( sender() );
+//    if(btn){
+//        int row = btn->property("row").toInt();
+//        int col = btn->property("col").toInt();
+//        ui->tableWidget->setCurrentCell(row, col);
+//    }
 }
 
 void DialogMainWindow::updateFromData() {
 
-    QTableWidget * table = ui->tableWidget;
-    table->setRowCount(0);
+//    QTableWidget * table = ui->tableWidget;
+//    table->setRowCount(0);
 
-    auto items = _profiles->profiles();
-    for (auto itr : items) {
-        setRow(itr);
-    }
+//    auto items = _profiles->profiles();
+//    for (auto itr : items) {
+//        setRow(itr);
+//    }
 }
 
-void DialogMainWindow::onLineEditCursorPositionChanged(int oldPos, int newPos)
-{
-    auto *edit = dynamic_cast<QLineEdit*>( sender() );
-    if(edit){
-        int row = edit->property("row").toInt();
-        int col = edit->property("col").toInt();
-        ui->tableWidget->setCurrentCell(row, col);
-    }
+//void DialogMainWindow::onLineEditCursorPositionChanged(int oldPos, int newPos)
+//{
+//    auto *edit = dynamic_cast<QLineEdit*>( sender() );
+//    if(edit){
+//        int row = edit->property("row").toInt();
+//        int col = edit->property("col").toInt();
+//        ui->tableWidget->setCurrentCell(row, col);
+//    }
 
-    qDebug() << oldPos << newPos;
-}
+//    qDebug() << oldPos << newPos;
+//}
 
 void DialogMainWindow::currentUserSid()
 {
@@ -1205,6 +1506,7 @@ void DialogMainWindow::csptestCurrentUserGetContainers(const QString &result)
 void DialogMainWindow::createTerminal()
 {
 
+    qDebug() << __FUNCTION__;
     terminal = new CommandLine(this, false, _sett->charset());
     terminal->setMethod(_sett->method());
 
@@ -1227,44 +1529,62 @@ void DialogMainWindow::createTerminal()
 
 void DialogMainWindow::on_btnEdit_clicked()
 {
-    int row = ui->tableWidget->currentRow();
-    auto item = ui->tableWidget->item(row, 4);
-    if(item){
-        auto profs = _profiles->profiles();
-        auto itr = profs.find(QUuid::fromString(item->text()));
-        if(itr != profs.end()){
-            auto dlg = new DialogSelectedRow(itr.value());
-            dlg->setModal(true);
-            dlg->exec();
+    qDebug() << __FUNCTION__;
 
-            if(dlg->result() == QDialog::Accepted){
-                updateRow(itr.value(), row);
-            }
+    auto index = ui->tableView->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбрана строка!");
+        return;
+    }
+
+    int iUuid = modelMplProfiles->getColumnIndex("uuid");
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
+    const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+    if(itr != _profiles->profiles().end()){
+        auto dlg = DialogSelectedRow(itr.value(), currentUser, this);
+        dlg.setModal(true);
+        dlg.exec();
+
+        if(dlg.result() == QDialog::Accepted){
+            updateRow(itr.value(), index.row());
         }
     }
+
 }
 
 
 void DialogMainWindow::on_btnDelete_clicked()
 {
-    int row = ui->tableWidget->currentRow();
-    if(row == -1)
-    {
+    qDebug() << __FUNCTION__;
+
+    auto index = ui->tableView->currentIndex();
+    if(!index.isValid()){
         QMessageBox::critical(this, "Ошибка", "Не выбрана строка!");
         return;
     }
-   int result = QMessageBox::information(this,
-                                         "Удаление",
-                                         "Удалить текущую настройку?",
-                                         QMessageBox::Yes | QMessageBox::No);
-   if(result == QMessageBox::Yes){
-        ui->tableWidget->removeRow(row);
-        updateData();
-   }
+
+    if(QMessageBox::information(this,
+                                 "Удаление",
+                                 "Удалить текущую настройку?",
+                                 QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+        return;
+
+
+    int iUuid = modelMplProfiles->getColumnIndex("uuid");
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
+    const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+    if(itr != _profiles->profiles().end())
+        _profiles->profiles().erase(itr);
+
+    modelMplProfiles->removeRow(index.row());
+
+    updateDataUserCache();
 }
 
 void DialogMainWindow::onTrayTriggered()
 {
+    qDebug() << __FUNCTION__;
+
     bool isExists = true;
     if(_profiles->mozillaExeFile().isEmpty()){
         isExists = false;
@@ -1297,7 +1617,7 @@ void DialogMainWindow::onTrayTriggered()
     QString defPage = "";
 
     if(itr != profs.end()){
-        profName = itr.value()->name();
+        profName = itr.value()->profile();
         defPage = itr.value()->defaultAddress();
     }
 
@@ -1377,13 +1697,16 @@ void DialogMainWindow::onTrayTriggered()
 
 void DialogMainWindow::onAppExit()
 {
-    terminal->stop();
-    if(m_client->isStarted())
-        m_client->close(true);
-    if(db->isOpen())
-        db->close();
-    delete m_client;
-    delete db;
+    if(terminal)
+        terminal->stop();
+    if(m_client)
+        if(m_client->isStarted())
+            m_client->close(true);
+    if(db)
+        if(db->isOpen())
+            db->close();
+//    delete m_client;
+//    delete db;
     QApplication::exit();
 }
 
@@ -1616,6 +1939,11 @@ void DialogMainWindow::createWsObject()
     m_client = new bWebSocket(this, "conf_qt_mpl.json", currentUser->name());
     m_client->setAppName("qt_mpl_client");
     setWsConnectedSignals();
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void DialogMainWindow::setWsConnectedSignals()
@@ -1633,8 +1961,70 @@ void DialogMainWindow::setWsConnectedSignals()
     connect(m_client, &bWebSocket::wsGetInstalledCertificates, this, &DialogMainWindow::onWsGetInstalledCertificates);
 }
 
+void DialogMainWindow::initProfiles()
+{
+    qDebug() << __FUNCTION__;
+
+    modelMplProfiles = new QJsonTableModel(this);
+    modelMplProfiles->setColumnAliases(m_colAliases);
+    //modelMplProfiles->setRowsIcon(QIcon(":/img/cont.png"));
+    ui->tableView->setModel(modelMplProfiles);
+     ui->tableView->resizeColumnsToContents();
+
+    _profiles = new ProfileManager(appHome.path(), this);
+    if(_profiles->mozillaExeFile().isEmpty()){
+        _profiles->setMozillaExeFile("C:\\Program Files\\Mozilla Firefox\\firefox.exe");
+    }
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
+}
+
+void DialogMainWindow::getInDataCache()
+{
+
+    qDebug() << __FUNCTION__;
+    if(currentUser->ref().isEmpty()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+    auto param = QJsonObject();
+    param.insert("command", "getCache");
+    param.insert("from", "\\\\.\\DATABASE\\");
+    param.insert("to", "userCache");
+    getDatabaseCache("CertUsers", currentUser->ref(), param);
+
+
+}
+
+void DialogMainWindow::setProfilesModel()
+{
+    if(!_profiles || !modelMplProfiles){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+
+
+    modelMplProfiles->setJsonText(_profiles->model());
+    modelMplProfiles->reset();
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
+
+}
+
 void DialogMainWindow::sendResultToClient()
 {
+    qDebug() << __FUNCTION__;
     if(lastResult.size() == 2){
         if(!currentRecipient.isEmpty()){
             sendToRecipient(currentRecipient, lastResult[0], lastResult[1], true);
@@ -1651,6 +2041,7 @@ void DialogMainWindow::sendResultToClient()
 
 void DialogMainWindow::asynAwait()
 {
+    qDebug() << __FUNCTION__;
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
         f();
@@ -1662,129 +2053,186 @@ void DialogMainWindow::asynAwait()
 
 void DialogMainWindow::on_btnSettings_clicked()
 {
-    QMap<QString, QVariant> clientSett;
-    clientSett.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
-    clientSett.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
-    clientSett.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
-    clientSett.insert("Password", "***");
-    clientSett.insert("pwdEdit", false);
-    clientSett.insert("mozillaExeFile", _profiles->mozillaExeFile());
+    qDebug() << __FUNCTION__;
 
-    auto dlg = DialogConnection(_sett, clientSett, this);
+
+    auto dlg = DialogOptions(_profiles, currentUser, this);
     dlg.setModal(true);
     dlg.exec();
 
-    if(dlg.result() == QDialog::Accepted){
+    return;
 
-        _profiles->setMozillaExeFile(clientSett["mozillaExeFile"].toString());
 
-        //if(!_sett->useSettingsFromHttp()){
-            if(db->isOpen())
-                db->close();
-            if(m_client->isStarted())
-                m_client->close();
+//    QMap<QString, QVariant> clientSett;
+//    clientSett.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+//    clientSett.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
+//    clientSett.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
+//    clientSett.insert("Password", "***");
+//    clientSett.insert("pwdEdit", false);
+//    clientSett.insert("mozillaExeFile", _profiles->mozillaExeFile());
 
-            if(_sett->launch_mode() == mixed){
-                if(_sett->customWsUser()){
-                    QString pwd = clientSett["Password"].toString();
-                    QString usr = clientSett["ServerUser"].toString();
-                    if(clientSett["pwdEdit"].toBool()){
-                        QString  hash = bWebSocket::generateHash(usr, pwd);
-                        m_client->options()[bConfFieldsWrapper::Hash] = hash;
-                    }
-                    m_client->options()[bConfFieldsWrapper::User] = usr;
-                    m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
-                    m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
-                    m_client->options().save();
-                }
-                connectToDatabase();
-            }else{
-                QString pwd = clientSett["Password"].toString();
-                QString usr = clientSett["ServerUser"].toString();
-                if(!_sett->useSettingsFromHttp()){
-                    if(clientSett["pwdEdit"].toBool()){
-                        QString  hash = bWebSocket::generateHash(usr, pwd);
-                        m_client->options()[bConfFieldsWrapper::Hash] = hash;
-                    }
-                    m_client->options()[bConfFieldsWrapper::User] = usr;
-                    m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
-                    m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
-                    m_client->options().save();
-                }else{
-                    if(_sett->customWsUser()){
-                        if(clientSett["pwdEdit"].toBool()){
-                            QString  hash = bWebSocket::generateHash(usr, pwd);
-                            m_client->options()[bConfFieldsWrapper::Hash] = hash;
-                        }
-                        m_client->options()[bConfFieldsWrapper::User] = usr;
-                        m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
-                        m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
-                        m_client->options().save();
-                    }
-                }
-                connectToWsServer();
-            }
+//    auto dlg = DialogConnection(_sett, clientSett, this);
+//    dlg.setModal(true);
+//    dlg.exec();
 
+//    if(dlg.result() == QDialog::Accepted){
+
+//        _profiles->setMozillaExeFile(clientSett["mozillaExeFile"].toString());
+
+//        if(db->isOpen())
+//            db->close();
+//        if(m_client->isStarted())
+//            m_client->close();
+
+//        if(_sett->launch_mode() == mixed){
+//            if(_sett->customWsUser()){
+//                QString pwd = clientSett["Password"].toString();
+//                QString usr = clientSett["ServerUser"].toString();
+//                if(clientSett["pwdEdit"].toBool()){
+//                    QString  hash = bWebSocket::generateHash(usr, pwd);
+//                    m_client->options()[bConfFieldsWrapper::Hash] = hash;
+//                }
+//                m_client->options()[bConfFieldsWrapper::User] = usr;
+//                m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+//                m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+//                m_client->options().save();
+//            }
+//            connectToDatabase();
 //        }else{
-
+//            QString pwd = clientSett["Password"].toString();
+//            QString usr = clientSett["ServerUser"].toString();
+//            if(!_sett->useSettingsFromHttp()){
+//                if(clientSett["pwdEdit"].toBool()){
+//                    QString  hash = bWebSocket::generateHash(usr, pwd);
+//                    m_client->options()[bConfFieldsWrapper::Hash] = hash;
+//                }
+//                m_client->options()[bConfFieldsWrapper::User] = usr;
+//                m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+//                m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+//                m_client->options().save();
+//            }else{
+//                if(_sett->customWsUser()){
+//                    if(clientSett["pwdEdit"].toBool()){
+//                        QString  hash = bWebSocket::generateHash(usr, pwd);
+//                        m_client->options()[bConfFieldsWrapper::Hash] = hash;
+//                    }
+//                    m_client->options()[bConfFieldsWrapper::User] = usr;
+//                    m_client->options()[bConfFieldsWrapper::ServerHost] = clientSett["ServerHost"].toString();
+//                    m_client->options()[bConfFieldsWrapper::ServerPort] = clientSett["ServerPort"].toInt();
+//                    m_client->options().save();
+//                }
+//            }
+//            connectToWsServer();
 //        }
-        _sett->save();
 
-        updateConnectionStatus();
-    }
+//        _sett->save();
+
+//        updateConnectionStatus();
+//    }
 }
 
-void DialogMainWindow::onWhenDataIsLoaded()
-{
+//void DialogMainWindow::onWhenDataIsLoaded()
+//{
 
-    qDebug() << __FUNCTION__ << currentUser->containers().size() << currentUser->certificates().size();
+//    qDebug() << __FUNCTION__ << currentUser->containers().size() << currentUser->certificates().size();
 
 
-    if(_sett->launch_mode() == mixed){
-        if(!db->isOpen()){
-            if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
-                 connectToDatabase();
-        }
-    }else{
-        if(!m_client->isStarted())
-            connectToWsServer();
-    }
-}
+//    if(_sett->launch_mode() == mixed){
+//        if(!db->isOpen()){
+//            if(!_sett->server().isEmpty() && !_sett->pwd().isEmpty() && !_sett->user().isEmpty())
+//                 connectToDatabase();
+//        }
+//    }else{
+//        if(!m_client->isStarted())
+//            connectToWsServer();
+//    }
+//}
 
-void DialogMainWindow::onEndInitConnection()
-{
-    qDebug() << __FUNCTION__;
-    isFormLoaded = true;
-    if(m_client->isStarted())
-        m_client->sendCommand("mpl_form_loaded");
-}
+//void DialogMainWindow::onEndInitConnection()
+//{
+//    qDebug() << __FUNCTION__;
+//    //sFormLoaded = true;
+//    if(m_client->isStarted())
+//        m_client->sendCommand("mpl_form_loaded");
+//}
 
 
 void DialogMainWindow::initCsptest()
 {
 
-    isUseCsptest = false;
+    qDebug() << __FUNCTION__;
+
+    //isUseCsptest = false;
 
 #ifdef _WINDOWS
-   _cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
+   //_cprocsp_exe = "C:/Program Files (x86)/Crypto Pro/CSP/csptest.exe";
    _cprocsp_dir = "C:/Program Files (x86)/Crypto Pro/CSP/";
 #else
-    _cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
+    //_cprocsp_exe = "/opt/cprocsp/bin/amd64/cprocsp";
     _cprocsp_dir = "/opt/cprocsp/bin/amd64/"
 #endif
 
-    QFile csptest(_cprocsp_exe);
-    QString inf;
-    if(!csptest.exists()){
-        inf = "Ошибка: КриптоПро не найден в каталоге установки по умолчанию!";
-        qCritical() << __FUNCTION__ << inf;
+//    QFile csptest(_cprocsp_exe);
+//    QString inf;
+//    if(!csptest.exists()){
+//        inf = "Ошибка: КриптоПро не найден в каталоге установки по умолчанию!";
+//        qCritical() << __FUNCTION__ << inf;
 
-    }
-    else{
-        inf = "КриптоПро найден в каталоге установки по умолчанию.";
-        isUseCsptest = true;
+//    }
+//    else{
+//        inf = "КриптоПро найден в каталоге установки по умолчанию.";
+//        isUseCsptest = true;
 
-    }
+//    }
 
 
 }
+
+void DialogMainWindow::createColumnAliases()
+{
+    m_colAliases.insert("uuid", "ID");
+    m_colAliases.insert("name", "Имя");
+    m_colAliases.insert("uuid_user", "ID пользователя");
+    m_colAliases.insert("user_uuid", "ID пользователя");
+    m_colAliases.insert("app_name", "Приложение");
+    m_colAliases.insert("user_name", "Имя пользователя");
+    m_colAliases.insert("ip_address", "IP адрес");
+    m_colAliases.insert("host_name", "Host");
+    m_colAliases.insert("Ref", "Ссылка");
+    m_colAliases.insert("FirstField", "Имя");
+    m_colAliases.insert("SecondField", "Представление");
+    m_colAliases.insert("privateKey", "Контейнер");
+    m_colAliases.insert("_id", "Иднекс");
+    m_colAliases.insert("sid", "SID");
+    m_colAliases.insert("cache", "cache");
+    m_colAliases.insert("subject", "Кому выдан");
+    m_colAliases.insert("issuer", "Кем выдан");
+    m_colAliases.insert("container", "Контейнер");
+    m_colAliases.insert("notValidBefore", "Начало действия");
+    m_colAliases.insert("parentUser", "Владелец");
+    m_colAliases.insert("notValidAfter", "Окончание дейтствия");
+    m_colAliases.insert("serial", "Серийный номер");
+    m_colAliases.insert("volume", "Хранилище");
+    m_colAliases.insert("typeOperation", "Операция");
+    m_colAliases.insert("address", "Ссылка");
+    m_colAliases.insert("cert", "Сертификат");
+    m_colAliases.insert("profile", "Профиль");
+}
+
+
+void DialogMainWindow::on_tableView_doubleClicked(const QModelIndex &index)
+{
+    int iUuid = modelMplProfiles->getColumnIndex("uuid");
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
+    const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+    if(itr != _profiles->profiles().end()){
+        auto dlg = DialogSelectedRow(itr.value(), currentUser, this);
+        dlg.setModal(true);
+        dlg.exec();
+
+        if(dlg.result() == QDialog::Accepted){
+            updateRow(itr.value(), index.row());
+        }
+    }
+}
+

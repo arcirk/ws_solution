@@ -14,9 +14,11 @@ SOURCES += \
     ../certmanager/CertManager/commandline.cpp \
     ../certmanager/CertManager/keyscontainer.cpp \
     ../certmanager/CertManager/settings.cpp \
+    ../certmanager/CertManager/tabledelegate.cpp \
     ../certmanager/CertManager/user.cpp \
     ../chared/clientsettings.cpp \
     ../chared/httpservice.cpp \
+    ../chared/qjsontablemodel.cpp \
     ../chared/qmlwebsocket.cpp \
     ../chared/qwebdav.cpp \
     ../chared/serveresponse.cpp \
@@ -25,6 +27,7 @@ SOURCES += \
     ../winreg/WinReg.cpp \
     dialogconnection.cpp \
     dialogmainwindow.cpp \
+    dialogoptions.cpp \
     dialogselectedrow.cpp \
     dialogselectprofile.cpp \
     dialogsettings.cpp \
@@ -40,9 +43,11 @@ HEADERS += \
     ../certmanager/CertManager/converter.h \
     ../certmanager/CertManager/keyscontainer.h \
     ../certmanager/CertManager/settings.h \
+    ../certmanager/CertManager/tabledelegate.h \
     ../certmanager/CertManager/user.h \
     ../chared/clientsettings.h \
     ../chared/httpservice.h \
+    ../chared/qjsontablemodel.h \
     ../chared/qmlwebsocket.h \
     ../chared/qwebdav.h \
     ../chared/serveresponse.h \
@@ -51,6 +56,7 @@ HEADERS += \
     ../winreg/WinReg.hpp \
     dialogconnection.h \
     dialogmainwindow.h \
+    dialogoptions.h \
     dialogselectedrow.h \
     dialogselectprofile.h \
     dialogsettings.h \
@@ -62,6 +68,7 @@ HEADERS += \
 FORMS += \
     dialogconnection.ui \
     dialogmainwindow.ui \
+    dialogoptions.ui \
     dialogselectedrow.ui \
     dialogselectprofile.ui \
     dialogsettings.ui

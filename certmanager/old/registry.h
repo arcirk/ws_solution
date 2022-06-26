@@ -4,7 +4,7 @@
 #include <QSettings>
 #include <QObject>
 #include <QProcess>
-#include "user.h"
+#include "../CertManager/user.h"
 
 namespace srtmnr {
 

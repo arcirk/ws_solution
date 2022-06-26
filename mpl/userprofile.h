@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QList>
 #include <QUuid>
+#include <QJsonObject>
 
 class UserProfile : public QObject
 {
@@ -14,28 +15,33 @@ public:
     QString name();
     void setName(const QString& value);
 
+    QString profile();
+    void setProfile(const QString& value);
+
     QString defaultAddress();
     void setDefaultAddress(const QString& value);
 
     QList<QUuid> serificates();
     void setSertificates(const QList<QUuid>& certs);
 
-    void setTypeOperation(const QString& value);
-    QString typeOperation();
+//    void setTypeOperation(const QString& value);
+//    QString typeOperation();
 
     void setUuid(const QUuid& value);
     QUuid uuid();
 
-    QString certToString();
+    QString certsUuidToString();
     bool isNew();
+
+    QJsonObject to_modelObject();
 
 private:
     QString _address;
     QString _name;
     QList<QUuid> _serificates;
-    QString _nameItem;
-    QString _type_of_operation;
-    QUuid _uuid;   
+    //QString _type_of_operation;
+    QUuid _uuid;
+    QString _profile;
 
 signals:
 

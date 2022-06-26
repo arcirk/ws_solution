@@ -22,6 +22,9 @@
 #include <user.h>
 #include <httpservice.h>
 #include <QQueue>
+#include <qjsontablemodel.h>
+#include <tabledelegate.h>
+#include "dialogoptions.h"
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"
@@ -89,18 +92,22 @@ private slots:
 
     void on_btnSettings_clicked();
 
-    void onWhenDataIsLoaded();
-    void onEndInitConnection();
+//    void onWhenDataIsLoaded();
+//    void onEndInitConnection();
     void onGetCryptData(const QString& recipient);
 
+
+    void on_tableView_doubleClicked(const QModelIndex &index);
+
 public slots:
-    void onLineEditCursorPositionChanged ( int oldPos , int newPos );
+    //void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
 
     Ui::DialogMainWindow *ui;
 
     QQueue<async_await> m_async_await;
 
+    QJsonTableModel * modelMplProfiles;
 
     ProfileManager * _profiles;
     QSystemTrayIcon *trayIcon;
@@ -119,14 +126,13 @@ private:
     QString currentRecipient;
 
     QString _cprocsp_exe;
-    bool isUseCsptest;
     QString _cprocsp_dir;
     QString _launch_mode;
     CommandLine * terminal;
 
     QList<QString> lastResult;
+    QMap<QString, QString> m_colAliases;
 
-    bool isFormLoaded;
 
     void currentUserSid();
     void currentUserGetConteiners();
@@ -137,6 +143,9 @@ private:
     void csptestCurrentUserGetContainers(const QString &result);
     void createWsObject();
     void setWsConnectedSignals();
+    void initProfiles();
+    void getInDataCache();
+    void setProfilesModel();
 
     void sendResultToClient();
 
@@ -156,8 +165,8 @@ private:
 
     void setProfile(UserProfile* prof);
 
-    QLineEdit *getLineEdit(int row, int col);
-    QWidget *getItemWidget(const QString& text, int row, int col, const char* member);
+    //QLineEdit *getLineEdit(int row, int col);
+    //QWidget *getItemWidget(const QString& text, int row, int col, const char* member);
 
     void formControl();
     void createTrayActions();
@@ -168,7 +177,7 @@ private:
 
     ///////////////////////////
 
-
+    void createColumnAliases();
 
     void updateConnectionStatus();
     void createConnectionsObjects();
@@ -188,9 +197,18 @@ private:
 
     void getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param);
     void onGetDataFromDatabase(const QString &table, const QString param);
+    void getDatabaseCache(const QString& table, const QString& ref, const QJsonObject& param);
+
+    void updateDataUserCache();
+    void setFromDataUserCache(const QJsonObject& resp);
+    void getUserData();
+
+    void getAvailableCerts();
+    void setAvailableCerts(const QJsonObject& resp);
+
 signals:
-    void whenDataIsLoaded();
-    void endInitConnection();
+//    void whenDataIsLoaded();
+//    void endInitConnection();
 
 };
 

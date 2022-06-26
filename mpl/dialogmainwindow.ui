@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>515</width>
+    <width>681</width>
     <height>347</height>
    </rect>
   </property>
@@ -87,7 +87,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QTableWidget" name="tableWidget">
+      <widget class="QTableView" name="tableView">
        <property name="selectionMode">
         <enum>QAbstractItemView::SingleSelection</enum>
        </property>
