@@ -150,9 +150,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_async_await.append(std::bind(&MainWindow::getDataContainersList, this));
     m_async_await.append(std::bind(&MainWindow::getDataCertificatesList, this));
     m_async_await.append(std::bind(&MainWindow::getDataUsersList, this));
-    m_async_await.append(std::bind(&MainWindow::queueInfoUserContainers, this));
+    m_async_await.append(std::bind(&MainWindow::getUserData, this));
+    m_async_await.append(std::bind(&MainWindow::queueInfoUserContainers, this));    
+    m_async_await.append(std::bind(&MainWindow::currentUserAviableCertificates, this));
     m_async_await.append(std::bind(&MainWindow::wsGetOnlineUsers, this));
-
 
     currentUser = new CertUser(this);
     QString curentHost = QSysInfo::machineHostName();
@@ -203,6 +204,10 @@ void MainWindow::createModels(){
     modelCertUserContainers->setRowsIcon(QIcon(":/img/cont.png"));
     proxyModeCertlUserConteiners = new QProxyModel(this);
     proxyModeCertlUserConteiners->setSourceModel(modelCertUserContainers);
+
+    modelUsersAviableCerts = new QJsonTableModel(this);
+    modelUsersAviableCerts->setRowsIcon(QIcon(":/img/rosette.ico"));
+    modelUsersAviableCerts->setColumnAliases(m_colAliases);
 }
 
 QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, const QString &node)
@@ -1121,7 +1126,7 @@ void MainWindow::resetCertUsersTree()
         auto itemUser = addTreeNode(name + " (" + host + ")", name + host, ":/img/certUsers.png");
         root->addChild(itemUser);
         QString ref = modelSqlUsers->index(i, iUuid).data(Qt::UserRole + iRef).toString();
-        auto itemAvailableCerts = addTreeNode("Доступные сертификаты", "a_cert_" + ref, ":/img/available_certificate.svg");
+        auto itemAvailableCerts = addTreeNode("Доступные сертификаты", "a_cert_" + ref, ":/img/available_certificate_16.png");
         itemUser->addChild(itemAvailableCerts);
     }
 
@@ -1253,6 +1258,91 @@ void MainWindow::updateCertUsersOnlineStstus()
     }
 
     modelSqlUsers->reset();
+}
+
+void MainWindow::currentUserAviableCertificates()
+{
+    getAvailableCerts(currentUser);
+}
+
+void MainWindow::getAvailableCerts(CertUser * usr)
+{
+    //доступные севртификаты
+    qDebug() << __FUNCTION__;
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "AvailableCertsView");
+
+    bindQuery.addField("Empty", "Empty");
+    bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("CertRef", "CertRef");
+    bindQuery.addField("UserRef", "UserRef");
+    bindQuery.addField("sha1", "sha1");
+    bindQuery.addField("Ref", "Ref");
+
+    bindQuery.addWhere("UserRef", usr->ref());
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "get_available_certs");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+        auto doc = QJsonDocument::fromJson(resultQuery.toUtf8());
+        auto obj = doc.object();
+        setAvailableCerts(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "get_available_certs");
+            obj.insert("table", true);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+}
+
+void MainWindow::setAvailableCerts(const QJsonObject &resp)
+{
+    qDebug() << __FUNCTION__;
+
+    QString table = resp.value("table").toString();
+    if(table.isEmpty()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+        return;
+    }
+
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+//    auto rows = _table.value("rows").toArray();
+//    if(rows.isEmpty()){
+//        if(m_async_await.size() > 0){
+//            auto f = m_async_await.dequeue();
+//            f();
+//        }
+//        return;
+//    }
+
+    currentUser->set_available_certificates(_table);
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void MainWindow::treeSetCurrentContainers(const QString& filter, QJsonTableModel * model, QProxyModel * proxy)
@@ -1582,9 +1672,9 @@ void MainWindow::onOutputCommandLine(const QString &data, int command)
 MainWindow::~MainWindow()
 {
     terminal->stop();
-
-    if(m_client)
-        delete m_client;
+    m_client->close(true);
+//    if(m_client)
+//        delete m_client;
     delete ui;
 }
 
@@ -1832,7 +1922,7 @@ void MainWindow::currentUserSetTreeItems()
             Root->addChild(reg);
             auto dev = addTreeNode("Устройства", currentUserDivace, ":/img/Card_Reader_16.ico");
             Root->addChild(dev);
-            auto itemAvailableCerts = addTreeNode("Доступные сертификаты", currentUserAvailableCerts, ":/img/available_certificate.svg");
+            auto itemAvailableCerts = addTreeNode("Доступные сертификаты", currentUserAvailableCerts, ":/img/available_certificate_16.png");
             item->addChild(itemAvailableCerts);
         }
     }
@@ -1851,6 +1941,22 @@ void MainWindow::currentUserGetConteiners()
 void MainWindow::currentUserGetCertificates()
 {
     terminal->send("certmgr -list -store uMy\n", CmdCommand::csptestGetCertificates);
+}
+
+void MainWindow::resetAviableCertificates(CertUser *usr)
+{
+    CertUser * _usr = usr ? usr : currentUser;
+    ui->tableView->setModel(nullptr);
+    modelUsersAviableCerts->setJsonText(_usr->available_certificates());
+    modelUsersAviableCerts->reset();
+    ui->tableView->setModel(modelUsersAviableCerts);
+    int iCertRef = modelUsersAviableCerts->getColumnIndex("CertRef");
+    if(iCertRef != -1)
+        ui->tableView->setColumnHidden(iCertRef, true);
+    int iUserRef = modelUsersAviableCerts->getColumnIndex("UserRef");
+    if(iCertRef != -1)
+        ui->tableView->setColumnHidden(iUserRef, true);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MainWindow::resetUserCertModel(CertUser* usr, QJsonTableModel* model)
@@ -2060,6 +2166,8 @@ void MainWindow::on_mnuExit_triggered()
 
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
+    if(!item)
+        return;
 
     QString key = item->data(0, Qt::UserRole).toString();
     qDebug() << __FUNCTION__ << "tree key:" << key;
@@ -2113,6 +2221,12 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
             ui->btnCurrentCopyToRegistry->setEnabled(false);
             ui->btnCurrentCopyToSql->setEnabled(true);
             ui->btnCurrentUserAdd->setEnabled(true);
+            ui->btnAdd->setEnabled(true);
+        }else if(key == currentUserAvailableCerts){
+            toolBarSetVisible(ui->wToolBarMain, true);
+            resetAviableCertificates(currentUser);
+            ui->btnAdd->setEnabled(false);
+            ui->btnDelete->setEnabled(true);
             ui->btnAdd->setEnabled(true);
         }else{
             ui->tableView->setModel(nullptr);
@@ -2249,86 +2363,188 @@ void MainWindow::on_mnuConnect_triggered()
 
 }
 
+void MainWindow::getUserData()
+{
 
+    qDebug() << __FUNCTION__;
+
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertUsers");
+
+    bindQuery.addField("Ref", "Ref");
+    //bindQuery.addField("cache", "cache");
+    bindQuery.addField("uuid", "uuid");
+
+    bindQuery.addWhere("FirstField", currentUser->name());
+    bindQuery.addWhere("host", currentUser->domain());
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "get_cert_user_cache");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+        auto doc = QJsonDocument::fromJson(resultQuery.toUtf8());
+        auto obj = doc.object();
+        setFromDataUserCache(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "get_cert_user_cache");
+            obj.insert("table", true);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+}
+
+void MainWindow::setFromDataUserCache(const QJsonObject &resp)
+{
+    qDebug() << __FUNCTION__;
+
+    QString table = resp.value("table").toString();
+    if(table.isEmpty())
+        return;
+
+    auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
+    auto rows = _table.value("rows").toArray();
+    if(rows.isEmpty()){
+        qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        return;
+    }
+
+    auto row = rows[0].toObject();
+
+    currentUser->setRef(row.value("Ref").toString());
+    currentUser->setUuid(QUuid::fromString(row.value("uuid").toString()));
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
+
+}
+
+void MainWindow::deleteDataObject(const QString &ref, const QString &table)
+{
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlDelete, table);
+    bindQuery.addWhere("Ref", ref);
+
+    if(_sett->launch_mode() == mixed){
+        QSqlQuery sql = bindQuery.query(db->getDatabase());
+        sql.exec();
+        if(sql.lastError().type() != QSqlError::NoError){
+            qDebug() << __FUNCTION__ << sql.lastError().text();
+        }else
+        {
+            QMessageBox::information(this, "Удаление", "Объект успешно удален!");
+            getUserData();
+        }
+    }else{
+        if(m_client->isStarted()){
+            QString result = bindQuery.to_json();
+            auto doc = QJsonDocument();
+            auto obj = QJsonObject();
+            obj.insert("query", result);
+            obj.insert("id_command", deleteAvaiableCertsFromData);
+            doc.setObject(obj);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
+        }
+    }
+}
 
 void MainWindow::on_btnAdd_clicked()
 {
-}
-
-void MainWindow::on_btnDelete_clicked()
-{
-    if(!db->isOpen())
-        return;
-
-    auto table = ui->tableView;
-
-    if(!table->currentIndex().isValid())
-        return;
-
-    int row = table->currentIndex().row();
-
-    if(row < 0){
-        return;
-    }
 
     auto treeItem = ui->treeWidget->currentItem();
     if(!treeItem){
         return;
     }
-
     QString currentNode = treeItem->data(0, Qt::UserRole).toString();
 
-    if(currentNode == SqlContainers){
-        QString ref = table->model()->index(row, 1).data().toString();
-        auto result = QMessageBox::question(this, "Удаление контейнера", "Удалить контейнер?");
-        if(result == QMessageBox::Yes){
-//            bool result = srtmnr::Registry::deleteContainer(currentUser, currentKeyName);
-//            if(!result)
-//                QMessageBox::critical(this, "Ошибка", "Ошибка удаления контейнера!");
-//            else{
-//                QMessageBox::information(this, "Удаление контейнера закрытого ключа", "Контейнер успешно удален из реестра!");
-//                table->model()->removeRow(row);
-//                currentUser->setContainers(srtmnr::Registry::currentUserContainers(currentUser->sid()));
-//            }
-        }
+    if(currentNode == currentUserAvailableCerts){
+        auto result = getObjectsFromDatabase(DataCertificatesList);
+        if(result.size() > 0){
+            QString name = result[2];
+            QString certRef = result[1];
+            QString uuidUser = currentUser->ref();
+            QString sha1 = result[8];
+            QUuid _uuid = QUuid::createUuid();
+            QString uuid = _uuid.toString().mid(1, 36);
 
+            auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "AvailableCerts");
+            bindQuery.addField("FirstField", name);
+            bindQuery.addField("Ref", uuid);
+            bindQuery.addField("UserRef", uuidUser);
+            bindQuery.addField("CertRef", certRef);
+
+            if(_sett->launch_mode() == mixed){
+                QSqlQuery sql = bindQuery.query(db->getDatabase());
+                sql.exec();
+                if(sql.lastError().type() != QSqlError::NoError){
+                    qDebug() << __FUNCTION__ << sql.lastError().text();
+                }else{
+                    currentUserAviableCertificates();
+                    emit ui->treeWidget->itemClicked(ui->treeWidget->currentItem(), 0);
+                }
+            }else{
+                if(m_client->isStarted()){
+                    QString result = bindQuery.to_json();
+                    auto doc = QJsonDocument();
+                    auto objMain = QJsonObject();
+                    objMain.insert("query", result);
+                    objMain.insert("id_command", "IncertCurrentAvaibleCerts");
+                    doc.setObject(objMain);
+                    QString param = doc.toJson();
+                    m_client->sendCommand("exec_query_qt", "", param);
+                }
+            }
+
+        }
+    }
+}
+
+void MainWindow::on_btnDelete_clicked()
+{
+
+    qDebug() << __FUNCTION__;
+
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
     }
 
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
 
-        //else{
+    if(node == currentUserAvailableCerts){
+        auto model = (QJsonTableModel*)table->model();
+        int iRef = model->getColumnIndex("Ref");
+        int iName = model->getColumnIndex("FirstField");
+        QString ref = model->index(index.row(), iRef).data(Qt::UserRole + iRef).toString();
+        QString name = model->index(index.row(), iName).data(Qt::UserRole + iName).toString();
 
-//            if(currentNode == "Реестр"){
+        if(QMessageBox::question(this, "Удаление объекта", QString("Удалить объект '%1' с сервера?").arg(name)) == QMessageBox::No)
+           return;
 
-//            }else if(currentNode == "Пользователи"){
-//        //        auto reg = Registry();
-//        //        QStringList users = reg.localUsers();
-//        //        auto dlg = new DialogSelectInList(users, "Пользователи системы", this);
-//        //        dlg->setModal(true);
-//        //        dlg->exec();
-//        //        if(dlg->result() == QDialog::Accepted){
-//        //            QString userName = dlg->dialogResult();
-//        //        }
-//            }
-//        }
-////    }else if(currentNode == "Компьютеры"){
-////        //
-////        auto result = QMessageBox::question(this, "Удаление строки", "Удалить выбранную строку?");
-////        if(result == QMessageBox::Yes){
-////            bool r = db->deleteSqlTableRow("Servers", ui->tableView->model()->index(row, 3).data().toString());
-////            if(!r)
-////                QMessageBox::critical(this, "Ошибка", "Ошибка удаления строки!");
-////            else
-////            {
-//////                auto model = (QSqlQueryModel*)ui->tableView->model();
-//////                model->setQuery(model->query().lastQuery());
-//////                UpdateRowIcons();
-////                loadCimputers();
-////                ui->tableView->resizeColumnsToContents();
-////            }
-////        }
-
-////    }
-    qDebug() << __FUNCTION__;
+        deleteDataObject(ref, "AvailableCerts");
+    }
 }
 
 void MainWindow::on_btnInstallToUser_clicked()
@@ -2963,6 +3179,16 @@ void MainWindow::onWsExecQuery(const QString &result)
     }else if(id_command == "update_cert_privateKey"){
         qDebug() << __FUNCTION__ << "Обновлено значение ключа сертификата на сервере!";
         getDataCertificatesList();
+    }else if(id_command == "get_available_certs"){
+        setAvailableCerts(obj);
+        emit ui->treeWidget->itemClicked(ui->treeWidget->currentItem(), 0);
+    }else if(id_command == "IncertCurrentAvaibleCerts"){
+        currentUserAviableCertificates();
+    }else if(id_command == "get_cert_user_cache"){
+        setFromDataUserCache(obj);
+    }else if(id_command == deleteAvaiableCertsFromData){
+        QMessageBox::information(this, "Удаление", "Объект успешно удален!");
+        currentUserAviableCertificates();
     }
 }
 

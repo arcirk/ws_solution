@@ -582,6 +582,11 @@ QString CommandLine::parseCommand(const QString &result, int command)
                                 }
                             }
                         }
+                        ind = result.indexOf("Хеш сертификата(sha1):");
+                        if(ind > 0){
+                            auto s_r = getLine(result, ind).trimmed().split(":");
+                            obj.insert("SHA1 Hash", s_r[1].trimmed());
+                        }
                         auto doc = QJsonDocument();
                         arr.append(obj);
                         doc.setArray(arr);

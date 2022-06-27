@@ -447,6 +447,8 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
             qCritical() << __FUNCTION__ << "Не верные параметры команды!";
     }else if(id_command == "get_cert_user_cache"){
         setFromDataUserCache(obj);
+    }else if(id_command == "get_available_certs"){
+        setAvailableCerts(obj);
     }
 
 }
@@ -1062,13 +1064,22 @@ void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
     qDebug() << __FUNCTION__;
 
     QString table = resp.value("table").toString();
-    if(table.isEmpty())
+    if(table.isEmpty()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
+    }
 
     auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
     auto rows = _table.value("rows").toArray();
     if(rows.isEmpty()){
-        qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        //qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
     }
 

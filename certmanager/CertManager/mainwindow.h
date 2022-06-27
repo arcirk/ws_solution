@@ -44,18 +44,19 @@ QT_END_NAMESPACE
 #define currentUserAvailableContainers  "currentUserAvailableContainers"
 #define currentUserAvailableCerts       "currentUserAvailableCerts"
 
-#define remoteUser                     "remoteUser"
-#define remoteUserRegistry             "remoteUserRegistry"
-#define remoteUserCertificates         "remoteUserCertificates"
-#define remoteUserContainers           "remoteUserContainers"
+#define remoteUser                      "remoteUser"
+#define remoteUserRegistry              "remoteUserRegistry"
+#define remoteUserCertificates          "remoteUserCertificates"
+#define remoteUserContainers            "remoteUserContainers"
 
 #define insertCertificateToData         "insertCertificateToData"
 #define deleteContainerFromData         "deleteContainerFromData"
 #define deleteCertificateFromData       "deleteCertificateFromData"
 #define deleteUserFromData              "deleteUserFromData"
+#define deleteAvaiableCertsFromData     "deleteAvaiableCertsFromData"
+#define deleteObjectFromData            "deleteObjectFromData"
 #define insertContainerToData           "insertContainerToData"
 #define insertUserToData                "insertContainerToData"
-
 
 //Команды клиенту
 #define AvailableContainers             "available_containers"
@@ -221,6 +222,7 @@ private:
     QJsonTableModel * modelCertUserContainers;
     QProxyModel     * proxyModeCertlUserConteiners;
     QJsonTableModel * modelCertUserCertificates;
+    QJsonTableModel * modelUsersAviableCerts;
 
     QString currentRecipient;
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
@@ -259,12 +261,14 @@ private:
     void getDataContainersList();
     void getDataCertificatesList();
     void getDataUsersList();
+    void getUserData();
 
     void currentUserSetTreeItems();
     void currentUserGetConteiners();
     void currentUserGetCertificates();
 
-   // void LoadUsersList();
+    void resetAviableCertificates(CertUser * usr = nullptr);
+
     void loadCertList();
     void createUsersList();
     void enableToolbar(bool value);
@@ -272,8 +276,6 @@ private:
 
     void getAvailableContainers(CertUser * usr);
 
-
-    //void loadOnlineUsers();
     void disableToolBar();
     bool isContainerExists(const QString& name, CertUser* usr = nullptr, const QString& dest = "");
     bool isCertUserExists(const QString& name, const QString& host = "");
@@ -281,8 +283,6 @@ private:
     bool isHostExists(const QString& name);
     void userToDatabase(const QString& name);
     QString getSessionUuid(const QString &name, const QString &host) const;
-
-    //void loadCimputers();
 
     void toolBarSetVisible(QWidget * bar, bool value);
 
@@ -326,7 +326,6 @@ private:
     void getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param);
     void saveAsDatabaseCertificate();
 
-
     void addCertificate(const QString& from = "", const QString& to = "", const QString& id = "", const QString& byteArrayBase64 = "", const QString& cntName = "", const QString& cntByteArrayBase64 = "");
     void addCertificateFromBase64ToDatabase(const QString& data);
     void delCertificate();
@@ -346,6 +345,13 @@ private:
     QStandardItemModel *getLocalMountedVolumes();
 
     void updateCertUsersOnlineStstus();
+
+    void currentUserAviableCertificates();
+    void getAvailableCerts(CertUser * usr);
+    void setAvailableCerts(const QJsonObject& resp);
+    void setFromDataUserCache(const QJsonObject &resp);
+
+    void deleteDataObject(const QString& ref, const QString& table);
 
 signals:
     void whenDataIsLoaded();

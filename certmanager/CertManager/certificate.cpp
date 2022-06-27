@@ -462,7 +462,7 @@ QBSqlQuery Certificate::getSqlQueryObject(QBSqlCommand command)
     bindQuery.addField("notValidAfter", notValidAfter());
     bindQuery.addField("parentUser", parentUser());
     bindQuery.addField("serial", serial());
-    bindQuery.addField("sha1", sha1Hash());
+    bindQuery.addField("sha1", _sha1);
 
     if(_data.size() > 0){
         std::string base64 = Base64Converter::byte_to_base64(&_data[0], _data.size());

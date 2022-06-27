@@ -165,9 +165,6 @@ private:
 
     void setProfile(UserProfile* prof);
 
-    //QLineEdit *getLineEdit(int row, int col);
-    //QWidget *getItemWidget(const QString& text, int row, int col, const char* member);
-
     void formControl();
     void createTrayActions();
     void createTrayIcon();

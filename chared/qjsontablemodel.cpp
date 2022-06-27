@@ -246,7 +246,7 @@ int QJsonTableModel::getColumnIndex(const QString &name) {
 
     auto names = roleNames();
     if (names.size() == 0)
-        return 0;
+        return -1;
 
     foreach (const auto& key , names.keys()) {
 
@@ -255,7 +255,7 @@ int QJsonTableModel::getColumnIndex(const QString &name) {
         }
     }
 
-    return 0;
+    return -1;
 
 }
 

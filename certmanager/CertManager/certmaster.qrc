@@ -56,5 +56,7 @@
         <file>img/cmd.png</file>
         <file>img/cls.png</file>
         <file>img/available_certificate.svg</file>
+        <file>img/available_certificate_16.svg</file>
+        <file>img/available_certificate_16.png</file>
     </qresource>
 </RCC>
