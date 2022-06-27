@@ -1099,6 +1099,7 @@ void MainWindow::resetCertUsersTree()
     int iUser = modelSqlUsers->getColumnIndex("FirstField");
     int iHost = modelSqlUsers->getColumnIndex("host");
     int iUuid = modelSqlUsers->getColumnIndex("uuid");
+    int iRef = modelSqlUsers->getColumnIndex("ref");
 
     for(int i = 0; i < modelSqlUsers->rowCount(); ++i){
         QString name = modelSqlUsers->index(i, iUser).data(Qt::UserRole + iUser).toString();
@@ -1119,6 +1120,9 @@ void MainWindow::resetCertUsersTree()
 
         auto itemUser = addTreeNode(name + " (" + host + ")", name + host, ":/img/certUsers.png");
         root->addChild(itemUser);
+        QString ref = modelSqlUsers->index(i, iUuid).data(Qt::UserRole + iRef).toString();
+        auto itemAvailableCerts = addTreeNode("Доступные сертификаты", "a_cert_" + ref, ":/img/available_certificate.svg");
+        itemUser->addChild(itemAvailableCerts);
     }
 
 }
@@ -1828,6 +1832,8 @@ void MainWindow::currentUserSetTreeItems()
             Root->addChild(reg);
             auto dev = addTreeNode("Устройства", currentUserDivace, ":/img/Card_Reader_16.ico");
             Root->addChild(dev);
+            auto itemAvailableCerts = addTreeNode("Доступные сертификаты", currentUserAvailableCerts, ":/img/available_certificate.svg");
+            item->addChild(itemAvailableCerts);
         }
     }
 

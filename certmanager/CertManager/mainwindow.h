@@ -42,6 +42,7 @@ QT_END_NAMESPACE
 #define currentUserContainers           "currentUserContainers"
 #define currentUserDivace               "currentUserDivace"
 #define currentUserAvailableContainers  "currentUserAvailableContainers"
+#define currentUserAvailableCerts       "currentUserAvailableCerts"
 
 #define remoteUser                     "remoteUser"
 #define remoteUserRegistry             "remoteUserRegistry"
@@ -130,7 +131,7 @@ private slots:
 
     void onWsGetAvailableContainers(const QString& recipient);
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
-    void onWsMplClientFormLoaded(const QString& resp);
+    //void onWsMplClientFormLoaded(const QString& resp);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
