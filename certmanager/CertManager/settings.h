@@ -14,6 +14,7 @@ class Settings : public QObject
     Q_OBJECT
 public:
     explicit Settings(QObject *parent = nullptr, const QString& parentFolder = "");
+    explicit Settings(const QJsonObject& object, const QString& cacheFolder, QObject *parent = nullptr);
 
     void setUser(const QString& usr);
     void setServer(const QString& val);
@@ -48,6 +49,10 @@ public:
     int method();
     void setMethod(int m);
 
+    QString readFromUserCache(const QJsonObject& cache);
+
+    void setJsonObject(const QJsonObject& obj);
+
 private:
     const QString connectionStringTemplate = "DRIVER={SQL Server};"
                                              "SERVER=%1;DATABASE=%2;Persist Security Info=true;"
@@ -60,7 +65,7 @@ private:
     int _method;
     QString _charset;
     launchMode _launch_mode;
-    QString _parentFolder;
+    QString _cacheDirectory;
 
     QString _httpHost;
     QString _httpUsr;

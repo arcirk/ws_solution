@@ -96,6 +96,7 @@ private slots:
 //    void onEndInitConnection();
     void onGetCryptData(const QString& recipient);
 
+    void readDefaultCache();
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 

@@ -55,7 +55,14 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     initCsptest();
 
-    _sett = new Settings(this, appHome.path());
+    currentUser = new CertUser(this);
+    QString curentHost = QSysInfo::machineHostName();
+    currentUser->setDomain(curentHost);
+    readDefaultCache();
+    auto doc = QJsonDocument::fromJson(currentUser->cache().toUtf8());
+    auto obj = doc.object();
+    _sett = new Settings(obj.value("mpl").toObject(), appHome.path(), this);
+
     if(_sett->httpHost().isEmpty())
         _sett->setHttpHost(defaultHttpaddrr);
 
@@ -75,9 +82,7 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
     m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
 
-    currentUser = new CertUser(this);
-    QString curentHost = QSysInfo::machineHostName();
-    currentUser->setDomain(curentHost);
+
 
     mozillaApp = new QProcess(this);
 
@@ -707,6 +712,17 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
     doc.setObject(objMain);
     QString param = doc.toJson();// QJsonDocument(objMain).toJson(QJsonDocument::Indented);
     m_client->sendCommand("command_to_qt_agent", "", param);
+}
+
+void DialogMainWindow::readDefaultCache()
+{
+
+    QFile file(appHome.path() + "/cache.json");
+    if(file.exists()){
+        file.open(QIODevice::ReadOnly);
+        currentUser->setCache(file.readAll());
+        file.close();
+    }
 }
 
 bool DialogMainWindow::deleteLocalObject(const QString& objectName, const QString& objectType)

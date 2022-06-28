@@ -10,12 +10,12 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
 
     _useSettingsFromHttp = false;
 
-    _parentFolder = parentFolder;
-    if(!_parentFolder.isEmpty()){
-        _parentFolder = _parentFolder + QDir::separator();
+    _cacheDirectory = parentFolder;
+    if(!_cacheDirectory.isEmpty()){
+        _cacheDirectory = _cacheDirectory + QDir::separator();
     }
 
-    QFile conf = QFile(_parentFolder + "conf.json");
+    QFile conf = QFile(_cacheDirectory + "conf.json");
 
     _charset = "CP866";
     _method = 0;
@@ -25,39 +25,7 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
 
         auto doc = QJsonDocument::fromJson(conf.readAll());
         auto obj = doc.object();
-        auto itr = obj.find("user");
-        if(itr != obj.end())
-            setUser(itr.value().toString());
-        itr = obj.find("server");
-        if(itr != obj.end())
-            setServer(itr.value().toString());
-        itr = obj.find("pwd");
-        if(itr != obj.end())
-            setPwd(itr.value().toString());
-        itr = obj.find("method");
-        if(itr != obj.end())
-            setMethod(itr.value().toInt());
-        itr = obj.find("charset");
-        if(itr != obj.end())
-            setCharset(itr.value().toString());
-        itr = obj.find("launch_mode");
-        if(itr != obj.end())
-            setLanchMode((launchMode)itr.value().toInt());
-        itr = obj.find("httpHost");
-        if(itr != obj.end())
-            setHttpHost(itr.value().toString());
-        itr = obj.find("httpUsr");
-        if(itr != obj.end())
-            setHttpUsr(itr.value().toString());
-        itr = obj.find("httpPwd");
-        if(itr != obj.end())
-            setHttpPwd(itr.value().toString());
-        itr = obj.find("useSettingsFromHttp");
-        if(itr != obj.end())
-            setUseSettingsFromHttp(itr.value().toBool());
-        itr = obj.find("customWsUser");
-        if(itr != obj.end())
-            setCustomWsUser(itr.value().toBool());
+        setJsonObject(obj);
     }else{
         save();
     }
@@ -65,6 +33,24 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
     if(_charset.isEmpty())
         _charset = "CP866";
 }
+
+Settings::Settings(const QJsonObject &object, const QString& cacheDirectory, QObject *parent)
+    : QObject{parent}
+{
+    _useSettingsFromHttp = false;
+    _cacheDirectory = cacheDirectory;
+    _charset = "CP866";
+    _method = 0;
+    _launch_mode = ws_srv;
+
+    if(!object.isEmpty())
+        setJsonObject(object);
+    else
+        save();
+
+}
+
+
 
 void Settings::setUser(const QString &usr)
 {
@@ -158,7 +144,7 @@ void Settings::setCustomWsUser(bool value)
 
 void Settings::save()
 {
-    QFile conf = QFile(_parentFolder +  "conf.json");
+    QFile conf = QFile(_cacheDirectory +  "/conf.json");
 
     if(conf.open(QIODevice::WriteOnly)){
 
@@ -220,5 +206,47 @@ int Settings::method()
 void Settings::setMethod(int m)
 {
     _method = m;
+}
+
+QString Settings::readFromUserCache(const QJsonObject &cache)
+{
+
+}
+
+void Settings::setJsonObject(const QJsonObject &obj)
+{
+    auto itr = obj.find("user");
+    if(itr != obj.end())
+        setUser(itr.value().toString());
+    itr = obj.find("server");
+    if(itr != obj.end())
+        setServer(itr.value().toString());
+    itr = obj.find("pwd");
+    if(itr != obj.end())
+        setPwd(itr.value().toString());
+    itr = obj.find("method");
+    if(itr != obj.end())
+        setMethod(itr.value().toInt());
+    itr = obj.find("charset");
+    if(itr != obj.end())
+        setCharset(itr.value().toString());
+    itr = obj.find("launch_mode");
+    if(itr != obj.end())
+        setLanchMode((launchMode)itr.value().toInt());
+    itr = obj.find("httpHost");
+    if(itr != obj.end())
+        setHttpHost(itr.value().toString());
+    itr = obj.find("httpUsr");
+    if(itr != obj.end())
+        setHttpUsr(itr.value().toString());
+    itr = obj.find("httpPwd");
+    if(itr != obj.end())
+        setHttpPwd(itr.value().toString());
+    itr = obj.find("useSettingsFromHttp");
+    if(itr != obj.end())
+        setUseSettingsFromHttp(itr.value().toBool());
+    itr = obj.find("customWsUser");
+    if(itr != obj.end())
+        setCustomWsUser(itr.value().toBool());
 }
 
