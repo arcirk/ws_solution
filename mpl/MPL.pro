@@ -25,9 +25,9 @@ SOURCES += \
     ../sqlwrapper/sqlinterface.cpp \
     ../sqlwrapper/sqlqueryinterface.cpp \
     ../winreg/WinReg.cpp \
+    dialogclientoptions.cpp \
     dialogconnection.cpp \
     dialogmainwindow.cpp \
-    dialogoptions.cpp \
     dialogselectedrow.cpp \
     dialogselectprofile.cpp \
     dialogsettings.cpp \
@@ -54,9 +54,9 @@ HEADERS += \
     ../sqlwrapper/sqlinterface.h \
     ../sqlwrapper/sqlqueryinterface.h \
     ../winreg/WinReg.hpp \
+    dialogclientoptions.h \
     dialogconnection.h \
     dialogmainwindow.h \
-    dialogoptions.h \
     dialogselectedrow.h \
     dialogselectprofile.h \
     dialogsettings.h \
@@ -66,9 +66,9 @@ HEADERS += \
 #    singleapplication/singleapplication.h \
 
 FORMS += \
+    dialogclientoptions.ui \
     dialogconnection.ui \
     dialogmainwindow.ui \
-    dialogoptions.ui \
     dialogselectedrow.ui \
     dialogselectprofile.ui \
     dialogsettings.ui

@@ -21,15 +21,16 @@ public:
     void setRef(const QString& value);
     void setName(const QString& value);
     void setSid(const QString& value);
-
+    void setCache(const QString& value);
     void setUuid(const QUuid& value);
     void setOnline(bool value);
 
-    QString domain();
-    QString name();
-    QString sid();
-    QString ref();
-    QUuid uuid();
+    QString domain() const;
+    QString name() const;
+    QString sid() const;
+    QString ref() const;
+    QUuid uuid() const;
+    QString cache() const;
 
     void eraseData();
 
@@ -57,7 +58,7 @@ public:
 
     KeysContainer *cntDetails(const QString& name);
 
-    QString sha1Hash();
+    QString sha1Hash() const;
 
 private:
     QString _domain;
@@ -66,6 +67,7 @@ private:
     QString _ref;
     QUuid _uuid;
     bool _online;
+    QString _cache;
 
     QStringList _containers;
 

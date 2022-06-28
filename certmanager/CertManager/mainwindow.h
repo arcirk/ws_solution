@@ -190,6 +190,8 @@ private slots:
 
     void on_btnBindContainer_clicked();
 
+    void on_btnClientOptions_clicked();
+
 private:
     Ui::MainWindow *ui;
 

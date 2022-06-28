@@ -24,7 +24,7 @@
 #include <QQueue>
 #include <qjsontablemodel.h>
 #include <tabledelegate.h>
-#include "dialogoptions.h"
+#include "dialogclientoptions.h"
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"

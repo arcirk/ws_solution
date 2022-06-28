@@ -35,6 +35,11 @@ void CertUser::setSid(const QString &value)
     _sid = value;
 }
 
+void CertUser::setCache(const QString &value)
+{
+    _cache = value;
+}
+
 void CertUser::setContainers(const QStringList &value)
 {   
     _containers.clear();
@@ -141,29 +146,34 @@ KeysContainer *CertUser::container(const QString &key)
         return nullptr;
 }
 
-QString CertUser::domain()
+QString CertUser::domain() const
 {
     return _domain;
 }
 
-QString CertUser::name()
+QString CertUser::name() const
 {
     return _name;
 }
 
-QString CertUser::sid()
+QString CertUser::sid() const
 {
     return _sid;
 }
 
-QString CertUser::ref()
+QString CertUser::ref() const
 {
     return _ref;
 }
 
-QUuid CertUser::uuid()
+QUuid CertUser::uuid() const
 {
     return _uuid;
+}
+
+QString CertUser::cache() const
+{
+    return _cache;
 }
 
 void CertUser::eraseData()

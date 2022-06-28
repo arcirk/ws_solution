@@ -31,6 +31,7 @@
 #include "converter.h"
 #include <QQueue>
 #include <dialogabout.h>
+#include "dialogclientoptions.h"
 
 #include <sstream>
 
@@ -1105,11 +1106,14 @@ void MainWindow::resetCertUsersTree()
     int iHost = modelSqlUsers->getColumnIndex("host");
     int iUuid = modelSqlUsers->getColumnIndex("uuid");
     int iRef = modelSqlUsers->getColumnIndex("ref");
+    int iCache = modelSqlUsers->getColumnIndex("cache");
 
     for(int i = 0; i < modelSqlUsers->rowCount(); ++i){
         QString name = modelSqlUsers->index(i, iUser).data(Qt::UserRole + iUser).toString();
         QString host = modelSqlUsers->index(i, iHost).data(Qt::UserRole + iHost).toString();
         QString uuid = modelSqlUsers->index(i, iUuid).data(Qt::UserRole + iUuid).toString();
+        QString cache = modelSqlUsers->index(i, iUuid).data(Qt::UserRole + iCache).toString();
+
         QPair<QString, QString> index = qMakePair(name, host);
         auto itr = m_users.find(index);
         CertUser * user = nullptr;
@@ -1117,6 +1121,7 @@ void MainWindow::resetCertUsersTree()
             user = new CertUser(this);
             user->setName(name);
             user->setDomain(host);
+            user->setCache(cache);
             user->setUuid(QUuid::fromString(uuid));
             m_users.insert(index, user);
             qDebug() << name << host << uuid << user->uuid().toString();
@@ -1878,6 +1883,7 @@ void MainWindow::getDataUsersList()
     bindQuery.addField("uuid", "uuid");
     bindQuery.addField("sid", "sid");
     bindQuery.addField("host", "host");
+    bindQuery.addField("cache", "cache");
 
     QString result = bindQuery.to_json();
 
@@ -2173,6 +2179,8 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     qDebug() << __FUNCTION__ << "tree key:" << key;
 
     inVisibleToolBars();
+
+    ui->btnClientOptions->setEnabled(key == SqlUsers);
 
     if(item->childCount() > 0 && key != SqlUsers){
         setDefaultItemChilds(item);
@@ -3799,6 +3807,7 @@ void MainWindow::createColumnAliases()
     m_colAliases.insert("notValidAfter", "Окончание дейтствия");
     m_colAliases.insert("serial", "Серийный номер");
     m_colAliases.insert("volume", "Хранилище");
+    m_colAliases.insert("cache", "Кэш");
 }
 
 
@@ -4404,6 +4413,37 @@ void MainWindow::on_btnBindContainer_clicked()
                 m_client->sendCommand("exec_query_qt", "", param);
             }
         }
+    }
+}
+
+
+void MainWindow::on_btnClientOptions_clicked()
+{
+
+    auto tree = ui->treeWidget;
+    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    if(node != SqlUsers)
+        return;
+
+    int iUser = modelSqlUsers->getColumnIndex("FirstField");
+    int iHost = modelSqlUsers->getColumnIndex("host");
+    QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+    QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+    QPair<QString, QString> m_index = qMakePair(name, host);
+    auto itr = m_users.find(m_index);
+    if(itr != m_users.end()){
+
+        auto dlg = DialogClientOptions(itr.value(), this);
+        dlg.setModal(true);
+        dlg.exec();
+
     }
 }
 

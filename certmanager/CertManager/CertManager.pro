@@ -25,6 +25,7 @@ SOURCES += \
     commandline.cpp \
     databasemanager.cpp \
     dialogabout.cpp \
+    dialogclientoptions.cpp \
     dialogcomputer.cpp \
     dialogconnection.cpp \
     dialogcontainerinfo.cpp \
@@ -57,6 +58,7 @@ HEADERS += \
     converter.h \
     databasemanager.h \
     dialogabout.h \
+    dialogclientoptions.h \
     dialogcomputer.h \
     dialogconnection.h \
     dialogcontainerinfo.h \
@@ -74,6 +76,7 @@ HEADERS += \
 
 FORMS += \
     dialogabout.ui \
+    dialogclientoptions.ui \
     dialogcomputer.ui \
     dialogconnection.ui \
     dialogcontainerinfo.ui \

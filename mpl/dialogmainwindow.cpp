@@ -110,6 +110,8 @@ void DialogMainWindow::accept()
     }
     createDynamicMenu();
 
+    updateDataUserCache();
+
     QDialog::accept();
 }
 
@@ -892,9 +894,17 @@ void DialogMainWindow::updateDataUserCache()
         return;
 
     auto obj = _profiles->cache();
+    auto mpl = _sett->to_object();
+    mpl.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+    mpl.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
+    mpl.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
+    mpl.insert("Password", m_client->options()[bConfFieldsWrapper::Hash].toString());
+    obj.insert("mpl", mpl);
+
+    currentUser->setCache(QJsonDocument(obj).toJson());
 
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "CertUsers");
-    bindQuery.addField("cache", QJsonDocument(_profiles->cache()).toJson());
+    bindQuery.addField("cache", currentUser->cache());
 
     bindQuery.addWhere("Ref", currentUser->ref());
     QString query = bindQuery.to_json();
@@ -2067,11 +2077,17 @@ void DialogMainWindow::on_btnSettings_clicked()
     qDebug() << __FUNCTION__;
 
 
-    auto dlg = DialogOptions(_profiles, currentUser, this);
+    auto dlg = DialogClientOptions(currentUser, this);
     dlg.setModal(true);
     dlg.exec();
 
-    return;
+    if(dlg.result() == QDialog::Accepted){
+        auto objMain = dlg.getOptionsCache();
+        auto _prof = _profiles->cache();
+        _prof["profilesPath"] = objMain.value("profilesPath").toString();
+        _prof["mozillaExeFile"] = objMain.value("mozillaExeFile").toString();
+        _prof["mozillaExeFile"] = objMain.value("mozillaExeFile").toString();
+    }
 
 
 //    QMap<QString, QVariant> clientSett;

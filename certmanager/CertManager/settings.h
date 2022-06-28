@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <QObject>
+#include <QJsonObject>
 
 enum launchMode{
     ws_srv = 0,
@@ -39,6 +40,7 @@ public:
     void setCustomWsUser(bool value);
 
     void save();
+    QJsonObject to_object();
 
     QString charset();
     void setCharset(const QString& cp);

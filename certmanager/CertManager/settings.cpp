@@ -183,6 +183,23 @@ void Settings::save()
     }
 }
 
+QJsonObject Settings::to_object()
+{
+    auto obj = QJsonObject{};
+    obj.insert("user", _user);
+    obj.insert("server", _server);
+    obj.insert("pwd", _pwd);
+    obj.insert("method", _method);
+    obj.insert("charset", _charset);
+    obj.insert("launch_mode", _launch_mode);
+    obj.insert("httpHost", _httpHost);
+    obj.insert("httpUsr", _httpUsr);
+    obj.insert("httpPwd", _httpPwd);
+    obj.insert("useSettingsFromHttp", _useSettingsFromHttp);
+    obj.insert("customWsUser", _customWsUser);
+    return obj;
+}
+
 QString Settings::charset()
 {
     return _charset;
