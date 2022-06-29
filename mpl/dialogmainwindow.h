@@ -17,7 +17,7 @@
 #include <qmlwebsocket.h>
 #include <QSqlDatabase>
 #include <QLabel>
-#include <settings.h>
+//#include <settings.h>
 #include <sqlinterface.h>
 #include <user.h>
 #include <httpservice.h>
@@ -25,6 +25,7 @@
 #include <qjsontablemodel.h>
 #include <tabledelegate.h>
 #include "dialogclientoptions.h"
+#include "mplsettings.h"
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"
@@ -96,7 +97,7 @@ private slots:
 //    void onEndInitConnection();
     void onGetCryptData(const QString& recipient);
 
-    void readDefaultCache();
+    //void readDefaultCache();
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -117,8 +118,7 @@ private:
     QAction *showAction;
     QProcess * mozillaApp;
     QDir appHome;
-    QString dirName;
-    Settings * _sett;
+    //Settings * _sett;
 
     SqlInterface * db;
     QLabel * infoBar;
@@ -184,7 +184,7 @@ private:
 
 
     /////////////////////////
-    const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
+    //const QString defaultHttpaddrr = "http://192.168.10.12/trade/hs/http_trade";
 
     /////
     void sendToRecipient(const QString &recipient, const QString &command, const QString &message, bool to_agent = false);
@@ -204,7 +204,7 @@ private:
     void getAvailableCerts();
     void setAvailableCerts(const QJsonObject& resp);
 
-    QJsonObject generateCache();
+    //QJsonObject generateCache();
 
 signals:
 //    void whenDataIsLoaded();
