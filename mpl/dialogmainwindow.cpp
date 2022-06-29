@@ -59,8 +59,9 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QString curentHost = QSysInfo::machineHostName();
     currentUser->setDomain(curentHost);
     readDefaultCache();
-    auto doc = QJsonDocument::fromJson(currentUser->cache().toUtf8());
-    auto obj = doc.object();
+    //auto doc = QJsonDocument::fromJson(currentUser->cache().toUtf8());
+    auto obj = currentUser->cache();
+
     _sett = new Settings(obj.value("mpl").toObject(), appHome.path(), this);
 
     if(_sett->httpHost().isEmpty())
@@ -96,8 +97,6 @@ void DialogMainWindow::createConnectionsObjects()
     qDebug() << __FUNCTION__;
 
     db = new SqlInterface(this);
-
-    //createWsObject(/*usr, pwd */);
 
 }
 
@@ -720,7 +719,8 @@ void DialogMainWindow::readDefaultCache()
     QFile file(appHome.path() + "/cache.json");
     if(file.exists()){
         file.open(QIODevice::ReadOnly);
-        currentUser->setCache(file.readAll());
+        auto doc = QJsonDocument::fromJson(file.readAll());
+        currentUser->setCache(doc.object());
         file.close();
     }
 }
@@ -917,7 +917,7 @@ void DialogMainWindow::updateDataUserCache()
     mpl.insert("Password", m_client->options()[bConfFieldsWrapper::Hash].toString());
     obj.insert("mpl", mpl);
 
-    currentUser->setCache(QJsonDocument(obj).toJson());
+    currentUser->setCache(obj);
 
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "CertUsers");
     bindQuery.addField("cache", currentUser->cache());
@@ -1115,6 +1115,29 @@ void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
         auto f = m_async_await.dequeue();
         f();
     }
+
+    if(currentUser->cache().isEmpty()){
+        auto obj = generateCache();
+        currentUser->setCache(obj);
+        QFile file(appHome.path() + "/cache.json");
+        if(file.open(QIODevice::WriteOnly)){
+            file.write(QJsonDocument(currentUser->cache()).toJson());
+            file.close();
+        }
+    }
+}
+
+QJsonObject DialogMainWindow::generateCache()
+{
+    auto obj = _profiles->cache();
+    auto mpl = _sett->to_object();
+    mpl.insert("ServerHost", m_client->options()[bConfFieldsWrapper::ServerHost].toString());
+    mpl.insert("ServerPort", m_client->options()[bConfFieldsWrapper::ServerPort].toInt());
+    mpl.insert("ServerUser", m_client->options()[bConfFieldsWrapper::User].toString());
+    mpl.insert("Password", m_client->options()[bConfFieldsWrapper::Hash].toString());
+    obj.insert("mpl", mpl);
+
+    return obj;
 }
 
 void DialogMainWindow::onWsGetAvailableContainers(const QString &recipient)
@@ -2008,7 +2031,7 @@ void DialogMainWindow::initProfiles()
     ui->tableView->setModel(modelMplProfiles);
      ui->tableView->resizeColumnsToContents();
 
-    _profiles = new ProfileManager(appHome.path(), this);
+    _profiles = new ProfileManager(appHome.path(), currentUser->cache(), this);
     if(_profiles->mozillaExeFile().isEmpty()){
         _profiles->setMozillaExeFile("C:\\Program Files\\Mozilla Firefox\\firefox.exe");
     }
@@ -2092,6 +2115,8 @@ void DialogMainWindow::on_btnSettings_clicked()
 {
     qDebug() << __FUNCTION__;
 
+    if(currentUser->cache().isEmpty())
+        generateCache();
 
     auto dlg = DialogClientOptions(currentUser, this);
     dlg.setModal(true);
@@ -2099,10 +2124,18 @@ void DialogMainWindow::on_btnSettings_clicked()
 
     if(dlg.result() == QDialog::Accepted){
         auto objMain = dlg.getOptionsCache();
-        auto _prof = _profiles->cache();
-        _prof["profilesPath"] = objMain.value("profilesPath").toString();
-        _prof["mozillaExeFile"] = objMain.value("mozillaExeFile").toString();
-        _prof["mozillaExeFile"] = objMain.value("mozillaExeFile").toString();
+        auto p = _profiles->profilesArray();
+        objMain.insert("profiles", p);
+        currentUser->setCache(objMain);
+        _profiles->setCache(objMain);
+        _sett->setCache(objMain);
+
+        updateDataUserCache();
+        QFile file(appHome.path() + "/cache.json");
+        if(file.open(QIODevice::WriteOnly)){
+            file.write(QJsonDocument(currentUser->cache()).toJson());
+            file.close();
+        }
     }
 
 

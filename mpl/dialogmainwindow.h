@@ -204,6 +204,8 @@ private:
     void getAvailableCerts();
     void setAvailableCerts(const QJsonObject& resp);
 
+    QJsonObject generateCache();
+
 signals:
 //    void whenDataIsLoaded();
 //    void endInitConnection();

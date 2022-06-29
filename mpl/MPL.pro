@@ -32,6 +32,7 @@ SOURCES += \
     dialogselectprofile.cpp \
     dialogsettings.cpp \
     main.cpp \
+    mplsettings.cpp \
     profilemanager.cpp \
     userprofile.cpp
 #    singleapplication/singleapplication.cpp \
@@ -60,6 +61,7 @@ HEADERS += \
     dialogselectedrow.h \
     dialogselectprofile.h \
     dialogsettings.h \
+    mplsettings.h \
     profilemanager.h \
     userprofile.h
 #    singleapplication/singleapplication_p.h \

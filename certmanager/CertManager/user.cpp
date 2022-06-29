@@ -35,7 +35,7 @@ void CertUser::setSid(const QString &value)
     _sid = value;
 }
 
-void CertUser::setCache(const QString &value)
+void CertUser::setCache(const QJsonObject &value)
 {
     _cache = value;
 }
@@ -171,10 +171,17 @@ QUuid CertUser::uuid() const
     return _uuid;
 }
 
-QString CertUser::cache() const
+QJsonObject CertUser::cache()
 {
     return _cache;
 }
+
+//QJsonObject CertUser::cacheObject()
+//{
+//    auto doc = QJsonDocument::fromJson(cache().toUtf8());
+//    auto obj = doc.object();
+//    return obj;
+//}
 
 void CertUser::eraseData()
 {

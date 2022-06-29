@@ -14,6 +14,24 @@ ProfileManager::ProfileManager(const QString& homePath, QObject *parent)
     _bindCertificates = false;
 }
 
+ProfileManager::ProfileManager(const QString &homePath, const QJsonObject &object, QObject *parent)
+    : QObject{parent}
+{
+
+    loadProfilesFromINI();
+    _homePath = homePath;
+
+    _bindCertificates = false;
+
+    if(!object.isEmpty())
+        setCache(object);
+    else{
+       _mozillaProfilesFile = mozillaProfilesFile();
+       getConf();
+       getSettings();
+    }
+}
+
 QMap<QUuid, UserProfile *> &ProfileManager::profiles()
 {
     return _profiles;
@@ -224,6 +242,28 @@ QJsonObject ProfileManager::cache()
     objMain.insert("profiles", arr);
 
     return objMain;
+}
+
+QJsonArray ProfileManager::profilesArray()
+{
+    auto arr = QJsonArray();
+
+    foreach (auto itr , _profiles) {
+        QJsonObject obj = QJsonObject();
+        obj.insert("name", itr->name());
+        obj.insert("profile", itr->profile());
+        obj.insert("address", itr->defaultAddress());
+        //obj.insert("typeOperation", itr->typeOperation());
+        obj.insert("uuid", itr->uuid().toString());
+        QJsonArray lst = QJsonArray();
+        for (auto cert : itr->serificates()) {
+            lst.append(cert.toString());
+        }
+        obj.insert("certs", lst);
+        arr.append(obj);
+    }
+
+    return arr;
 }
 
 void ProfileManager::setCache(const QJsonObject &value)

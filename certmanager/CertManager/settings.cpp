@@ -25,7 +25,7 @@ Settings::Settings(QObject *parent, const QString& parentFolder)
 
         auto doc = QJsonDocument::fromJson(conf.readAll());
         auto obj = doc.object();
-        setJsonObject(obj);
+        setCache(obj);
     }else{
         save();
     }
@@ -44,7 +44,7 @@ Settings::Settings(const QJsonObject &object, const QString& cacheDirectory, QOb
     _launch_mode = ws_srv;
 
     if(!object.isEmpty())
-        setJsonObject(object);
+        setCache(object);
     else
         save();
 
@@ -147,7 +147,6 @@ void Settings::save()
     QFile conf = QFile(_cacheDirectory +  "/conf.json");
 
     if(conf.open(QIODevice::WriteOnly)){
-
         auto doc = QJsonDocument{};
         auto obj = QJsonObject{};
         obj.insert("user", _user);
@@ -208,13 +207,10 @@ void Settings::setMethod(int m)
     _method = m;
 }
 
-QString Settings::readFromUserCache(const QJsonObject &cache)
+void Settings::setCache(const QJsonObject &cache)
 {
+    auto obj = cache.value("mpl").toObject();
 
-}
-
-void Settings::setJsonObject(const QJsonObject &obj)
-{
     auto itr = obj.find("user");
     if(itr != obj.end())
         setUser(itr.value().toString());

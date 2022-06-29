@@ -49,9 +49,7 @@ public:
     int method();
     void setMethod(int m);
 
-    QString readFromUserCache(const QJsonObject& cache);
-
-    void setJsonObject(const QJsonObject& obj);
+    void setCache(const QJsonObject& obj);
 
 private:
     const QString connectionStringTemplate = "DRIVER={SQL Server};"

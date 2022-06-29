@@ -53,6 +53,8 @@ QJsonObject DialogClientOptions::getOptionsCache()
 
     objMain.insert("mpl", mpl);
 
+    return objMain;
+
 }
 
 void DialogClientOptions::onChBindCertificateToggled(int state)
@@ -64,10 +66,11 @@ void DialogClientOptions::onChBindCertificateToggled(int state)
 
 void DialogClientOptions::setFromUserSettings()
 {
-    QString cache = _usr->cache();
+    //QString cache = _usr->cache();
+    auto doc = QJsonDocument(_usr->cache());
 
-    if(!cache.isEmpty()){
-        auto doc = QJsonDocument::fromJson(cache.toUtf8());
+    if(!doc.isEmpty()){
+
         _obj = doc.object();
         auto obj = _obj.value("mozilla").toObject();
 

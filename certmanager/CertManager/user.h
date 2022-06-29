@@ -21,7 +21,7 @@ public:
     void setRef(const QString& value);
     void setName(const QString& value);
     void setSid(const QString& value);
-    void setCache(const QString& value);
+    void setCache(const QJsonObject& value);
     void setUuid(const QUuid& value);
     void setOnline(bool value);
 
@@ -30,7 +30,10 @@ public:
     QString sid() const;
     QString ref() const;
     QUuid uuid() const;
-    QString cache() const;
+    QJsonObject cache();
+
+
+    //QJsonObject cacheObject();
 
     void eraseData();
 
@@ -46,7 +49,6 @@ public:
     KeysContainer *container(const QString& key);
     QStringList getRigstryData();
     QStringList getDivaceData();
-
 
     QMap<QString, Certificate*>& certificates();
     QString available_certificates();
@@ -67,7 +69,7 @@ private:
     QString _ref;
     QUuid _uuid;
     bool _online;
-    QString _cache;
+    QJsonObject _cache;
 
     QStringList _containers;
 
@@ -75,9 +77,7 @@ private:
     QMap<QString, Certificate*> m_cert;
     QJsonObject m_available_certs;
 
-//    QJsonTableModel* _model;
-//    QProxyModel * _proxyModel;
-//    QJsonTableModel* _modelCerts;
+
 
 signals:
 
