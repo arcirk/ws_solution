@@ -42,6 +42,7 @@ private slots:
     void on_btnHttpPwd_toggled(bool checked);
     void on_btnCustomWsUserEdit_clicked();
     void on_chkUseSettingsFromHttp_clicked();
+    void on_btnCustomWsUserEdit_toggled(bool checked);
 };
 
 #endif // DIALOGCONNECTION_H

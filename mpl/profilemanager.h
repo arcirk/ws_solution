@@ -38,8 +38,9 @@ public:
     //void setCache(const QJsonObject& value);
 
     QString model();
-
+    QJsonObject to_profiles_table();
     void save();
+    QJsonObject to_object();
 
     //QString mozillaProfilesFile();
 
@@ -61,7 +62,7 @@ private:
     QMap<QUuid, UserProfile*> _profiles;
     QStringList _profilesNames;
     QString _homePath;
-    MplSettings _setings;
+    MplSettings _settings;
 
     //QString _mozillaProfilesFile;
 

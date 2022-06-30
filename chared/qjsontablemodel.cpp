@@ -166,6 +166,13 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
         if(index.column() == 0){
             if(!_rowsIcon.isNull())
                 return _rowsIcon;
+            else{
+                auto pair = qMakePair(index.row(), index.column());
+                auto iter = m_rowIcon.constFind(pair);
+                if(iter !=  m_rowIcon.end()){
+                    return iter.value();////m_rowIcon[pair];
+                }
+            }
         }else{
             auto pair = qMakePair(index.row(), index.column());
             auto iter = m_rowIcon.constFind(pair);

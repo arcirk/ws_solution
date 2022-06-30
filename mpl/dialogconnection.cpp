@@ -211,3 +211,9 @@ void DialogConnection::on_chkUseSettingsFromHttp_clicked()
 
 }
 
+
+void DialogConnection::on_btnCustomWsUserEdit_toggled(bool checked)
+{
+
+}
+

@@ -48,7 +48,9 @@ MplSettings::MplSettings(const QString& home, QObject *parent)
         m_vec[MplUseSettingsFromHttp] = false;
         m_vec[MplMethod] = 0;
         m_vec[MplCustomWsUser] = false;
-        m_vec[Mpllaunch_mode] = mixed;
+        m_vec[Mpllaunch_mode] = ws_srv;
+        m_vec[MplServerPort] = 8080;
+        m_vec[MplServerHost] = "localhost";
         save();
     }
 }
@@ -122,7 +124,10 @@ bool MplSettings::parse()
        m_vec[i] = val;
     }
     jsonFile.close();
-
+    if(m_vec[MplCharset].toString().isEmpty())
+        m_vec[MplCharset] = "CP866";
+    if(m_vec[MplProfilesIniFile].toString().isEmpty())
+        m_vec[MplProfilesIniFile] = QDir::toNativeSeparators(QDir::homePath() + "/AppData/Roaming/Mozilla/Firefox/profiles.ini");
     return true;
 }
 
@@ -165,6 +170,31 @@ QJsonObject MplSettings::to_object()
         return {};
 
     return m_doc.object();
+}
+
+void MplSettings::fromObject(const QJsonObject &object)
+{
+    int fCount = bFields.size();
+
+    for (int i = 0; i < fCount; ++i) {
+       QString key = bFields[i];
+       QJsonValue value = object.value(key);
+       QVariant val;
+       if (value.isString())
+           val = value.toString();
+       else if (value.isDouble())
+           val = value.toInt();
+       else if (value.isBool())
+           val = value.toBool();
+       else
+           val = "";
+       m_vec[i] = val;
+    }
+
+    if(m_vec[MplCharset].toString().isEmpty())
+        m_vec[MplCharset] = "CP866";
+    if(m_vec[MplProfilesIniFile].toString().isEmpty())
+        m_vec[MplProfilesIniFile] = QDir::toNativeSeparators(QDir::homePath() + "/AppData/Roaming/Mozilla/Firefox/profiles.ini");
 }
 
 QVariant const &MplSettings::operator[](bMplSettings index) const {

@@ -39,6 +39,7 @@ public:
     bool parse();
     QString to_string() const;
     QJsonObject to_object();
+    void fromObject(const QJsonObject& object);
 
 private:
     QString _homeDir;

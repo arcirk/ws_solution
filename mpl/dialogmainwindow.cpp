@@ -29,6 +29,8 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 
     setWindowTitle("Настройки профилей пользователя");
 
+    createColumnAliases();
+
     _profiles = nullptr;
     terminal = nullptr;
     m_client = nullptr;
@@ -67,8 +69,8 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::getUserData, this));
     m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
     m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
-
-
+    m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
+    m_async_await.append(std::bind(&DialogMainWindow::updateTableImages, this));
 
     mozillaApp = new QProcess(this);
 
@@ -180,6 +182,7 @@ void DialogMainWindow::setRow(UserProfile *prof)
 //    table->setItem(row, 4, itemUuid);
 
     _profiles->setProfile(prof);
+    _profiles->save();
 
     modelMplProfiles->addRow(prof->to_modelObject());
     modelMplProfiles->reset();
@@ -192,6 +195,7 @@ void DialogMainWindow::updateRow(UserProfile *prof, int row)
 {
       modelMplProfiles->updateRow(prof->to_modelObject(), row);
       modelMplProfiles->reset();
+      _profiles->save();
       ui->tableView->resizeColumnsToContents();
       updateDataUserCache();
 }
@@ -326,12 +330,18 @@ void DialogMainWindow::createDynamicMenu()
             sz.append(item->profile());
             auto action = new QAction(sz, this);
             action->setProperty("uuid", item->uuid());
+            //auto index = modelMplProfiles
             trayIconMenu->addAction(action);
             connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
         }
     }
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 QString DialogMainWindow::toBankClientFile()
@@ -374,7 +384,7 @@ void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid
 
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 {
-    qCritical() << __FUNCTION__ << what << qPrintable(err);
+    qCritical() << __FUNCTION__ << what << qPrintable(err.toLocal8Bit());
 //    if(err == "В соединении отказано"){
 //        emit endInitConnection();
 //    }
@@ -866,11 +876,11 @@ void DialogMainWindow::updateDataUserCache()
 {
     qDebug() << __FUNCTION__;
 
-//    if(!_profiles)
-//        return;
+    if(!_profiles)
+        return;
 
-//    if(currentUser->ref().isEmpty())
-//        return;
+    if(currentUser->ref().isEmpty())
+        return;
 
 //    auto obj = _profiles->cache();
 //    auto mpl = _sett->to_object();
@@ -882,32 +892,36 @@ void DialogMainWindow::updateDataUserCache()
 
 //    currentUser->setCache(obj);
 
-//    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "CertUsers");
-//    bindQuery.addField("cache", currentUser->cache());
+//    auto mainObj = QJsonObject();
+//    mainObj.insert("mpl", _profiles->to_object());
+//    mainObj.insert("profiles", _profiles->to_profiles_table());
 
-//    bindQuery.addWhere("Ref", currentUser->ref());
-//    QString query = bindQuery.to_json();
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "CertUsers");
+    bindQuery.addField("cache", QJsonDocument(_profiles->to_object()).toJson());
 
-//    QJsonObject cmd = QJsonObject();
-//    cmd.insert("command", "update_cert_user_cache");
+    bindQuery.addWhere("Ref", currentUser->ref());
+    QString query = bindQuery.to_json();
 
-//    if(_sett->launch_mode() == mixed){
-//        if(!db->isOpen())
-//            return;
-//        QString _error;
-//        db->exec_qt(query, _error);
-//    }else{
-//        if(m_client->isStarted()){
-//            auto obj = QJsonObject();
-//            obj.insert("query", query);
-//            obj.insert("id_command", "update_cert_user_cache");
-//            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
-//            auto doc = QJsonDocument();
-//            doc.setObject(obj);
-//            QString paramData = doc.toJson();
-//            m_client->sendCommand("exec_query_qt", "", paramData);
-//        }
-//    }
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "update_cert_user_cache");
+
+    if(_profiles->settings()[Mpllaunch_mode] == mixed){
+        if(!db->isOpen())
+            return;
+        QString _error;
+        db->exec_qt(query, _error);
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "update_cert_user_cache");
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
 
 }
 
@@ -1003,9 +1017,9 @@ void DialogMainWindow::getAvailableCerts()
     //доступные севртификаты
     qDebug() << __FUNCTION__;
 
-    if(!_profiles)
+    if(!_profiles){
         return;
-
+    }
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "AvailableCertsView");
 
     bindQuery.addField("FirstField", "FirstField");
@@ -1080,6 +1094,7 @@ void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
     }
 
     if(currentUser->cache().isEmpty()){
+
 //        auto obj = generateCache();
 //        currentUser->setCache(obj);
 //        QFile file(appHome.path() + "/cache.json");
@@ -1087,6 +1102,37 @@ void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
 //            file.write(QJsonDocument(currentUser->cache()).toJson());
 //            file.close();
 //        }
+    }
+}
+
+QJsonObject DialogMainWindow::getCache()
+{
+//    auto objMain = QJsonObject();
+//    auto obj = _profiles->to_object();
+//    objMain.insert("mpl", obj);
+
+//    return objMain;
+
+    return _profiles->to_object();;
+
+}
+
+void DialogMainWindow::updateTableImages()
+{
+
+    int iLink = modelMplProfiles->getColumnIndex("address");
+    for (int i = 0; i < modelMplProfiles->rowCount(); ++i) {
+
+        QString link = modelMplProfiles->index(i, iLink).data(Qt::UserRole + iLink).toString();
+        if(link.indexOf("markirovka") != -1)
+            modelMplProfiles->setIcon(modelMplProfiles->index(i, 0), QIcon(":/img/markirowka.png"));
+    }
+
+    modelMplProfiles->reset();
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
     }
 }
 
@@ -1542,6 +1588,8 @@ void DialogMainWindow::on_btnDelete_clicked()
 
     modelMplProfiles->removeRow(index.row());
 
+    _profiles->save();
+
     updateDataUserCache();
 }
 
@@ -1679,7 +1727,7 @@ void DialogMainWindow::connectToDatabase()
 
     qDebug() << __FUNCTION__;
 
-    if(_profiles->settings()[bMplSettings::Mpllaunch_mode] != mixed)
+    if(_profiles->settings()[bMplSettings::Mpllaunch_mode].toInt() != mixed)
     {
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
@@ -1787,8 +1835,13 @@ void DialogMainWindow::getSettingsFromHttp()
 
     loop.exec();
 
-    if(result.isEmpty())
+    if(result.isEmpty()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
+    }
 
     auto doc = QJsonDocument::fromJson(result.toUtf8());
     if(doc.isEmpty())
@@ -1807,8 +1860,11 @@ void DialogMainWindow::getSettingsFromHttp()
     if(!_profiles->settings()[bMplSettings::MplCustomWsUser].toBool()){
         m_client->options()[bConfFieldsWrapper::User] = row.value("userName").toString();
         m_client->options()[bConfFieldsWrapper::Hash] = bWebSocket::generateHash(row.value("userName").toString(), row.value("userPwd").toString());
+        _profiles->settings()[bMplSettings::MplServerUser] = row.value("userName").toString();
     }
 
+    _profiles->settings()[bMplSettings::MplServerHost] = row.value("wsServer").toString();
+    _profiles->settings()[bMplSettings::MplServerPort] = row.value("wsPort").toString().toInt();
     _profiles->settings()[bMplSettings::MplServer] = row.value("sqlServer").toString();
     _profiles->settings()[bMplSettings::MplUser] = row.value("sqlUser").toString();
 
@@ -1851,7 +1907,7 @@ void DialogMainWindow::connectToWsServer()
 {
     qDebug() << __FUNCTION__;
 
-    if(_profiles->settings()[bMplSettings::Mpllaunch_mode] == mixed){
+    if(_profiles->settings()[bMplSettings::Mpllaunch_mode].toInt() == mixed){
         if(!db->isOpen()){
             if(m_async_await.size() > 0)
             {
@@ -1870,7 +1926,7 @@ void DialogMainWindow::connectToWsServer()
     if(m_client->isStarted())
         return;
 
-    if(_profiles->settings()[bMplSettings::Mpllaunch_mode] == mixed){
+    if(_profiles->settings()[bMplSettings::Mpllaunch_mode].toInt() == mixed){
         QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
         if(result.lastError().type() == QSqlError::NoError){
             while (result.next()){
@@ -1879,6 +1935,9 @@ void DialogMainWindow::connectToWsServer()
                 m_client->setHost(_host);
                 m_client->setPort(_port);
                 m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+                _profiles->settings()[bMplSettings::MplServerHost] = _host;
+                _profiles->settings()[bMplSettings::MplServerPort] = _port;
+                _profiles->settings().save();
                 break;
             }
         }
@@ -1888,6 +1947,7 @@ void DialogMainWindow::connectToWsServer()
         m_client->setHost(_host);
         m_client->setPort(_port);
         m_client->open(m_client->options()[bConfFieldsWrapper::User].toString(), "");
+        _profiles->settings().save();
     }
 
     updateConnectionStatus();
@@ -1897,7 +1957,10 @@ void DialogMainWindow::createWsObject()
 {
     qDebug() << __FUNCTION__;
     m_client = new bWebSocket(this, "conf_qt_mpl.json", currentUser->name());
+    m_client->options()[bConfFieldsWrapper::ServerHost] = _profiles->settings()[bMplSettings::MplServerHost].toString();
+    m_client->options()[bConfFieldsWrapper::ServerPort] = _profiles->settings()[bMplSettings::MplServerPort].toInt();
     m_client->setAppName("qt_mpl_client");
+    m_client->options().save();
     setWsConnectedSignals();
 
     if(m_async_await.size() > 0){
@@ -2015,12 +2078,15 @@ void DialogMainWindow::on_btnSettings_clicked()
 //    if(currentUser->cache().isEmpty())
 //        generateCache();
 
-//    auto dlg = DialogClientOptions(currentUser, this);
-//    dlg.setModal(true);
-//    dlg.exec();
+    auto dlg = DialogClientOptions(currentUser, _profiles, this);
+    dlg.setModal(true);
+    dlg.exec();
 
-//    if(dlg.result() == QDialog::Accepted){
-//        auto objMain = dlg.getOptionsCache();
+    if(dlg.result() == QDialog::Accepted){
+        auto objMain = dlg.getOptionsCache();
+        _profiles->settings().fromObject(objMain);
+        _profiles->save();
+
 //        auto p = _profiles->profilesArray();
 //        objMain.insert("profiles", p);
 //        currentUser->setCache(objMain);
@@ -2033,7 +2099,7 @@ void DialogMainWindow::on_btnSettings_clicked()
 //            file.write(QJsonDocument(currentUser->cache()).toJson());
 //            file.close();
 //        }
-//    }
+    }
 
 
 //    QMap<QString, QVariant> clientSett;
