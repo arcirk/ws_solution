@@ -48,7 +48,8 @@ QJsonObject DialogClientOptions::getOptionsCache()
     if(ui->pwdEdit->isChecked()){
         QString hash = bWebSocket::generateHash(ui->lineWsUser->text(), ui->lineWsPwd->text());
         objMain.insert("Hash", hash);
-    }
+    }else
+        objMain.insert("Hash", _hash);
     objMain.insert("customWsUser", ui->btnCustomWsUserEdit->isChecked());
 
     objMain.insert("charset", ch.isEmpty() ? "CP866": ch);
@@ -77,6 +78,7 @@ void DialogClientOptions::setFromUserSettings()
         _obj = _mpl->to_object().value("mpl").toObject();
         ch = _obj.value("charset").toString();
         method = _obj.value("method").toInt();
+        _hash = _obj.value("Hash").toString();
 
         ui->lineMozillaPath->setText(_obj.value("mozillaExeFile").toString());
         ui->lineMoxillaProfilesPath->setText(_obj.value("profilesIniFile").toString());

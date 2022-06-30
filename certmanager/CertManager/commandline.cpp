@@ -311,8 +311,17 @@ void CommandLine::send(const QString &commandText, int command)
     _command = command;
     if(!useSystem()){
         if(m_listening){
-            //QTextCodec *codec = QTextCodec::codecForName("CP866");
-            m_process.write(codec->fromUnicode(_commandText));
+            if(_currentEncoding.isEmpty()){
+                _currentEncoding = "CP866";
+                codec = QTextCodec::codecForName(_currentEncoding.toUtf8());
+                QTextCodec::setCodecForLocale(codec);
+            }
+            try {
+                m_process.write(codec->fromUnicode(_commandText));
+            }  catch (std::exception& e) {
+                qCritical() << __FUNCTION__ << e.what();
+            }
+
         }
     }else{
         std::string _result = executeSystem(_commandText.toStdString());

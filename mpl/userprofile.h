@@ -5,6 +5,7 @@
 #include <QList>
 #include <QUuid>
 #include <QJsonObject>
+#include <QIcon>
 
 class UserProfile : public QObject
 {
@@ -35,6 +36,10 @@ public:
 
     QJsonObject to_modelObject();
 
+    void setIcon(const QString& rcPath);
+
+    QIcon icon();
+
 private:
     QString _address;
     QString _name;
@@ -42,6 +47,7 @@ private:
     //QString _type_of_operation;
     QUuid _uuid;
     QString _profile;
+    QIcon _image;
 
 signals:
 

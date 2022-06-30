@@ -43,12 +43,14 @@ private slots:
 
     void on_linePwd_textChanged(const QString &arg1);
 
+
 private:
     Ui::DialogOptions *ui;
     QJsonObject _obj;
     CertUser * _usr;
     ProfileManager * _mpl;
     QString ch;
+    QString _hash;
     int method;
     void setFromUserSettings();
     void formControl();

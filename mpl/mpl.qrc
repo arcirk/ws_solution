@@ -10,5 +10,11 @@
         <file>img/viewPwd.svg</file>
         <file>img/viewPwd1.svg</file>
         <file>img/markirowka.png</file>
+        <file>img/diadoc.svg</file>
+        <file>img/diadoc.png</file>
+        <file>img/extern.png</file>
+        <file>img/extern.svg</file>
+        <file>img/ofd.png</file>
+        <file>img/ofd.svg</file>
     </qresource>
 </RCC>

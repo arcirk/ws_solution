@@ -330,7 +330,8 @@ void DialogMainWindow::createDynamicMenu()
             sz.append(item->profile());
             auto action = new QAction(sz, this);
             action->setProperty("uuid", item->uuid());
-            //auto index = modelMplProfiles
+            if(!item->icon().isNull())
+                action->setIcon(item->icon());
             trayIconMenu->addAction(action);
             connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
         }
@@ -388,6 +389,8 @@ void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 //    if(err == "В соединении отказано"){
 //        emit endInitConnection();
 //    }
+    updateConnectionStatus();
+
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
         f();
@@ -1119,13 +1122,19 @@ QJsonObject DialogMainWindow::getCache()
 
 void DialogMainWindow::updateTableImages()
 {
-
     int iLink = modelMplProfiles->getColumnIndex("address");
     for (int i = 0; i < modelMplProfiles->rowCount(); ++i) {
 
         QString link = modelMplProfiles->index(i, iLink).data(Qt::UserRole + iLink).toString();
-        if(link.indexOf("markirovka") != -1)
-            modelMplProfiles->setIcon(modelMplProfiles->index(i, 0), QIcon(":/img/markirowka.png"));
+        if(link.indexOf("markirovka") != -1){
+            setProfoleImage(i, ":/img/markirowka.png");
+        }else if(link.indexOf("diadoc.kontur.ru") != -1){
+            setProfoleImage(i, ":/img/diadoc.png");
+        }else if(link.indexOf("ofd.kontur.ru") != -1){
+            setProfoleImage(i, ":/img/ofd.png");
+        }else if(link.indexOf("extern.kontur.ru") != -1){
+            setProfoleImage(i, ":/img/extern.png");
+        }
     }
 
     modelMplProfiles->reset();
@@ -1840,27 +1849,41 @@ void DialogMainWindow::getSettingsFromHttp()
             auto f = m_async_await.dequeue();
             f();
         }
+        qCritical() << __FUNCTION__ << "Ошибка получения данных с http сервиса. Пустой ответ сервера!";
         return;
     }
 
     auto doc = QJsonDocument::fromJson(result.toUtf8());
-    if(doc.isEmpty())
+    if(doc.isEmpty()){
+        qCritical() << __FUNCTION__ << "Ошибка получения данных с http сервиса. Не верный формат данных!";
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
+    }
 
     auto obj = doc.object();
     auto arr = obj.value("Rows").toArray();
-    if(arr.isEmpty())
+    if(arr.isEmpty()){
+        qCritical() << __FUNCTION__ << "Ошибка получения данных с http сервиса. Пустой ответ сервера!";
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
-
+    }
     auto row = arr[0].toObject();
 
     m_client->options()[bConfFieldsWrapper::ServerHost] = row.value("wsServer").toString();
     m_client->options()[bConfFieldsWrapper::ServerPort] = row.value("wsPort").toString().toInt();
 
-    if(!_profiles->settings()[bMplSettings::MplCustomWsUser].toBool()){
+    if(!_profiles->settings()[bMplSettings::MplCustomWsUser].toBool()){        
         m_client->options()[bConfFieldsWrapper::User] = row.value("userName").toString();
         m_client->options()[bConfFieldsWrapper::Hash] = bWebSocket::generateHash(row.value("userName").toString(), row.value("userPwd").toString());
         _profiles->settings()[bMplSettings::MplServerUser] = row.value("userName").toString();
+        if(_profiles->settings()[bMplSettings::MplServerUser].toString().isEmpty())
+           qCritical() << __FUNCTION__ << "Ошибка получения данных с http сервиса. Пользователь не найден!";
     }
 
     _profiles->settings()[bMplSettings::MplServerHost] = row.value("wsServer").toString();
@@ -1929,6 +1952,10 @@ void DialogMainWindow::connectToWsServer()
     if(_profiles->settings()[bMplSettings::Mpllaunch_mode].toInt() == mixed){
         QSqlQuery result("select [host], [port] from dbo.WSConf;", db->getDatabase());
         if(result.lastError().type() == QSqlError::NoError){
+            if(_profiles->settings()[bMplSettings::MplCustomWsUser].toBool()){
+                m_client->options()[bConfFieldsWrapper::User] = _profiles->settings()[bMplSettings::MplServerUser].toString();
+                m_client->options()[bConfFieldsWrapper::Hash] = _profiles->settings()[bMplSettings::MplHash].toString();
+            }
             while (result.next()){
                 QString _host = result.value(0).toString().trimmed();
                 int _port = result.value(1).toInt();
@@ -1942,6 +1969,10 @@ void DialogMainWindow::connectToWsServer()
             }
         }
     }else{
+        if(_profiles->settings()[bMplSettings::MplCustomWsUser].toBool()){
+            m_client->options()[bConfFieldsWrapper::User] = _profiles->settings()[bMplSettings::MplServerUser].toString();
+            m_client->options()[bConfFieldsWrapper::Hash] = _profiles->settings()[bMplSettings::MplHash].toString();
+        }
         QString _host = m_client->options()[bConfFieldsWrapper::ServerHost].toString();
         int _port = m_client->options()[bConfFieldsWrapper::ServerPort].toInt();
         m_client->setHost(_host);
@@ -1995,6 +2026,7 @@ void DialogMainWindow::initProfiles()
      ui->tableView->resizeColumnsToContents();
 
     _profiles = new ProfileManager(appHome.path(), this);
+    //_profiles->settings()[MplServerUser] = currentUser->name();
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
@@ -2256,6 +2288,18 @@ void DialogMainWindow::on_tableView_doubleClicked(const QModelIndex &index)
         if(dlg.result() == QDialog::Accepted){
             updateRow(itr.value(), index.row());
         }
+    }
+}
+
+void DialogMainWindow::setProfoleImage(int index, const QString &imagePath)
+{
+    modelMplProfiles->setIcon(modelMplProfiles->index(index, 0), QIcon(imagePath));
+    int iUuid = modelMplProfiles->getColumnIndex("uuid");
+    QString uuid = modelMplProfiles->index(index, iUuid).data(Qt::UserRole + iUuid).toString();
+    if(!uuid.isEmpty()){
+        auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+        if(itr != _profiles->profiles().end())
+            itr.value()->setIcon(imagePath);
     }
 }
 

@@ -5,7 +5,7 @@
 #include <QJsonObject>
 
 enum bMplSettings{
-    MplPassword = 0,
+    MplHash = 0,
     MplServerHost,
     MplServerPort,
     MplServerUser,

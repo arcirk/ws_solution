@@ -101,6 +101,8 @@ private slots:
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
+    void setProfoleImage(int index, const QString& imagePath);
+
 public slots:
     //void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:

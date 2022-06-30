@@ -5,6 +5,7 @@ UserProfile::UserProfile(QObject *parent)
     : QObject{parent}
 {
     _uuid = QUuid{};
+    _image = QIcon();
 }
 
 QString UserProfile::name()
@@ -101,4 +102,14 @@ QJsonObject UserProfile::to_modelObject()
     objMain.insert("certs", lst.join("/"));
 
     return objMain;
+}
+
+void UserProfile::setIcon(const QString &rcPath)
+{
+    _image = QIcon(rcPath);
+}
+
+QIcon UserProfile::icon()
+{
+    return _image;
 }

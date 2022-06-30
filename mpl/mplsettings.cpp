@@ -9,7 +9,7 @@ enum launchMode{
 
 
 QStringList bFields{
-    "Password",
+    "Hash",
     "ServerHost",
     "ServerPort",
     "ServerUser",
