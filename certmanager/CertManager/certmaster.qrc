@@ -66,5 +66,7 @@
         <file>img/extern.png</file>
         <file>img/extern.svg</file>
         <file>img/diadoc.png</file>
+        <file>img/sberbank.png</file>
+        <file>img/sberbank.svg</file>
     </qresource>
 </RCC>

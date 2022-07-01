@@ -673,6 +673,7 @@ void DialogMainWindow::onGetCryptData(const QString &recipient)
     auto objCerts = QJsonObject();
     objCerts.insert("cnt", currentUser->containers().join("\n"));
     objCerts.insert("certs", currentUser->certModel());
+    objCerts.insert("profiles", mozillaProfiles().join("\n"));
     obj.insert("command", "mpl_cert_data");
     obj.insert("message", QString(QJsonDocument(objCerts).toJson().toBase64()));
     QString object = QJsonDocument(obj).toJson(QJsonDocument::Indented);
@@ -2304,3 +2305,41 @@ void DialogMainWindow::setProfoleImage(int index, const QString &imagePath)
     }
 }
 
+QStringList DialogMainWindow::mozillaProfiles()
+{
+    QString appData = QDir::homePath();
+
+#ifndef Q_OS_LINUX
+    appData.append("/AppData/Roaming/Mozilla/Firefox/profiles.ini");
+#else
+    appData.append("/.mozilla/firefox/profiles.ini");
+#endif
+
+    qDebug() << QDir::fromNativeSeparators(appData);
+
+    if(!QFile::exists(QDir::fromNativeSeparators(appData))){
+#ifdef Q_OS_LINUX
+        if(QFile::exists(QDir::homePath() + QDir::separator() + "snap")){
+            appData = QDir::homePath()  + "/snap/firefox/common/.mozilla/firefox/profiles.ini";
+        }
+        if(!QFile::exists(appData))
+            return;
+#else
+        return {};
+#endif
+    }
+
+    QStringList m_profileNames;
+    QSettings ini = QSettings(QDir::fromNativeSeparators(appData), QSettings::IniFormat);
+    QStringList keys = ini.allKeys();
+    foreach(const QString& key, keys){
+        if(key.compare("Profile")){
+            if(key.endsWith("/Name")){
+                m_profileNames.append(ini.value(key).toString());
+            }
+
+        }
+    }
+
+    return m_profileNames;
+}

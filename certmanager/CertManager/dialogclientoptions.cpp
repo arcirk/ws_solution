@@ -2,6 +2,8 @@
 #include "ui_dialogclientoptions.h"
 #include "tabledelegate.h"
 #include <QCheckBox>
+#include "dialogselectedrow.h"
+#include <QMessageBox>
 
 DialogClientOptions::DialogClientOptions(CertUser* usr, QProxyModel* a_certs, QWidget *parent) :
     QDialog(parent),
@@ -231,31 +233,34 @@ QJsonObject DialogClientOptions::getOptionsCache()
 {
 
     auto objMain = QJsonObject();
-    //auto objMozilla = QJsonObject();
-    objMain.insert("mozillaExeFile", ui->lineMozillaPath->text());
-    objMain.insert("profilesIniFile", ui->lineMoxillaProfilesPath->text());
-    objMain.insert("bindCertificates", ui->chBindCertificate->isChecked());
-    objMain.insert("user", ui->lineUser->text());
-    objMain.insert("pwd", bWebSocket::crypt(ui->linePwd->text(), "my_key"));
-    objMain.insert("server", ui->lineServer->text());
-    objMain.insert("useSettingsFromHttp", ui->chkUseSettingsFromHttp->isChecked());
-    objMain.insert("httpHost", ui->lineHttpHost->text());
-    objMain.insert("httpUsr", ui->lineHttpUsr->text());
-    objMain.insert("httpPwd", bWebSocket::crypt(ui->lineHttpPwd->text(), "my_key"));
-    objMain.insert("launch_mode", ui->checkMode->isChecked());
-    objMain.insert("ServerUser", ui->lineWsUser->text());
-    objMain.insert("ServerHost", ui->lineWsServer->text());
-    objMain.insert("ServerPort", ui->spinPort->value());
+    auto mpl = QJsonObject();
+    mpl.insert("mozillaExeFile", ui->lineMozillaPath->text());
+    mpl.insert("profilesIniFile", ui->lineMoxillaProfilesPath->text());
+    mpl.insert("bindCertificates", ui->chBindCertificate->isChecked());
+    mpl.insert("user", ui->lineUser->text());
+    mpl.insert("pwd", bWebSocket::crypt(ui->linePwd->text(), "my_key"));
+    mpl.insert("server", ui->lineServer->text());
+    mpl.insert("useSettingsFromHttp", ui->chkUseSettingsFromHttp->isChecked());
+    mpl.insert("httpHost", ui->lineHttpHost->text());
+    mpl.insert("httpUsr", ui->lineHttpUsr->text());
+    mpl.insert("httpPwd", bWebSocket::crypt(ui->lineHttpPwd->text(), "my_key"));
+    mpl.insert("launch_mode", ui->checkMode->isChecked());
+    mpl.insert("ServerUser", ui->lineWsUser->text());
+    mpl.insert("ServerHost", ui->lineWsServer->text());
+    mpl.insert("ServerPort", ui->spinPort->value());
     QString hash = "";
     if(ui->pwdEdit->isChecked()){
-        QString hash = bWebSocket::generateHash(ui->lineWsUser->text(), ui->lineWsPwd->text());
-        objMain.insert("Hash", hash);
+        hash = bWebSocket::generateHash(ui->lineWsUser->text(), ui->lineWsPwd->text());
+        mpl.insert("Hash", hash);
     }else
-        objMain.insert("Hash", _hash);
-    objMain.insert("customWsUser", ui->btnCustomWsUserEdit->isChecked());
+        mpl.insert("Hash", _hash);
+    mpl.insert("customWsUser", ui->btnCustomWsUserEdit->isChecked());
 
-    objMain.insert("charset", ch.isEmpty() ? "CP866": ch);
-    objMain.insert("method", method);
+    mpl.insert("charset", ch.isEmpty() ? "CP866": ch);
+    mpl.insert("method", method);
+
+    objMain.insert("mpl", mpl);
+    objMain.insert("profiles", QJsonDocument::fromJson(_profiles->jsonText().toUtf8()).object());
 
     return objMain;
 
@@ -280,7 +285,9 @@ void DialogClientOptions::updateTableImages()
         }else if(link.indexOf("ofd.kontur.ru") != -1){
             setProfoleImage(i, ":/img/ofd.png");
         }else if(link.indexOf("extern.kontur.ru") != -1){
-            setProfoleImage(i, ":/img/extern.png");
+            setProfoleImage(i, ":/img/extern.png");            
+        }else if(link.indexOf("sberbank.ru") != -1){
+            setProfoleImage(i, ":/img/sberbank.png");
         }else
             setProfoleImage(i, ":/img/link.png");
     }
@@ -288,3 +295,43 @@ void DialogClientOptions::updateTableImages()
     _profiles->reset();
 
 }
+
+void DialogClientOptions::on_btnProfileEdit_clicked()
+{
+    auto index = ui->tableViewProfiles->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    auto row = model->getRowObject(index.row());
+
+    auto dlg = DialogSelectedRow(_usr, row, this);
+    dlg.setModal(true);
+    dlg.exec();
+
+    if(dlg.result() == QDialog::Accepted){
+        auto result = dlg.resultObject();
+        model->updateRow(result, index.row());
+    }
+
+}
+
+void DialogClientOptions::on_tableViewProfiles_doubleClicked(const QModelIndex &index)
+{
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    auto row = model->getRowObject(index.row());
+
+    auto dlg = DialogSelectedRow(_usr, row, this);
+    dlg.setModal(true);
+    dlg.exec();
+
+    if(dlg.result() == QDialog::Accepted){
+        auto result = dlg.resultObject();
+        model->updateRow(result, index.row());
+    }
+}
+

@@ -32,6 +32,7 @@ SOURCES += \
     dialogcontainername.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
+    dialogselectedrow.cpp \
     dialogselectfromdatabase.cpp \
     dialogselectinlist.cpp \
     dialogterminaloptions.cpp \
@@ -65,6 +66,7 @@ HEADERS += \
     dialogcontainername.h \
     dialogoptions.h \
     dialogselectdevice.h \
+    dialogselectedrow.h \
     dialogselectfromdatabase.h \
     dialogselectinlist.h \
     dialogterminaloptions.h \
@@ -83,6 +85,7 @@ FORMS += \
     dialogcontainername.ui \
     dialogoptions.ui \
     dialogselectdevice.ui \
+    dialogselectedrow.ui \
     dialogselectfromdatabase.ui \
     dialogselectinlist.ui \
     dialogterminaloptions.ui \

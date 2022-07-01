@@ -211,6 +211,8 @@ private:
 
     void updateTableImages();
 
+    QStringList mozillaProfiles();
+
 signals:
 //    void whenDataIsLoaded();
 //    void endInitConnection();

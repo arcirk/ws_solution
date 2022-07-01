@@ -38,8 +38,10 @@ public:
     void eraseData();
 
     QStringList containers();
+    QStringList mozillaProfiles();
 
     void setContainers(const QStringList& value);
+    void setMozillaProfiles(const QStringList& value);
 
     bool online();
     bool thisIsTheUser(const QString& usr, const QString& host);
@@ -72,6 +74,7 @@ private:
     QJsonObject _cache;
 
     QStringList _containers;
+    QStringList _mozillaProfiles;
 
     QMap<QString, KeysContainer*> m_cnt;
     QMap<QString, Certificate*> m_cert;

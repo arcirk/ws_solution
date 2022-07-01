@@ -43,6 +43,10 @@ private slots:
 
     void on_pwdEdit_toggled(bool checked);
 
+    void on_btnProfileEdit_clicked();
+
+    void on_tableViewProfiles_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::DialogOptions *ui;
     CertUser * _usr;

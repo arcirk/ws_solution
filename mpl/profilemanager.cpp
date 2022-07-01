@@ -224,6 +224,11 @@ void ProfileManager::clear()
     _profiles.clear();
 }
 
+void ProfileManager::setCache(const QJsonObject &value)
+{
+
+}
+
 //QJsonObject ProfileManager::cache()
 //{
 //    auto objMain = QJsonObject();

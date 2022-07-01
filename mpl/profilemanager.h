@@ -35,7 +35,7 @@ public:
     //QJsonObject cache();
     //QJsonArray profilesArray();
 
-    //void setCache(const QJsonObject& value);
+    void setCache(const QJsonObject& value);
 
     QString model();
     QJsonObject to_profiles_table();

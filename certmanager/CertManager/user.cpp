@@ -59,6 +59,11 @@ void CertUser::setContainers(const QStringList &value)
     }
 }
 
+void CertUser::setMozillaProfiles(const QStringList &value)
+{
+    _mozillaProfiles = value;
+}
+
 void CertUser::setUuid(const QUuid &value)
 {
     _uuid = value;
@@ -192,6 +197,11 @@ void CertUser::eraseData()
 QStringList CertUser::containers()
 {
     return _containers;
+}
+
+QStringList CertUser::mozillaProfiles()
+{
+    return _mozillaProfiles;
 }
 
 bool CertUser::online()
