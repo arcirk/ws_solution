@@ -66,7 +66,7 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::getSettingsFromHttp, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToWsServer, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToDatabase, this));
-    m_async_await.append(std::bind(&DialogMainWindow::getUserData, this));
+    //m_async_await.append(std::bind(&DialogMainWindow::getUserData, this));
     m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
     m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
     m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
@@ -954,7 +954,7 @@ void DialogMainWindow::setFromDataUserCache(const QJsonObject &resp)
 
         if(_profiles){
             auto doc = QJsonDocument::fromJson(jCache.toUtf8());
-            //_profiles->setCache(doc.object());
+            _profiles->setCache(doc.object());
         }
 
     }

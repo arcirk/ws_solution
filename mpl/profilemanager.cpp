@@ -224,9 +224,42 @@ void ProfileManager::clear()
     _profiles.clear();
 }
 
-void ProfileManager::setCache(const QJsonObject &value)
+void ProfileManager::setCache(const QJsonObject &resp)
 {
 
+    _settings.fromObject(resp.value("mpl").toObject());
+
+    _profiles.clear();
+
+    QJsonArray arr = resp.value("profiles").toObject().value("rows").toArray();
+
+    if(!arr.isEmpty()){
+        for (auto itr : arr) {
+            if(itr.isObject()){
+                auto item = itr.toObject();
+                auto profile = new UserProfile();
+                QString name = item.value("name").toString();
+                profile->setName(name);
+                QString _profile = item.value("profile").toString();
+                profile->setProfile(_profile);
+                QString address = item.value("address").toString();
+                profile->setDefaultAddress(address);
+                QUuid uuid = QUuid::fromString(item.value("uuid").toString());
+                profile->setUuid(uuid);
+                auto certs = item.value("certs");
+                if(certs.isArray()){
+                    auto arrLst = certs.toArray();
+                    QList<QUuid> lst;
+                    for(auto _uuid : arrLst){
+                        lst.append(QUuid::fromString(_uuid.toString()));
+                    }
+                    profile->setSertificates(lst);
+                }
+                _profiles.insert(uuid, profile);
+            }
+
+        }
+    }
 }
 
 //QJsonObject ProfileManager::cache()
@@ -476,6 +509,7 @@ void ProfileManager::readProfiles()
         return;
     }
 
+    _profiles.clear();
     QJsonDocument doc = QJsonDocument::fromJson(settings.readAll());
     settings.close();
     QJsonArray arr = doc.object().value("profiles").toObject().value("rows").toArray();
