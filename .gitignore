@@ -116,3 +116,5 @@ tests/
 /CertManager-Release/
 /certmanager/CertManager-Debug/
 /certmanager/CertManager-Release/
+/ws_admin-Debug/
+/ws_admin-Release/

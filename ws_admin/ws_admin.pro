@@ -65,8 +65,8 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client/release/ -lws_client
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client/debug/ -lws_client
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Release/release/ -lws_client
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Debug/debug/ -lws_client
 else:unix: LIBS += -L$$OUT_PWD/../ws_client/ -lws_client
 
 unix:LIBS += -lboost_thread

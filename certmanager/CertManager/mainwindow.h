@@ -222,9 +222,12 @@ private:
     QJsonTableModel * modelWsUsers;
     QJsonTableModel * modelSqlUsers;
     QJsonTableModel * modelCertUserContainers;
-    QProxyModel     * proxyModeCertlUserConteiners;
+    QProxyModel     * proxyModelCertlUserConteiners;
     QJsonTableModel * modelCertUserCertificates;
     QJsonTableModel * modelUsersAviableCerts;
+    QProxyModel     * proxyModelUsersAviableCerts;
+
+    void updateCertUserCache(const QString &ref, const QString &cache);
 
     QString currentRecipient;
     void sendToRecipient(const QString &recipient, const QString& command, const QString &message, bool to_agent);
@@ -354,6 +357,9 @@ private:
     void setFromDataUserCache(const QJsonObject &resp);
 
     void deleteDataObject(const QString& ref, const QString& table);
+
+    void getDataAvailableCertificates();
+    void setDataAvailableCertificates(const QJsonObject& resp);
 
 signals:
     void whenDataIsLoaded();

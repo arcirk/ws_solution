@@ -58,5 +58,13 @@
         <file>img/available_certificate.svg</file>
         <file>img/available_certificate_16.svg</file>
         <file>img/available_certificate_16.png</file>
+        <file>img/link.png</file>
+        <file>img/markirowka.png</file>
+        <file>img/ofd.png</file>
+        <file>img/ofd.svg</file>
+        <file>img/diadoc.svg</file>
+        <file>img/extern.png</file>
+        <file>img/extern.svg</file>
+        <file>img/diadoc.png</file>
     </qresource>
 </RCC>

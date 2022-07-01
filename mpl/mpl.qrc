@@ -16,5 +16,6 @@
         <file>img/extern.svg</file>
         <file>img/ofd.png</file>
         <file>img/ofd.svg</file>
+        <file>img/link.png</file>
     </qresource>
 </RCC>

@@ -1134,7 +1134,8 @@ void DialogMainWindow::updateTableImages()
             setProfoleImage(i, ":/img/ofd.png");
         }else if(link.indexOf("extern.kontur.ru") != -1){
             setProfoleImage(i, ":/img/extern.png");
-        }
+        }else
+            setProfoleImage(i, ":/img/link.png");
     }
 
     modelMplProfiles->reset();
