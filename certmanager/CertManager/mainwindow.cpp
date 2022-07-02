@@ -3278,6 +3278,11 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         }
     }else
         qDebug() << __FUNCTION__ << command << message;
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 //void MainWindow::onWsMplClientFormLoaded(const QString &resp)
@@ -3358,8 +3363,28 @@ void MainWindow::onWsExecQuery(const QString &result)
     }else if(id_command == "RemoteIncertCurrentAvaibleCerts"){
         getDataAvailableCertificates();
     }else if(id_command == "update_cert_user_cache"){
-        //getDataAvailableCertificates();
-        getDataUsersList();
+        QString run_on_return = obj.value("run_on_return").toString();
+        auto param = QJsonDocument::fromJson(run_on_return.toUtf8()).object();
+        QString ref = param.value("Ref").toString();
+        int iRef = modelSqlUsers->getColumnIndex("Ref");
+        auto index = findInTable(modelSqlUsers, ref, iRef, false);
+        if(index.isValid()){
+            int iUser = modelSqlUsers->getColumnIndex("FirstField");
+            int iHost = modelSqlUsers->getColumnIndex("host");
+            QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+            QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+            QPair<QString, QString> m_index = qMakePair(name, host);
+            auto itr = m_users.find(m_index);
+            if(itr != m_users.end()){
+                //if(itr.value()->online()){
+                   auto uuid = getSessionUuid(name, host);
+                   if(!uuid.isEmpty()){
+                        sendToRecipient(uuid,"reset_cache", "reset_cashe", true);
+                        m_async_await.append(std::bind(&MainWindow::getDataUsersList, this));
+                   }
+                //}
+            }
+        }
     }
 }
 
@@ -4662,7 +4687,7 @@ void MainWindow::updateCertUserCache(const QString &ref, const QString &cache)
             auto obj = QJsonObject();
             obj.insert("query", query);
             obj.insert("id_command", "update_cert_user_cache");
-            obj.insert("run_on_return", cmd);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
             auto doc = QJsonDocument();
             doc.setObject(obj);
             QString param = doc.toJson();

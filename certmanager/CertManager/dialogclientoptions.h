@@ -47,6 +47,10 @@ private slots:
 
     void on_tableViewProfiles_doubleClicked(const QModelIndex &index);
 
+    void on_btnUsrProfileAdd_clicked();
+
+    void on_usrProfileDelete_clicked();
+
 private:
     Ui::DialogOptions *ui;
     CertUser * _usr;

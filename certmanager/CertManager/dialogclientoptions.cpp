@@ -317,6 +317,8 @@ void DialogClientOptions::on_btnProfileEdit_clicked()
         model->updateRow(result, index.row());
     }
 
+    updateTableImages();
+
 }
 
 void DialogClientOptions::on_tableViewProfiles_doubleClicked(const QModelIndex &index)
@@ -333,5 +335,40 @@ void DialogClientOptions::on_tableViewProfiles_doubleClicked(const QModelIndex &
         auto result = dlg.resultObject();
         model->updateRow(result, index.row());
     }
+
+    updateTableImages();
+}
+
+
+void DialogClientOptions::on_btnUsrProfileAdd_clicked()
+{
+
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    auto dlg = DialogSelectedRow(_usr, QJsonObject(), this);
+    dlg.setModal(true);
+    dlg.exec();
+
+    if(dlg.result() == QDialog::Accepted){
+        auto result = dlg.resultObject();
+        model->addRow(result);
+    }
+
+    updateTableImages();
+}
+
+
+void DialogClientOptions::on_usrProfileDelete_clicked()
+{
+    auto index = ui->tableViewProfiles->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    model->removeRow(index.row());
+
 }
 
