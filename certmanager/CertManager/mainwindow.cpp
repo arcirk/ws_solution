@@ -29,6 +29,7 @@
 #include <QJsonArray>
 #include "certificate.h"
 #include "converter.h"
+#include "mainwindow.h"
 #include <QQueue>
 #include <dialogabout.h>
 #include "dialogclientoptions.h"
@@ -43,8 +44,8 @@
 #endif
 
 
-const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
-        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
+//const static QString Cyrillic = "йцукенгшщзхъфывапролджэячсмитьё"
+//        "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -1269,11 +1270,18 @@ void MainWindow::updateCertUsersOnlineStstus()
         QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
         QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
         auto index = modelSqlUsers->index(i, 1);
-
+        QPair<QString, QString> m_index = qMakePair(name, host);
+        auto itr = m_users.find(m_index);
         if(isWsUserExists(name, host)){
             modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+            if(itr != m_users.end()){
+                itr.value()->setOnline(true);
+            }
         }else{
             modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+            if(itr != m_users.end()){
+                itr.value()->setOnline(false);
+            }
         }
     }
 
@@ -1483,7 +1491,7 @@ void MainWindow::wsSetMplCertData(const QString& recipient, const QString& messa
 
     int iName = modelWsUsers->getColumnIndex("user_name");
     int iHost = modelWsUsers->getColumnIndex("host_name");
-    int iUuidUser = modelWsUsers->getColumnIndex("uuid_user");
+    int iUuidUser = modelWsUsers->getColumnIndex("user_uuid");
     QString name = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iName).toString();
     QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
     QString uuidUser = modelWsUsers->index(index.row(), iUuidUser).data(Qt::UserRole + iUuidUser).toString();
@@ -1687,16 +1695,16 @@ QString MainWindow::fromBase64(const QString &value)
     }
 }
 
-bool MainWindow::isCyrillic(const QString &source)
-{
-    for (int i = 0; i < source.length();  ++i) {
+//bool MainWindow::isCyrillic(const QString &source)
+//{
+//    for (int i = 0; i < source.length();  ++i) {
 
-        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
-            return true;
-    }
+//        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
+//            return true;
+//    }
 
-    return false;
-}
+//    return false;
+//}
 
 
 
@@ -2596,7 +2604,7 @@ void MainWindow::on_btnAdd_clicked()
             QString name = result[2];
             QString certRef = result[1];
             QString uuidUser = currentUser->ref();
-            QString sha1 = result[8];
+            //QString sha1 = result[8];
             QUuid _uuid = QUuid::createUuid();
             QString uuid = _uuid.toString().mid(1, 36);
 
@@ -2639,7 +2647,7 @@ void MainWindow::on_btnAdd_clicked()
             QString name = result[2];
             QString certRef = result[1];
             QString uuidUser = itr.value()->ref();
-            QString sha1 = result[8];
+            //QString sha1 = result[8];
             QUuid _uuid = QUuid::createUuid();
             QString uuid = _uuid.toString().mid(1, 36);
 
@@ -2859,10 +2867,9 @@ void MainWindow::onClientLeave(const QString &resp)
         QString host = modelWsUsers->index(index.row(), iName).data(Qt::UserRole + iHost).toString();
         if(!name.isEmpty() && !host.isEmpty()){
             auto itr = m_users.find(qMakePair(name, host));
-            CertUser * usr = nullptr;
             if(itr != m_users.end()){
-                usr = itr.value();
-                usr->eraseData();
+                itr.value()->eraseData();
+                itr.value()->setOnline(false);
             }
 
             auto treeItem = findTreeItem(name + host);
@@ -3995,8 +4002,8 @@ void MainWindow::on_btnCurrentDelete_clicked()
             return;
         }
 
-        QModelIndex _index = table->model()->index(index.row(), 1);
-        QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
+        //QModelIndex _index = table->model()->index(index.row(), 1);
+        //QString device = _index.model()->data(_index, Qt::UserRole + 1).toString().replace("\r", "");
 
         QString cmd = QString("csptest -keyset -deletekeyset -container \"%1\"\n").arg(container);
         terminal->send(cmd, CmdCommand::csptestContainerDelete);
@@ -4531,8 +4538,8 @@ void MainWindow::on_btnDataListUpdate_clicked()
 
 void MainWindow::on_btnBindContainer_clicked()
 {
-    auto tree = ui->treeWidget;
-    QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+    //auto tree = ui->treeWidget;
+    //QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
@@ -4624,12 +4631,32 @@ void MainWindow::updateCertUserCache(const QString &ref, const QString &cache)
 
     QJsonObject cmd = QJsonObject();
     cmd.insert("command", "update_cert_user_cache");
+    cmd.insert("Ref", ref);
 
     if(_sett->launch_mode() == mixed){
         if(!db->isOpen())
             return;
         QString _error;
         db->exec_qt(query, _error);
+        if(_error.isEmpty()){
+            int iRef = modelSqlUsers->getColumnIndex("Ref");
+            auto index = findInTable(modelSqlUsers, ref, iRef, false);
+            if(index.isValid()){
+                int iUser = modelSqlUsers->getColumnIndex("FirstField");
+                int iHost = modelSqlUsers->getColumnIndex("host");
+                QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+                QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+                QPair<QString, QString> m_index = qMakePair(name, host);
+                auto itr = m_users.find(m_index);
+                if(itr != m_users.end()){
+                    if(itr.value()->online()){
+                       auto uuid = getSessionUuid(name, host);
+                       if(!uuid.isEmpty())
+                            sendToRecipient(uuid,"reset_cache", "reset_cashe", false);
+                    }
+                }
+            }
+        }
     }else{
         if(m_client->isStarted()){
             auto obj = QJsonObject();

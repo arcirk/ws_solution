@@ -323,7 +323,7 @@ private:
 
     void onGetDataFromDatabase(const QString& table, const QString param);
 
-    bool isCyrillic(const QString& source);
+    //bool isCyrillic(const QString& source);
     QJsonObject parseDeviceString(const QString& key);
 
     void saveAsCurrentUserContainer();

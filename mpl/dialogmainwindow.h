@@ -147,7 +147,7 @@ private:
     void createWsObject();
     void setWsConnectedSignals();
     void initProfiles();
-    void getInDataCache();
+    //void getInDataCache();
     void setProfilesModel();
 
     void sendResultToClient();
@@ -197,7 +197,7 @@ private:
 
     void getDatabaseData(const QString& table, const QString& ref, const QJsonObject& param);
     void onGetDataFromDatabase(const QString &table, const QString param);
-    void getDatabaseCache(const QString& table, const QString& ref, const QJsonObject& param);
+    //void getDatabaseCache(const QString& table, const QString& ref, const QJsonObject& param);
 
     void updateDataUserCache();
     void setFromDataUserCache(const QJsonObject& resp);
@@ -206,7 +206,7 @@ private:
     void getAvailableCerts();
     void setAvailableCerts(const QJsonObject& resp);
 
-    QJsonObject getCache();
+    //QJsonObject getCache();
     //QJsonObject generateCache();
 
     void updateTableImages();

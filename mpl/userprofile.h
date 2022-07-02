@@ -49,6 +49,8 @@ private:
     QString _profile;
     QIcon _image;
 
+    void join(const std::vector<std::string>& v, char c, std::string& s);
+
 signals:
 
 };

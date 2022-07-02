@@ -44,7 +44,6 @@ QJsonObject DialogClientOptions::getOptionsCache()
     objMain.insert("ServerUser", ui->lineWsUser->text());
     objMain.insert("ServerHost", ui->lineWsServer->text());
     objMain.insert("ServerPort", ui->spinPort->value());
-    QString hash = "";
     if(ui->pwdEdit->isChecked()){
         QString hash = bWebSocket::generateHash(ui->lineWsUser->text(), ui->lineWsPwd->text());
         objMain.insert("Hash", hash);
@@ -54,8 +53,6 @@ QJsonObject DialogClientOptions::getOptionsCache()
 
     objMain.insert("charset", ch.isEmpty() ? "CP866": ch);
     objMain.insert("method", method);
-
-    //objMain.insert("mpl", mpl);
 
     return objMain;
 
@@ -124,7 +121,8 @@ void DialogClientOptions::setFromUserSettings()
 
 void DialogClientOptions::formControl()
 {
-    if(ui->chkUseSettingsFromHttp->isChecked()){
+    bool fromHttp = ui->chkUseSettingsFromHttp->isChecked();
+    if(fromHttp){
         ui->lineServer->setEnabled(false);
         ui->lineUser->setEnabled(false);
         ui->linePwd->setEnabled(false);

@@ -68,16 +68,34 @@ QUuid UserProfile::uuid()
     return _uuid;
 }
 
+void UserProfile::join(const std::vector<std::string>& v, char c, std::string& s) {
+
+   s.clear();
+
+   for (std::vector<std::string>::const_iterator p = v.begin();
+        p != v.end(); ++p) {
+      s += *p;
+      if (p != v.end() - 1)
+        s += c;
+   }
+}
+
 QString UserProfile::certsUuidToString() {
+
     if (_serificates.isEmpty())
         return "";
 
-    QStringList lst;
+    std::vector<std::string> lst;
     for (auto itr : _serificates) {
-        lst.append(itr.toString());
+        lst.push_back(itr.toString().toStdString());
     }
 
-    return lst.join(",");
+    std::string result;
+
+   join(lst, ',', result);
+
+   return QString::fromStdString(result);
+
 }
 
 bool UserProfile::isNew()
@@ -95,11 +113,13 @@ QJsonObject UserProfile::to_modelObject()
     objMain.insert("profile", profile());
     objMain.insert("address", defaultAddress());
     objMain.insert("uuid", uuid().toString());
-    QStringList lst = {};
+    std::vector<std::string> lst;
+    std::string result;
     for (auto cert : serificates()) {
-        lst.append(cert.toString());
+        lst.push_back(cert.toString().toStdString());
     }
-    objMain.insert("certs", lst.join("/"));
+    join(lst, '/', result);
+    objMain.insert("certs", QString::fromStdString(result));
 
     return objMain;
 }

@@ -17,5 +17,7 @@
         <file>img/ofd.png</file>
         <file>img/ofd.svg</file>
         <file>img/link.png</file>
+        <file>img/sberbank.png</file>
+        <file>img/sberbank.svg</file>
     </qresource>
 </RCC>

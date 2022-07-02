@@ -10,6 +10,7 @@ CertUser::CertUser(QObject *parent)
     _name = "";
     _sid = "";
     _uuid = QUuid();
+    _ref = "";
 //    _model = nullptr;
 //    _proxyModel = nullptr;
 
