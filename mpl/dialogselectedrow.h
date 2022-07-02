@@ -15,7 +15,7 @@ class DialogSelectedRow : public QDialog
     Q_OBJECT
 
 public:
-    explicit DialogSelectedRow(UserProfile * prof, CertUser* user, QWidget *parent = nullptr);
+    explicit DialogSelectedRow(UserProfile * prof, CertUser* user, bool bindCert, QWidget *parent = nullptr);
     ~DialogSelectedRow();
 
     void accept() override;
@@ -28,6 +28,8 @@ private:
     void loadProfiles();
     QStringList m_profileNames;
     QMap<int, Certificate*> _certsList;
+    bool _bindCert;
+    CertUser* _user;
 
 };
 

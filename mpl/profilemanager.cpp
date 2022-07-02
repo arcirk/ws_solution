@@ -376,7 +376,7 @@ void ProfileManager::setCache(const QJsonObject &resp)
 
 QString ProfileManager::model()
 {
-    const QStringList _columns = {"Empty", "name", "profile", "address", "uuid", "cert"};
+    const QStringList _columns = {"Empty", "name", "profile", "address", "uuid", "certs"};
     auto objMain = QJsonObject();
     auto columns = QJsonArray();
     auto rows = QJsonArray();
@@ -399,7 +399,7 @@ QString ProfileManager::model()
 
 QJsonObject ProfileManager::to_profiles_table()
 {
-    const QStringList _columns = {"Empty", "name", "profile", "address", "uuid", "cert"};
+    const QStringList _columns = {"Empty", "name", "profile", "address", "uuid", "certs"};
     auto objMain = QJsonObject();
     auto columns = QJsonArray();
     auto rows = QJsonArray();
@@ -450,41 +450,6 @@ QJsonObject ProfileManager::to_object()
     return objMain;
 }
 
-//bool ProfileManager::bindCertificates()
-//{
-//    return _bindCertificates;
-//}
-
-//void ProfileManager::setBindCertificates(bool value)
-//{
-//    _bindCertificates = value;
-//}
-
-//void ProfileManager::getConf()
-//{
-//    QFile conf(_homePath + "/mozilla.json");
-
-//    if(conf.open(QIODevice::ReadOnly)){
-//       QJsonDocument doc = QJsonDocument::fromJson(conf.readAll());
-//       QJsonObject obj = doc.object();
-//       if(!obj.empty()){
-//           auto itr = obj.find("profilesPath");
-//           if(itr->isString()){
-//               _mozillaProfilesFile = itr.value().toString();
-//           }
-//           itr = obj.find("mozillaExeFile");
-//           if(itr->isString()){
-//               _mozillaExeFile = itr.value().toString();
-//           }
-//           itr = obj.find("bindCertificates");
-//           if(itr->isBool()){
-//               _bindCertificates = itr.value().toBool();
-//           }
-//       }
-//       conf.close();
-//    }
-//}
-
 void ProfileManager::readProfiles()
 {
     QFile file(_settings[MplProfilesIniFile].toString());
@@ -527,15 +492,17 @@ void ProfileManager::readProfiles()
                 profile->setDefaultAddress(address);
                 QUuid uuid = QUuid::fromString(item.value("uuid").toString());
                 profile->setUuid(uuid);
-                auto certs = item.value("certs");
-                if(certs.isArray()){
-                    auto arrLst = certs.toArray();
+                auto certs = item.value("certs").toString().split("/");
+//                if(certs.isArray()){
+//                    auto arrLst = certs.toArray();
                     QList<QUuid> lst;
-                    for(auto _uuid : arrLst){
-                        lst.append(QUuid::fromString(_uuid.toString()));
+                    for(auto _uuid : certs){
+                        if(_uuid.isEmpty())
+                            continue;
+                        lst.append(QUuid::fromString(_uuid));
                     }
                     profile->setSertificates(lst);
-                }
+                //}
                 _profiles.insert(uuid, profile);
             }
 

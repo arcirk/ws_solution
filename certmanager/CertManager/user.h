@@ -36,6 +36,7 @@ public:
     //QJsonObject cacheObject();
 
     void eraseData();
+    void eraseLocalhostCertificates();
 
     QStringList containers();
     QStringList mozillaProfiles();

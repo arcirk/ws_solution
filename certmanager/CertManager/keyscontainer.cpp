@@ -449,6 +449,25 @@ bool KeysContainer::syncRegystry(const QString& sid)
     return true;
 }
 
+bool KeysContainer::eraseRigistryAllKeys(const QString &sid)
+{
+    if(sid.isEmpty()){
+        qCritical() << __FUNCTION__ << "Требуется SID пользователя!";
+        return false;
+    }
+    QString ph = QString("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Crypto Pro\\Settings\\Users\\%1\\Keys").arg(sid);
+
+    QSettings reg = QSettings(ph, QSettings::NativeFormat);
+
+    QStringList lst = reg.childGroups();
+
+    foreach(auto key, lst){
+        removeContainerFromRegistry(sid, key);
+    }
+
+    return true;
+}
+
 bool KeysContainer::syncVolume(const QString& dir)
 {
     if(!isValid()){
@@ -517,6 +536,7 @@ bool KeysContainer::deleteContainer(SqlInterface* db, const QString& ref){
     }
     return false;
 }
+
 
 bool KeysContainer::deleteContainer(bWebSocket* client, const QString& ref){
 

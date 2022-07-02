@@ -32,7 +32,9 @@ public:
     QString getParam(const QString &key, const QString& name);
 
     bool install(const QString& cnt = "");
+    bool remove();
     bool save(const QString& fileName);
+
 
     bool fromSha1(const QString& sha);
     void fromData(ByteArray &cer);

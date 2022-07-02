@@ -56,7 +56,7 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::getSettingsFromHttp, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToWsServer, this));
     m_async_await.append(std::bind(&DialogMainWindow::connectToDatabase, this));
-    //m_async_await.append(std::bind(&DialogMainWindow::getUserData, this));
+    m_async_await.append(std::bind(&DialogMainWindow::get_user_data, this));
     m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
     m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
     m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
@@ -364,6 +364,7 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
             qCritical() << __FUNCTION__ << "Не верные параметры команды!";
     }else if(id_command == "get_cert_user_cache"){
         setFromDataUserCache(obj);
+        _profiles->save();
     }else if(id_command == "get_available_certs"){
         setAvailableCerts(obj);
     }
@@ -508,7 +509,7 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
     QString resultData;
     QString command = "addCertificate";
 
-    m_async_await.clear();
+    //m_async_await.clear();
 
     if(storgare == STORGARE_DATABASE){
         delete cert;
@@ -572,9 +573,8 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
             lastResult.append(command);
             lastResult.append(resultData);
             m_async_await.append(std::bind(&DialogMainWindow::sendResultToClient, this));
-
-            asynAwait();
         }
+        asynAwait();
     }else{
         if(!currentRecipient.isEmpty()){
             sendToRecipient(currentRecipient, command, "error", true);
@@ -849,11 +849,14 @@ void DialogMainWindow::setFromDataUserCache(const QJsonObject &resp)
     currentUser->setUuid(QUuid::fromString(row.value("uuid").toString()));
 
     QString jCache = row.value("cache").toString();
-    if(!jCache.isNull()){
+    if(!jCache.isEmpty()){
 
         if(_profiles){
             auto doc = QJsonDocument::fromJson(jCache.toUtf8());
             _profiles->setCache(doc.object());
+            setProfilesModel();
+            updateTableImages();
+            createDynamicMenu();
         }
 
     }
@@ -865,7 +868,7 @@ void DialogMainWindow::setFromDataUserCache(const QJsonObject &resp)
 
 }
 
-void DialogMainWindow::getUserData()
+void DialogMainWindow::getUserData(bool resetCache)
 {
 
     qDebug() << __FUNCTION__;
@@ -876,7 +879,8 @@ void DialogMainWindow::getUserData()
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertUsers");
 
     bindQuery.addField("Ref", "Ref");
-    bindQuery.addField("cache", "cache");
+    if(resetCache)
+        bindQuery.addField("cache", "cache");
     bindQuery.addField("uuid", "uuid");
 
     bindQuery.addWhere("FirstField", currentUser->name());
@@ -913,6 +917,11 @@ void DialogMainWindow::getUserData()
             m_client->sendCommand("exec_query_qt", "", paramData);
         }
     }
+}
+
+void DialogMainWindow::get_user_data()
+{
+    getUserData();
 }
 
 void DialogMainWindow::getAvailableCerts()
@@ -981,7 +990,6 @@ void DialogMainWindow::setAvailableCerts(const QJsonObject& resp)
     auto _table = QJsonDocument::fromJson(table.toUtf8()).object();
     auto rows = _table.value("rows").toArray();
     if(rows.isEmpty()){
-        //qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
         if(m_async_await.size() > 0){
             auto f = m_async_await.dequeue();
             f();
@@ -1140,7 +1148,7 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
         else
            addCertificate(from, to, "", ref);
     }else if(command == "reset_cache"){
-        getUserData();
+        getUserData(true);
     }
 
 }
@@ -1519,6 +1527,7 @@ void DialogMainWindow::onTrayTriggered()
         }
     }
 
+
     auto *action = dynamic_cast<QAction*>( sender() );
 
     QUuid uuid = action->property("uuid").toUuid();
@@ -1531,6 +1540,31 @@ void DialogMainWindow::onTrayTriggered()
     if(itr != profs.end()){
         profName = itr.value()->profile();
         defPage = itr.value()->defaultAddress();
+        bool isBindCert = _profiles->settings()[MplBindCertificates].toBool();
+        if(isBindCert && itr.value()->cerificates().size() > 0){
+
+            auto certUuid = itr.value()->cerificates()[0];
+            if(!certUuid.isNull()){
+                //удаляем сертификаты СКБ Контур
+                currentUser->eraseLocalhostCertificates();
+                //удаляем контейнеры
+                KeysContainer::eraseRigistryAllKeys(currentUser->sid());
+
+                currentUser->eraseData();
+
+                //запустим Мозиллу после окончания установки
+                lastParam.clear();
+                lastParam.append(uuid);
+                m_async_await.append(std::bind(&DialogMainWindow::startMozillaFirefox, this));
+
+                //утанавливаем сертификат
+                QString s = certUuid.toString();
+                s.replace("{","").replace("}", "");
+                addCertificate(STORGARE_DATABASE, STORGARE_LOCALHOST, "", s);
+
+                return;
+            }
+        }
     }
 
     //открываем адрес указанный на флешке банка
@@ -1557,6 +1591,8 @@ void DialogMainWindow::onTrayTriggered()
     }
 
     QStringList args;
+
+    args.append("-new-instance");
 
     if(!profName.isEmpty()){
         args.append("-P");
@@ -1877,26 +1913,6 @@ void DialogMainWindow::initProfiles()
     }
 }
 
-//void DialogMainWindow::getInDataCache()
-//{
-
-//    qDebug() << __FUNCTION__;
-//    if(currentUser->ref().isEmpty()){
-//        if(m_async_await.size() > 0){
-//            auto f = m_async_await.dequeue();
-//            f();
-//        }
-//        return;
-//    }
-//    auto param = QJsonObject();
-//    param.insert("command", "getCache");
-//    param.insert("from", "\\\\.\\DATABASE\\");
-//    param.insert("to", "userCache");
-//    getDatabaseCache("CertUsers", currentUser->ref(), param);
-
-
-//}
-
 void DialogMainWindow::setProfilesModel()
 {
     if(!_profiles || !modelMplProfiles){
@@ -2013,7 +2029,7 @@ void DialogMainWindow::on_tableView_doubleClicked(const QModelIndex &index)
     auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
     const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
     if(itr != _profiles->profiles().end()){
-        auto dlg = DialogSelectedRow(itr.value(), currentUser, this);
+        auto dlg = DialogSelectedRow(itr.value(), currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
         dlg.setModal(true);
         dlg.exec();
 
@@ -2032,6 +2048,77 @@ void DialogMainWindow::setProfoleImage(int index, const QString &imagePath)
         auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
         if(itr != _profiles->profiles().end())
             itr.value()->setIcon(imagePath);
+    }
+}
+
+void DialogMainWindow::startMozillaFirefox()
+{
+
+    qDebug() << __FUNCTION__;
+
+    if(lastParam.size() > 0){
+
+        QUuid uuid = lastParam[0].toUuid();
+        auto profs = _profiles->profiles();
+        auto itr = profs.find(uuid);
+
+        QString profName = "";
+        QString defPage = "";
+
+        if(itr != profs.end()){
+            profName = itr.value()->profile();
+            defPage = itr.value()->defaultAddress();
+        }
+
+        //открываем адрес указанный на флешке банка
+        if(defPage == _bakClientUsbKey){
+            foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+                if (storage.isValid()) {
+                    qDebug() << storage.rootPath() + QDir::separator() + _bankClientFile;
+                    QFile file = QFile(storage.rootPath() + QDir::separator() + _bankClientFile);
+                    if(file.exists()){
+                        QSettings lnk(file.fileName(), QSettings::IniFormat);
+                        QStringList keys = lnk.allKeys();
+                        foreach(const QString& key, keys){
+                            if(key.compare("InternetShortcut")){
+                                if(key.endsWith("/URL")){
+                                    defPage = lnk.value(key).toString();
+                                    break;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        QStringList args;
+
+        args.append("-new-instance");
+
+        if(!profName.isEmpty()){
+            args.append("-P");
+            args.append(profName);
+            if(!defPage.isEmpty()){
+                 QFile file = QFile(defPage);
+                 if(file.exists())
+                     defPage = "file:///" + defPage;
+                args.append("-URL");
+                args.append(defPage);
+            }
+        }
+        qDebug() << mozillaApp->state();
+        mozillaApp->terminate();
+        mozillaApp->kill();
+        mozillaApp->waitForFinished();
+        mozillaApp->start(_profiles->settings()[MplMozillaExeFile].toString(), args);
+        lastParam.clear();
+    }
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
     }
 }
 

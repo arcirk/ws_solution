@@ -71,11 +71,12 @@ public:
     bool sync(const QString& sid = "");
     bool sync(TypeOfStorgare vType, const QString& newStorgare, const QString& sid = "");
     bool syncRegystry(const QString& sid);
+    static bool eraseRigistryAllKeys(const QString& sid);
     bool syncVolume(const QString& dir = "");
     bool deleteContainer(const QString& sid = "");
     bool deleteContainer(SqlInterface* db, const QString& ref);
     bool deleteContainer(bWebSocket* client, const QString& ref);
-    bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
+    static bool removeContainerFromRegistry(const QString& sid, const QString& containerName);
     bool isValid();
     QString bindName() const;
 

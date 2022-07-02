@@ -120,7 +120,7 @@ private:
     QAction *showAction;
     QProcess * mozillaApp;
     QDir appHome;
-    //Settings * _sett;
+    QList<QVariant> lastParam;
 
     SqlInterface * db;
     QLabel * infoBar;
@@ -136,7 +136,7 @@ private:
     QList<QString> lastResult;
     QMap<QString, QString> m_colAliases;
 
-
+    void startMozillaFirefox();
     void currentUserSid();
     void currentUserGetConteiners();
     void currentUserGetCertificates();
@@ -201,7 +201,8 @@ private:
 
     void updateDataUserCache();
     void setFromDataUserCache(const QJsonObject& resp);
-    void getUserData();
+    void getUserData(bool resetCache = false);
+    void get_user_data();
 
     void getAvailableCerts();
     void setAvailableCerts(const QJsonObject& resp);
@@ -212,6 +213,7 @@ private:
     void updateTableImages();
 
     QStringList mozillaProfiles();
+
 
 signals:
 //    void whenDataIsLoaded();

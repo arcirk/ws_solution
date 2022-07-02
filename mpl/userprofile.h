@@ -22,7 +22,7 @@ public:
     QString defaultAddress();
     void setDefaultAddress(const QString& value);
 
-    QList<QUuid> serificates();
+    QList<QUuid>& cerificates();
     void setSertificates(const QList<QUuid>& certs);
 
 //    void setTypeOperation(const QString& value);
@@ -43,7 +43,7 @@ public:
 private:
     QString _address;
     QString _name;
-    QList<QUuid> _serificates;
+    QList<QUuid> _cerificates;
     //QString _type_of_operation;
     QUuid _uuid;
     QString _profile;

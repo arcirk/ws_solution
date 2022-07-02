@@ -612,6 +612,10 @@ QString CommandLine::parseCommand(const QString &result, int command)
         int ind = result.indexOf("ErrorCode: 0x00000000");
         if(ind != -1)
             emit endParse("sucsess", command);
+    }else if(command == certmgrDeletelCert){
+        int ind = result.indexOf("ErrorCode: 0x00000000");
+        if(ind != -1)
+            emit endParse("sucsess", command);
     }else{
         emit endParse("", command);
     }

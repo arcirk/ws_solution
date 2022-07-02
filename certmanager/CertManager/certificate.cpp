@@ -133,6 +133,11 @@ QString Certificate::ref()
     return _ref;
 }
 
+QString Certificate::sha1()
+{
+    return _sha1;
+}
+
 void Certificate::setRef(const QString &uuid)
 {
     _ref = uuid;
@@ -235,6 +240,77 @@ bool Certificate::install(const QString& cnt)
 
     if(file.exists())
         file.remove();
+
+    return res;
+}
+
+bool Certificate::remove()
+{
+
+    if(_sha1.isEmpty()){
+        qCritical() << __FUNCTION__ << "Хеш сертификата не указан!";
+        return false;
+    }
+
+    auto cmd = new CommandLine(this, false);
+    QEventLoop loop;
+    bool res = false;
+    QString certmgrParentFolder = "C:\\Program Files (x86)\\Crypto Pro\\CSP";
+
+    QDir dir(certmgrParentFolder);
+    if(!dir.exists()){
+        qCritical() << __FUNCTION__ << "Не установлен КриптоПро!";
+        return false;
+    }
+
+    QString __sha = sha1();
+    auto started = [cmd, &certmgrParentFolder, &__sha]() -> void
+    {
+        QString _qbyte = QString("certmgr -delete -thumbprint \"%1\"\n").arg(__sha);
+
+        cmd->send(QString("cd \"%1\" & %2 & exit").arg(certmgrParentFolder, _qbyte), certmgrDeletelCert);
+    };
+    loop.connect(cmd, &CommandLine::cmdStarted, started);
+
+    auto output = [cmd](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << qPrintable(data);
+        if(command == CmdCommand::certmgrDeletelCert){
+            if(data.indexOf("Microsoft Corporation") == -1){
+               cmd->parseCommand(data, command);
+            }
+        }
+    };
+    loop.connect(cmd, &CommandLine::output, output);
+
+    auto parse = [&loop, cmd, &res](const QVariant& result, int command) -> void
+    {
+        if(command == CmdCommand::certmgrDeletelCert){
+            res = true;
+            cmd->stop();
+            loop.quit();
+        }
+
+    };
+    loop.connect(cmd, &CommandLine::endParse, parse);
+
+    auto err = [&loop, cmd](const QString& data, int command) -> void
+    {
+        qDebug() << __FUNCTION__ << data << command;
+        cmd->stop();
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::error, err);
+
+    auto state = [&loop]() -> void
+    {
+        loop.quit();
+    };
+    loop.connect(cmd, &CommandLine::complete, state);
+
+    cmd->start();
+    loop.exec();
+    delete cmd;
 
     return res;
 }

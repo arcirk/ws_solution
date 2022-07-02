@@ -38,14 +38,14 @@ void UserProfile::setDefaultAddress(const QString &value)
     _address = value;
 }
 
-QList<QUuid> UserProfile::serificates()
+QList<QUuid>& UserProfile::cerificates()
 {
-    return _serificates;
+    return _cerificates;
 }
 
 void UserProfile::setSertificates(const QList<QUuid> &certs)
 {
-    _serificates = certs;
+    _cerificates = certs;
 }
 
 //void UserProfile::setTypeOperation(const QString &value)
@@ -82,11 +82,11 @@ void UserProfile::join(const std::vector<std::string>& v, char c, std::string& s
 
 QString UserProfile::certsUuidToString() {
 
-    if (_serificates.isEmpty())
+    if (_cerificates.isEmpty())
         return "";
 
     std::vector<std::string> lst;
-    for (auto itr : _serificates) {
+    for (auto itr : _cerificates) {
         lst.push_back(itr.toString().toStdString());
     }
 
@@ -115,7 +115,7 @@ QJsonObject UserProfile::to_modelObject()
     objMain.insert("uuid", uuid().toString());
     std::vector<std::string> lst;
     std::string result;
-    for (auto cert : serificates()) {
+    for (auto cert : cerificates()) {
         lst.push_back(cert.toString().toStdString());
     }
     join(lst, '/', result);

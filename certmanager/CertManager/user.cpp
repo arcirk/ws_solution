@@ -193,6 +193,24 @@ void CertUser::eraseData()
 {
     m_cnt.clear();
     m_cert.clear();
+    _containers.clear();
+}
+
+void CertUser::eraseLocalhostCertificates()
+{
+
+    foreach(auto cert, m_cert){
+        QString issuer = cert->issuer();
+        issuer.replace("\"","");
+        if(issuer.indexOf("КОНТУР") != -1){
+            bool result = cert->remove();
+            if(!result){
+                qCritical() << __FUNCTION__ << "Ошибка удаления сертификата!";
+            }
+        }
+
+    }
+
 }
 
 QStringList CertUser::containers()
