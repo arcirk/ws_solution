@@ -2160,3 +2160,41 @@ QStringList DialogMainWindow::mozillaProfiles()
 
     return m_profileNames;
 }
+
+void DialogMainWindow::on_btnUp_clicked()
+{
+    auto index = ui->tableView->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableView->model();
+
+    model->moveUp(index.row());
+
+    model->reset();
+
+    if(index.row() - 1 >= 0)
+        ui->tableView->setCurrentIndex(model->index(index.row() - 1, 0));
+}
+
+
+void DialogMainWindow::on_btnDown_clicked()
+{
+    auto index = ui->tableView->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableView->model();
+
+    model->moveDown(index.row());
+
+    model->reset();
+
+    if(index.row() + 1 < model->rowCount())
+        ui->tableView->setCurrentIndex(model->index(index.row() + 1, 0));
+}
+

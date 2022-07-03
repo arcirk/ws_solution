@@ -19,7 +19,7 @@ public:
     explicit ProfileManager(const QString& homePath, QObject *parent = nullptr);
     //explicit ProfileManager(const QString& homePath, const QJsonObject& object, QObject *parent = nullptr);
 
-    QMap<QUuid, UserProfile*> &profiles();
+    QHash<QUuid, UserProfile*> &profiles();
     MplSettings& settings();
 
 //    void getSettings();
@@ -59,7 +59,7 @@ public:
 
 private:
 
-    QMap<QUuid, UserProfile*> _profiles;
+    QHash<QUuid, UserProfile*> _profiles;
     QStringList _profilesNames;
     QString _homePath;
     MplSettings _settings;

@@ -39,7 +39,7 @@ ProfileManager::ProfileManager(const QString& homePath, QObject *parent)
 //    }
 //}
 
-QMap<QUuid, UserProfile *> &ProfileManager::profiles()
+QHash<QUuid, UserProfile *> &ProfileManager::profiles()
 {
     return _profiles;
 }
@@ -229,6 +229,7 @@ void ProfileManager::setCache(const QJsonObject &resp)
 
     _settings.fromObject(resp.value("mpl").toObject());
 
+    qDeleteAll(_profiles);
     _profiles.clear();
 
     QJsonArray arr = resp.value("profiles").toObject().value("rows").toArray();
