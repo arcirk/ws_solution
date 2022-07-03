@@ -19,11 +19,8 @@ public:
     explicit ProfileManager(const QString& homePath, QObject *parent = nullptr);
     //explicit ProfileManager(const QString& homePath, const QJsonObject& object, QObject *parent = nullptr);
 
-    QHash<QUuid, UserProfile*> &profiles();
+    std::unordered_map<QString, UserProfile*> &profiles();
     MplSettings& settings();
-
-//    void getSettings();
-//    void saveSettings();
 
 
     QStringList profilesNames();
@@ -32,34 +29,19 @@ public:
 
     void clear();
 
-    //QJsonObject cache();
-    //QJsonArray profilesArray();
 
     void setCache(const QJsonObject& value);
 
     QString model();
+    void fromModel(const QString& modelText);
     QJsonObject to_profiles_table();
     void save();
     QJsonObject to_object();
 
-    //QString mozillaProfilesFile();
-
-
-//    void getSettingsFromCache(const QJsonObject& cache);
-
-
-//    //sett
-//    //"mozilla":
-//    bool bindCertificates();
-//    void setBindCertificates(bool value);
-//    QString mozillaExeFile();
-//    void setMozillaExeFile(const QString& value);
-//    QString profilesIniFile();
-//    void setProfilesIniFile(const QString& value);
 
 private:
 
-    QHash<QUuid, UserProfile*> _profiles;
+    std::unordered_map<QString, UserProfile*> _profiles;
     QStringList _profilesNames;
     QString _homePath;
     MplSettings _settings;

@@ -58,9 +58,9 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::connectToDatabase, this));
     m_async_await.append(std::bind(&DialogMainWindow::get_user_data, this));
     m_async_await.append(std::bind(&DialogMainWindow::setProfilesModel, this));
-    m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));
-    m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
+    m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));    
     m_async_await.append(std::bind(&DialogMainWindow::updateTableImages, this));
+    m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
 
     mozillaApp = new QProcess(this);
 
@@ -89,6 +89,7 @@ void DialogMainWindow::accept()
     if(_profiles){
         _profiles->save();
     }
+    updateTableImages();
     createDynamicMenu();
 
     updateDataUserCache();
@@ -117,6 +118,8 @@ void DialogMainWindow::closeEvent(QCloseEvent *event)
                                     " для выхода."));
         hide();
         event->ignore();
+        updateTableImages();
+        createDynamicMenu();
     }
 }
 
@@ -150,33 +153,14 @@ void DialogMainWindow::updateData()
 
 void DialogMainWindow::setRow(UserProfile *prof)
 {
-//    QTableWidget * table = ui->tableWidget;
-//    table->setRowCount(table->rowCount() + 1);
-//    int row = table->rowCount() -1;
-
-//    //имя профиля
-//    auto *pWidget = getItemWidget(prof->profile(), row, 0, SLOT(onSelectProfile()));
-//    table->setCellWidget(table->rowCount()-1,0,pWidget);
-//    //вид операции
-//    auto itemName = new QTableWidgetItem(prof->name());
-//    table->setItem(row, 1, itemName);
-//    //Страница по умолчанию
-//    pWidget = getItemWidget(prof->defaultAddress(), row, 2, SLOT(onSelectDefaultAddress()));
-//    table->setCellWidget(table->rowCount()-1,2,pWidget);
-//    //Сертификаты
-//    pWidget = getItemWidget(prof->certToString(), row, 3, SLOT(onSelectDefaultCertificate()));
-//    table->setCellWidget(table->rowCount()-1,3,pWidget);
-//    //Идентификатор
-//    auto itemUuid = new QTableWidgetItem(prof->uuid().toString());
-//    itemUuid->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-//    table->setItem(row, 4, itemUuid);
-
     _profiles->setProfile(prof);
     _profiles->save();
 
     modelMplProfiles->addRow(prof->to_modelObject());
     modelMplProfiles->reset();
     ui->tableView->resizeColumnsToContents();
+
+    m_async_await.append(std::bind(&DialogMainWindow::client_data_cghanged, this));
     updateDataUserCache();
 
 }
@@ -185,15 +169,18 @@ void DialogMainWindow::updateRow(UserProfile *prof, int row)
 {
       modelMplProfiles->updateRow(prof->to_modelObject(), row);
       modelMplProfiles->reset();
+      _profiles->fromModel(modelMplProfiles->jsonText());
       _profiles->save();
       ui->tableView->resizeColumnsToContents();
+
+      m_async_await.append(std::bind(&DialogMainWindow::client_data_cghanged, this));
       updateDataUserCache();
 }
 
 void DialogMainWindow::setProfile(UserProfile *prof)
 {
     auto items = _profiles->profiles();
-    items.insert(prof->uuid(), prof);
+    items.emplace(prof->uuid().toString(), prof);
 }
 
 void DialogMainWindow::formControl()
@@ -231,6 +218,8 @@ void DialogMainWindow::createTrayActions()
     connect(quitAction, &QAction::triggered, this, &DialogMainWindow::onAppExit);
     showAction = new QAction(tr("&Открыть менеджер профилей"), this);
     connect(showAction, &QAction::triggered, this, &DialogMainWindow::onWindowShow);
+    checkIpAction = new QAction(tr("&Проверить IP адресс"), this);
+    connect(checkIpAction, &QAction::triggered, this, &DialogMainWindow::onCheckIP);
 
     trayIconMenu = new QMenu(this);
 
@@ -255,6 +244,7 @@ void DialogMainWindow::createDynamicMenu()
 
     trayIconMenu->clear();
     trayIconMenu->addAction(showAction);
+    trayIconMenu->addAction(checkIpAction);
 
     if(_profiles){
         trayIconMenu->addSeparator();
@@ -263,13 +253,13 @@ void DialogMainWindow::createDynamicMenu()
 
         for (auto item : items){
 
-            QString sz = item->name();
+            QString sz = item.second->name();
             sz.append(" / ");
-            sz.append(item->profile());
+            sz.append(item.second->profile());
             auto action = new QAction(sz, this);
-            action->setProperty("uuid", item->uuid());
-            if(!item->icon().isNull())
-                action->setIcon(item->icon());
+            action->setProperty("uuid", item.second->uuid());
+            if(!item.second->icon().isNull())
+                action->setIcon(item.second->icon());
             trayIconMenu->addAction(action);
             connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
         }
@@ -291,6 +281,15 @@ QString DialogMainWindow::toBankClientFile()
 void DialogMainWindow::onWindowShow()
 {
     setVisible(true);
+}
+
+void DialogMainWindow::onCheckIP()
+{
+    QStringList args;
+    args.append("-URL");
+    args.append("https://2ip.ru/");
+    mozillaApp->waitForFinished();
+    mozillaApp->start(_profiles->settings()[MplMozillaExeFile].toString(), args);
 }
 
 void DialogMainWindow::onConnectionSuccess()
@@ -367,6 +366,11 @@ void DialogMainWindow::onWsExecQuery(const QString &result)
         _profiles->save();
     }else if(id_command == "get_available_certs"){
         setAvailableCerts(obj);
+    }else if(id_command == "update_cert_user_cache"){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
     }
 
 }
@@ -749,45 +753,6 @@ void DialogMainWindow::getDatabaseData(const QString& table, const QString& ref,
         }
 
 }
-
-//void DialogMainWindow::getDatabaseCache(const QString& table, const QString& ref, const QJsonObject& param)
-//{
-////        qDebug() << __FUNCTION__ << table;
-
-////        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, table);
-
-////        bindQuery.addField("Ref", "Ref");
-////        bindQuery.addField("FirstField", "FirstField");
-////        bindQuery.addField("cache", "data");
-
-////        bindQuery.addWhere("Ref", ref);
-
-////        QString query = bindQuery.to_json();
-
-////        if(_sett->launch_mode() == mixed){
-////            if(!db->isOpen())
-////                return;
-////            QString resultQuery;
-////            QString _error;
-////            db->exec_qt(query, resultQuery, _error);
-////            auto doc = QJsonDocument();
-////            doc.setObject(param);
-////            onGetDataFromDatabase(resultQuery, doc.toJson());
-////        }else{
-////            if(m_client->isStarted()){
-////                auto obj = QJsonObject();
-////                obj.insert("query", query);
-////                obj.insert("table", true);
-////                obj.insert("id_command", "get_data");
-////                obj.insert("run_on_return", QString(QJsonDocument(param).toJson()));
-////                auto doc = QJsonDocument();
-////                doc.setObject(obj);
-////                QString paramData = doc.toJson();
-////                m_client->sendCommand("exec_query_qt", "", paramData);
-////            }
-////        }
-
-//}
 
 void DialogMainWindow::updateDataUserCache()
 {
@@ -1297,7 +1262,7 @@ void DialogMainWindow::on_btnAdd_clicked()
 {
     UserProfile * prof = new UserProfile(this);
     prof->setName("Новая настройка");
-    auto dlg = DialogSelectedRow(prof, currentUser, this);
+    auto dlg = DialogSelectedRow(prof, currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
     dlg.setModal(true);
     dlg.exec();
 
@@ -1457,14 +1422,14 @@ void DialogMainWindow::on_btnEdit_clicked()
 
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
     auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+    const auto itr = _profiles->profiles().find(uuid);
     if(itr != _profiles->profiles().end()){
-        auto dlg = DialogSelectedRow(itr.value(), currentUser, this);
+        auto dlg = DialogSelectedRow(itr->second, currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
         dlg.setModal(true);
         dlg.exec();
 
         if(dlg.result() == QDialog::Accepted){
-            updateRow(itr.value(), index.row());
+            updateRow(itr->second, index.row());
         }
     }
 
@@ -1490,8 +1455,8 @@ void DialogMainWindow::on_btnDelete_clicked()
 
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
     auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    const auto itr = _profiles->profiles().constFind(QUuid::fromString(uuid));
-    if(itr != _profiles->profiles().constEnd())
+    const auto itr = _profiles->profiles().find(uuid);
+    if(itr != _profiles->profiles().end())
         _profiles->profiles().erase(itr);
 
     modelMplProfiles->removeRow(index.row());
@@ -1532,18 +1497,18 @@ void DialogMainWindow::onTrayTriggered()
 
     QUuid uuid = action->property("uuid").toUuid();
     auto profs = _profiles->profiles();
-    auto itr = profs.find(uuid);
+    auto itr = profs.find(uuid.toString());
 
     QString profName = "";
     QString defPage = "";
 
     if(itr != profs.end()){
-        profName = itr.value()->profile();
-        defPage = itr.value()->defaultAddress();
+        profName = itr->second->profile();
+        defPage = itr->second->defaultAddress();
         bool isBindCert = _profiles->settings()[MplBindCertificates].toBool();
-        if(isBindCert && itr.value()->cerificates().size() > 0){
+        if(isBindCert && itr->second->cerificates().size() > 0){
 
-            auto certUuid = itr.value()->cerificates()[0];
+            auto certUuid = itr->second->cerificates()[0];
             if(!certUuid.isNull()){
                 //удаляем сертификаты СКБ Контур
                 currentUser->eraseLocalhostCertificates();
@@ -1933,6 +1898,12 @@ void DialogMainWindow::setProfilesModel()
 
 }
 
+void DialogMainWindow::client_data_cghanged()
+{
+    //отправим новые данные агенту если он в сети
+    onGetCryptData(QUuid().toString());
+}
+
 void DialogMainWindow::sendResultToClient()
 {
     qDebug() << __FUNCTION__;
@@ -2027,14 +1998,14 @@ void DialogMainWindow::on_tableView_doubleClicked(const QModelIndex &index)
 {
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
     auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    const auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+    const auto itr = _profiles->profiles().find(uuid);
     if(itr != _profiles->profiles().end()){
-        auto dlg = DialogSelectedRow(itr.value(), currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
+        auto dlg = DialogSelectedRow(itr->second, currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
         dlg.setModal(true);
         dlg.exec();
 
         if(dlg.result() == QDialog::Accepted){
-            updateRow(itr.value(), index.row());
+            updateRow(itr->second, index.row());
         }
     }
 }
@@ -2045,9 +2016,9 @@ void DialogMainWindow::setProfoleImage(int index, const QString &imagePath)
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
     QString uuid = modelMplProfiles->index(index, iUuid).data(Qt::UserRole + iUuid).toString();
     if(!uuid.isEmpty()){
-        auto itr = _profiles->profiles().find(QUuid::fromString(uuid));
+        auto itr = _profiles->profiles().find(uuid);
         if(itr != _profiles->profiles().end())
-            itr.value()->setIcon(imagePath);
+            itr->second->setIcon(imagePath);
     }
 }
 
@@ -2060,14 +2031,14 @@ void DialogMainWindow::startMozillaFirefox()
 
         QUuid uuid = lastParam[0].toUuid();
         auto profs = _profiles->profiles();
-        auto itr = profs.find(uuid);
+        auto itr = profs.find(uuid.toString());
 
         QString profName = "";
         QString defPage = "";
 
         if(itr != profs.end()){
-            profName = itr.value()->profile();
-            defPage = itr.value()->defaultAddress();
+            profName = itr->second->profile();
+            defPage = itr->second->defaultAddress();
         }
 
         //открываем адрес указанный на флешке банка
@@ -2177,6 +2148,13 @@ void DialogMainWindow::on_btnUp_clicked()
 
     if(index.row() - 1 >= 0)
         ui->tableView->setCurrentIndex(model->index(index.row() - 1, 0));
+
+    _profiles->fromModel(model->jsonText());
+    _profiles->save();
+
+    m_async_await.append(std::bind(&DialogMainWindow::client_data_cghanged, this));
+    updateDataUserCache();
+
 }
 
 
@@ -2196,5 +2174,11 @@ void DialogMainWindow::on_btnDown_clicked()
 
     if(index.row() + 1 < model->rowCount())
         ui->tableView->setCurrentIndex(model->index(index.row() + 1, 0));
+
+    _profiles->fromModel(model->jsonText());
+    _profiles->save();
+
+    m_async_await.append(std::bind(&DialogMainWindow::client_data_cghanged, this));
+    updateDataUserCache();
 }
 

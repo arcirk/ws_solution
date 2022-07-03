@@ -75,6 +75,7 @@ private slots:
     void onTrayTriggered();
     void onAppExit();
     void onWindowShow();
+    void onCheckIP();
 
     void onConnectionSuccess();
     void onCloseConnection();
@@ -103,6 +104,10 @@ private slots:
 
     void setProfoleImage(int index, const QString& imagePath);
 
+    void on_btnUp_clicked();
+
+    void on_btnDown_clicked();
+
 public slots:
     //void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
@@ -118,6 +123,7 @@ private:
     QMenu *trayIconMenu;
     QAction *quitAction;
     QAction *showAction;
+    QAction *checkIpAction;
     QProcess * mozillaApp;
     QDir appHome;
     QList<QVariant> lastParam;
@@ -149,7 +155,7 @@ private:
     void initProfiles();
     //void getInDataCache();
     void setProfilesModel();
-
+    void client_data_cghanged();
     void sendResultToClient();
 
     void asynAwait();
