@@ -298,6 +298,31 @@ void DialogClientOptions::updateTableImages()
 
 void DialogClientOptions::on_btnProfileEdit_clicked()
 {
+    auto aCerts = QJsonObject();
+    auto rows = QJsonArray();
+    auto columns = QJsonArray();
+    for(int i = 0; i < ui->tableAvailableCerts->model()->columnCount(); ++i){
+        auto name = ui->tableAvailableCerts->model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+        if(name == "")
+            name = "Empty";
+        else if(name == "Ссылка")
+            name = "Ref";
+        else if(name == "Имя")
+            name = "FirstField";
+        columns.append(name);
+    }
+    for (int i = 0; i < ui->tableAvailableCerts->model()->rowCount(); ++i) {
+        auto obj = QJsonObject();
+        for(int j = 0; j < ui->tableAvailableCerts->model()->columnCount(); ++j){
+            obj.insert(columns[j].toString(), ui->tableAvailableCerts->model()->index(i,j).data().toString());
+        }
+        rows.append(obj);
+    }
+    aCerts.insert("columns", columns);
+    aCerts.insert("rows", rows);
+
+    _usr->set_available_certificates(aCerts);
+
     auto index = ui->tableViewProfiles->currentIndex();
     if(!index.isValid()){
         QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
@@ -323,6 +348,31 @@ void DialogClientOptions::on_btnProfileEdit_clicked()
 
 void DialogClientOptions::on_tableViewProfiles_doubleClicked(const QModelIndex &index)
 {
+    auto aCerts = QJsonObject();
+    auto rows = QJsonArray();
+    auto columns = QJsonArray();
+    for(int i = 0; i < ui->tableAvailableCerts->model()->columnCount(); ++i){
+        auto name = ui->tableAvailableCerts->model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+        if(name == "")
+            name = "Empty";
+        else if(name == "Ссылка")
+            name = "Ref";
+        else if(name == "Имя")
+            name = "FirstField";
+        columns.append(name);
+    }
+    for (int i = 0; i < ui->tableAvailableCerts->model()->rowCount(); ++i) {
+        auto obj = QJsonObject();
+        for(int j = 0; j < ui->tableAvailableCerts->model()->columnCount(); ++j){
+            obj.insert(columns[j].toString(), ui->tableAvailableCerts->model()->index(i,j).data().toString());
+        }
+        rows.append(obj);
+    }
+    aCerts.insert("columns", columns);
+    aCerts.insert("rows", rows);
+
+    _usr->set_available_certificates(aCerts);
+
     auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
 
     auto row = model->getRowObject(index.row());
@@ -342,10 +392,38 @@ void DialogClientOptions::on_tableViewProfiles_doubleClicked(const QModelIndex &
 
 void DialogClientOptions::on_btnUsrProfileAdd_clicked()
 {
+    auto aCerts = QJsonObject();
+    auto rows = QJsonArray();
+    auto columns = QJsonArray();
+    for(int i = 0; i < ui->tableAvailableCerts->model()->columnCount(); ++i){
+        auto name = ui->tableAvailableCerts->model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+        if(name == "")
+            name = "Empty";
+        else if(name == "Ссылка")
+            name = "Ref";
+        else if(name == "Имя")
+            name = "FirstField";
+        columns.append(name);
+    }
+    for (int i = 0; i < ui->tableAvailableCerts->model()->rowCount(); ++i) {
+        auto obj = QJsonObject();
+        for(int j = 0; j < ui->tableAvailableCerts->model()->columnCount(); ++j){
+            obj.insert(columns[j].toString(), ui->tableAvailableCerts->model()->index(i,j).data().toString());
+        }
+        rows.append(obj);
+    }
+    aCerts.insert("columns", columns);
+    aCerts.insert("rows", rows);
+
+    _usr->set_available_certificates(aCerts);
 
     auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
 
     auto dlg = DialogSelectedRow(_usr, QJsonObject(), this);
+    //qDebug() << ui->tableAvailableCerts->model()->rowCount();
+
+
+    //_usr->set_available_certificates(QJsonDocument::fromJson(model))
     dlg.setModal(true);
     dlg.exec();
 

@@ -25,6 +25,8 @@ DialogSelectedRow::DialogSelectedRow(CertUser* user, const QJsonObject& row, QWi
 
     m_profileNames = user->mozillaProfiles();
 
+
+
     auto lst = new QStringListModel(m_profileNames);
     ui->cmbMozillaProfile->setModel(lst);
 
@@ -34,14 +36,38 @@ DialogSelectedRow::DialogSelectedRow(CertUser* user, const QJsonObject& row, QWi
     ui->txtUrl->setText(_currentObject.value("address").toString());
 
     QStringList lstCerts = {""};
-    int i = 0;
-    for (auto itr = user->certificates().begin(); itr != user->certificates().end(); ++itr) {
-        lstCerts.append(itr.value()->bindName());
-        _certsList.insert(i, itr.value());
+//    int i = 0;
+//    for (auto itr = user->certificates().begin(); itr != user->certificates().end(); ++itr) {
+//        lstCerts.append(itr.value()->bindName());
+//        _certsList.insert(i, itr.value());
+//    }
+    bool bindCert = user->cache().value("mpl").toObject().value("bindCertificates").toBool();
+    int defIndex = -1;
+    if(!bindCert){
+        int i = 0;
+        for (auto itr = user->certificates().begin(); itr != user->certificates().end(); ++itr) {
+            lstCerts.append(itr.value()->bindName());
+            if(itr.value()->ref() == _currentObject.value("certs").toString())
+                defIndex = i;
+            _certsList.insert(i, itr.value());
+            i++;
+        }
+    }else{
+        QString jAvaiableCerts = user->available_certificates();
+        auto certs = QJsonDocument::fromJson(jAvaiableCerts.toUtf8()).object().value("rows").toArray();
+
+        for (int i = 0; i < certs.size(); ++i) {
+            QString val = certs[i].toObject().value("FirstField").toString();
+            lstCerts.append(val);
+            if(_currentObject.value("certs").toString().indexOf(certs[i].toObject().value("CertRef").toString()) != -1)
+                defIndex = lstCerts.size() -1;
+        }
     }
 
     lst = new QStringListModel(lstCerts);
     ui->cmbCertificates->setModel(lst);
+    if(defIndex != -1)
+        ui->cmbCertificates->setCurrentIndex(defIndex);
 
     setWindowTitle("Настройка профиля");
 }
