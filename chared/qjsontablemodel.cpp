@@ -68,7 +68,7 @@ QString QJsonTableModel::fromBase64(const QString &str)
     if(!isBase64)
        return str;
 
-    QString result;
+    //QString result;
     try {
         return QByteArray::fromBase64(str.toUtf8());
     }  catch (std::exception&) {
@@ -346,6 +346,107 @@ void QJsonTableModel::updateRow(const QJsonObject &obj, int row)
 
 }
 
+void QJsonTableModel::moveUp(int row)
+{
+    if(row - 1 <  0)
+        return;
+
+    int step = row-1;
+
+    QJsonObject f =  m_json[row].toObject();
+    QJsonObject l =  m_json[step].toObject();
+
+
+     m_json[row] = l;
+     m_json[step] = f;
+
+     if(row <  m_rowKeys.size()-2){
+         QPair<QString, QString> fp = m_rowKeys[row];
+         QPair<QString, QString> lp = m_rowKeys[step];
+         m_rowKeys[row] = lp;
+         m_rowKeys[step] = fp;
+     }
+
+     QMap<QPair<int,int>, QIcon> first;
+     QMap<QPair<int,int>, QIcon> second;
+
+     for (auto itr = m_rowIcon.begin(); itr != m_rowIcon.end(); ++itr) {
+         if(itr.key().first == row){
+             first.insert(itr.key(),  itr.value());
+         }else if(itr.key().first == step){
+             second.insert(itr.key(),  itr.value());
+         }
+     }
+
+     for (auto itr = first.constBegin(); itr != first.constEnd(); ++itr) {
+         m_rowIcon.erase(m_rowIcon.constFind(itr.key()));
+     }
+
+     for (auto itr = second.constBegin(); itr != second.constEnd(); ++itr) {
+         m_rowIcon.erase(m_rowIcon.constFind(itr.key()));
+     }
+
+     for (auto itr = first.constBegin(); itr != first.constEnd(); ++itr) {
+         QPair<int,int> fp = qMakePair(step, itr.key().second);
+         m_rowIcon.insert(fp, itr.value());
+     }
+     for (auto itr = second.constBegin(); itr != second.constEnd(); ++itr) {
+         QPair<int,int> lp = qMakePair(row, itr.key().second);
+         m_rowIcon.insert(lp, itr.value());
+     }
+}
+
+void QJsonTableModel::moveDown(int row)
+{
+
+    if(row >  m_json.size()-2)
+        return;
+
+    int step = row+1;
+
+    QJsonObject f =  m_json[row].toObject();
+    QJsonObject l =  m_json[step].toObject();
+
+
+     m_json[row] = l;
+     m_json[step] = f;
+
+     if(row <  m_rowKeys.size()-2){
+         QPair<QString, QString> fp = m_rowKeys[row];
+         QPair<QString, QString> lp = m_rowKeys[step];
+         m_rowKeys[row] = lp;
+         m_rowKeys[step] = fp;
+     }
+
+     QMap<QPair<int,int>, QIcon> first;
+     QMap<QPair<int,int>, QIcon> second;
+
+     for (auto itr = m_rowIcon.begin(); itr != m_rowIcon.end(); ++itr) {
+         if(itr.key().first == row){
+             first.insert(itr.key(),  itr.value());
+         }else if(itr.key().first == step){
+             second.insert(itr.key(),  itr.value());
+         }
+     }
+
+     for (auto itr = first.constBegin(); itr != first.constEnd(); ++itr) {
+         m_rowIcon.erase(m_rowIcon.constFind(itr.key()));
+     }
+
+     for (auto itr = second.constBegin(); itr != second.constEnd(); ++itr) {
+         m_rowIcon.erase(m_rowIcon.constFind(itr.key()));
+     }
+
+     for (auto itr = first.constBegin(); itr != first.constEnd(); ++itr) {
+         QPair<int,int> fp = qMakePair(step, itr.key().second);
+         m_rowIcon.insert(fp, itr.value());
+     }
+     for (auto itr = second.constBegin(); itr != second.constEnd(); ++itr) {
+         QPair<int,int> lp = qMakePair(row, itr.key().second);
+         m_rowIcon.insert(lp, itr.value());
+     }
+}
+
 void QJsonTableModel::setFormatColumn(int column, const QString &fmt)
 {
     m_fmtText.insert(column, fmt);
@@ -355,16 +456,16 @@ void QJsonTableModel::removeRow(int row)
 {
     if(row < rowCount()){
         m_json.removeAt(row);
-        auto iter = m_fmtText.find(row);
-        if(iter != m_fmtText.end())
+        auto iter = m_fmtText.constFind(row);
+        if(iter != m_fmtText.constEnd())
             m_fmtText.erase(iter);
 
         m_rowKeys.removeAt(row);
 
         for(int i = 0; i < _header.count(); ++i){
             auto pr = qMakePair(row, i);
-            auto iterPr = m_rowIcon.find(pr);
-            if(iterPr != m_rowIcon.end())
+            auto iterPr = m_rowIcon.constFind(pr);
+            if(iterPr != m_rowIcon.constEnd())
                 m_rowIcon.erase(iterPr);
         }
 

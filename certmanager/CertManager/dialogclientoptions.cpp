@@ -372,3 +372,42 @@ void DialogClientOptions::on_usrProfileDelete_clicked()
 
 }
 
+
+void DialogClientOptions::on_btnMoveAup_clicked()
+{
+    auto index = ui->tableViewProfiles->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    model->moveUp(index.row());
+
+    model->reset();
+
+    if(index.row() - 1 >= 0)
+        ui->tableViewProfiles->setCurrentIndex(model->index(index.row() - 1, 0));
+}
+
+
+void DialogClientOptions::on_btnMoveDown_clicked()
+{
+    auto index = ui->tableViewProfiles->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран профиль!");
+        return;
+    }
+
+    auto model = (QJsonTableModel*)ui->tableViewProfiles->model();
+
+    model->moveDown(index.row());
+
+    model->reset();
+
+    if(index.row() + 1 < model->rowCount())
+        ui->tableViewProfiles->setCurrentIndex(model->index(index.row() + 1, 0));
+
+}
+

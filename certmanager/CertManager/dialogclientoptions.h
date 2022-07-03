@@ -51,6 +51,10 @@ private slots:
 
     void on_usrProfileDelete_clicked();
 
+    void on_btnMoveAup_clicked();
+
+    void on_btnMoveDown_clicked();
+
 private:
     Ui::DialogOptions *ui;
     CertUser * _usr;

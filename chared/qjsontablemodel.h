@@ -51,6 +51,9 @@ public:
     QJsonObject getRowObject(int row);
     void updateRow(const QJsonObject& obj, int index);
 
+    void moveUp(int row);
+    void moveDown(int row);
+
 signals:
     void jsonTextChanged();
 private:

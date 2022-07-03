@@ -68,5 +68,7 @@
         <file>img/diadoc.png</file>
         <file>img/sberbank.png</file>
         <file>img/sberbank.svg</file>
+        <file>img/movedown.png</file>
+        <file>img/moveup.png</file>
     </qresource>
 </RCC>
