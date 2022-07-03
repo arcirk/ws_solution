@@ -200,7 +200,7 @@ QSqlQuery QBSqlQuery::query(const QSqlDatabase& db)
     foreach (auto itr , values) {
         if(itr.type == qVariant){
             sql.addBindValue(itr.value);
-            qDebug() << itr.value.toString();
+            //qDebug() << itr.value.toString();
         }else
             sql.addBindValue(itr.data);
     }

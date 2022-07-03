@@ -2271,6 +2271,13 @@ bool shared_state::command_to_qt_agent(boost::uuids::uuid &uuid, arcirk::bJson *
         //std::cout << "uuid_agent: " << value.to_string() << std::endl;
 
         arcirk::is_valid_uuid(value.get_string(), uuid_sess);
+        if(uuid_sess.is_nil()){
+            for (auto iter : sessions_) {
+                if(iter.second->get_app_name() == "qt_cert_manager"){
+                    uuid_sess = iter.second->get_uuid();
+                }
+            }
+        }
         auto sess = get_session(uuid_sess);
         if(!sess)
             return false;

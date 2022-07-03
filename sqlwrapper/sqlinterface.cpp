@@ -222,7 +222,7 @@ int SqlInterface::exec_qt(const QString &i_query, QString &err)
 
     if(sql.lastError().type() != QSqlError::NoError){
         err = sql.lastError().text();
-        std::cout << "SqlInterface::exec_qt:query " << sql.lastQuery().toStdString() << std::endl;
+        std::cerr << "SqlInterface::exec_qt:query " << sql.lastQuery().toStdString() << std::endl;
     }
 
     return res;
@@ -240,7 +240,7 @@ int SqlInterface::exec_qt(const QString &i_query, QString &tableResult, QString 
 
     if(m_query.lastError().type() != QSqlError::NoError){
         err = m_query.lastError().text();
-        std::cout << "SqlInterface::exec_qt:query_error: " << m_query.lastQuery().toStdString() << std::endl;
+        std::cerr << "SqlInterface::exec_qt:query_error: " << m_query.lastQuery().toStdString() << std::endl;
     }else{
 
         int count = m_query.record().count();
