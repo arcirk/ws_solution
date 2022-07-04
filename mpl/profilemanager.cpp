@@ -12,9 +12,14 @@ ProfileManager::ProfileManager(const QString& homePath, QObject *parent)
     readProfiles();
 }
 
-boost::unordered_map<boost::uuids::uuid, UserProfile *> &ProfileManager::profiles()
+QMap<QUuid, UserProfile*> &ProfileManager::profiles()
 {
     return _profiles;
+}
+
+QVector<QUuid> ProfileManager::order() const
+{
+    return _order;
 }
 
 MplSettings& ProfileManager::settings()
@@ -29,16 +34,17 @@ QStringList ProfileManager::profilesNames()
 
 void ProfileManager::setProfile(UserProfile *prof)
 {
-    boost::uuids::uuid _u;
-    is_valid_uuid(prof->uuid().toString().toStdString(), _u);
-    _profiles.emplace(_u, prof);
+
+    _order.append(prof->uuid());
+    _profiles.insert(prof->uuid(), prof);
 
 }
 
 void ProfileManager::clear()
 {
-    //qDeleteAll(_profiles);
+    qDeleteAll(_profiles);
     _profiles.clear();
+    _order.clear();
 }
 
 void ProfileManager::setCache(const QJsonObject &resp)
@@ -46,8 +52,9 @@ void ProfileManager::setCache(const QJsonObject &resp)
 
     _settings.fromObject(resp.value("mpl").toObject());
 
-    //qDeleteAll(_profiles);
+    qDeleteAll(_profiles);
     _profiles.clear();
+    _order.clear();
 
     QJsonArray arr = resp.value("profiles").toObject().value("rows").toArray();
 
@@ -72,9 +79,8 @@ void ProfileManager::setCache(const QJsonObject &resp)
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                boost::uuids::uuid _u;
-                is_valid_uuid(uuid.toString().toStdString(), _u);
-                _profiles.emplace(_u, profile);
+                _profiles.insert(uuid, profile);
+                _order.append(uuid);
             }
 
         }
@@ -94,8 +100,8 @@ QString ProfileManager::model()
 
     objMain.insert("columns", columns);
 
-    foreach (auto itr , _profiles) {
-        auto obj = itr.second->to_modelObject();
+    foreach (auto itr , _order) {
+        auto obj = _profiles[itr]->to_modelObject();
         rows.append(obj);
     }
 
@@ -106,8 +112,9 @@ QString ProfileManager::model()
 
 void ProfileManager::fromModel(const QString &modelText)
 {
-    //qDeleteAll(_profiles);
+    qDeleteAll(_profiles);
     _profiles.clear();
+    _order.clear();
     QJsonDocument doc = QJsonDocument::fromJson(modelText.toUtf8());
 
     QJsonArray arr = doc.object().value("rows").toArray();
@@ -133,9 +140,8 @@ void ProfileManager::fromModel(const QString &modelText)
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                boost::uuids::uuid _u;
-                is_valid_uuid(uuid.toString().toStdString(), _u);
-                _profiles.emplace(_u, profile);
+                _profiles.insert(uuid, profile);
+                _order.append(uuid);
             }
 
         }
@@ -155,8 +161,8 @@ QJsonObject ProfileManager::to_profiles_table()
 
     objMain.insert("columns", columns);
 
-    foreach (auto itr , _profiles) {
-        auto obj = itr.second->to_modelObject();
+    foreach (auto itr , _order) {
+        auto obj = _profiles[itr]->to_modelObject();
         rows.append(obj);
     }
 
@@ -219,8 +225,9 @@ void ProfileManager::readProfiles()
         return;
     }
 
-    //qDeleteAll(_profiles);
+    qDeleteAll(_profiles);
     _profiles.clear();
+    _order.clear();
     QJsonDocument doc = QJsonDocument::fromJson(settings.readAll());
     settings.close();
     QJsonArray arr = doc.object().value("profiles").toObject().value("rows").toArray();
@@ -246,9 +253,8 @@ void ProfileManager::readProfiles()
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                boost::uuids::uuid _u;
-                is_valid_uuid(uuid.toString().toStdString(), _u);
-                _profiles.emplace(_u, profile);
+                _profiles.insert(uuid, profile);
+                _order.append(uuid);
             }
 
         }
