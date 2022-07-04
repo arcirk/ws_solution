@@ -338,8 +338,9 @@ bool Certificate::fromSha1(const QString &sha)
     QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
     //qDebug() << fileName;
     auto started = [cmd, &fileName, &sha]() -> void
-    {
-        QString qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName);
+    {       
+        QString qbyte = QString("cd \"%1\"").arg("C:\\Program Files (x86)\\Crypto Pro\\CSP");
+        qbyte.append(QString(" & cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName));
         cmd->send(qbyte, certmgrInstallCert);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);

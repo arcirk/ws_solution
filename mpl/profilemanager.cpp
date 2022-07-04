@@ -3,17 +3,16 @@
 #include <QDir>
 #include <QSettings>
 
+
 ProfileManager::ProfileManager(const QString& homePath, QObject *parent)
     : QObject{parent},
     _settings(homePath, this)
 {
-
     _homePath = homePath;
-
     readProfiles();
 }
 
-std::unordered_map<QString, UserProfile *> &ProfileManager::profiles()
+boost::unordered_map<boost::uuids::uuid, UserProfile *> &ProfileManager::profiles()
 {
     return _profiles;
 }
@@ -30,7 +29,10 @@ QStringList ProfileManager::profilesNames()
 
 void ProfileManager::setProfile(UserProfile *prof)
 {
-    _profiles.emplace(prof->uuid().toString(), prof);
+    boost::uuids::uuid _u;
+    is_valid_uuid(prof->uuid().toString().toStdString(), _u);
+    _profiles.emplace(_u, prof);
+
 }
 
 void ProfileManager::clear()
@@ -70,7 +72,9 @@ void ProfileManager::setCache(const QJsonObject &resp)
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                _profiles.emplace(uuid.toString(), profile);
+                boost::uuids::uuid _u;
+                is_valid_uuid(uuid.toString().toStdString(), _u);
+                _profiles.emplace(_u, profile);
             }
 
         }
@@ -129,7 +133,9 @@ void ProfileManager::fromModel(const QString &modelText)
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                _profiles.emplace(uuid.toString(), profile);
+                boost::uuids::uuid _u;
+                is_valid_uuid(uuid.toString().toStdString(), _u);
+                _profiles.emplace(_u, profile);
             }
 
         }
@@ -240,7 +246,9 @@ void ProfileManager::readProfiles()
                     lst.append(QUuid::fromString(_uuid));
                 }
                 profile->setSertificates(lst);
-                _profiles.emplace(uuid.toString(), profile);
+                boost::uuids::uuid _u;
+                is_valid_uuid(uuid.toString().toStdString(), _u);
+                _profiles.emplace(_u, profile);
             }
 
         }

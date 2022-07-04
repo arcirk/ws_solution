@@ -124,6 +124,7 @@ private:
     QAction *quitAction;
     QAction *showAction;
     QAction *checkIpAction;
+    QAction *openFiefox;
     QProcess * mozillaApp;
     QDir appHome;
     QList<QVariant> lastParam;
@@ -219,7 +220,7 @@ private:
     void updateTableImages();
 
     QStringList mozillaProfiles();
-
+    void openMozillaFirefox();
 
 signals:
 //    void whenDataIsLoaded();

@@ -11,6 +11,41 @@
 #include <settings.h>
 #include "mplsettings.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+//#include "arcirk.h"
+
+//#include <boost/uuid/uuid.hpp>
+//#include <boost/unordered_map.hpp>
+//#include <boost/uuid/uuid_generators.hpp>
+
+//namespace arcirk {
+//bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result) {
+//    using namespace boost::uuids;
+
+//    try {
+//        result = string_generator()(maybe_uuid);
+//        return result.version() != uuid::version_unknown;
+//    } catch(...) {
+//        return false;
+//    }
+//}
+
+//}
+
+
+//#include <boost/functional/hash.hpp>
+
+//template<>
+//struct std::hash<boost::uuids::uuid>
+//{
+//    size_t operator () (const boost::uuids::uuid& uid)
+//    {
+//        return boost::hash<boost::uuids::uuid>()(uid);
+//    }
+//};
+
 
 class ProfileManager : public QObject
 {
@@ -19,7 +54,7 @@ public:
     explicit ProfileManager(const QString& homePath, QObject *parent = nullptr);
     //explicit ProfileManager(const QString& homePath, const QJsonObject& object, QObject *parent = nullptr);
 
-    std::unordered_map<QString, UserProfile*> &profiles();
+    boost::unordered_map<boost::uuids::uuid, UserProfile*> &profiles();
     MplSettings& settings();
 
 
@@ -38,10 +73,20 @@ public:
     void save();
     QJsonObject to_object();
 
+    static bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result) {
+        using namespace boost::uuids;
+
+        try {
+            result = string_generator()(maybe_uuid);
+            return result.version() != uuid::version_unknown;
+        } catch(...) {
+            return false;
+        }
+    }
 
 private:
 
-    std::unordered_map<QString, UserProfile*> _profiles;
+    boost::unordered_map<boost::uuids::uuid, UserProfile*> _profiles;
     QStringList _profilesNames;
     QString _homePath;
     MplSettings _settings;

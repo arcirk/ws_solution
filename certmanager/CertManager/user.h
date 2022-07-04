@@ -9,7 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace boost { namespace uuids { class uuid; } }
+//namespace boost { namespace uuids { class uuid; } }
 
 class CertUser : public QObject
 {
