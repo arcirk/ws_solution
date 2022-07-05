@@ -33,6 +33,7 @@
 #include <QQueue>
 #include <dialogabout.h>
 #include "dialogclientoptions.h"
+#include "dialogserveruser.h"
 
 #include <sstream>
 
@@ -2354,6 +2355,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnAdd->setEnabled(false);
                 ui->btnDelete->setEnabled(true);
                 ui->btnAdd->setEnabled(true);
+                ui->btnMainTollEdit->setEnabled(false);
                 QStringList m_key = key.split("_");
                 QStringList m_userHost = m_key[2].split("/");
                 QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
@@ -2366,6 +2368,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                ui->btnAdd->setEnabled(false);
                ui->btnDelete->setEnabled(false);
                ui->btnAdd->setEnabled(false);
+               ui->btnMainTollEdit->setEnabled(true);
                ui->tableView->setModel(nullptr);
                QStringList m_key = key.split("_");
                QString uuid = m_key[1];
@@ -4725,8 +4728,6 @@ void MainWindow::on_btnDataListUpdate_clicked()
 
 void MainWindow::on_btnBindContainer_clicked()
 {
-    //auto tree = ui->treeWidget;
-    //QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
@@ -4857,3 +4858,37 @@ void MainWindow::updateCertUserCache(const QString &ref, const QString &cache)
         }
     }
 }
+
+
+void MainWindow::on_btnMainTollEdit_clicked()
+{
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    QString node = treeItem->data(0, Qt::UserRole).toString();
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    if(node.indexOf("uCatalog_") != -1){
+        int iRef = modelWsServerUsers->getColumnIndex("Ref");
+        int iParent = modelWsServerUsers->getColumnIndex("parent");
+        int iName = modelWsServerUsers->getColumnIndex("FirstField");
+        QString ref = ui->tableView->model()->index(index.row(), iRef).data(Qt::UserRole + iRef).toString();
+        QString _parent = ui->tableView->model()->index(index.row(), iParent).data(Qt::UserRole + iParent).toString();
+        auto item = findInTable(modelWsServerUsers, ref, iRef, false);
+        auto parent = findInTable(modelWsServerUsers, _parent, iRef, false);
+        auto dlg = DialogServerUser(modelWsServerUsers->getRowObject(item.row()),
+                                    modelWsServerUsers->index(parent.row(), iName).data(Qt::UserRole + iName).toString(),this);
+        dlg.setModal(true);
+        dlg.exec();
+    }
+
+}
+

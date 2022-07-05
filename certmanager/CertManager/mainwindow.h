@@ -194,6 +194,8 @@ private slots:
 
     void on_btnClientOptions_clicked();
 
+    void on_btnMainTollEdit_clicked();
+
 private:
     Ui::MainWindow *ui;
 
