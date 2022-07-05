@@ -195,10 +195,7 @@ void DialogMainWindow::updateRow(UserProfile *prof, int row)
 
 void DialogMainWindow::setProfile(UserProfile *prof)
 {
-    auto items = _profiles->profiles();
-    boost::uuids::uuid _u;
-    ProfileManager::is_valid_uuid(prof->uuid().toString().toStdString(), _u);
-    items.emplace(_u, prof);
+    _profiles->setProfile(prof);
 }
 
 void DialogMainWindow::formControl()
@@ -272,15 +269,15 @@ void DialogMainWindow::createDynamicMenu()
 
         auto items = _profiles->profiles();
 
-        for (auto item : items){
+        for (auto item : _profiles->order()){
 
-            QString sz = item.second->name();
+            QString sz = _profiles->profiles()[item]->name();
             sz.append(" / ");
-            sz.append(item.second->profile());
+            sz.append(_profiles->profiles()[item]->profile());
             auto action = new QAction(sz, this);
-            action->setProperty("uuid", item.second->uuid());
-            if(!item.second->icon().isNull())
-                action->setIcon(item.second->icon());
+            action->setProperty("uuid", _profiles->profiles()[item]->uuid());
+            if(!_profiles->profiles()[item]->icon().isNull())
+                action->setIcon(_profiles->profiles()[item]->icon());
             trayIconMenu->addAction(action);
             connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
         }
@@ -1442,17 +1439,15 @@ void DialogMainWindow::on_btnEdit_clicked()
     }
 
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
-    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    boost::uuids::uuid _u;
-    ProfileManager::is_valid_uuid(uuid.toStdString(), _u);
-    const auto itr = _profiles->profiles().find(_u);
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toUuid();
+    const auto itr = _profiles->profiles().find(uuid);
     if(itr != _profiles->profiles().end()){
-        auto dlg = DialogSelectedRow(itr->second, currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
+        auto dlg = DialogSelectedRow(itr.value(), currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
         dlg.setModal(true);
         dlg.exec();
 
         if(dlg.result() == QDialog::Accepted){
-            updateRow(itr->second, index.row());
+            updateRow(itr.value(), index.row());
         }
     }
 
@@ -1477,10 +1472,8 @@ void DialogMainWindow::on_btnDelete_clicked()
 
 
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
-    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    boost::uuids::uuid _u;
-    ProfileManager::is_valid_uuid(uuid.toStdString(), _u);
-    const auto itr = _profiles->profiles().find(_u);
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toUuid();
+    const auto itr = _profiles->profiles().find(uuid);
     if(itr != _profiles->profiles().end())
         _profiles->profiles().erase(itr);
 
@@ -1522,20 +1515,18 @@ void DialogMainWindow::onTrayTriggered()
 
     QUuid uuid = action->property("uuid").toUuid();
     auto profs = _profiles->profiles();
-    boost::uuids::uuid _u;
-    ProfileManager::is_valid_uuid(uuid.toString().toStdString(), _u);
-    auto itr = profs.find(_u);
+    auto itr = profs.find(uuid);
 
     QString profName = "";
     QString defPage = "";
 
     if(itr != profs.end()){
-        profName = itr->second->profile();
-        defPage = itr->second->defaultAddress();
+        profName = itr.value()->profile();
+        defPage = itr.value()->defaultAddress();
         bool isBindCert = _profiles->settings()[MplBindCertificates].toBool();
-        if(isBindCert && itr->second->cerificates().size() > 0){
+        if(isBindCert && itr.value()->cerificates().size() > 0){
 
-            auto certUuid = itr->second->cerificates()[0];
+            auto certUuid = itr.value()->cerificates()[0];
             if(!certUuid.isNull()){
                 //удаляем сертификаты СКБ Контур
                 currentUser->eraseLocalhostCertificates();
@@ -2028,17 +2019,15 @@ void DialogMainWindow::createColumnAliases()
 void DialogMainWindow::on_tableView_doubleClicked(const QModelIndex &index)
 {
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
-    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toString();
-    boost::uuids::uuid _u;
-    ProfileManager::is_valid_uuid(uuid.toStdString(), _u);
-    const auto itr = _profiles->profiles().find(_u);
+    auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toUuid();
+    const auto itr = _profiles->profiles().find(uuid);
     if(itr != _profiles->profiles().end()){
-        auto dlg = DialogSelectedRow(itr->second, currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
+        auto dlg = DialogSelectedRow(itr.value(), currentUser, _profiles->settings()[MplBindCertificates].toBool(), this);
         dlg.setModal(true);
         dlg.exec();
 
         if(dlg.result() == QDialog::Accepted){
-            updateRow(itr->second, index.row());
+            updateRow(itr.value(), index.row());
         }
     }
 }
@@ -2047,13 +2036,11 @@ void DialogMainWindow::setProfoleImage(int index, const QString &imagePath)
 {
     modelMplProfiles->setIcon(modelMplProfiles->index(index, 0), QIcon(imagePath));
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
-    QString uuid = modelMplProfiles->index(index, iUuid).data(Qt::UserRole + iUuid).toString();
-    if(!uuid.isEmpty()){
-        boost::uuids::uuid _u;
-        ProfileManager::is_valid_uuid(uuid.toStdString(), _u);
-        auto itr = _profiles->profiles().find(_u);
+    auto uuid = modelMplProfiles->index(index, iUuid).data(Qt::UserRole + iUuid).toUuid();
+    if(!uuid.isNull()){
+        auto itr = _profiles->profiles().find(uuid);
         if(itr != _profiles->profiles().end())
-            itr->second->setIcon(imagePath);
+            itr.value()->setIcon(imagePath);
     }
 }
 
@@ -2065,17 +2052,15 @@ void DialogMainWindow::startMozillaFirefox()
     if(lastParam.size() > 0){
 
         QUuid uuid = lastParam[0].toUuid();
-        boost::uuids::uuid _u;
-        ProfileManager::is_valid_uuid(uuid.toString().toStdString(), _u);
         auto profs = _profiles->profiles();
-        auto itr = profs.find(_u);
+        auto itr = profs.find(uuid);
 
         QString profName = "";
         QString defPage = "";
 
         if(itr != profs.end()){
-            profName = itr->second->profile();
-            defPage = itr->second->defaultAddress();
+            profName = itr.value()->profile();
+            defPage = itr.value()->defaultAddress();
         }
 
         //открываем адрес указанный на флешке банка
