@@ -157,6 +157,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_async_await.append(std::bind(&MainWindow::currentUserAviableCertificates, this));
     m_async_await.append(std::bind(&MainWindow::wsGetOnlineUsers, this));
     m_async_await.append(std::bind(&MainWindow::getDataAvailableCertificates, this));
+    m_async_await.append(std::bind(&MainWindow::getUsersCatalog, this));
 
     currentUser = new CertUser(this);
     QString curentHost = QSysInfo::machineHostName();
@@ -214,6 +215,12 @@ void MainWindow::createModels(){
     modelUsersAviableCerts->setColumnAliases(m_colAliases);
     proxyModelUsersAviableCerts = new QProxyModel(this);
     proxyModelUsersAviableCerts->setSourceModel(modelUsersAviableCerts);
+
+    modelWsServerUsers = new QJsonTableModel(this);
+    modelWsServerUsers->setRowsIcon(QIcon(":/img/item.png"));
+    modelWsServerUsers->setColumnAliases(m_colAliases);
+    proxyWsServerUsers = new QProxyModel(this);
+    proxyWsServerUsers->setSourceModel(modelWsServerUsers);
 }
 
 QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, const QString &node)
@@ -1148,8 +1155,10 @@ void MainWindow::resetCertUsersTree()
         auto itemUser = addTreeNode(name + " (" + host + ")", name + host, ":/img/certUsers.png");
         root->addChild(itemUser);        
         auto itemAvailableCerts = addTreeNode("Доступные сертификаты", "a_cert_" + user->name() + "/" + user->domain(), ":/img/available_certificate_16.png");
-        itemUser->addChild(itemAvailableCerts);
+        itemUser->addChild(itemAvailableCerts);        
     }
+
+    updateCertUsersOnlineStstus();
 
 }
 
@@ -1562,11 +1571,18 @@ void MainWindow::treeSetFromSqlUsers()
             QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
             QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
             auto index = modelSqlUsers->index(i, 1);
-
+            QPair<QString, QString> m_index = qMakePair(name, host);
+            auto itr = m_users.find(m_index);
             if(isWsUserExists(name, host)){
                 modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+                if(itr != m_users.end()){
+                    itr.value()->setOnline(true);
+                }
             }else{
                 modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+                if(itr != m_users.end()){
+                    itr.value()->setOnline(false);
+                }
             }
         }
 
@@ -1746,8 +1762,10 @@ void MainWindow::createTree()
     root->addChild(server);
     auto ws = addTreeNode("Сервер взаимодействия", WsServer, ":/img/socket_16_only.ico");
     root->addChild(ws);
-
     tree->expandAll();
+    auto wsUsers = addTreeNode("Пользователи", UsersCatalogRoot, ":/img/users1.png");
+    ws->addChild(wsUsers);
+
 }
 
 void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_command){
@@ -2343,6 +2361,28 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 if(itr != m_users.end()){
                     resetAviableCertificates(itr.value());
                 }
+            }else if(key.left(9) == "uCatalog_"){
+               toolBarSetVisible(ui->wToolBarMain, true);
+               ui->btnAdd->setEnabled(false);
+               ui->btnDelete->setEnabled(false);
+               ui->btnAdd->setEnabled(false);
+               ui->tableView->setModel(nullptr);
+               QStringList m_key = key.split("_");
+               QString uuid = m_key[1];
+               QString filter = QString("{\"isGroup\": 0, \"parent\": \"%1\"}").arg(uuid);
+
+               proxyWsServerUsers->setFilter(filter);
+               ui->tableView->setModel(proxyWsServerUsers);
+               ui->tableView->resizeColumnsToContents();
+               for (int i = 0; i < modelWsServerUsers->columnCount(); ++i) {
+                   if(QString(modelWsServerUsers->roleNames()[i + Qt::UserRole]) == "Empty" ||
+                           QString(modelWsServerUsers->roleNames()[i + Qt::UserRole]) == "FirstField" ||
+                           QString(modelWsServerUsers->roleNames()[i + Qt::UserRole]) == "role" ||
+                           QString(modelWsServerUsers->roleNames()[i + Qt::UserRole]) == "SecondField"){
+                       continue;
+                   }else
+                       ui->tableView->setColumnHidden(i, true);
+               }
             }
         }
     }
@@ -2478,6 +2518,84 @@ void MainWindow::getUserData()
     }
 }
 
+void MainWindow::getUsersCatalog()
+{
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Users");
+    bindQuery.addField("Empty", "Empty");
+    bindQuery.addField("Ref", "Ref");
+    bindQuery.addField("FirstField", "FirstField");
+    bindQuery.addField("SecondField", "SecondField");
+    bindQuery.addField("parent", "parent");
+    bindQuery.addField("isGroup", "isGroup");
+    bindQuery.addField("deletionMark", "deletionMark");
+    bindQuery.addField("FullName", "FullName");
+    bindQuery.addField("LastName", "LastName");
+    bindQuery.addField("FirstName", "FirstName");
+    bindQuery.addField("Reporting", "Reporting");
+    bindQuery.addField("role", "role");
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "get_ws_users");
+
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString resultQuery;
+        QString _error;
+        db->exec_qt(query, resultQuery, _error);
+        auto doc = QJsonDocument::fromJson(resultQuery.toUtf8());
+        auto obj = doc.object();
+        setFromDataUserCache(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "get_ws_users");
+            obj.insert("table", true);
+            obj.insert("run_on_return", QString(QJsonDocument(cmd).toJson()));
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString paramData = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", paramData);
+        }
+    }
+}
+
+void MainWindow::resetUsersCatalog(const QJsonObject &resp)
+{
+
+    auto root = findTreeItem(UsersCatalogRoot);
+    if(!root)
+        return;
+
+    while (root->childCount() > 0) {
+        root->removeChild(0);
+    }
+
+    QString table = resp.value("table").toString();
+    if(table.isEmpty())
+        return;
+
+    modelWsServerUsers->setJsonText(table);
+    modelWsServerUsers->reset();
+
+    QMap<QString, int> header;
+    header.insert("Ref", modelWsServerUsers->getColumnIndex("Ref"));
+    header.insert("FirstField", modelWsServerUsers->getColumnIndex("FirstField"));
+    header.insert("parent", modelWsServerUsers->getColumnIndex("parent"));
+    header.insert("deletionMark", modelWsServerUsers->getColumnIndex("deletionMark"));
+
+    infoBar->setText("Загрузка каталога пользователей ...");
+    fillTreeWsUsers(modelWsServerUsers, root, header);
+    updateStatusBar();
+}
+
 void MainWindow::setFromDataUserCache(const QJsonObject &resp)
 {
     qDebug() << __FUNCTION__;
@@ -2587,6 +2705,43 @@ void MainWindow::setDataAvailableCertificates(const QJsonObject &resp)
         auto f = m_async_await.dequeue();
         f();
     }
+}
+
+void MainWindow::fillTreeWsUsers(QJsonTableModel *model, QTreeWidgetItem *root, QMap<QString, int>& header)
+{
+    QStringList mRef = root->data(0, Qt::UserRole).toString().split("_");
+    if(mRef.size() < 2 )
+        return;
+
+    QString parentRef = mRef[1];
+
+    if (parentRef.isEmpty())
+        return;
+//Qt::DisplayRole + header["FirstField"]Qt::DisplayRole + header["Ref"]Qt::DisplayRole + header["deletionMark"]
+    QString filter = QString("{\"isGroup\": 1, \"parent\": \"%1\"}").arg(parentRef);
+
+    auto proxy = QProxyModel(this);
+    proxy.setSourceModel(model);
+    proxy.setFilter(filter);
+
+    int count = proxy.rowCount();
+
+    for (int i = 0; i < count; ++i) {
+        QString nodeText = proxy.index(i, header["FirstField"]).data(Qt::UserRole +  header["FirstField"]).toString();
+        QString nodeRef = proxy.index(i, header["Ref"]).data(Qt::UserRole +  header["FirstField"]).toString();
+        if(nodeRef.isEmpty())
+            continue;
+        QString nodeData = "uCatalog_" + proxy.index(i, header["Ref"]).data().toString();
+
+        int deletionMark = proxy.index(i, header["deletionMark"]).data().toInt();
+        QString img = ":/img/group.png";
+        if(deletionMark > 0)
+            img = ":/img/groupDeleted.png";
+        auto item = addTreeNode(nodeText, nodeData, img);
+        root->addChild(item);
+        fillTreeWsUsers(model, item, header);
+    }
+
 }
 
 void MainWindow::on_btnAdd_clicked()
@@ -2996,9 +3151,9 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 
     auto onlineItem = findTreeItem("WsActiveUsers");
     if(!onlineItem){
-        auto root = findTreeItem("WsServer");
+        auto root = findTreeItem(WsServer);
         if(root){
-            onlineItem = addTreeNode("Активные пользователи", "WsActiveUsers", ":/img/activeUesers16.png");
+            onlineItem = addTreeNode("Активные пользователи", WsActiveUsers, ":/img/activeUesers16.png");
             root->addChild(onlineItem);
         }
     }
@@ -3384,6 +3539,12 @@ void MainWindow::onWsExecQuery(const QString &result)
                    }
                 //}
             }
+        }
+    }else if(id_command == "get_ws_users"){
+        resetUsersCatalog(obj);
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
         }
     }
 }
@@ -3997,6 +4158,7 @@ void MainWindow::createColumnAliases()
     m_colAliases.insert("serial", "Серийный номер");
     m_colAliases.insert("volume", "Хранилище");
     m_colAliases.insert("cache", "Кэш");
+    m_colAliases.insert("role", "Роль");
 }
 
 

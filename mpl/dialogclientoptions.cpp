@@ -17,7 +17,6 @@ DialogClientOptions::DialogClientOptions(CertUser* usr, ProfileManager* mpl, QWi
     setFromUserSettings();
 
     ui->tableAvailableCerts->resizeColumnsToContents();
-
 }
 
 DialogClientOptions::~DialogClientOptions()

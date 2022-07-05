@@ -70,5 +70,13 @@
         <file>img/sberbank.svg</file>
         <file>img/movedown.png</file>
         <file>img/moveup.png</file>
+        <file>img/users1.png</file>
+        <file>img/itemTree.png</file>
+        <file>img/itemOver.png</file>
+        <file>img/itemDeleted.png</file>
+        <file>img/item.png</file>
+        <file>img/groupOver.png</file>
+        <file>img/groupDeleted.png</file>
+        <file>img/group.png</file>
     </qresource>
 </RCC>

@@ -87,6 +87,8 @@ QT_END_NAMESPACE
 #define STORGARE_LOCALHOST              "StorgareLocalhost"
 #define STORGARE_REMOTEHOST             "StorgareRemotehost"
 
+#define UsersCatalogRoot                "uCatalog_00000000-0000-0000-0000-000000000000"
+
 typedef std::function<void()> async_await;
 
 class MainWindow : public QMainWindow
@@ -226,6 +228,8 @@ private:
     QJsonTableModel * modelCertUserCertificates;
     QJsonTableModel * modelUsersAviableCerts;
     QProxyModel     * proxyModelUsersAviableCerts;
+    QJsonTableModel * modelWsServerUsers;
+    QProxyModel     * proxyWsServerUsers;
 
     void updateCertUserCache(const QString &ref, const QString &cache);
 
@@ -267,6 +271,9 @@ private:
     void getDataCertificatesList();
     void getDataUsersList();
     void getUserData();
+    void getUsersCatalog();
+
+    void resetUsersCatalog(const QJsonObject& resp);
 
     void currentUserSetTreeItems();
     void currentUserGetConteiners();
@@ -323,7 +330,6 @@ private:
 
     void onGetDataFromDatabase(const QString& table, const QString param);
 
-    //bool isCyrillic(const QString& source);
     QJsonObject parseDeviceString(const QString& key);
 
     void saveAsCurrentUserContainer();
@@ -360,6 +366,8 @@ private:
 
     void getDataAvailableCertificates();
     void setDataAvailableCertificates(const QJsonObject& resp);
+
+    void fillTreeWsUsers(QJsonTableModel* model, QTreeWidgetItem* root, QMap<QString, int>& header);
 
 signals:
     void whenDataIsLoaded();

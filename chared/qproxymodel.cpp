@@ -33,6 +33,8 @@ bool QProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
         while (i.hasNext()){
             i.next();
             int col = model->getColumnIndex(i.key());
+            if(col == -1)
+                continue;
             QModelIndex index = model->index(sourceRow, col, sourceParent);
 
             //if (i.value().typeId() == QMetaType::QString){

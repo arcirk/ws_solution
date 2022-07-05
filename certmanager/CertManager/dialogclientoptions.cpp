@@ -17,10 +17,6 @@ DialogClientOptions::DialogClientOptions(CertUser* usr, QProxyModel* a_certs, QW
 
     setFromUserSettings();
 
-//    ui->lineMozillaPath->setText(_manager->mozillaExeFile());
-//    ui->lineMoxillaProfilesPath->setText(_manager->mozillaProfilesFile());
-//    ui->chBindCertificate->setChecked(_manager->bindCertificates());
-
     ui->tableAvailableCerts->setModel(a_certs);
 
     ui->tableAvailableCerts->resizeColumnsToContents();
@@ -29,6 +25,9 @@ DialogClientOptions::DialogClientOptions(CertUser* usr, QProxyModel* a_certs, QW
     ui->tableViewProfiles->setItemDelegate(new TableDelegate);
     ui->tableViewProfiles->setIconSize(QSize(16,16));
 
+
+    if(!usr->online())
+        ui->buttonBox->setEnabled(false);
 }
 
 DialogClientOptions::~DialogClientOptions()
