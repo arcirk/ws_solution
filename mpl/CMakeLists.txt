@@ -55,11 +55,9 @@ set(PROJECT_SOURCES
         ../../sqlwrapper/sqlinterface.h
         ../../sqlwrapper/sqlqueryinterface.cpp
         ../../sqlwrapper/sqlqueryinterface.h
+        ../../winreg/WinReg.cpp
+        ../../winreg/WinReg.hpp
         )
-
-if (WIN32)
-
-endif ()
 
 #set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/logevent.rc")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS  Sql Network Core Widgets REQUIRED)

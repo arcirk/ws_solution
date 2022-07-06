@@ -1,7 +1,4 @@
 #include "user.h"
-#include "../old/registry.h"
-//#include <qjsontablemodel.h>
-//#include <qproxymodel.h>
 
 CertUser::CertUser(QObject *parent)
     : QObject{parent}

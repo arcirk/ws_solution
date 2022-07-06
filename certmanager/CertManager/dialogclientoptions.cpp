@@ -28,6 +28,8 @@ DialogClientOptions::DialogClientOptions(CertUser* usr, QProxyModel* a_certs, QW
 
     if(!usr->online())
         ui->buttonBox->setEnabled(false);
+
+    setWindowTitle(QString("Настройки клиента (%1)").arg(usr->name()));
 }
 
 DialogClientOptions::~DialogClientOptions()
@@ -39,8 +41,6 @@ void DialogClientOptions::accept()
 {
     QDialog::accept();
 }
-
-
 
 void DialogClientOptions::onChBindCertificateToggled(int state)
 {
@@ -93,7 +93,6 @@ void DialogClientOptions::setFromUserSettings()
             _profiles->setJsonText(profilesModel);
             _profiles->reset();
             ui->tableViewProfiles->setModel(_profiles);
-            //ui->tableViewProfiles->resizeColumnsToContents();
         }
 
         emit ui->chBindCertificate->stateChanged(ui->chBindCertificate->checkState());

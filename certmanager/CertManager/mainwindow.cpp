@@ -1158,7 +1158,7 @@ void MainWindow::resetCertUsersTree()
         user->setUuid(QUuid::fromString(uuid));
         user->setRef(ref);
 
-        auto itemUser = addTreeNode(name + " (" + host + ")", name + host, ":/img/certUsers.png");
+        auto itemUser = addTreeNode(name + " (" + host + ")", "uCertUser_" + user->ref(), ":/img/certUsers.png");
         root->addChild(itemUser);        
         auto itemAvailableCerts = addTreeNode("Доступные сертификаты", "a_cert_" + user->name() + "/" + user->domain(), ":/img/available_certificate_16.png");
         itemUser->addChild(itemAvailableCerts);        
@@ -1559,13 +1559,16 @@ void MainWindow::treeSetFromSqlUsers()
     if(modelSqlUsers){
         table->setModel(modelSqlUsers);
         int index = modelSqlUsers->getColumnIndex("Ref");
-        if(index > 0)
+        if(index != -1)
             table->setColumnHidden(index, true);
         index = modelSqlUsers->getColumnIndex("uuid");
-        if(index > 0)
+        if(index != -1)
             table->setColumnHidden(index, true);
         index = modelSqlUsers->getColumnIndex("sid");
-        if(index > 0)
+        if(index != -1)
+            table->setColumnHidden(index, true);
+        index = modelSqlUsers->getColumnIndex("cache");
+        if(index != -1)
             table->setColumnHidden(index, true);
 
         int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
@@ -1717,18 +1720,6 @@ QString MainWindow::fromBase64(const QString &value)
     }
 }
 
-//bool MainWindow::isCyrillic(const QString &source)
-//{
-//    for (int i = 0; i < source.length();  ++i) {
-
-//        if(Cyrillic.indexOf(source.mid(i, 1)) != -1)
-//            return true;
-//    }
-
-//    return false;
-//}
-
-
 
 void MainWindow::onOutputCommandLine(const QString &data, int command)
 {
@@ -1818,8 +1809,7 @@ void MainWindow::resetTableJsonModel(const QJsonObject &obj, const QString &id_c
             return;
         QString jsonUsers = fromBase64(base64.toUtf8());
 
-        modelSqlUsers->setJsonText(jsonUsers);
-
+        modelSqlUsers->setJsonText(jsonUsers);     
         modelSqlUsers->reset();
 
         auto itemUsers = findTreeItem(SqlUsers);
@@ -2034,6 +2024,9 @@ void MainWindow::resetAviableCertificates(CertUser *usr)
     int iUserRef = modelUsersAviableCerts->getColumnIndex("UserRef");
     if(iCertRef != -1)
         ui->tableView->setColumnHidden(iUserRef, true);
+    int iRef = modelUsersAviableCerts->getColumnIndex("Ref");
+    if(iRef != -1)
+        ui->tableView->setColumnHidden(iRef, true);
     ui->tableView->resizeColumnsToContents();
 }
 
@@ -3112,15 +3105,20 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
             emit ui->treeWidget->itemClicked(item, 0);
         }
     }else{
-        on_btnMainTollEdit_clicked();
+        auto tree = ui->treeWidget;
+        QString node = tree->currentItem()->data(0, Qt::UserRole).toString();
+        if(node == SqlUsers){
+            on_btnClientOptions_clicked();
+        }else if(node.indexOf("uCatalog_") != -1)
+            on_btnMainTollEdit_clicked();
     }
 }
 
 
 void MainWindow::on_tableView_clicked(const QModelIndex &index)
 {
-
-      qDebug() <<__FUNCTION__;
+      QString key = index.data(Qt::UserRole).toString();
+      qDebug() <<__FUNCTION__ << key;
 }
 
 
