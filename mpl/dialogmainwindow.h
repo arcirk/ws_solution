@@ -229,7 +229,7 @@ private:
     void openMozillaFirefox();
 
     void startDeadline(){
-        deadline->start(1000 * 60 * 2);
+        deadline->start(1000 * 60);
     };
 
 signals:
