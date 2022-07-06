@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(MPL VERSION 0.1 LANGUAGES CXX)
+set(TARGET mpl)
+project(${TARGET} VERSION 0.1 LANGUAGES CXX)
 set(QAPPLICATION_CLASS QApplication CACHE STRING "Inheritance class for SingleApplication")
 add_subdirectory(singleapplication)
 
@@ -66,14 +67,14 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Sql Network Core Widgets REQUIRED)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
     if(WIN32)
-        qt_add_executable(MPL WIN32
+        add_executable(${TARGET} WIN32
                 MANUAL_FINALIZATION
                 ${PROJECT_SOURCES}
                 ${APP_ICON_RESOURCE_WINDOWS}
                 )
 
     else()
-        qt_add_executable(MPL
+        qt_add_executable(${TARGET}
                 MANUAL_FINALIZATION
                 ${PROJECT_SOURCES}
                 )
@@ -84,7 +85,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(MPL SHARED
+        add_library(${TARGET} SHARED
                 ${PROJECT_SOURCES}
                 )
         # Define properties for Android with Qt 5 after find_package() calls as:
@@ -97,7 +98,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(MPL PRIVATE
+target_link_libraries(${TARGET} PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Network
@@ -105,14 +106,14 @@ target_link_libraries(MPL PRIVATE
         SingleApplication::SingleApplication)
 
 #
-set_target_properties(MPL PROPERTIES
+set_target_properties(${TARGET} PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(MPL)
+    qt_finalize_executable(${TARGET})
 endif()
 
 #target_link_libraries(MPL SingleApplication::SingleApplication)
