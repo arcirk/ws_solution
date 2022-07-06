@@ -33,12 +33,33 @@ set(PROJECT_SOURCES
         dialogselectedrow.h
         dialogselectedrow.cpp
         dialogselectedrow.ui
-#        singleapplication/singleapplication.cpp
-#        singleapplication/singleapplication.h
-#        singleapplication/singleapplication_p.cpp
-#        singleapplication/singleapplication_p.h
-#        singleapplication/SingleApplication
+        dialogclientoptions.cpp
+        dialogclientoptions.h
+        dialogclientoptions.ui
+        dialogconnection.cpp
+        dialogconnection.h
+        dialogconnection.ui
+        mplsettings.cpp
+        mplsettings.h
+        profilemanager.cpp
+        profilemanager.h
+        ../../chared/clientsettings.h
+        ../../chared/qmlwebsocket.h
+        ../../chared/serveresponse.h
+        ../../chared/clientsettings.cpp
+        ../../chared/qmlwebsocket.cpp
+        ../../chared/serveresponse.cpp
+        ../../chared/httpservice.cpp
+        ../../chared/httpservice.h
+        ../../sqlwrapper/sqlinterface.cpp
+        ../../sqlwrapper/sqlinterface.h
+        ../../sqlwrapper/sqlqueryinterface.cpp
+        ../../sqlwrapper/sqlqueryinterface.h
         )
+
+if (WIN32)
+
+endif ()
 
 #set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/logevent.rc")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS  Sql Network Core Widgets REQUIRED)

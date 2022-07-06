@@ -16,6 +16,19 @@ public:
     explicit DialogServerUser(const QJsonObject& object, const QString& parentName,  QWidget *parent = nullptr);
     ~DialogServerUser();
 
+    void accept() override;
+
+    QJsonObject resultObject() const;
+
+    QString hash();
+
+private slots:
+    void on_btnPwdEdit_clicked();
+
+    void on_btnPwdEdit_toggled(bool checked);
+
+    void on_btnPwdView_toggled(bool checked);
+
 private:
     Ui::DialogServerUser *ui;
     QJsonObject _obj;

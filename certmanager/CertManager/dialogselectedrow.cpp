@@ -25,8 +25,6 @@ DialogSelectedRow::DialogSelectedRow(CertUser* user, const QJsonObject& row, QWi
 
     m_profileNames = user->mozillaProfiles();
 
-
-
     auto lst = new QStringListModel(m_profileNames);
     ui->cmbMozillaProfile->setModel(lst);
 

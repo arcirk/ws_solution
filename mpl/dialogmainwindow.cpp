@@ -77,11 +77,28 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
     m_async_await.append(std::bind(&DialogMainWindow::getAvailableCerts, this));    
     m_async_await.append(std::bind(&DialogMainWindow::updateTableImages, this));
     m_async_await.append(std::bind(&DialogMainWindow::createDynamicMenu, this));
+    m_async_await.append(std::bind(&DialogMainWindow::startDeadline, this));
 
     mozillaApp = new QProcess(this);
 
+    deadline = new QTimer(this);
+    connect(deadline,SIGNAL(timeout()),this,SLOT(on_deadline()));
+
     //запуск асинхронных вызовов
     createTerminal();
+
+}
+
+void DialogMainWindow::on_deadline()
+{
+    qDebug() << __FUNCTION__;
+    if(m_client->isStarted()){
+        if(deadline->isActive())
+            deadline->stop();
+    }else{
+        m_async_await.append(std::bind(&DialogMainWindow::connectToWsServer, this));
+        asyncAwait();
+    }
 
 }
 
@@ -330,6 +347,9 @@ void DialogMainWindow::onConnectedStatusChanged(bool status)
 {
     qDebug() << __FUNCTION__;
     updateConnectionStatus();
+
+    if(!status && !deadline->isActive())
+        startDeadline();
 }
 
 void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
@@ -476,7 +496,7 @@ void DialogMainWindow::addContainer(const QString &from, const QString &to, cons
             lastResult.append("sucsess");
             m_async_await.append(std::bind(&DialogMainWindow::currentUserGetConteiners, this));
             m_async_await.append(std::bind(&DialogMainWindow::sendResultToClient, this));
-            asynAwait();
+            asyncAwait();
             return;
         }
 
@@ -596,7 +616,7 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
             lastResult.append(resultData);
             m_async_await.append(std::bind(&DialogMainWindow::sendResultToClient, this));
         }
-        asynAwait();
+        asyncAwait();
     }else{
         if(!currentRecipient.isEmpty()){
             sendToRecipient(currentRecipient, command, "error", true);
@@ -1942,7 +1962,7 @@ void DialogMainWindow::sendResultToClient()
         updateConnectionStatus();
 }
 
-void DialogMainWindow::asynAwait()
+void DialogMainWindow::asyncAwait()
 {
     qDebug() << __FUNCTION__;
     if(m_async_await.size() > 0){

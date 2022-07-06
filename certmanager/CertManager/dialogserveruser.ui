@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Пользователь на сервере</string>
+   <string>WS Server пользователи</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -27,6 +27,9 @@
        <property name="icon">
         <iconset resource="certmaster.qrc">
          <normaloff>:/img/viewPwd1.svg</normaloff>:/img/viewPwd1.svg</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -63,6 +66,9 @@
      </item>
      <item row="3" column="1">
       <widget class="QLineEdit" name="lblPwd">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="echoMode">
         <enum>QLineEdit::Password</enum>
        </property>
@@ -83,6 +89,9 @@
        <property name="icon">
         <iconset resource="certmaster.qrc">
          <normaloff>:/img/itemEdit.png</normaloff>:/img/itemEdit.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

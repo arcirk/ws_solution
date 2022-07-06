@@ -159,13 +159,18 @@ MainWindow::MainWindow(QWidget *parent)
     m_async_await.append(std::bind(&MainWindow::wsGetOnlineUsers, this));
     m_async_await.append(std::bind(&MainWindow::getDataAvailableCertificates, this));
     m_async_await.append(std::bind(&MainWindow::getUsersCatalog, this));
+    m_async_await.append(std::bind(&MainWindow::startDeadline, this));
 
     currentUser = new CertUser(this);
     QString curentHost = QSysInfo::machineHostName();
     currentUser->setDomain(curentHost);
 
+    deadline = new QTimer(this);
+    connect(deadline,SIGNAL(timeout()),this,SLOT(on_deadline()));
+
     //запуск асинхронных вызовов
     createTerminal();
+
 
 }
 
@@ -2523,6 +2528,8 @@ void MainWindow::getUserData()
 
 void MainWindow::getUsersCatalog()
 {
+    infoBar->setText("Получение данных о каталоге пользователей ...");
+
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "Users");
     bindQuery.addField("Empty", "Empty");
     bindQuery.addField("Ref", "Ref");
@@ -2657,6 +2664,8 @@ void MainWindow::deleteDataObject(const QString &ref, const QString &table)
 
 void MainWindow::getDataAvailableCertificates()
 {
+    qDebug() << __FUNCTION__;
+
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "AvailableCertsView");
     bindQuery.addField("Empty", "Empty");
     bindQuery.addField("FirstField", "FirstField");
@@ -2697,9 +2706,16 @@ void MainWindow::getDataAvailableCertificates()
 
 void MainWindow::setDataAvailableCertificates(const QJsonObject &resp)
 {
+    qDebug() << __FUNCTION__;
+
     auto _table = QJsonDocument::fromJson(resp.value("table").toString().toUtf8()).object();
-    if(_table.isEmpty())
+    if(_table.isEmpty()){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
+    }
 
     modelUsersAviableCerts->setJsonText(QJsonDocument(_table).toJson());
     modelUsersAviableCerts->reset();
@@ -2795,7 +2811,7 @@ void MainWindow::on_btnAdd_clicked()
             }
 
         }
-    }else if(currentNode.left(7) == "a_cert_"){
+    }else if(currentNode.indexOf("a_cert_") != -1){
         QStringList m_key = currentNode.split("_");
         QStringList m_userHost = m_key[2].split("/");
         QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
@@ -2837,6 +2853,8 @@ void MainWindow::on_btnAdd_clicked()
                 }
             }
         }
+    }else if(currentNode.indexOf("uCatalog_") != -1){
+
     }
 }
 
@@ -2867,6 +2885,15 @@ void MainWindow::on_btnDelete_clicked()
            return;
 
         deleteDataObject(ref, "AvailableCerts");
+    }else{
+        if(node.indexOf("uCatalog_") != -1){
+            int iRef = modelWsServerUsers->getColumnIndex("Ref");
+            QString ref = ui->tableView->model()->index(index.row(), iRef).data(Qt::UserRole + iRef).toString();
+            if(QMessageBox::question(this, "Удаление пользователя", "Удалить выбранного пользователя?")==QMessageBox::No)
+                return;
+
+            deleteDataObject(ref, "Users");
+        }
     }
 }
 
@@ -2968,6 +2995,11 @@ void MainWindow::onConnectedStatusChanged(bool status)
     qDebug() << __FUNCTION__;
     if(currentUser)
         currentUser->setOnline(status);
+
+    if(!status && !deadline->isActive())
+        startDeadline();
+
+    updateStatusBar();
 }
 
 void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, const QString& host_name, const QString& app_name, const QString& user_name)
@@ -3079,8 +3111,9 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
             ui->treeWidget->setCurrentItem(item);
             emit ui->treeWidget->itemClicked(item, 0);
         }
+    }else{
+        on_btnMainTollEdit_clicked();
     }
-
 }
 
 
@@ -3218,8 +3251,13 @@ void MainWindow::onGetActiveUsers(const QString& resp){
 
     if(m_queue.size() > 0){
         emit startGetCertUsersData();
-    }else
+    }else{
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         updateStatusBar();
+    }
 }
 
 void MainWindow::onParseCommand(const QVariant &result, int command)
@@ -3441,6 +3479,19 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
         auto f = m_async_await.dequeue();
         f();
     }
+}
+
+void MainWindow::on_deadline()
+{
+    qDebug() << __FUNCTION__;
+    if(m_client->isStarted()){
+        if(deadline->isActive())
+            deadline->stop();
+    }else{
+        m_async_await.append(std::bind(&MainWindow::connectToWsServer, this));
+        asyncAwait();
+    }
+
 }
 
 //void MainWindow::onWsMplClientFormLoaded(const QString &resp)
@@ -4343,13 +4394,6 @@ void MainWindow::on_btnDatabaseSaveAs_clicked()
         param.insert("to", STORGARE_LOCALHOST);
         getDatabaseData("Certificates", ref, param);
     }
-
-//    if(node == SqlContainers){
-//        //saveAsDatabaseContainer();
-
-//    }else if(node == SqlCertificates){
-//        saveAsDatabaseCertificate();
-//    }
 }
 
 void MainWindow::updateInfoContainerOnDatabase(const QString &info, const QString &name, const QString& nameBase64, KeysContainer * cnt)
@@ -4888,6 +4932,48 @@ void MainWindow::on_btnMainTollEdit_clicked()
                                     modelWsServerUsers->index(parent.row(), iName).data(Qt::UserRole + iName).toString(),this);
         dlg.setModal(true);
         dlg.exec();
+
+        if(dlg.result() == QDialog::Accepted){
+            modelWsServerUsers->updateRow(dlg.resultObject(), item.row());
+            modelWsServerUsers->reset();
+
+            QString hash = "";
+            if(!dlg.hash().isEmpty()){
+                hash = dlg.hash();
+            }
+
+            auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "Users");
+            bindQuery.addField("FirstField", dlg.resultObject().value("FirstField"));
+            bindQuery.addField("SecondField", dlg.resultObject().value("SecondField"));
+            if(!hash.isEmpty()){
+                bindQuery.addField("hash", hash);
+            }
+
+            bindQuery.addWhere("Ref", ref);
+
+            QString query = bindQuery.to_json();
+
+            QJsonObject cmd = QJsonObject();
+            cmd.insert("command", "update_server_user");
+
+            if(_sett->launch_mode() == mixed){
+                if(!db->isOpen())
+                    return;
+                QString _error;
+                db->exec_qt(query, _error);
+            }else{
+                if(m_client->isStarted()){
+                    auto obj = QJsonObject();
+                    obj.insert("query", query);
+                    obj.insert("id_command", "update_server_user");
+                    obj.insert("run_on_return", cmd);
+                    auto doc = QJsonDocument();
+                    doc.setObject(obj);
+                    QString param = doc.toJson();
+                    m_client->sendCommand("exec_query_qt", "", param);
+                }
+            }
+        }
     }
 
 }

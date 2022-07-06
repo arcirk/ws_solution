@@ -92,8 +92,9 @@ DEFINES += QAPPLICATION_CLASS=QApplication
 #    TARGET = mpl_static
 #}
 
+RC_ICONS = mpl.ico
 DISTFILES += \
-    mpl_static.exe.manifest
+    mpl.ico
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Release/release/ -lws_client
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ws_client-Debug/debug/ -lws_client

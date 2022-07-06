@@ -20,6 +20,8 @@
 #include <QStandardItemModel>
 #include <QQueue>
 
+#include <QTimer>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -134,7 +136,8 @@ private slots:
 
     void onWsGetAvailableContainers(const QString& recipient);
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
-    //void onWsMplClientFormLoaded(const QString& resp);
+
+    void on_deadline();
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -217,6 +220,8 @@ private:
     CommandLine * terminal;
     QMap<QString, QString> m_colAliases;
 
+    QTimer * deadline;
+
     void createModels();
     QJsonTableModel * modelUserContainers;
     QProxyModel     * proxyModelUserConteiners;
@@ -247,6 +252,17 @@ private:
         }
     };
 
+    void asyncAwait(){
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
+    };
+
+    void startDeadline(){
+        deadline->start(1000 * 60);
+    };
+
     QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node);
     void createColumnAliases();
 
@@ -266,8 +282,6 @@ private:
     void wsGetOnlineUsers();
 
     void createTree();
-
-    //Certificate* selectCertFromLocalHost();
 
     void getDataContainersList();
     void getDataCertificatesList();

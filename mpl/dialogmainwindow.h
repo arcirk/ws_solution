@@ -26,6 +26,7 @@
 #include <tabledelegate.h>
 #include "dialogclientoptions.h"
 #include "mplsettings.h"
+#include <QTimer>
 
 #define ToDatabase                      "toDatabase"
 #define ToRegistry                      "toRegistry"
@@ -108,6 +109,8 @@ private slots:
 
     void on_btnDown_clicked();
 
+    void on_deadline();
+
 public slots:
     //void onLineEditCursorPositionChanged ( int oldPos , int newPos );
 private:
@@ -143,6 +146,9 @@ private:
     QList<QString> lastResult;
     QMap<QString, QString> m_colAliases;
 
+    QTimer * deadline;
+
+
     void startMozillaFirefox();
     void currentUserSid();
     void currentUserGetConteiners();
@@ -159,7 +165,7 @@ private:
     void client_data_cghanged();
     void sendResultToClient();
 
-    void asynAwait();
+    void asyncAwait();
 
     void createTerminal();
     //void getCurrentUser();
@@ -221,6 +227,10 @@ private:
 
     QStringList mozillaProfiles();
     void openMozillaFirefox();
+
+    void startDeadline(){
+        deadline->start(1000 * 60 * 2);
+    };
 
 signals:
 //    void whenDataIsLoaded();

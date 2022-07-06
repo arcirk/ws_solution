@@ -117,8 +117,7 @@ INCLUDEPATH += $$PWD/../../chared
 INCLUDEPATH += $$PWD/../../sqlwrapper
 INCLUDEPATH += $$PWD/../../winreg
 
-DEFINES += USE_QT_
-CREATOR
+DEFINES += USE_QT_CREATOR
 DEFINES += QT_CERT_MANAGER
 
 windows:DEFINES += _WINDOWS
@@ -145,3 +144,8 @@ windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 #else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/release/RegWrapper.lib
 #else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/debug/RegWrapper.lib
 #else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/libRegWrapper.a
+
+RC_ICONS = CertManager.ico
+
+DISTFILES += \
+    CertManager.ico
