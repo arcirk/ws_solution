@@ -77,6 +77,9 @@ private slots:
     void onAppExit();
     void onWindowShow();
     void onCheckIP();
+    void iconActivated(QSystemTrayIcon::ActivationReason reason);
+    void trayShowMessage();
+    void trayMessageClicked();
 
     void onConnectionSuccess();
     void onCloseConnection();

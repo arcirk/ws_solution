@@ -261,6 +261,49 @@ void DialogMainWindow::createTrayActions()
 
 }
 
+void DialogMainWindow::trayShowMessage()
+{
+//    showIconCheckBox->setChecked(true);
+//    int selectedIcon = typeComboBox->itemData(typeComboBox->currentIndex()).toInt();
+//    QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(selectedIcon);
+
+//    if (selectedIcon == -1) { // custom icon
+//        QIcon icon(iconComboBox->itemIcon(iconComboBox->currentIndex()));
+//        trayIcon->showMessage(titleEdit->text(), bodyEdit->toPlainText(), icon,
+//                          durationSpinBox->value() * 1000);
+//    } else {
+//        trayIcon->showMessage(titleEdit->text(), bodyEdit->toPlainText(), msgIcon,
+//                          durationSpinBox->value() * 1000);
+//    }
+}
+
+void DialogMainWindow::trayMessageClicked()
+{
+//    QMessageBox::information(nullptr, tr("Systray"),
+//                             tr("Sorry, I already gave what help I could.\n"
+//                                "Maybe you should try asking a human?"));
+}
+
+void DialogMainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+//    switch (reason) {
+//    case QSystemTrayIcon::Trigger:
+//    case QSystemTrayIcon::DoubleClick:
+//        //iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
+//        break;
+//    case QSystemTrayIcon::MiddleClick:
+//        trayShowMessage();
+//        break;
+//    default:
+//        ;
+//    }
+
+    if(reason == QSystemTrayIcon::DoubleClick){
+        setVisible(true);
+    }
+
+}
+
 void DialogMainWindow::createTrayIcon()
 {
     trayIcon = new QSystemTrayIcon(this);
@@ -269,8 +312,12 @@ void DialogMainWindow::createTrayIcon()
     QIcon icon = QIcon(":/img/Firefox.ico");
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
-
     trayIcon->setToolTip("Менеджер профилей Mozilla Firefox");
+
+    connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &DialogMainWindow::trayMessageClicked);
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &DialogMainWindow::iconActivated);
+
+
 }
 
 void DialogMainWindow::createDynamicMenu()
@@ -287,7 +334,9 @@ void DialogMainWindow::createDynamicMenu()
         auto items = _profiles->profiles();
 
         for (auto item : _profiles->order()){
-
+            auto f = _profiles->profiles().find(item);
+            if(f == _profiles->profiles().end())
+                continue;
             QString sz = _profiles->profiles()[item]->name();
             sz.append(" / ");
             sz.append(_profiles->profiles()[item]->profile());
@@ -1493,12 +1542,16 @@ void DialogMainWindow::on_btnDelete_clicked()
 
     int iUuid = modelMplProfiles->getColumnIndex("uuid");
     auto uuid = modelMplProfiles->index(index.row(), iUuid).data(Qt::UserRole + iUuid).toUuid();
-    const auto itr = _profiles->profiles().find(uuid);
-    if(itr != _profiles->profiles().end())
-        _profiles->profiles().erase(itr);
 
     modelMplProfiles->removeRow(index.row());
 
+    const auto itr = _profiles->profiles().find(uuid);
+    if(itr != _profiles->profiles().end())
+        _profiles->profiles().erase(itr);
+    int iOrder = _profiles->order().indexOf(uuid);
+    if(iOrder != -1){
+        _profiles->order().erase(_profiles->order().constBegin() +iOrder);
+    }
     _profiles->save();
 
     updateDataUserCache();

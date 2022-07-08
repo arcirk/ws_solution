@@ -55,7 +55,7 @@ public:
     //explicit ProfileManager(const QString& homePath, const QJsonObject& object, QObject *parent = nullptr);
 
     QMap<QUuid, UserProfile*> &profiles();
-    QVector<QUuid> order() const;
+    QVector<QUuid> order();
     MplSettings& settings();
 
 

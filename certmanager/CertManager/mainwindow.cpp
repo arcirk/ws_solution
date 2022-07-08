@@ -215,7 +215,6 @@ void MainWindow::createModels(){
     proxyModelCertlUserConteiners = new QProxyModel(this);
     proxyModelCertlUserConteiners->setSourceModel(modelCertUserContainers);
 
-
     modelUsersAviableCerts = new QJsonTableModel(this);
     modelUsersAviableCerts->setRowsIcon(QIcon(":/img/rosette.ico"));
     modelUsersAviableCerts->setColumnAliases(m_colAliases);
@@ -429,6 +428,107 @@ void MainWindow::initCsptest()
     ui->txtTerminal->setText(ui->txtTerminal->toPlainText() + inf + "\n");
     //https://redos.red-soft.ru/base/other-soft/szi/certs-cryptopro/
 
+    createTrayActions();
+    createTrayIcon();
+    trayIcon->show();
+}
+
+void MainWindow::trayMessageClicked()
+{
+    QMessageBox::information(nullptr, tr("Systray"),
+                             tr("Sorry, I already gave what help I could.\n"
+                                "Maybe you should try asking a human?"));
+}
+
+void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __FUNCTION__ << reason;
+//    switch (reason) {
+//    case QSystemTrayIcon::Trigger:
+//    case QSystemTrayIcon::DoubleClick:
+//        //iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
+//        setVisible(true);
+//        break;
+//    case QSystemTrayIcon::MiddleClick:
+//        trayShowMessage();
+//        break;
+//    default:
+//
+//    ;
+//    }
+
+    if(reason == QSystemTrayIcon::DoubleClick){
+        setVisible(true);
+    }
+
+}
+
+void MainWindow::trayShowMessage(const QString& msg, int isError)
+{
+    //QIcon ico = isError ? QIcon(
+    trayIcon->showMessage("Менеджер сертификатов", msg);
+}
+
+
+void MainWindow::createTrayActions()
+{
+    quitAction = new QAction(tr("&Выйти"), this);
+    connect(quitAction, &QAction::triggered, this, &MainWindow::onAppExit);
+    showAction = new QAction(tr("&Открыть менеджер сертификатов"), this);
+    connect(showAction, &QAction::triggered, this, &MainWindow::onWindowShow);
+
+    trayIconMenu = new QMenu(this);
+
+    createDynamicMenu();
+}
+
+void MainWindow::createTrayIcon()
+{
+    trayIcon = new QSystemTrayIcon(this);
+    trayIcon->setContextMenu(trayIconMenu);
+
+    QIcon icon = QIcon(":/img/certificate.ico");
+    trayIcon->setIcon(icon);
+    setWindowIcon(icon);
+
+    trayIcon->setToolTip("Менеджер сертификатов");
+
+    connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &MainWindow::trayMessageClicked);
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
+}
+
+void MainWindow::createDynamicMenu()
+{
+    trayIconMenu->clear();
+    trayIconMenu->addAction(showAction);
+//    trayIconMenu->addAction(checkIpAction);
+//    trayIconMenu->addAction(openFiefox);
+
+//    if(_profiles){
+//        trayIconMenu->addSeparator();
+
+//        auto items = _profiles->profiles();
+
+//        for (auto item : _profiles->order()){
+
+//            QString sz = _profiles->profiles()[item]->name();
+//            sz.append(" / ");
+//            sz.append(_profiles->profiles()[item]->profile());
+//            auto action = new QAction(sz, this);
+//            action->setProperty("uuid", _profiles->profiles()[item]->uuid());
+//            if(!_profiles->profiles()[item]->icon().isNull())
+//                action->setIcon(_profiles->profiles()[item]->icon());
+//            trayIconMenu->addAction(action);
+//            connect(action, &QAction::triggered, this, &DialogMainWindow::onTrayTriggered);
+//        }
+//    }
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(quitAction);
+
+    if(m_async_await.size() > 0){
+        auto f = m_async_await.dequeue();
+        f();
+    }
 }
 
 void MainWindow::csptestCurrentUserGetContainers(const QString &result)
@@ -1678,6 +1778,11 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
 
 }
 
+void MainWindow::updateCertInfoOnData(const QString &info)
+{
+
+}
+
 QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &value, int column, bool findData)
 {
     int rows =  model->rowCount();
@@ -1743,6 +1848,28 @@ MainWindow::~MainWindow()
 //    if(m_client)
 //        delete m_client;
     delete ui;
+}
+
+void MainWindow::setVisible(bool visible)
+{
+    QMainWindow::setVisible(visible);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+#ifdef Q_OS_MACOS
+    if (!event->spontaneous() || !isVisible()) {
+        return;
+    }
+#endif
+    //qDebug() << exitEvent;
+
+    if (trayIcon->isVisible()) {
+        hide();
+        event->ignore();
+//        updateTableImages();
+//        createDynamicMenu();
+    }
 }
 
 void MainWindow::createTree()
@@ -3030,6 +3157,12 @@ void MainWindow::onClientJoinEx(const QString& resp, const QString& ip_address, 
         updateCertUsersOnlineStstus();
         m_queue.append(uuid);
         onStartGetCertUsersData();
+
+        //trayShowMessage(QString("Подключился клиент: %1").arg(name));
+    }
+
+    if(objResp.value("app_name").toString() == "qt_mpl_client"){
+        trayShowMessage(QString("Подключился клиент: %1").arg(name));
     }
 }
 
@@ -3067,7 +3200,8 @@ void MainWindow::onClientLeave(const QString &resp)
             modelWsUsers->removeRow(index.row());
         }
 
-    updateCertUsersOnlineStstus();
+        trayShowMessage(QString("Отключился клиент: %1").arg(name));
+        updateCertUsersOnlineStstus();
 
     }
 }
@@ -3084,6 +3218,8 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
 
     ui->txtTerminal->setText("\n" + ui->txtTerminal->toPlainText() + "\n" + "ws error: " + what + ": " + err + "\n");
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
+
+    trayShowMessage(err, true);
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
@@ -3490,6 +3626,30 @@ void MainWindow::on_deadline()
         asyncAwait();
     }
 
+}
+
+void MainWindow::onTrayTriggered()
+{
+
+}
+
+void MainWindow::onAppExit()
+{
+    if(terminal)
+        terminal->stop();
+    if(m_client)
+        if(m_client->isStarted())
+            m_client->close(true);
+    if(db)
+        if(db->isOpen())
+            db->close();
+
+    QApplication::exit();
+}
+
+void MainWindow::onWindowShow()
+{
+    setVisible(true);
 }
 
 //void MainWindow::onWsMplClientFormLoaded(const QString &resp)

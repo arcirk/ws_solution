@@ -22,6 +22,11 @@
 
 #include <QTimer>
 
+#include <QSystemTrayIcon>
+#include <QAction>
+#include <QMenu>
+#include <QCloseEvent>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -101,6 +106,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void setVisible(bool visible) override;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private slots:
     void on_mnuExit_triggered();
 
@@ -138,6 +148,13 @@ private slots:
     void onWsCommandToClient(const QString& recipient, const QString &command, const QString& message);
 
     void on_deadline();
+
+    void onTrayTriggered();
+    void onAppExit();
+    void onWindowShow();
+    void trayMessageClicked();
+    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void trayShowMessage(const QString& msg, int isError = false);
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -238,6 +255,14 @@ private:
     QJsonTableModel * modelWsServerUsers;
     QProxyModel     * proxyWsServerUsers;
 
+    QSystemTrayIcon *trayIcon;
+    QMenu *trayIconMenu;
+    QAction *quitAction;
+    QAction *showAction;
+//    QAction *checkIpAction;
+//    QAction *openFiefox;
+
+
     void updateCertUserCache(const QString &ref, const QString &cache);
 
     QString currentRecipient;
@@ -319,6 +344,9 @@ private:
     bool updateStatusBar();
     void formControl();
     void initCsptest();
+    void createTrayActions();
+    void createTrayIcon();
+    void createDynamicMenu();
 
     void csptestCurrentUserGetContainers(const QString& result);
 
@@ -332,6 +360,7 @@ private:
     void treeSetFromSqlCertificates();
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
+    void updateCertInfoOnData(const QString& info);
     void treeSetFromCurrentUserCerts(QJsonTableModel* model);
     void treeSetCertUserData(CertUser * usr);
     void wsSetMplCertData(const QString& recipient, const QString& message);

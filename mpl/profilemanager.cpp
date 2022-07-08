@@ -17,7 +17,7 @@ QMap<QUuid, UserProfile*> &ProfileManager::profiles()
     return _profiles;
 }
 
-QVector<QUuid> ProfileManager::order() const
+QVector<QUuid> ProfileManager::order()
 {
     return _order;
 }
@@ -162,6 +162,9 @@ QJsonObject ProfileManager::to_profiles_table()
     objMain.insert("columns", columns);
 
     foreach (auto itr , _order) {
+        auto f = _profiles.find(itr);
+        if(f == _profiles.end())
+            continue;
         auto obj = _profiles[itr]->to_modelObject();
         rows.append(obj);
     }
