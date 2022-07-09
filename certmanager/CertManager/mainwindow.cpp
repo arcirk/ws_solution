@@ -5301,10 +5301,7 @@ void MainWindow::on_btnSendWsMessage_clicked()
         auto itr = m_users.find(m_index);
         if(itr != m_users.end()){
             if(itr.value()->online()){
-                auto sess = getSessionUuid(name, host);
-                if(!sess.isEmpty()){
-                    m_client->sendMessage(sess, dlg.resultMessage());
-                }
+                m_client->sendMessage(itr.value()->uuid().toString(), dlg.resultMessage());
             }
         }
 
