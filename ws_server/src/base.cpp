@@ -714,7 +714,8 @@ namespace arc_sqlite {
 
     std::string sqlite3_db::get_channel_token(const boost::uuids::uuid &first, const boost::uuids::uuid &second) {
 
-        std::string query = "select _id, Ref from Users where Ref = '" + arcirk::uuid_to_string(
+        std::string dbo = is_use_wrapper() ? "dbo." : "";
+        std::string query = "select _id, Ref from " + dbo + "Users where Ref = '" + arcirk::uuid_to_string(
                 const_cast<boost::uuids::uuid &>(first)) + "' OR Ref = '" + arcirk::uuid_to_string(const_cast<boost::uuids::uuid &>(second)) + "' order by _id;";
 
         std::vector<std::map<std::string, std::string>> table;
@@ -741,7 +742,7 @@ namespace arc_sqlite {
                                   std::string &ref, bool active, const std::string &firstName) {
 
         std::string hash = get_channel_token(first, second);
-
+        std::string dbo = is_use_wrapper() ? "dbo." : "";
         if (hash != "error"){
             std::vector<arcirk::content_value> values;
             values.push_back(arcirk::content_value("FirstField", arcirk::uuid_to_string(
@@ -772,7 +773,7 @@ namespace arc_sqlite {
                 try {
                     //сохраним в кеше получателя, при первом подключении отправитель добавится в список активных чатов
                     std::string cache_query = arcirk::str_sample(
-                            "select cache from Users where Ref = '%1%'", boost::to_string(second));
+                            "select cache from %1%Users where Ref = '%2%'", dbo, boost::to_string(second));
                     std::vector<std::map<std::string, arcirk::bVariant>> table;
                     std::string error;
 

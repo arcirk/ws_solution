@@ -12,6 +12,6 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/ws_client_qml" "${PROJECT_SOURCE_DIR}/ws
 add_subdirectory("${PROJECT_SOURCE_DIR}/ws_agent/ws_agent" "${PROJECT_SOURCE_DIR}/ws_agent/ws_agent/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qt_models/project" "${PROJECT_SOURCE_DIR}/qt_models/project/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/sqlwrapper" "${PROJECT_SOURCE_DIR}/sqlwrapper/x64-static")
-add_subdirectory("${PROJECT_SOURCE_DIR}/mpl" "${PROJECT_SOURCE_DIR}/mpl/cmake-build-debug")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/mpl" "${PROJECT_SOURCE_DIR}/mpl/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/wdc" "${PROJECT_SOURCE_DIR}/wdc/cmake-build-debug")
 add_subdirectory("${PROJECT_SOURCE_DIR}/certmanager/CertManager" "${PROJECT_SOURCE_DIR}/certmanager/CertManager/cmake-build-debug")

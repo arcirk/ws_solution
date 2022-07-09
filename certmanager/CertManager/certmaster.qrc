@@ -79,5 +79,6 @@
         <file>img/groupDeleted.png</file>
         <file>img/group.png</file>
         <file>img/certUsersOnline.png</file>
+        <file>img/message.png</file>
     </qresource>
 </RCC>

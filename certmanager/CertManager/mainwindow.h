@@ -214,6 +214,8 @@ private slots:
 
     void on_btnMainTollEdit_clicked();
 
+    void on_btnSendWsMessage_clicked();
+
 private:
     Ui::MainWindow *ui;
 

@@ -34,6 +34,7 @@
 #include <dialogabout.h>
 #include "dialogclientoptions.h"
 #include "dialogserveruser.h"
+#include "dialogmessage.h"
 
 #include <sstream>
 
@@ -5049,9 +5050,9 @@ void MainWindow::on_btnDataListUpdate_clicked()
         QPair<QString, QString> m_index = qMakePair(name, host);
         auto itr = m_users.find(m_index);
         if(itr != m_users.end()){
-            auto uuid = getSessionUuid(name, host);
-            if(!uuid.isEmpty()){
-                 m_queue.append(uuid);
+            auto sess = getSessionUuid(name, host);
+            if(!sess.isEmpty()){
+                 m_queue.append(sess);
             }
         }
         onStartGetCertUsersData();
@@ -5262,6 +5263,51 @@ void MainWindow::on_btnMainTollEdit_clicked()
                 }
             }
         }
+    }
+
+}
+
+
+void MainWindow::on_btnSendWsMessage_clicked()
+{
+    if(!m_client->isStarted()){
+        QMessageBox::critical(this, "Ошибка", "Отсутствует подключение к серверу!");
+        return;
+    }
+
+    auto treeItem = ui->treeWidget->currentItem();
+    if(!treeItem){
+        return;
+    }
+
+    //QString node = treeItem->data(0, Qt::UserRole).toString();
+    auto table = ui->tableView;
+    auto index = table->currentIndex();
+    if(!index.isValid()){
+        QMessageBox::critical(this, "Ошибка", "Не выбран объект!");
+        return;
+    }
+
+    auto dlg = DialogMessage(this);
+    dlg.setModal(true);
+    dlg.exec();
+
+    if(dlg.result() == QDialog::Accepted){
+        int iUser = modelSqlUsers->getColumnIndex("FirstField");
+        int iHost = modelSqlUsers->getColumnIndex("host");
+        QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+        QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+        QPair<QString, QString> m_index = qMakePair(name, host);
+        auto itr = m_users.find(m_index);
+        if(itr != m_users.end()){
+            if(itr.value()->online()){
+                auto sess = getSessionUuid(name, host);
+                if(!sess.isEmpty()){
+                    m_client->sendMessage(sess, dlg.resultMessage());
+                }
+            }
+        }
+
     }
 
 }

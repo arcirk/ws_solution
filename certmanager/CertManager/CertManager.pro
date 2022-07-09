@@ -30,6 +30,7 @@ SOURCES += \
     dialogconnection.cpp \
     dialogcontainerinfo.cpp \
     dialogcontainername.cpp \
+    dialogmessage.cpp \
     dialogoptions.cpp \
     dialogselectdevice.cpp \
     dialogselectedrow.cpp \
@@ -65,6 +66,7 @@ HEADERS += \
     dialogconnection.h \
     dialogcontainerinfo.h \
     dialogcontainername.h \
+    dialogmessage.h \
     dialogoptions.h \
     dialogselectdevice.h \
     dialogselectedrow.h \
@@ -85,6 +87,7 @@ FORMS += \
     dialogconnection.ui \
     dialogcontainerinfo.ui \
     dialogcontainername.ui \
+    dialogmessage.ui \
     dialogoptions.ui \
     dialogselectdevice.ui \
     dialogselectedrow.ui \
