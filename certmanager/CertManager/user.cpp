@@ -300,11 +300,11 @@ void CertUser::certsFromModel(const QJsonObject &certs)
         auto row = item.toObject();
         auto cert = new Certificate(this);
         cert->fromModelObject(row);
-        if(cert->serial().isEmpty()){
+        if(cert->sha1().isEmpty()){
             delete cert;
             continue;
         }
-        m_cert.insert(cert->serial(), cert);
+        m_cert.insert(cert->sha1(), cert);
     }
 }
 

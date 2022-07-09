@@ -190,8 +190,6 @@ private slots:
 
     void on_btnDatabaseSaveAs_clicked();
 
-    void updateInfoContainerOnDatabase(const QString& info, const QString& name, const QString& nameBase64, KeysContainer* cnt);
-
     void on_btnDatabaseInfo_clicked();
 
     void on_btnCurrentUserAdd_clicked();
@@ -331,6 +329,7 @@ private:
 
     void disableToolBar();
     bool isContainerExists(const QString& name, CertUser* usr = nullptr, const QString& dest = "");
+    bool isCertificatesExists(const QString& sha, CertUser* usr = nullptr);
     bool isCertUserExists(const QString& name, const QString& host = "");
     bool isWsUserExists(const QString& name, const QString& host = "");
     bool isHostExists(const QString& name);
@@ -360,7 +359,9 @@ private:
     void treeSetFromSqlCertificates();
     void treeSetOnlineWsUsers();
     void updateContainerInfoOnData(const QString& info);
-    void updateCertInfoOnData(const QString& info);
+    void updateInfoContainerOnDatabase(const QString& info, const QString& name, const QString& nameBase64, KeysContainer* cnt);
+    //void updateCertInfoOnData(const QString& info);
+    void updateInfoCertificateOnDatabase(const QString& info, const QString& sha);
     void treeSetFromCurrentUserCerts(QJsonTableModel* model);
     void treeSetCertUserData(CertUser * usr);
     void wsSetMplCertData(const QString& recipient, const QString& message);

@@ -480,6 +480,7 @@ void Certificate::fromModelObject(const QJsonObject &obj)
     _parentUser = obj.value("parentUser").toString();
     _container = obj.value("container").toString();
     _serial = obj.value("serial").toString();
+    _sha1 = obj.value("sha1").toString();
     sourceObject = getObject();
     sourceObject.insert("SHA1 Hash", obj.value("sha1").toString());
 }

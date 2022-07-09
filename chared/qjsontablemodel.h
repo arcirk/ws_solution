@@ -40,6 +40,7 @@ public:
     Q_INVOKABLE void reset();
 
     void setRowsIcon(const QIcon& ico);
+    void setDeletionMarkRowsIcon(const QIcon& ico);
     void setIcon(const QModelIndex& index, const QIcon& ico);
     void setRowKey(int row, const QPair<QString, QString>& key);
     QPair<QString, QString> rowKey(int index) const;
@@ -66,6 +67,7 @@ private:
     QJsonArray _header;
     QMap<QString, QString> m_colAliases;
     QIcon _rowsIcon;
+    QIcon _deletionMarkRowsIcon;
     QMap<QPair<int,int>, QIcon> m_rowIcon;
     QList<QPair<QString, QString>> m_rowKeys;
    // QList<QModelIndex> m_fmtText;

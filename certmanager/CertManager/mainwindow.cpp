@@ -156,9 +156,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_async_await.append(std::bind(&MainWindow::getUserData, this));
     m_async_await.append(std::bind(&MainWindow::queueInfoUserContainers, this));    
     m_async_await.append(std::bind(&MainWindow::currentUserAviableCertificates, this));
-    m_async_await.append(std::bind(&MainWindow::wsGetOnlineUsers, this));
-    m_async_await.append(std::bind(&MainWindow::getDataAvailableCertificates, this));
+    m_async_await.append(std::bind(&MainWindow::wsGetOnlineUsers, this));    
     m_async_await.append(std::bind(&MainWindow::getUsersCatalog, this));
+    m_async_await.append(std::bind(&MainWindow::getDataAvailableCertificates, this));
     m_async_await.append(std::bind(&MainWindow::startDeadline, this));
 
     currentUser = new CertUser(this);
@@ -223,6 +223,7 @@ void MainWindow::createModels(){
 
     modelWsServerUsers = new QJsonTableModel(this);
     modelWsServerUsers->setRowsIcon(QIcon(":/img/item.png"));
+    modelWsServerUsers->setDeletionMarkRowsIcon(QIcon(":/img/deletionMarkItem.png"));
     modelWsServerUsers->setColumnAliases(m_colAliases);
     proxyWsServerUsers = new QProxyModel(this);
     proxyWsServerUsers->setSourceModel(modelWsServerUsers);
@@ -665,10 +666,10 @@ void MainWindow::saveAsCurrentUserCertificate()
                                                  "Файл сертификата (*.cer)");
     if(fileName != ""){
         QFile file(fileName);
-        int col = modelUserCertificates->getColumnIndex("serial");
-        QString serial = modelUserCertificates->index(index.row(), col).data(Qt::UserRole + col).toString();
-        if(!serial.isEmpty()){
-            auto iter = currentUser->certificates().find(serial);
+        int col = modelUserCertificates->getColumnIndex("sha1");
+        QString sha1 = modelUserCertificates->index(index.row(), col).data(Qt::UserRole + col).toString();
+        if(!sha1.isEmpty()){
+            auto iter = currentUser->certificates().find(sha1);
             if(iter != currentUser->certificates().end()){
                 QString sha1 = iter.value()->sha1Hash();
                 QString _qbyte = QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\"\n").arg(sha1, fileName);
@@ -1384,18 +1385,24 @@ void MainWindow::updateCertUsersOnlineStstus()
 
         QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
         QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
-        auto index = modelSqlUsers->index(i, 1);
+        auto index = modelSqlUsers->index(i, 0);
         QPair<QString, QString> m_index = qMakePair(name, host);
         auto itr = m_users.find(m_index);
         if(isWsUserExists(name, host)){
-            modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+            modelSqlUsers->setIcon(index, QIcon(":/img/certUsersOnline.png"));
             if(itr != m_users.end()){
                 itr.value()->setOnline(true);
+                auto tr = findTreeItem("uCertUser_" + itr.value()->ref());
+                if(tr)
+                    tr->setIcon(0, QIcon(":/img/certUsersOnline.png"));
             }
         }else{
-            modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+            modelSqlUsers->setIcon(index, QIcon(":/img/certUsers.png"));
             if(itr != m_users.end()){
                 itr.value()->setOnline(false);
+                auto tr = findTreeItem("uCertUser_" + itr.value()->ref());
+                if(tr)
+                    tr->setIcon(0, QIcon(":/img/certUsers.png"));
             }
         }
     }
@@ -1555,7 +1562,7 @@ void MainWindow::treeSetCertUserData(CertUser *usr)
     auto root = findTreeItem(SqlUsers);
     if(!root)
         return;
-    QString key = usr->name() + usr->domain();
+    QString key = "uCertUser_" + usr->ref();
     auto user = findTreeItem(key, root);
     qDebug() << usr->uuid().toString();
     if(!user){        
@@ -1679,18 +1686,25 @@ void MainWindow::treeSetFromSqlUsers()
 
             QString name = modelSqlUsers->index(i, nameIndex).data(Qt::UserRole + nameIndex).toString();
             QString host = modelSqlUsers->index(i, nameHost).data(Qt::UserRole + nameHost).toString();
-            auto index = modelSqlUsers->index(i, 1);
+            auto index = modelSqlUsers->index(i, 0);
             QPair<QString, QString> m_index = qMakePair(name, host);
             auto itr = m_users.find(m_index);
             if(isWsUserExists(name, host)){
-                modelSqlUsers->setIcon(index, QIcon(":/img/online.png"));
+                modelSqlUsers->setIcon(index, QIcon(":/img/certUsersOnline.png"));
                 if(itr != m_users.end()){
                     itr.value()->setOnline(true);
+                    auto tr = findTreeItem("uCertUser_" + itr.value()->ref());
+                    if(tr)
+                        tr->setIcon(0, QIcon(":/img/certUsersOnline.png"));
                 }
+
             }else{
-                modelSqlUsers->setIcon(index, QIcon(":/img/ofline.png"));
+                modelSqlUsers->setIcon(index, QIcon(":/img/certUsers.png"));
                 if(itr != m_users.end()){
                     itr.value()->setOnline(false);
+                    auto tr = findTreeItem("uCertUser_" + itr.value()->ref());
+                    if(tr)
+                        tr->setIcon(0, QIcon(":/img/certUsers.png"));
                 }
             }
         }
@@ -1718,6 +1732,9 @@ void MainWindow::treeSetFromSqlCertificates()
         if(index > 0)
             table->setColumnHidden(index, true);
         index = modelSqlCertificates->getColumnIndex("CntFirstField");
+        if(index > 0)
+            table->setColumnHidden(index, true);
+        index = modelSqlCertificates->getColumnIndex("cache");
         if(index > 0)
             table->setColumnHidden(index, true);
         table->resizeColumnsToContents();
@@ -1778,9 +1795,76 @@ void MainWindow::updateContainerInfoOnData(const QString &info)
 
 }
 
-void MainWindow::updateCertInfoOnData(const QString &info)
-{
+//void MainWindow::updateCertInfoOnData(const QString &info)
+//{
+//    auto index = ui->tableView->currentIndex();
+//    if(!index.isValid()){
+//        return;
+//    }
 
+//    int indNameInStorgare = modelUserContainers->getColumnIndex("nameInStorgare");
+//    int indName = modelUserContainers->getColumnIndex("name");
+//    int indSecondName = modelUserContainers->getColumnIndex("SecondField");
+//    QString name = ui->tableView->model()->index(index.row(), indName).data().toString();
+//    QString second_name = ui->tableView->model()->index(index.row(), indSecondName).data().toString();
+//    QString nameInStorgare = ui->tableView->model()->index(index.row(), indNameInStorgare).data().toString();
+
+//    KeysContainer * cnt = currentUser->container(nameInStorgare);
+//    if(cnt){
+//        QString notValidBefore = cnt->notValidBefore();
+//        QJsonObject obj = cnt->parseCsptestInfo(info);
+//        if(notValidBefore != cnt->notValidBefore()){
+//            modelUserContainers->setJsonText(currentUser->modelContainersText());
+//            modelUserContainers->reset();
+//        }
+//        auto dlg = new DialogContainerInfo(obj, second_name, this);
+//        dlg->setModal(true);
+//        dlg->exec();
+
+//        QString nameBase64 = name.toUtf8().toBase64();
+//        auto indexCnt = findInTable(modelSqlContainers, name, 2, false);
+
+//        if(indexCnt.isValid()){
+//            int col = modelSqlContainers->getColumnIndex("cache");
+//            QString cache = modelSqlContainers->index(indexCnt.row(), col).data(Qt::UserRole + col).toString();
+//            if(cache.isEmpty()){
+//                auto doc = QJsonDocument();
+//                doc.setObject(obj);
+//                updateInfoContainerOnDatabase(doc.toJson(), name, nameBase64, cnt);
+//                getDataContainersList();
+//            }
+//        }
+//    }else
+//        QMessageBox::critical(this, "Ошибка", "Ошибка чтения информаци о контейнере!");
+//}
+
+void MainWindow::updateInfoCertificateOnDatabase(const QString &info, const QString &sha)
+{
+    auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlUpdate, "Certificates");
+    bindQuery.addWhere("sha1", sha);
+    bindQuery.addField("cache", info);
+
+    QString query = bindQuery.to_json();
+
+    QJsonObject cmd = QJsonObject();
+    cmd.insert("command", "update_info_certificate");
+    if(_sett->launch_mode() == mixed){
+        if(!db->isOpen())
+            return;
+        QString _error;
+        db->exec_qt(query, _error);
+    }else{
+        if(m_client->isStarted()){
+            auto obj = QJsonObject();
+            obj.insert("query", query);
+            obj.insert("id_command", "update_info_certificate");
+            obj.insert("run_on_return", cmd);
+            auto doc = QJsonDocument();
+            doc.setObject(obj);
+            QString param = doc.toJson();
+            m_client->sendCommand("exec_query_qt", "", param);
+        }
+    }
 }
 
 QModelIndex MainWindow::findInTable(QAbstractItemModel * model, const QString &value, int column, bool findData)
@@ -2026,6 +2110,7 @@ void MainWindow::getDataCertificatesList()
     bindQuery.addField("privateKey", "privateKey");
     bindQuery.addField("privateKeyRef", "privateKeyRef");
     bindQuery.addField("CntFirstField", "CntFirstField");
+    bindQuery.addField("cache", "cache");
 
     QString query = bindQuery.to_json();
 
@@ -2067,7 +2152,6 @@ void MainWindow::getDataUsersList()
 
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "CertUsers");
     bindQuery.addField("Empty", "Empty");
-    bindQuery.addField("EmptyisOnline", "EmptyisOnline");
     bindQuery.addField("FirstField", "FirstField");
     bindQuery.addField("SecondField", "SecondField");
     bindQuery.addField("Ref", "Ref");
@@ -2238,6 +2322,11 @@ bool MainWindow::isContainerExists(const QString &name, CertUser* usr, const QSt
         QString cnts = user->containers().join("|");
         return cnts.indexOf(name) != -1;
     }
+}
+
+bool MainWindow::isCertificatesExists(const QString &sha, CertUser *usr)
+{
+    return false;
 }
 
 bool MainWindow::isCertUserExists(const QString &name, const QString& host)
@@ -3437,7 +3526,7 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
             auto obj = itr->toObject();
             auto cert = new Certificate(this);
             cert->setSourceObject(obj);
-            currentUser->certificates().insert(cert->serial(), cert);
+            currentUser->certificates().insert(cert->sha1(), cert);
         }
 
         resetUserCertModel(currentUser, modelUserCertificates);
@@ -4327,19 +4416,35 @@ void MainWindow::on_btnConInfo_clicked()
 
         QString device = _index.model()->data(_index, Qt::UserRole + col).toString().replace("\r", "");
 
-
         QString cmd = QString("csptest -keyset -container \"%1\" -info").arg(device);
         terminal->send(cmd, csptestContainerFnfo);
     }else if(node == currentUserCertificates){
-        int col = modelUserCertificates->getColumnIndex("serial");
-        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
-        if(!serial.isEmpty()){
-            auto iter = currentUser->certificates().find(serial);
+        int col = modelUserCertificates->getColumnIndex("sha1");
+        QString sha1 = modelUserCertificates->index(index.row(), col).data().toString();
+        if(!sha1.isEmpty()){
+            auto iter = currentUser->certificates().find(sha1);
             if(iter != currentUser->certificates().end()){
                 auto dlg = DialogContainerInfo(iter.value()->getSourceObject(), iter.value()->bindName(), this);
                 dlg.setModal(true);
                 dlg.exec();
+                if(!sha1.isEmpty()){
+                    auto doc = QJsonDocument();
+                    doc.setObject(iter.value()->getSourceObject());
+                    QString json = doc.toJson();
+                    updateInfoCertificateOnDatabase(json, sha1);
+
+                    int iSha = modelSqlCertificates->getColumnIndex("sha1");
+                    auto index = findInTable(modelSqlCertificates, sha1, iSha, false);
+                    if(index.isValid()){
+                       auto obj =  modelSqlCertificates->getRowObject(index.row());
+                       obj["cache"] = json;
+                       modelSqlCertificates->updateRow(obj, index.row());
+                       modelSqlCertificates->reset();
+                    }
+                }
+
             }
+
         }
     }
 }
@@ -4408,10 +4513,10 @@ void MainWindow::on_btnCurrentDelete_clicked()
         terminal->send(cmd, CmdCommand::csptestContainerDelete);
 
     }else if(node == currentUserCertificates){
-        int col = modelUserCertificates->getColumnIndex("serial");
-        QString serial = modelUserCertificates->index(index.row(), col).data().toString();
-        if(!serial.isEmpty()){
-            auto iter = currentUser->certificates().find(serial);
+        int col = modelUserCertificates->getColumnIndex("sha1");
+        QString sha1 = modelUserCertificates->index(index.row(), col).data().toString();
+        if(!sha1.isEmpty()){
+            auto iter = currentUser->certificates().find(sha1);
             if(iter != currentUser->certificates().end()){
                 auto result =  QMessageBox::question(this, "Удаление сертификата", QString("Удалить сертификат: \n%1?").arg(iter.value()->bindName()));
 
@@ -4668,21 +4773,28 @@ void MainWindow::on_btnDatabaseInfo_clicked()
             }
 
     }else if(node == SqlCertificates){
-
+        int iCache = modelSqlCertificates->getColumnIndex("cache");
+        int nameIndex = modelSqlCertificates->getColumnIndex("FirstField");
+        QString cache = modelSqlCertificates->index(index.row(), iCache).data().toString();
+        QString name = modelSqlCertificates->index(index.row(), nameIndex).data().toString();
+        if(!cache.isEmpty()){
+            auto doc = QJsonDocument::fromJson(cache.toUtf8());
+            auto dlg = DialogContainerInfo(doc.object(), name, this);
+            dlg.setModal(true);
+            dlg.exec();
+        }
     }else if(node == SqlUsers){
 
          if(tree->currentItem()->childCount() == 0){
              int nameIndex = modelSqlUsers->getColumnIndex("FirstField");
              int nameHost = modelSqlUsers->getColumnIndex("host");
              int uuidIndex = modelWsUsers->getColumnIndex("uuid");
-             //qDebug() << uuidIndex;
              QString name = modelSqlUsers->index(index.row(), nameIndex).data(Qt::UserRole + nameIndex).toString();
              QString host = modelSqlUsers->index(index.row(), nameHost).data(Qt::UserRole + nameHost).toString();
 
              int row = modelWsUsers->row(qMakePair(name, host));
              if(row != -1){
                 QString uuid = modelWsUsers->index(row, uuidIndex).data(Qt::UserRole + uuidIndex).toString();
-                //qDebug() << uuid;
                 sendToRecipient(uuid, "get_available_containers", "get_available_containers", false);
              }
          }
@@ -4924,7 +5036,25 @@ void MainWindow::on_btnDataListUpdate_clicked()
     }else if(node == SqlCertificates){
 
     }else if(node == SqlUsers){
-
+        auto table = ui->tableView;
+        auto index = table->currentIndex();
+        if(!index.isValid()){
+            QMessageBox::critical(this, "Ошибка", "Не выбран пользователь!");
+            return;
+        }
+        int iUser = modelSqlUsers->getColumnIndex("FirstField");
+        int iHost = modelSqlUsers->getColumnIndex("host");
+        QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+        QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+        QPair<QString, QString> m_index = qMakePair(name, host);
+        auto itr = m_users.find(m_index);
+        if(itr != m_users.end()){
+            auto uuid = getSessionUuid(name, host);
+            if(!uuid.isEmpty()){
+                 m_queue.append(uuid);
+            }
+        }
+        onStartGetCertUsersData();
     }
 }
 

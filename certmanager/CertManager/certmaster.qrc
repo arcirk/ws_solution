@@ -73,10 +73,11 @@
         <file>img/users1.png</file>
         <file>img/itemTree.png</file>
         <file>img/itemOver.png</file>
-        <file>img/itemDeleted.png</file>
+        <file>img/deletionMarkItem.png</file>
         <file>img/item.png</file>
         <file>img/groupOver.png</file>
         <file>img/groupDeleted.png</file>
         <file>img/group.png</file>
+        <file>img/certUsersOnline.png</file>
     </qresource>
 </RCC>

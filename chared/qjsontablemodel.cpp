@@ -164,14 +164,27 @@ QVariant QJsonTableModel::data( const QModelIndex &index, int role ) const
         }
     }if ( role == Qt::DecorationRole ) {
         if(index.column() == 0){
-            if(!_rowsIcon.isNull())
-                return _rowsIcon;
-            else{
-                auto pair = qMakePair(index.row(), index.column());
-                auto iter = m_rowIcon.constFind(pair);
-                if(iter !=  m_rowIcon.end()){
-                    return iter.value();////m_rowIcon[pair];
-                }
+            QIcon _ico = _rowsIcon;
+            if(!_deletionMarkRowsIcon.isNull()){
+                 QJsonObject obj = getJsonObject( index );
+                 if( obj.contains( "deletionMark" )){
+                    QJsonValue v = obj[ "deletionMark" ];
+                    if(v.isBool()){
+                        if(v.toBool())
+                           _ico = _deletionMarkRowsIcon;
+                    }else if(v.isDouble()){
+                        if(v.toInt() > 0)
+                          _ico = _deletionMarkRowsIcon;
+                    }
+                 }
+            }
+            auto pair = qMakePair(index.row(), index.column());
+            auto iter = m_rowIcon.constFind(pair);
+            if(iter !=  m_rowIcon.end()){
+                return iter.value();////m_rowIcon[pair];
+            }else{
+                if(!_ico.isNull())
+                    return _ico;
             }
         }else{
             auto pair = qMakePair(index.row(), index.column());
@@ -303,6 +316,11 @@ void QJsonTableModel::reset() {
 void QJsonTableModel::setRowsIcon(const QIcon &ico)
 {
     _rowsIcon = ico;
+}
+
+void QJsonTableModel::setDeletionMarkRowsIcon(const QIcon &ico)
+{
+    _deletionMarkRowsIcon = ico;
 }
 
 void QJsonTableModel::setIcon(const QModelIndex& index, const QIcon &ico)
