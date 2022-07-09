@@ -43,6 +43,7 @@ private slots:
 
     void on_linePwd_textChanged(const QString &arg1);
 
+    void on_chkUseSettingsFromHttp_clicked();
 
 private:
     Ui::DialogOptions *ui;

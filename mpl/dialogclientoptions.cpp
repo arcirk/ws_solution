@@ -229,3 +229,8 @@ void DialogClientOptions::on_linePwd_textChanged(const QString &arg1)
 
 }
 
+void DialogClientOptions::on_chkUseSettingsFromHttp_clicked()
+{
+    formControl();
+}
+
