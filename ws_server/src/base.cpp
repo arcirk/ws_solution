@@ -832,7 +832,7 @@ namespace arc_sqlite {
             return result;
 
         } else{
-            std::cerr << "sqlite3_db::save_message: " << "ошибка получения хеша чата!" << std::endl;
+            std::cerr << "sqlite3_db::save_message: " << "error get hash messages!" << std::endl;
             return false;
         }
 

@@ -19,6 +19,7 @@
 #include <QSqlError>
 #include "dialogconnection.h"
 #include <tabledelegate.h>
+#include <QTextEdit>
 
 //#include <boost/uuid/uuid.hpp>
 //#include <boost/uuid/uuid_generators.hpp>
@@ -404,6 +405,25 @@ void DialogMainWindow::onConnectedStatusChanged(bool status)
 void DialogMainWindow::onMessageReceived(const QString &msg, const QString &uuid, const QString &recipient, const QString &recipientName)
 {
     qDebug() << __FUNCTION__;
+    QString message = QString::fromStdString(IClient::base64_decode(msg.toStdString()));
+
+    QJsonObject _msg = QJsonDocument::fromJson(message.toUtf8()).object();
+
+    QJsonArray rows = _msg.value("rows").toArray();
+
+    if(rows.size() > 0){
+        QJsonObject obj = rows[0].toObject();
+        QString _base64 = obj.value("message").toString();
+        QString _message = QString::fromStdString(IClient::base64_decode(_base64.toStdString()));
+        QJsonObject objMsg = QJsonDocument::fromJson(_message.toUtf8()).object();
+        QString r = QString::fromStdString(IClient::base64_decode(objMsg.value("message").toString().toStdString()));
+
+        QTextEdit * edt = new QTextEdit(this);
+        edt->setHtml(r);
+        QIcon msgIcon(":/img/message1.png");
+        trayIcon->showMessage(recipientName, edt->toPlainText(), msgIcon,
+                              3 * 1000);
+    }
 }
 
 void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
