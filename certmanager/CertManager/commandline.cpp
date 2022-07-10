@@ -477,7 +477,7 @@ QString CommandLine::parseCommand(const QString &result, int command)
         if(ind > 0){
              emit endParse("OK", command);
         }
-    }else if(command == csptestGetCertificates){
+    }else if(command == csptestGetCertificates || command == certmgrGetCertificateInfo){
 
         int ind = result.indexOf("[ErrorCode: 0x00000000]");
         if(ind > 0){

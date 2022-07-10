@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include "converter.h"
 #include <sqlqueryinterface.h>
+#include <QQueue>
+#include <QVector>
 
 class Certificate : public QObject
 {

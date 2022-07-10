@@ -329,26 +329,30 @@ bool Certificate::save(const QString &fileName)
 bool Certificate::fromSha1(const QString &sha)
 {
 
+    //сертификат находится в локальном хранилище
+    //поэтому счала получаем инфу о сертификате по sha1, после копируем в временный файл для получения бинарных данных
     QTemporaryDir tmpDir;
-    //tring tmpDir = std::getenv("TEMP");
-    auto cmd = new CommandLine(this, false);//);"ISO 8859-1"
+    auto cmd = new CommandLine(this, false);
     QEventLoop loop;
     QJsonObject res;
 
     QString fileName = tmpDir.path() + QDir::separator() + QUuid::createUuid().toString() + ".cer";
-    //qDebug() << fileName;
-    auto started = [cmd, &fileName, &sha]() -> void
+
+    QQueue<QPair<QString, CmdCommand>> cmdQueue;
+    cmdQueue.append(qMakePair(QString("cd \"%1\" & certmgr -list -store uMy -thumbprint %2").arg("C:\\Program Files (x86)\\Crypto Pro\\CSP", sha), CmdCommand::certmgrGetCertificateInfo));
+    cmdQueue.append(qMakePair(QString("cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName), CmdCommand::cryptcpCopycert));
+
+    auto started = [cmd, &cmdQueue] () -> void
     {       
-        QString qbyte = QString("cd \"%1\"").arg("C:\\Program Files (x86)\\Crypto Pro\\CSP");
-        qbyte.append(QString(" & cryptcp -copycert -thumbprint \"%1\" -u -df \"%2\" & exit\n").arg(sha, fileName));
-        cmd->send(qbyte, certmgrInstallCert);
+        auto cmd_str = cmdQueue.dequeue();
+        cmd->send(cmd_str.first, cmd_str.second);
     };
     loop.connect(cmd, &CommandLine::cmdStarted, started);
 
     auto output = [cmd, &loop](const QString& data, int command) -> void
     {
-        qDebug() << __FUNCTION__ << data;
-        if(command == CmdCommand::certmgrInstallCert){
+        qDebug() << __FUNCTION__ << "output" << data;
+        if(command == CmdCommand::cryptcpCopycert){
             if(data.indexOf("Microsoft Corporation") == -1){
                 if(data.indexOf("ReturnCode:") != -1){
                     cmd->stop();
@@ -356,15 +360,48 @@ bool Certificate::fromSha1(const QString &sha)
                 }else if(data.indexOf("ErrorCode:") != -1){
                     cmd->stop();
                     loop.quit();
+                }else if(data.indexOf("[Y]") != -1){ //может предложить продолжить
+                    cmd->send("Y", cryptcpCopycert);
+                }
+            }
+        }else if(command == CmdCommand::certmgrGetCertificateInfo){
+            if(data.indexOf("Microsoft Corporation") == -1){
+                if(data.indexOf("ReturnCode:") != -1){
+                    cmd->stop();
+                    loop.quit();
+                }else if(data.indexOf("ErrorCode:") != -1){
+                    if(data.indexOf("ErrorCode: 0x00000000") == -1){
+                        cmd->stop();
+                        loop.quit();
+                    }else{
+                        cmd->parseCommand(data, command);
+                    }
                 }
             }
         }
     };
     loop.connect(cmd, &CommandLine::output, output);
 
+    auto parse = [cmd, &res, &cmdQueue](const QVariant& result, int command) -> void
+    {
+        if(command == CmdCommand::certmgrGetCertificateInfo){
+            auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
+            auto arr = doc.array();
+
+            for (auto itr = arr.begin(); itr != arr.end(); ++itr) {
+                res = itr->toObject();
+                break;
+            }
+            auto cmd_str = cmdQueue.dequeue();
+            cmd->send(cmd_str.first, cmd_str.second); //копируем для получения бинарных данных
+        }
+
+    };
+    loop.connect(cmd, &CommandLine::endParse, parse);
+
     auto err = [&loop, cmd](const QString& data, int command) -> void
     {
-        qDebug() << __FUNCTION__ << data << command;
+        qDebug() << __FUNCTION__  << "err" << data << command;
         cmd->stop();
         loop.quit();
     };
@@ -383,7 +420,16 @@ bool Certificate::fromSha1(const QString &sha)
     if(!QFile(fileName).exists())
         return false;
 
-    fromFile(fileName, true);
+    ByteArray data;
+    Base64Converter::readFile(QTextCodec::codecForName("CP1251")->fromUnicode(fileName).toStdString(), data);
+
+    QFile f(fileName);
+    f.remove();
+
+    setSourceObject(res);
+    setData(data);
+
+    _isValid = true;
 
     return _isValid;
 }
@@ -395,9 +441,8 @@ void Certificate::fromFile(const QString& fileName, bool removeSource){
    QFileInfo inf(fileName);
    QString suffix = inf.completeSuffix();
 
-   auto cmd = new CommandLine(this, false); //, "CP1251");
+   auto cmd = new CommandLine(this, false);
    cmd->setMethod(3);
-   //cmd->setProgram("powershell");
    QEventLoop loop;
    QJsonObject res;
 

@@ -36,6 +36,8 @@ enum CmdCommand{
     certmgrInstallCert,
     certmgrExportlCert,
     certmgrDeletelCert,
+    certmgrGetCertificateInfo,
+    cryptcpCopycert,
     unknown
 };
 

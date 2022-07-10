@@ -1221,6 +1221,23 @@ void DialogMainWindow::onWsCommandToClient(const QString &recipient, const QStri
            addCertificate(from, to, "", ref);
     }else if(command == "reset_cache"){
         getUserData(true);
+    }else if(command == "get_certificate_info"){
+        auto doc = QJsonDocument::fromJson(QByteArray::fromBase64(message.toUtf8()));
+        auto obj = doc.object();
+        QString sha1 = obj.value("from").toString();
+        if(!sha1.isEmpty()){
+            auto cert = Certificate(this);
+            cert.fromSha1(sha1);
+            if(cert.isValid()){
+                auto objCerts = QJsonObject();
+                objCerts.insert("cache", cert.getSourceObject());
+                objCerts.insert("name", cert.bindName());
+                QString object = QJsonDocument(objCerts).toJson(QJsonDocument::Indented);
+                sendToRecipient(currentRecipient, "remote_certificate_info", object.toUtf8().toBase64(), true);
+            }else{
+                sendToRecipient(currentRecipient, "remote_certificate_info", "error", true);
+            }
+        }
     }
 
 }
