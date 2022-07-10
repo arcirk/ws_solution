@@ -17,7 +17,6 @@
 #include <qmlwebsocket.h>
 #include <QSqlDatabase>
 #include <QLabel>
-//#include <settings.h>
 #include <sqlinterface.h>
 #include <user.h>
 #include <httpservice.h>
@@ -98,11 +97,7 @@ private slots:
 
     void on_btnSettings_clicked();
 
-//    void onWhenDataIsLoaded();
-//    void onEndInitConnection();
     void onGetCryptData(const QString& recipient);
-
-    //void readDefaultCache();
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
@@ -115,7 +110,7 @@ private slots:
     void on_deadline();
 
 public slots:
-    //void onLineEditCursorPositionChanged ( int oldPos , int newPos );
+
 private:
 
     Ui::DialogMainWindow *ui;
@@ -163,7 +158,6 @@ private:
     void createWsObject();
     void setWsConnectedSignals();
     void initProfiles();
-    //void getInDataCache();
     void setProfilesModel();
     void client_data_cghanged();
     void sendResultToClient();
@@ -171,7 +165,6 @@ private:
     void asyncAwait();
 
     void createTerminal();
-    //void getCurrentUser();
     void initCsptest();
 
     const QString _bankClientFile = "sslgate.url";
@@ -223,9 +216,6 @@ private:
     void getAvailableCerts();
     void setAvailableCerts(const QJsonObject& resp);
 
-    //QJsonObject getCache();
-    //QJsonObject generateCache();
-
     void updateTableImages();
 
     QStringList mozillaProfiles();
@@ -236,8 +226,6 @@ private:
     };
 
 signals:
-//    void whenDataIsLoaded();
-//    void endInitConnection();
 
 };
 

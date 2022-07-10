@@ -43,7 +43,7 @@ DialogMainWindow::DialogMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowTitle("Настройки профилей пользователя");
+    setWindowTitle("Менеджер профилей Mozilla Firefox");
 
     createColumnAliases();
 
@@ -262,20 +262,9 @@ void DialogMainWindow::createTrayActions()
 
 }
 
-void DialogMainWindow::trayShowMessage()
+void DialogMainWindow::trayShowMessage(const QString& msg, int isError)
 {
-//    showIconCheckBox->setChecked(true);
-//    int selectedIcon = typeComboBox->itemData(typeComboBox->currentIndex()).toInt();
-//    QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(selectedIcon);
-
-//    if (selectedIcon == -1) { // custom icon
-//        QIcon icon(iconComboBox->itemIcon(iconComboBox->currentIndex()));
-//        trayIcon->showMessage(titleEdit->text(), bodyEdit->toPlainText(), icon,
-//                          durationSpinBox->value() * 1000);
-//    } else {
-//        trayIcon->showMessage(titleEdit->text(), bodyEdit->toPlainText(), msgIcon,
-//                          durationSpinBox->value() * 1000);
-//    }
+    trayIcon->showMessage("Менеджер ппрофилей Firefox", msg);
 }
 
 void DialogMainWindow::trayMessageClicked()
@@ -380,12 +369,17 @@ void DialogMainWindow::onCheckIP()
 void DialogMainWindow::onConnectionSuccess()
 {
     qDebug() << __FUNCTION__;
+
     updateConnectionStatus();
+
+    trayShowMessage(QString("Успешное подключение к севрверу: %1:%2").arg(m_client->getHost(), QString::number(m_client->getPort())));
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
         f();
     }
+
+
 }
 
 void DialogMainWindow::onCloseConnection()
@@ -431,6 +425,8 @@ void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
     qCritical() << __FUNCTION__ << what << qPrintable(err.toLocal8Bit());
 
     updateConnectionStatus();
+
+    trayShowMessage(err, true);
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();

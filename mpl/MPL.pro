@@ -119,3 +119,14 @@ windows:DEFINES += _CRT_SECURE_NO_WARNINGS
 windows:INCLUDEPATH += $(BOOST_INCLDUE)
 windows:LIBS += -L$(BOOST_LIB)
 Boost_USE_STATIC_LIBS = ON
+
+DISTFILES += \
+    CertManager.ico
+
+win32 {
+    QMAKE_TARGET_PRODUCT = "Certificate manager client"
+    QMAKE_TARGET_DESCRIPTION = "Firefox Profile Manager"
+}
+
+VERSION = 1.0.0
+QMAKE_TARGET_COPYRIGHT = (c)(arcirk) Arcady Borisoglebsky
