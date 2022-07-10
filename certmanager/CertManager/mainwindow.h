@@ -338,6 +338,8 @@ private:
     void userToDatabase(const QString& name);
     QString getSessionUuid(const QString &name, const QString &host) const;
 
+    void getRemoteCertificateInfo(const QString& sha1, CertUser* usr);
+
     void toolBarSetVisible(QWidget * bar, bool value);
 
     void inVisibleToolBars();
