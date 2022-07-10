@@ -3399,7 +3399,6 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
     ui->txtTerminal->setText("\n" + ui->txtTerminal->toPlainText() + "\n" + "ws error: " + what + ": " + err + "\n");
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
-    //trayShowMessage(err, true);
     QIcon msgIcon(":/img/h.png");
     trayIcon->showMessage(what, err, msgIcon,
                           3 * 1000);
