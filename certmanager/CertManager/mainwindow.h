@@ -55,6 +55,7 @@ QT_END_NAMESPACE
 #define remoteUserRegistry              "remoteUserRegistry"
 #define remoteUserCertificates          "remoteUserCertificates"
 #define remoteUserContainers            "remoteUserContainers"
+#define remoteUserAvaiableCertificates  "remoteUserAvaiableCertificates"
 
 #define insertCertificateToData         "insertCertificateToData"
 #define deleteContainerFromData         "deleteContainerFromData"
@@ -216,6 +217,8 @@ private slots:
 
     void on_btnSendWsMessage_clicked();
 
+    void on_btnUsersSync_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -288,7 +291,7 @@ private:
         deadline->start(1000 * 60);
     };
 
-    QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node);
+    QMap<QString, QString> remoteItemParam(const QModelIndex& row, const QString& node, bool nameHostOnly = true);
     void createColumnAliases();
 
 #ifdef _WINDOWS
@@ -339,6 +342,7 @@ private:
     QString getSessionUuid(const QString &name, const QString &host) const;
 
     void getRemoteCertificateInfo(const QString& sha1, CertUser* usr);
+    void viewCertificateInfo(const QJsonObject& cache);
 
     void toolBarSetVisible(QWidget * bar, bool value);
 

@@ -62,3 +62,8 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arci
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Release/release/arcirk.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../arcirk-Debug/debug/arcirk.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../arcirk/libarcirk.a
+
+DISTFILES += \
+    ws_server.ico
+
+RC_ICONS = ws_server.ico

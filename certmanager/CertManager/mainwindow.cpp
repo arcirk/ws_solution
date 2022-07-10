@@ -126,7 +126,10 @@ MainWindow::MainWindow(QWidget *parent)
     //isFormLoaded = false;
 
     ui->setupUi(this);
+
     setWindowTitle("Менеджер сертификатов");
+
+    ui->dockWidgetTerminal->hide();
 
     connect(this, &MainWindow::whenDataIsLoaded, this, &MainWindow::onWhenDataIsLoaded);
     connect(this, &MainWindow::endInitConnection, this, &MainWindow::onEndInitConnection);
@@ -230,12 +233,15 @@ void MainWindow::createModels(){
     proxyWsServerUsers->setSourceModel(modelWsServerUsers);
 }
 
-QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, const QString &node)
+QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, const QString &node, bool nameHostOnly)
 {
 
     QMap<QString, QString> result;
 
     auto m_key = node.split("/");
+    if(m_key.size() < 1)
+        return {};
+
     QString name = m_key[0];
     QString host = m_key[1];
 
@@ -247,24 +253,34 @@ QMap<QString, QString> MainWindow::remoteItemParam(const QModelIndex &index, con
     }else if(node.indexOf("vol_") != -1){
         result.insert("key", remoteUserContainers);
         name.replace("vol_", "");
-    }else if(node.indexOf("cert_") != -1){
+    }else if(node.indexOf("cert_") != -1 && node.indexOf("a_cert_") == -1){
         result.insert("key", remoteUserCertificates);
         name.replace("cert_", "");
+    }else if(node.indexOf("a_cert_") != -1){
+        result.insert("key", remoteUserAvaiableCertificates);
+        name.replace("a_cert_", "");
     }
 
     result.insert("name", name.replace("\r", ""));
 
-    if(index.isValid()){
-        if(result["key"] == remoteUserRegistry || result["key"] == remoteUserContainers){
-            int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
-            QString object = proxyModelCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
-            object.replace("\r", "");
-            result.insert("object", object);
-        }else if(result["key"] == remoteUserCertificates){
-            int ind = modelCertUserCertificates->getColumnIndex("sha1");
-            QString object = modelCertUserCertificates->index(index.row(), ind).data().toString();
-            object.replace("\r", "");
-            result.insert("object", object);
+    if(!nameHostOnly){
+        if(index.isValid()){
+            if(result["key"] == remoteUserRegistry || result["key"] == remoteUserContainers){
+                int ind = modelCertUserContainers->getColumnIndex("nameInStorgare");
+                QString object = proxyModelCertlUserConteiners->index(index.row(), ind).data(Qt::UserRole + ind).toString();
+                object.replace("\r", "");
+                result.insert("object", object);
+            }else if(result["key"] == remoteUserCertificates){
+                int ind = modelCertUserCertificates->getColumnIndex("sha1");
+                QString object = modelCertUserCertificates->index(index.row(), ind).data().toString();
+                object.replace("\r", "");
+                result.insert("object", object);
+            }else if(result["key"] == remoteUserAvaiableCertificates){
+                int ind = modelUsersAviableCerts->getColumnIndex("sha1");
+                QString object = modelUsersAviableCerts->index(index.row(), ind).data().toString();
+                object.replace("\r", "");
+                result.insert("object", object);
+            }
         }
     }
     return result;
@@ -466,7 +482,6 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void MainWindow::trayShowMessage(const QString& msg, int isError)
 {
-    //QIcon ico = isError ? QIcon(
     trayIcon->showMessage("Менеджер сертификатов", msg);
 }
 
@@ -476,6 +491,7 @@ void MainWindow::createTrayActions()
     quitAction = new QAction(tr("&Выйти"), this);
     connect(quitAction, &QAction::triggered, this, &MainWindow::onAppExit);
     showAction = new QAction(tr("&Открыть менеджер сертификатов"), this);
+    showAction->setIcon(QIcon(":/img/certificate.ico"));
     connect(showAction, &QAction::triggered, this, &MainWindow::onWindowShow);
 
     trayIconMenu = new QMenu(this);
@@ -2419,6 +2435,22 @@ void MainWindow::getRemoteCertificateInfo(const QString &sha1, CertUser *usr)
     sendToRecipient(sess, "get_certificate_info", QJsonDocument(param).toJson().toBase64(), true);
 }
 
+void MainWindow::viewCertificateInfo(const QJsonObject &resp)
+{
+    if(resp.isEmpty())
+        return;
+
+    auto name = resp.value("name").toString();
+    auto source = resp.value("cache").toObject();
+
+    if(source.isEmpty())
+        return;
+
+    auto dlg = DialogContainerInfo(source, name, this);
+    dlg.setModal(true);
+    dlg.exec();
+}
+
 void MainWindow::updateRowIcons(){
     qDebug() << __FUNCTION__;
    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i) {
@@ -2554,15 +2586,19 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
         }else{
             ui->tableView->setModel(nullptr);
             if(key.indexOf("reg_") != -1){
-                QStringList m_key = key.split("_");
-                QStringList m_userHost = m_key[1].split("/");
-                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
-                auto itr = m_users.find(index);
-                if(itr != m_users.end()){
-                    modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
-                    modelCertUserContainers->reset();
-                    treeSetCurrentContainers("REGISTRY", modelCertUserContainers, proxyModelCertlUserConteiners);
-                    resetInfoUserContainers(itr.value());
+//                QStringList m_key = key.split("_");
+//                QStringList m_userHost = m_key[1].split("/");
+//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto m_param = remoteItemParam(QModelIndex(), key, true);
+                if(m_param.size() > 1){
+                    QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
+                    auto itr = m_users.find(index);
+                    if(itr != m_users.end()){
+                        modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
+                        modelCertUserContainers->reset();
+                        treeSetCurrentContainers("REGISTRY", modelCertUserContainers, proxyModelCertlUserConteiners);
+                        resetInfoUserContainers(itr.value());
+                    }
                 }
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
@@ -2570,28 +2606,36 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnCurrentUserAdd->setEnabled(true);
 
             }else if(key.indexOf("vol_") != -1){
-                QStringList m_key = key.split("_");
-                QStringList m_userHost = m_key[1].split("/");
-                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
-                auto itr = m_users.find(index);
-                if(itr != m_users.end()){
-                    modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
-                    modelCertUserContainers->reset();
-                    treeSetCurrentContainers("!REGISTRY", modelCertUserContainers, proxyModelCertlUserConteiners);
-                    resetInfoUserContainers(itr.value());
+//                QStringList m_key = key.split("_");
+//                QStringList m_userHost = m_key[1].split("/");
+//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto m_param = remoteItemParam(QModelIndex(), key, true);
+                if(m_param.size() > 1){
+                    QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
+                    auto itr = m_users.find(index);
+                    if(itr != m_users.end()){
+                        modelCertUserContainers->setJsonText(itr.value()->modelContainersText());
+                        modelCertUserContainers->reset();
+                        treeSetCurrentContainers("!REGISTRY", modelCertUserContainers, proxyModelCertlUserConteiners);
+                        resetInfoUserContainers(itr.value());
+                    }
                 }
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
                 ui->btnCurrentCopyToSql->setEnabled(true);
                 ui->btnCurrentUserAdd->setEnabled(true);
-            }else if(key.indexOf("cert_") != -1){
-                QStringList m_key = key.split("_");
-                QStringList m_userHost = m_key[1].split("/");
-                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
-                auto itr = m_users.find(index);
-                if(itr != m_users.end()){
-                    resetUserCertModel(itr.value(), modelCertUserCertificates);
-                    treeSetFromCurrentUserCerts(modelCertUserCertificates);
+            }else if(key.indexOf("cert_") != -1 && key.indexOf("a_cert_") == -1){
+//                QStringList m_key = key.split("_");
+//                QStringList m_userHost = m_key[1].split("/");
+//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                auto m_param = remoteItemParam(QModelIndex(), key, true);
+                if(m_param.size() > 1){
+                    QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
+                    auto itr = m_users.find(index);
+                    if(itr != m_users.end()){
+                        resetUserCertModel(itr.value(), modelCertUserCertificates);
+                        treeSetFromCurrentUserCerts(modelCertUserCertificates);
+                    }
                 }
                 toolBarSetVisible(ui->wToolBarCurrentUser, true);
                 ui->btnCurrentCopyToRegistry->setEnabled(true);
@@ -2604,12 +2648,17 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnDelete->setEnabled(true);
                 ui->btnAdd->setEnabled(true);
                 ui->btnMainTollEdit->setEnabled(false);
-                QStringList m_key = key.split("_");
-                QStringList m_userHost = m_key[2].split("/");
-                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
-                auto itr = m_users.find(index);
-                if(itr != m_users.end()){
-                    resetAviableCertificates(itr.value());
+//                QStringList m_key = key.split("_");
+//                QStringList m_userHost = m_key[2].split("/");
+//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+
+                auto m_param = remoteItemParam(QModelIndex(), key, true);
+                if(m_param.size() > 1){
+                    QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
+                    auto itr = m_users.find(index);
+                    if(itr != m_users.end()){
+                        resetAviableCertificates(itr.value());
+                    }
                 }
             }else if(key.indexOf("uCatalog_") != -1){
                toolBarSetVisible(ui->wToolBarMain, true);
@@ -2622,7 +2671,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                QString uuid = m_key[1];
                QString filter = QString("{\"isGroup\": 0, \"parent\": \"%1\"}").arg(uuid);
 
-               proxyWsServerUsers->setFilter(filter);
+               proxyWsServerUsers->setFilter(filter);               
                ui->tableView->setModel(proxyWsServerUsers);
                ui->tableView->resizeColumnsToContents();
                for (int i = 0; i < modelWsServerUsers->columnCount(); ++i) {
@@ -2701,7 +2750,6 @@ void MainWindow::on_mnuConnect_triggered()
         if(_sett->launch_mode() == mixed){
             connectToDatabase();
         }else{
-            //QString pass;
             QString pwd = clientSett["Password"].toString();
             QString usr = clientSett["ServerUser"].toString();
             if(clientSett["pwdEdit"].toBool()){
@@ -2785,6 +2833,8 @@ void MainWindow::getUsersCatalog()
     bindQuery.addField("FirstName", "FirstName");
     bindQuery.addField("Reporting", "Reporting");
     bindQuery.addField("role", "role");
+    bindQuery.addSortField("isGroup");
+    bindQuery.addSortField("FirstField");
 
     QString query = bindQuery.to_json();
 
@@ -2836,6 +2886,7 @@ void MainWindow::resetUsersCatalog(const QJsonObject &resp)
 
     modelWsServerUsers->setJsonText(table);
     modelWsServerUsers->reset();
+    proxyWsServerUsers->sort(modelWsServerUsers->getColumnIndex("FirstField"));
 
     QMap<QString, int> header;
     header.insert("Ref", modelWsServerUsers->getColumnIndex("Ref"));
@@ -2860,6 +2911,10 @@ void MainWindow::setFromDataUserCache(const QJsonObject &resp)
     auto rows = _table.value("rows").toArray();
     if(rows.isEmpty()){
         qCritical() << __FUNCTION__ << "Объект на сервере не найден!";
+        if(m_async_await.size() > 0){
+            auto f = m_async_await.dequeue();
+            f();
+        }
         return;
     }
 
@@ -2978,12 +3033,14 @@ void MainWindow::fillTreeWsUsers(QJsonTableModel *model, QTreeWidgetItem *root, 
 
     if (parentRef.isEmpty())
         return;
-//Qt::DisplayRole + header["FirstField"]Qt::DisplayRole + header["Ref"]Qt::DisplayRole + header["deletionMark"]
+
     QString filter = QString("{\"isGroup\": 1, \"parent\": \"%1\"}").arg(parentRef);
 
     auto proxy = QProxyModel(this);
     proxy.setSourceModel(model);
     proxy.setFilter(filter);
+
+    proxy.sort(header["FirstField"]);
 
     int count = proxy.rowCount();
 
@@ -3524,7 +3581,6 @@ void MainWindow::onParseCommand(const QVariant &result, int command)
         auto treeItem = findTreeItem(СurrentUser);
         if(treeItem)
             treeItem->setText(0, QString("Текущий пользователь (%1)").arg(result.toString()));
-        //terminal->send(QString("wmic useraccount where name='%1' get sid\n").arg(result), CommandLine::cmdCommand::wmicGetSID);
     }else if(command == CmdCommand::wmicGetSID){
 
         currentUser->setSid(result.toString());
@@ -3710,8 +3766,6 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
         }else{
             addCertificateFromBase64ToDatabase(message);
-            //QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен!");
-//            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
         }
     }else if(command == ToRemoteRegistry){
         //qDebug() << __FUNCTION__ << command  << message;
@@ -3726,11 +3780,18 @@ void MainWindow::onWsCommandToClient(const QString &recipient, const QString &co
             QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
         }else{
             QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен у пользователя!");
-            //QMessageBox::information(this, "Установка сертификата", "Сертификат успешно установлен!");
-//            sendToRecipient(recipient, "get_installed_certificates", "get_installed_certificates", false);
         }
-    }else if(command == "get_certificate_info"){
-
+    }else if(command == "remote_certificate_info"){
+        if(message == "error"){
+            QMessageBox::critical(this, "Ошибка", "Ошибка выполнения операции!");
+        }else{
+            QString result = QByteArray::fromBase64(message.toUtf8());
+            auto doc = QJsonDocument::fromJson(result.toUtf8());
+            if(doc.isEmpty())
+                return;
+            auto obj = doc.object();
+            viewCertificateInfo(obj);
+        }
     }else
         qDebug() << __FUNCTION__ << command << message;
 
@@ -3776,11 +3837,6 @@ void MainWindow::onWindowShow()
 {
     setVisible(true);
 }
-
-//void MainWindow::onWsMplClientFormLoaded(const QString &resp)
-//{
-//    qDebug() << __FUNCTION__ << resp;
-//}
 
 void MainWindow::onWsExecQuery(const QString &result)
 {
@@ -3878,13 +3934,11 @@ void MainWindow::onWsExecQuery(const QString &result)
             QPair<QString, QString> m_index = qMakePair(name, host);
             auto itr = m_users.find(m_index);
             if(itr != m_users.end()){
-                //if(itr.value()->online()){
-                   auto uuid = getSessionUuid(name, host);
-                   if(!uuid.isEmpty()){
-                        sendToRecipient(uuid,"reset_cache", "reset_cashe", true);
-                        m_async_await.append(std::bind(&MainWindow::getDataUsersList, this));
-                   }
-                //}
+               auto uuid = getSessionUuid(name, host);
+               if(!uuid.isEmpty()){
+                    sendToRecipient(uuid,"reset_cache", "reset_cashe", true);
+                    m_async_await.append(std::bind(&MainWindow::getDataUsersList, this));
+               }
             }
         }
     }else if(id_command == "get_ws_users"){
@@ -4204,10 +4258,7 @@ void MainWindow::on_btnCurrentUserSaveAs_clicked()
         param.insert("to", Volume);
 
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
-
     }
-
-
 }
 
 
@@ -4317,91 +4368,6 @@ void MainWindow::on_btnCurrentCopyToSql_clicked()
         sendToRecipient(sess, command, QJsonDocument(param).toJson().toBase64(), true);
     }
 
-//    QString volume = table->model()->index(index.row(), 1).data().toString();
-//    QString name = table->model()->index(index.row(), 2).data().toString();
-
-//    QDir folder;
-
-//    if(QString(volume).left(6) == "FAT12_"){
-//        QString tom = QString(volume).right(volume.length() - 6);
-
-//        QStorageInfo storage(tom + ":" + QDir::separator());
-//        if(!storage.isReady())
-//        {
-//            QMessageBox::critical(this, "Ошибка", QString("Не возможно прочитать данные с устройства '%1'").arg(volume));
-//            return;
-//        }
-
-//        QStringList lst = name.split("@");
-//        folder = QDir(storage.rootPath() + QDir::separator() +  lst[0] + ".000");
-
-//        if(!folder.exists()){
-//            return;
-//        }
-//    }
-//    KeysContainer cnt = KeysContainer(this);
-//    cnt.setName(name);
-//    if(QString(volume).left(6) == "FAT12_"){
-//        cnt.fromFolder(folder.path());
-//    }else if(volume == "REGISTRY"){
-//        if(currentUser->sid().isEmpty()){
-//            qCritical() << __FUNCTION__ << "Требуется SID!";
-//            return;
-//        }
-//        cnt.fromRegistry(currentUser->sid(), cnt.bindName());
-//    }
-
-//    if(!cnt.isValid())
-//    {
-//        qCritical() << __FUNCTION__ << "Ошибка: Ошибка загрузки данных контейнера с устройства!";
-//        return;
-//    }else{
-//        if(isContainerExists(name)){
-//            QMessageBox::critical(this, "Ошибка", QString("Контейнер с именем '%1' уже есть на сервере!").arg(name));
-//            return;
-//        }
-//        auto bOK =  QMessageBox::question(this, "Экспорт контейнера", QString("Экспортировать на сервер контейнер %1?").arg(name));
-//        if(bOK == QMessageBox::No){
-//            return;
-//        }
-
-//        QString uuid = QUuid::createUuid().toString();
-//        uuid = uuid.mid(1, uuid.length() - 2);
-//        QByteArray data = cnt.toBase64();
-
-//        auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlInsert, "Containers");
-//        bindQuery.addField("Ref", uuid);
-//        bindQuery.addField("FirstField", QString(name.toUtf8().toBase64()));
-//        bindQuery.addField("SecondField", name);
-//        bindQuery.addField("data", QString(data.toBase64()));
-
-//        bindQuery.addFieldIsExists("FirstField", QString(name.toUtf8().toBase64()));
-//        bindQuery.addFieldIsExists("SecondField", name);
-
-//        if(_sett->launch_mode() == mixed){
-//            QSqlQuery sql = bindQuery.query(db->getDatabase());
-//            sql.exec();
-//            if(sql.lastError().type() != QSqlError::NoError){
-//                qDebug() << __FUNCTION__ << sql.lastError().text();
-//            }else{
-//                QMessageBox::information(this, "Копирование на сервер", "Контейнер успешно скопирован на сервер!");
-//                getDataContainersList();
-//            }
-//        }else{
-//            if(m_client->isStarted()){
-//                QString result = bindQuery.to_json();
-//                auto doc = QJsonDocument();
-//                auto objMain = QJsonObject();
-//                objMain.insert("query", result);
-//                objMain.insert("id_command", insertContainerToData);
-//                doc.setObject(objMain);
-//                QString param = doc.toJson();
-//                m_client->sendCommand("exec_query_qt", "", param);
-//            }
-//        }
-
-//    }
-
 }
 
 
@@ -4507,10 +4473,6 @@ void MainWindow::on_btnConInfo_clicked()
             QModelIndex _index = table->model()->index(index.row(), col);
             QString sha1 = _index.model()->data(_index, Qt::UserRole + col).toString();
 
-//            int col1 = modelCertUserCertificates->getColumnIndex("cache");
-//            QModelIndex __index = table->model()->index(index.row(), col1);
-//            QString _cache = _index.model()->data(__index, Qt::UserRole + col1).toString();
-
             if(isCertificatesExists(sha1)){
                 int iSha = modelSqlCertificates->getColumnIndex("sha1");
                 int iCache = modelSqlCertificates->getColumnIndex("cache");
@@ -4527,7 +4489,15 @@ void MainWindow::on_btnConInfo_clicked()
                     }
                 }
             }else{
-
+                if(node.indexOf("cert_") != -1){
+                    QStringList m_key = node.split("_");
+                    QStringList m_userHost = m_key[1].split("/");
+                    QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
+                    auto itr = m_users.find(index);
+                    if(itr != m_users.end()){
+                        getRemoteCertificateInfo(sha1, itr.value());
+                    }
+                }
             }
         }
     }
@@ -5394,6 +5364,19 @@ void MainWindow::on_btnSendWsMessage_clicked()
         }
 
     }
+
+}
+
+
+void MainWindow::on_btnUsersSync_clicked()
+{
+    if(QMessageBox::question(this, "Синхронизация каталога", "Синхронизировать справочник с справочником пользователей 1С?") == QMessageBox::No)
+        return;
+
+    if(_sett->launch_mode() != mixed)
+        if(QMessageBox::question(this, "Синхронизация каталога", "Для синхронизации каталога будет использовано прямое подключение к Sql Server. Продолжить?") == QMessageBox::No)
+            return;
+
 
 }
 

@@ -88,6 +88,11 @@ bool QBSqlQuery::isValid()
     return _isValid;
 }
 
+void QBSqlQuery::addSortField(const QString &name, bFieldSortType sortType)
+{
+    _sortFields.append(qMakePair(name, sortType));
+}
+
 void QBSqlQuery::add_field_is_exists(const QJsonObject &field)
 {
     _fieldsIsExists.append(field);
@@ -465,6 +470,21 @@ QString QBSqlQuery::bindQueryGet() const
             }
         }
         query.append(_whereEx);
+
+        QString sort;
+
+        if(_sortFields.size() > 0){
+
+            sort = "\nORDER BY\n";
+
+            for (auto iter = _sortFields.constBegin(); iter != _sortFields.constEnd(); ++iter) {
+                sort.append(iter->first + (iter->second == bAsc ? " ASC" : " DESC"));
+                if(iter != --_sortFields.constEnd())
+                   sort.append(", ");
+            }
+
+        }
+        query.append(sort);
     }
     return query;
 }

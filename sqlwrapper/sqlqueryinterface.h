@@ -33,6 +33,11 @@ enum bFieldType{
     qByteArray
 };
 
+enum bFieldSortType{
+    bAsc = 0,
+    bDesc
+};
+
 struct QBSqlValue{
     QVariant value;
     QByteArray data;
@@ -59,6 +64,7 @@ public:
 
     bool isValid();
 
+    void addSortField(const QString& name, bFieldSortType sortType = bAsc);
 
     QString to_json() const;
 
@@ -74,6 +80,8 @@ private:
     QList<QJsonObject> _where;
     QString _table;
     bool _isValid;
+    QList<QPair<QString,bFieldSortType>> _sortFields;
+
 
     QString bindQueryInsert(QList<QBSqlValue>& values) const;
     QString bindQueryUpdate(QList<QBSqlValue>& values) const;

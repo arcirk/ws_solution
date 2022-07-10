@@ -125,30 +125,16 @@ DEFINES += QT_CERT_MANAGER
 
 windows:DEFINES += _WINDOWS
 windows:DEFINES += _CRT_SECURE_NO_WARNINGS
-#windows:DEFINES -= UNICODE
-#windows:DEFINES += _MBCS
-
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/release/ -lws_client
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../ws_client/debug/ -lws_client
-#else:unix:!macx: LIBS += -L$$OUT_PWD/../../ws_client/ -lws_client
-
-#INCLUDEPATH += $$PWD/../../ws_client
-#DEPENDPATH += $$PWD/../../ws_client
-
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../RegWrapper/release/ -lRegWrapper
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../RegWrapper/debug/ -lRegWrapper
-#else:unix: LIBS += -L$$OUT_PWD/../../RegWrapper/ -lRegWrapper
-
-#INCLUDEPATH += $$PWD/../../RegWrapper
-#DEPENDPATH += $$PWD/../../RegWrapper
-
-#win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/release/libRegWrapper.a
-#else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/debug/libRegWrapper.a
-#else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/release/RegWrapper.lib
-#else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/debug/RegWrapper.lib
-#else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../RegWrapper/libRegWrapper.a
 
 RC_ICONS = CertManager.ico
 
 DISTFILES += \
     CertManager.ico
+
+win32 {
+    QMAKE_TARGET_PRODUCT = "Certificate manager"
+    QMAKE_TARGET_DESCRIPTION = "Managing certificates in an organization"
+}
+
+VERSION = 1.0.0
+QMAKE_TARGET_COPYRIGHT = (c)(arcirk) Arcady Borisoglebsky
