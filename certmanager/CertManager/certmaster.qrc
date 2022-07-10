@@ -82,5 +82,6 @@
         <file>img/message.png</file>
         <file>img/sync.png</file>
         <file>img/sync.svg</file>
+        <file>img/h.png</file>
     </qresource>
 </RCC>

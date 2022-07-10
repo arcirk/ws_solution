@@ -482,7 +482,12 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void MainWindow::trayShowMessage(const QString& msg, int isError)
 {
-    trayIcon->showMessage("Менеджер сертификатов", msg);
+    if(!isError)
+        trayIcon->showMessage("Менеджер сертификатов", msg);
+    else{
+
+    }
+
 }
 
 
@@ -3394,7 +3399,10 @@ void MainWindow::onDisplayError(const QString &what, const QString &err)
     ui->txtTerminal->setText("\n" + ui->txtTerminal->toPlainText() + "\n" + "ws error: " + what + ": " + err + "\n");
     ui->txtTerminal->verticalScrollBar()->setValue(ui->txtTerminal->verticalScrollBar()->maximum());
 
-    trayShowMessage(err, true);
+    //trayShowMessage(err, true);
+    QIcon msgIcon(":/img/h.png");
+    trayIcon->showMessage(what, err, msgIcon,
+                          3 * 1000);
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
