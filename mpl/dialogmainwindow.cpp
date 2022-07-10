@@ -264,7 +264,13 @@ void DialogMainWindow::createTrayActions()
 
 void DialogMainWindow::trayShowMessage(const QString& msg, int isError)
 {
-    trayIcon->showMessage("Менеджер ппрофилей Firefox", msg);
+    if(!isError)
+        trayIcon->showMessage("Менеджер ппрофилей Firefox", msg);
+    else{
+        QIcon msgIcon(":/img/h.png");
+        trayIcon->showMessage("Ошибка", msg, msgIcon,
+                              3 * 1000);
+    }
 }
 
 void DialogMainWindow::trayMessageClicked()
@@ -426,7 +432,10 @@ void DialogMainWindow::onDisplayError(const QString &what, const QString &err)
 
     updateConnectionStatus();
 
-    trayShowMessage(err, true);
+    //trayShowMessage(err, true);
+    QIcon msgIcon(":/img/h.png");
+    trayIcon->showMessage(what, err, msgIcon,
+                          3 * 1000);
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();

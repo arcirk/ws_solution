@@ -77,7 +77,7 @@ private slots:
     void onWindowShow();
     void onCheckIP();
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
-    void trayShowMessage();
+    void trayShowMessage(const QString& msg, int isError = false);
     void trayMessageClicked();
 
     void onConnectionSuccess();
