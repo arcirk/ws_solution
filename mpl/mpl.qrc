@@ -24,5 +24,6 @@
         <file>img/message.png</file>
         <file>img/message1.png</file>
         <file>img/h.png</file>
+        <file>img/rosette.ico</file>
     </qresource>
 </RCC>

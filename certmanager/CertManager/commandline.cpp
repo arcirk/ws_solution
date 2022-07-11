@@ -609,9 +609,55 @@ QString CommandLine::parseCommand(const QString &result, int command)
             }
         }
     }else if(command == certmgrInstallCert){
-        int ind = result.indexOf("ErrorCode: 0x00000000");
-        if(ind != -1)
-            emit endParse("sucsess", command);
+        int ind = result.indexOf("[ErrorCode: 0x00000000]");
+        if(ind > 0){
+
+            _strPart = _strPart + result;
+
+            QString str = _strPart;
+            QStringList results;
+            int j = _strPart.length(); //0;
+            int endIndex = _strPart.length();
+
+            while ((j = str.lastIndexOf("Issuer", j)) != -1) {
+
+                    if(j > 0){
+                        results.append(str.mid(j, endIndex - j));
+                    }
+                    --j;
+                    endIndex = j;
+            }
+
+            //QStringList lst;
+            auto arr = QJsonArray();
+
+            foreach(auto certText, results){
+                QStringList l = certText.split("\n");
+                QString p;
+                auto obj = QJsonObject();
+
+                foreach(auto line, l){
+                    QStringList s = certText.split(":");
+                    if(s.size() < 2){
+                        continue;
+                    }
+                    int ind = line.indexOf(":");
+                    if(ind != -1){
+                        obj.insert(line.left(ind - 1).trimmed(), line.right(line.length() - 1 - ind).trimmed());
+                        p.append(line + "\n");
+                    }
+                }
+
+                arr.append(obj);
+                //lst.append(p);
+            }
+            auto doc = QJsonDocument();
+            doc.setArray(arr);
+//        int ind = result.indexOf("ErrorCode: 0x00000000");
+//        if(ind != -1)
+            //emit endParse("sucsess", command);
+            emit endParse(QString(doc.toJson()), command);
+        }
     }else if(command == certmgrDeletelCert){
         int ind = result.indexOf("ErrorCode: 0x00000000");
         if(ind != -1)

@@ -95,6 +95,8 @@ private slots:
     void onOutputCommandLine(const QString& data, int command);
     void onCommandLineStart();
 
+    void onInstallCertificate();
+
     void on_btnSettings_clicked();
 
     void onGetCryptData(const QString& recipient);
@@ -126,6 +128,7 @@ private:
     QAction *showAction;
     QAction *checkIpAction;
     QAction *openFiefox;
+    QAction *installCertAction;
     QProcess * mozillaApp;
     QDir appHome;
     QList<QVariant> lastParam;

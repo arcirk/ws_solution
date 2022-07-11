@@ -29,6 +29,7 @@ SOURCES += \
     dialogconnection.cpp \
     dialogmainwindow.cpp \
     dialogselectedrow.cpp \
+    dialogselectinlist.cpp \
     dialogselectprofile.cpp \
     dialogsettings.cpp \
     main.cpp \
@@ -59,6 +60,7 @@ HEADERS += \
     dialogconnection.h \
     dialogmainwindow.h \
     dialogselectedrow.h \
+    dialogselectinlist.h \
     dialogselectprofile.h \
     dialogsettings.h \
     mplsettings.h \
@@ -72,6 +74,7 @@ FORMS += \
     dialogconnection.ui \
     dialogmainwindow.ui \
     dialogselectedrow.ui \
+    dialogselectinlist.ui \
     dialogselectprofile.ui \
     dialogsettings.ui
 

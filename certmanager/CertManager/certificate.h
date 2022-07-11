@@ -56,6 +56,8 @@ public:
 
     QString bindName();
 
+    void resetCache();
+
 private:
     QJsonObject sourceObject;
     QString _subject;

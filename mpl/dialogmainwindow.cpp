@@ -1,4 +1,4 @@
-#include "dialogmainwindow.h"
+﻿#include "dialogmainwindow.h"
 #include "ui_dialogmainwindow.h"
 
 #include <QStandardPaths>
@@ -20,6 +20,7 @@
 #include "dialogconnection.h"
 #include <tabledelegate.h>
 #include <QTextEdit>
+#include "dialogselectinlist.h"
 
 //#include <boost/uuid/uuid.hpp>
 //#include <boost/uuid/uuid_generators.hpp>
@@ -250,11 +251,14 @@ void DialogMainWindow::createTrayActions()
     quitAction = new QAction(tr("&Выйти"), this);
     connect(quitAction, &QAction::triggered, this, &DialogMainWindow::onAppExit);
     showAction = new QAction(tr("&Открыть менеджер профилей"), this);
+    showAction->setIcon(QIcon(":/img/Firefox.ico"));
     connect(showAction, &QAction::triggered, this, &DialogMainWindow::onWindowShow);
     checkIpAction = new QAction(tr("&Проверить IP адресс"), this);
     connect(checkIpAction, &QAction::triggered, this, &DialogMainWindow::onCheckIP);
     openFiefox = new QAction(tr("&Открыть Firefox с выбором профиля"), this);
     connect(openFiefox, &QAction::triggered, this, &DialogMainWindow::openMozillaFirefox);
+    installCertAction = new QAction(tr("&Установить сертификат"), this);
+    connect(installCertAction, &QAction::triggered, this, &DialogMainWindow::onInstallCertificate);
 
     trayIconMenu = new QMenu(this);
 
@@ -323,6 +327,7 @@ void DialogMainWindow::createDynamicMenu()
     trayIconMenu->addAction(showAction);
     trayIconMenu->addAction(checkIpAction);
     trayIconMenu->addAction(openFiefox);
+    trayIconMenu->addAction(installCertAction);
 
     if(_profiles){
         trayIconMenu->addSeparator();
@@ -689,13 +694,15 @@ void DialogMainWindow::addCertificate(const QString &from, const QString &to, co
             lastResult.append(command);
             lastResult.append(resultData);
             m_async_await.append(std::bind(&DialogMainWindow::sendResultToClient, this));
-        }
+        }else
+            trayShowMessage(QString("Установлен сертификат '%1'!").arg(cert->bindName()));
         asyncAwait();
     }else{
         if(!currentRecipient.isEmpty()){
             sendToRecipient(currentRecipient, command, "error", true);
             currentRecipient = "";
-        }
+        }else
+            trayShowMessage("Ошибка установки сертификата!", true);
     }
 
     delete cert;
@@ -1010,7 +1017,7 @@ void DialogMainWindow::getAvailableCerts()
         return;
     }
     auto bindQuery = QBSqlQuery(QBSqlCommand::QSqlGet, "AvailableCertsView");
-
+    bindQuery.addField("Empty", "Empty");
     bindQuery.addField("FirstField", "FirstField");
     bindQuery.addField("CertRef", "CertRef");
     bindQuery.addField("UserRef", "UserRef");
@@ -1288,7 +1295,7 @@ void DialogMainWindow::onParseCommand(const QVariant &result, int command)
             auto obj = itr->toObject();
             auto cert = new Certificate(this);
             cert->setSourceObject(obj);
-            currentUser->certificates().insert(cert->serial(), cert);
+            currentUser->certificates().insert(cert->sha1(), cert);
         }
 
         if(!currentRecipient.isEmpty()){
@@ -1377,7 +1384,7 @@ void DialogMainWindow::onCommandLineStart()
         currentUser->setName(uname);
 #else
         std::string envUSER = "USER";
-        QString cryptoProDir = "/opt/cprocsp/bin/amd64/";
+        String cryptoProDir = "/opt/cprocsp/bin/amd64/";
         terminal->send("echo $USER\n", 1); //CommandLine::cmdCommand::echoUserName);// ; exit\n
 #endif
 
@@ -1385,6 +1392,44 @@ void DialogMainWindow::onCommandLineStart()
             auto f = m_async_await.dequeue();
             f();
         }
+}
+
+void DialogMainWindow::onInstallCertificate()
+{
+    auto model = new QJsonTableModel(this);
+    model->setColumnAliases(m_colAliases);
+    model->setJsonText(currentUser->available_certificates());
+    model->setRowsIcon(QIcon(":/img/rosette.ico"));
+    model->reset();
+    QList<int> vCols = {0};
+    int col = model->getColumnIndex("FirstField");
+    vCols.append(col);
+    auto dlg = DialogSelectInList(model, "Выбор сертификата", vCols, this);
+    dlg.setModal(true);
+    dlg.exec();
+    if(dlg.result() == QDialog::Accepted){
+        auto result = dlg.dialogResult();
+        if(result.size() > 0){
+            int index = model->getColumnIndex("sha1");
+            QString sha1 = result[index];
+            if(index != -1 && !sha1.isEmpty()){
+                auto itr = currentUser->certificates().constFind(sha1);
+                if(itr != currentUser->certificates().constEnd()){
+                    if(QMessageBox::question(this, "Установка сертификата", QString("Сертификат '%1' уже установлен. Переустановить?").arg(itr.value()->bindName())) == QMessageBox::No)
+                        return;
+                }
+                index = model->getColumnIndex("CertRef");
+                QString ref = result[index];
+                if(!ref.isEmpty())
+                    addCertificate(STORGARE_DATABASE, STORGARE_LOCALHOST, "", ref);
+                else
+                    trayShowMessage("Ошибка установки сертификата!", true);
+            }
+        }
+
+    }
+
+    delete model;
 }
 
 void DialogMainWindow::on_btnAdd_clicked()

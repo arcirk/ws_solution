@@ -4600,7 +4600,7 @@ void MainWindow::on_btnCurrentDelete_clicked()
         QString command;
         QString msg;
 
-        QMap<QString, QString> nodeParam = remoteItemParam(index, node);
+        QMap<QString, QString> nodeParam = remoteItemParam(index, node, false);
 
         if(nodeParam["key"] == remoteUserRegistry){
             Volume = ToRemoteRegistry;

@@ -20,6 +20,9 @@ void Certificate::setSourceObject(const QJsonObject &obj)
 {
     _isValid = false;
 
+    if(obj.isEmpty())
+        return;
+
     sourceObject = obj;
     //_dnFindString.clear();
 
@@ -209,9 +212,18 @@ bool Certificate::install(const QString& cnt)
     };
     loop.connect(cmd, &CommandLine::output, output);
 
-    auto parse = [&loop, cmd, &res](const QVariant& result, int command) -> void
+    QJsonObject obj = QJsonObject();
+
+    auto parse = [&loop, cmd, &res, &obj](const QVariant& result, int command) -> void
     {
         if(command == CmdCommand::certmgrInstallCert){
+            auto doc = QJsonDocument::fromJson(result.toString().toUtf8());
+            auto arr = doc.array();
+
+            for (auto itr = arr.begin(); itr != arr.end(); ++itr) {
+                obj = itr->toObject();
+                break;
+            }
             res = true;
             cmd->stop();
             loop.quit();
@@ -240,6 +252,8 @@ bool Certificate::install(const QString& cnt)
 
     if(file.exists())
         file.remove();
+
+    setSourceObject(obj);
 
     return res;
 }
@@ -629,6 +643,14 @@ QJsonObject Certificate::getSourceObject()
 QString Certificate::bindName()
 {
     return  QString("%1 %2-%3").arg(subject(), notValidBefore(), notValidAfter());
+}
+
+void Certificate::resetCache()
+{
+    if(_data.size() == 0)
+        return;
+
+
 }
 
 
