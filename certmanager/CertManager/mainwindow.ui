@@ -38,6 +38,9 @@
         <layout class="QHBoxLayout" name="toolBarActiveUsers">
          <item>
           <widget class="QToolButton" name="btnUserToDatabase">
+           <property name="toolTip">
+            <string>Добавить в пользователи менеджера сертификатов</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -104,6 +107,9 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="toolTip">
+            <string>Сохранить</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -145,6 +151,12 @@
          </item>
          <item row="0" column="7">
           <widget class="QToolButton" name="btnUsersSync">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Синхронизировать</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -158,6 +170,9 @@
           <widget class="QToolButton" name="btnMainTollEdit">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Изменить</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -441,6 +456,9 @@
          </item>
          <item>
           <widget class="QToolButton" name="btnDataListUpdate">
+           <property name="toolTip">
+            <string>Обновить список</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -525,6 +543,9 @@
          </item>
          <item>
           <widget class="QToolButton" name="btnClientOptions">
+           <property name="toolTip">
+            <string>Настройки пользователя</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -536,6 +557,9 @@
          </item>
          <item>
           <widget class="QToolButton" name="btnSendWsMessage">
+           <property name="toolTip">
+            <string>Отправить сообщение</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>

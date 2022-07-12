@@ -383,7 +383,7 @@ void DialogMainWindow::onConnectionSuccess()
 
     updateConnectionStatus();
 
-    trayShowMessage(QString("Успешное подключение к севрверу: %1:%2").arg(m_client->getHost(), QString::number(m_client->getPort())));
+    trayShowMessage(QString("Успешное подключение к серверу: %1:%2").arg(m_client->getHost(), QString::number(m_client->getPort())));
 
     if(m_async_await.size() > 0){
         auto f = m_async_await.dequeue();
@@ -1022,7 +1022,7 @@ void DialogMainWindow::getAvailableCerts()
     bindQuery.addField("CertRef", "CertRef");
     bindQuery.addField("UserRef", "UserRef");
     bindQuery.addField("sha1", "sha1");
-
+    bindQuery.addField("parentUser", "parentUser");
     bindQuery.addWhere("UserRef", currentUser->ref());
 
     QString query = bindQuery.to_json();
@@ -1403,6 +1403,8 @@ void DialogMainWindow::onInstallCertificate()
     model->reset();
     QList<int> vCols = {0};
     int col = model->getColumnIndex("FirstField");
+    vCols.append(col);
+    col = model->getColumnIndex("parentUser");
     vCols.append(col);
     auto dlg = DialogSelectInList(model, "Выбор сертификата", vCols, this);
     dlg.setModal(true);

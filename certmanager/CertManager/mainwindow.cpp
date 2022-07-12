@@ -2533,6 +2533,7 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     inVisibleToolBars();
 
     ui->btnClientOptions->setEnabled(key == SqlUsers);
+    ui->btnSendWsMessage->setEnabled(key == SqlUsers);
 
     if(item->childCount() > 0 && key != SqlUsers){
         setDefaultItemChilds(item);
@@ -2591,9 +2592,6 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
         }else{
             ui->tableView->setModel(nullptr);
             if(key.indexOf("reg_") != -1){
-//                QStringList m_key = key.split("_");
-//                QStringList m_userHost = m_key[1].split("/");
-//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto m_param = remoteItemParam(QModelIndex(), key, true);
                 if(m_param.size() > 1){
                     QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
@@ -2611,9 +2609,6 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnCurrentUserAdd->setEnabled(true);
 
             }else if(key.indexOf("vol_") != -1){
-//                QStringList m_key = key.split("_");
-//                QStringList m_userHost = m_key[1].split("/");
-//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto m_param = remoteItemParam(QModelIndex(), key, true);
                 if(m_param.size() > 1){
                     QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
@@ -2630,9 +2625,6 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnCurrentCopyToSql->setEnabled(true);
                 ui->btnCurrentUserAdd->setEnabled(true);
             }else if(key.indexOf("cert_") != -1 && key.indexOf("a_cert_") == -1){
-//                QStringList m_key = key.split("_");
-//                QStringList m_userHost = m_key[1].split("/");
-//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
                 auto m_param = remoteItemParam(QModelIndex(), key, true);
                 if(m_param.size() > 1){
                     QPair<QString, QString> index = qMakePair(m_param["name"], m_param["host"]);
@@ -2653,9 +2645,6 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
                 ui->btnDelete->setEnabled(true);
                 ui->btnAdd->setEnabled(true);
                 ui->btnMainTollEdit->setEnabled(false);
-//                QStringList m_key = key.split("_");
-//                QStringList m_userHost = m_key[2].split("/");
-//                QPair<QString, QString> index = qMakePair(m_userHost[0], m_userHost[1]);
 
                 auto m_param = remoteItemParam(QModelIndex(), key, true);
                 if(m_param.size() > 1){
@@ -5345,7 +5334,6 @@ void MainWindow::on_btnSendWsMessage_clicked()
         return;
     }
 
-    //QString node = treeItem->data(0, Qt::UserRole).toString();
     auto table = ui->tableView;
     auto index = table->currentIndex();
     if(!index.isValid()){
@@ -5353,25 +5341,24 @@ void MainWindow::on_btnSendWsMessage_clicked()
         return;
     }
 
-    auto dlg = DialogMessage(this);
-    dlg.setModal(true);
-    dlg.exec();
+    int iUser = modelSqlUsers->getColumnIndex("FirstField");
+    int iHost = modelSqlUsers->getColumnIndex("host");
+    QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
+    QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
+    QPair<QString, QString> m_index = qMakePair(name, host);
+    auto itr = m_users.find(m_index);
+    if(itr != m_users.end()){
+        if(itr.value()->online()){
+            auto dlg = DialogMessage(this);
+            dlg.setModal(true);
+            dlg.exec();
 
-    if(dlg.result() == QDialog::Accepted){
-        int iUser = modelSqlUsers->getColumnIndex("FirstField");
-        int iHost = modelSqlUsers->getColumnIndex("host");
-        QString name = modelSqlUsers->index(index.row(), iUser).data(Qt::UserRole + iUser).toString();
-        QString host = modelSqlUsers->index(index.row(), iHost).data(Qt::UserRole + iHost).toString();
-        QPair<QString, QString> m_index = qMakePair(name, host);
-        auto itr = m_users.find(m_index);
-        if(itr != m_users.end()){
-            if(itr.value()->online()){
-                m_client->sendMessage(itr.value()->uuid().toString(), dlg.resultMessage());
+            if(dlg.result() == QDialog::Accepted){
+                 m_client->sendMessage(itr.value()->uuid().toString(), dlg.resultMessage());
             }
-        }
-
+        }else
+            QMessageBox::critical(this, "Ошибка", "Пользователь не подключен!");
     }
-
 }
 
 
