@@ -22,21 +22,6 @@
 #include <QTextEdit>
 #include "dialogselectinlist.h"
 
-//#include <boost/uuid/uuid.hpp>
-//#include <boost/uuid/uuid_generators.hpp>
-//#include <boost/unordered_map.hpp>
-
-//static bool is_valid_uuid(std::string const& maybe_uuid, boost::uuids::uuid& result) {
-//    using namespace boost::uuids;
-
-//    try {
-//        result = string_generator()(maybe_uuid);
-//        return result.version() != uuid::version_unknown;
-//    } catch(...) {
-//        return false;
-//    }
-//}
-
 
 DialogMainWindow::DialogMainWindow(QWidget *parent) :
     QDialog(parent),
@@ -160,28 +145,7 @@ void DialogMainWindow::closeEvent(QCloseEvent *event)
 
 void DialogMainWindow::updateData()
 {
-//    if(!_profiles)
-//        return;
-//    QTableWidget * table = ui->tableWidget;
-//    _profiles->clear();
 
-//    for (int row = 0; row < table->rowCount(); row++) {
-//        auto prof = new UserProfile();
-//        auto line = getLineEdit(row, 0);
-//        if(line)
-//            prof->setProfile(line->text());
-//        auto item = ui->tableWidget->item(row, 1);
-//        if(item)
-//           prof->setName(item->text());
-//        line = getLineEdit(row, 2);
-//        if(line)
-//            prof->setDefaultAddress(line->text());
-//        item = ui->tableWidget->item(row, 4);
-//        if(item)
-//           prof->setUuid(QUuid::fromString(item->text()));
-
-//        _profiles->setProfile(prof);
-//    }
 
 }
 
@@ -279,9 +243,7 @@ void DialogMainWindow::trayShowMessage(const QString& msg, int isError)
 
 void DialogMainWindow::trayMessageClicked()
 {
-//    QMessageBox::information(nullptr, tr("Systray"),
-//                             tr("Sorry, I already gave what help I could.\n"
-//                                "Maybe you should try asking a human?"));
+
 }
 
 void DialogMainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
