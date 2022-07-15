@@ -1,6 +1,8 @@
 #include "serveresponse.h"
 
+#ifndef QT_WEBSOCKETS_LIB
 #include <iws_client.h>
+#endif
 
 #include <QStandardItemModel>
 #include <QFileInfo>
@@ -15,6 +17,7 @@ ServeResponse::ServeResponse(const QString& resp)
     parse(resp);
 }
 
+#ifndef QT_WEBSOCKETS_LIB
 QString ServeResponse::base64_decode(const std::string &resp)
 {
     std::string json;
@@ -40,6 +43,19 @@ QString ServeResponse::base64_encode(const std::string &resp)
 
     return QString::fromStdString(json);
 }
+#else
+QString ServeResponse::base64_decode(const QByteArray &resp)
+{
+
+    return QByteArray::fromBase64(resp);
+}
+
+QString ServeResponse::base64_encode(const QByteArray &resp)
+{
+    return resp.toBase64();
+}
+#endif
+
 void ServeResponse::parse(const QString& resp){
 
 

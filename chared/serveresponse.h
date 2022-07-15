@@ -31,8 +31,14 @@ public:
 
     static QJsonDocument parseResp(const QString& resp);
 
+#ifndef QT_WEBSOCKETS_LIB
     static QString base64_decode(const std::string& resp);
     static QString base64_encode(const std::string& resp);
+#else
+    static QString base64_decode(const QByteArray& resp);
+    static QString base64_encode(const QByteArray& resp);
+#endif
+
     static QMap<QString, int> get_header(QJsonObject *obj, QString defaultColumn);
     static QMap<QString, int> get_header(QJsonArray *columns);
     static QSortFilterProxyModel * get_proxyModel(QJsonArray &rows, QMap<QString, int> header);
