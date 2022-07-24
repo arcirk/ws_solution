@@ -119,3 +119,5 @@ tests/
 /ws_admin-Debug/
 /ws_admin-Release/
 /ws_client_qml-Debug/
+/QrPay/QrPay-Android-Debug/
+/QrPay/QrPay-Android_Qt_5_15_2_Clang_Multi_Abi_9a35de-Debug/
