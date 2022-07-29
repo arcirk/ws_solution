@@ -57,6 +57,8 @@ DISTFILES += \
     android/gradle.properties \
     android/gradle/wrapper/gradle-wrapper.properties \
     android/gradlew.bat \
+    android/src/ru/arcirk/java/sharex/ActivityUtils.java \
+    android/src/ru/arcirk/java/sharex/QtAndroidService.java \
     data_assets/ekke.jpg
 
 android {
@@ -92,6 +94,8 @@ android {
     # find this in shadow build android-build gradle.properties
     ANDROID_MIN_SDK_VERSION = "21"
     ANDROID_TARGET_SDK_VERSION = "30"
+
+    include(../common/common_broadcast.pri)
 }
 
 ios {
