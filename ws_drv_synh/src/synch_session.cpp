@@ -125,7 +125,7 @@ bool sync_session::set_param(const std::string &usr, const std::string &pwd) {
 
                 std::string base64 = v[0].substr(7, v[0].length() - 6);
                 std::string result = arcirk::base64_decode(base64);
-                auto resp = new ServeResponse(result);
+                auto resp = new ServerResponse(result);
                 if(resp->isParse)
                 {
                     if(resp->result == "error"){

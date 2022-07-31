@@ -11,14 +11,14 @@
 #include <QTableWidgetItem>
 #endif
 
-ServeResponse::ServeResponse(const QString& resp)
+ServerResponse::ServerResponse(const QString& resp)
 {
     isParse = false;
     parse(resp);
 }
 
 #ifndef QT_WEBSOCKETS_LIB
-QString ServeResponse::base64_decode(const std::string &resp)
+QString ServerResponse::base64_decode(const std::string &resp)
 {
     std::string json;
     try {
@@ -31,7 +31,7 @@ QString ServeResponse::base64_decode(const std::string &resp)
     return QString::fromStdString(json);
 }
 
-QString ServeResponse::base64_encode(const std::string &resp)
+QString ServerResponse::base64_encode(const std::string &resp)
 {
     std::string json;
     try {
@@ -56,7 +56,7 @@ QString ServeResponse::base64_encode(const QByteArray &resp)
 }
 #endif
 
-void ServeResponse::parse(const QString& resp){
+void ServerResponse::parse(const QString& resp){
 
 
     QJsonDocument _doc(QJsonDocument::fromJson(resp.toUtf8()));
@@ -120,7 +120,7 @@ void ServeResponse::parse(const QString& resp){
 
 }
 
-void ServeResponse::debugSaveResponse(const QString &filename, const QString &json)
+void ServerResponse::debugSaveResponse(const QString &filename, const QString &json)
 {
     //ToDo: временная процедура
     QString saveFileName = filename + ".json";
@@ -139,7 +139,7 @@ void ServeResponse::debugSaveResponse(const QString &filename, const QString &js
 
 }
 
-QString ServeResponse::to_string() const
+QString ServerResponse::to_string() const
 {
     QJsonObject msg = QJsonObject();
     msg.insert("message", message);
@@ -159,13 +159,13 @@ QString ServeResponse::to_string() const
     return QJsonDocument(msg).toJson(QJsonDocument::Indented);
 }
 
-QJsonDocument ServeResponse::parseResp(const QString &resp){
+QJsonDocument ServerResponse::parseResp(const QString &resp){
 
     QJsonDocument _doc(QJsonDocument::fromJson(resp.toUtf8()));
     return _doc;
 
 }
-QMap<QString, int> ServeResponse::get_header(QJsonArray *columns){
+QMap<QString, int> ServerResponse::get_header(QJsonArray *columns){
 
     QMap<QString, int> header;
 
@@ -176,7 +176,7 @@ QMap<QString, int> ServeResponse::get_header(QJsonArray *columns){
     return header;
 }
 
-QMap<QString, int> ServeResponse::get_header(QJsonObject *obj, QString defaultColumn) {
+QMap<QString, int> ServerResponse::get_header(QJsonObject *obj, QString defaultColumn) {
 
     QList<QString> list;
     QMap<QString, int> header;
@@ -204,7 +204,7 @@ QMap<QString, int> ServeResponse::get_header(QJsonObject *obj, QString defaultCo
     return header;
 }
 
-QSortFilterProxyModel * ServeResponse::get_proxyModel(QJsonArray &rows, QMap<QString, int> header) {
+QSortFilterProxyModel * ServerResponse::get_proxyModel(QJsonArray &rows, QMap<QString, int> header) {
 
     if (rows.isEmpty())
         return nullptr;

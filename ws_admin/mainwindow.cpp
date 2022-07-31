@@ -351,10 +351,10 @@ void MainWindow::on_mnuDisconnect_triggered()
 
 void MainWindow::onGetActiveUsers(const QString &resp)
 {
-    QJsonDocument doc = ServeResponse::parseResp(resp);
+    QJsonDocument doc = ServerResponse::parseResp(resp);
     if (!doc.isNull()) {
         if (doc.isArray()) {
-            ServeResponse::loadTableFromJson(listChildServerObjects, doc.array());
+            ServerResponse::loadTableFromJson(listChildServerObjects, doc.array());
             setHeaderAliases(listChildServerObjects);
             resizeColumns();
         }
@@ -430,14 +430,14 @@ void MainWindow::onGetGroupList(const QString &resp)
     treeChannelsObjects->clear();
     treeChannelsObjects->setColumnCount(0);
 
-    QJsonDocument doc = ServeResponse::parseResp(resp);
+    QJsonDocument doc = ServerResponse::parseResp(resp);
     QJsonArray rows = doc.array();
     if(rows.isEmpty())
         return;
     QJsonObject reference = doc.array()[0].toObject();
-    QMap<QString, int> header = ServeResponse::get_header(&reference, "SecondField");
+    QMap<QString, int> header = ServerResponse::get_header(&reference, "SecondField");
 
-    QSortFilterProxyModel* model = ServeResponse::get_proxyModel(rows, header);
+    QSortFilterProxyModel* model = ServerResponse::get_proxyModel(rows, header);
 
     if (!model)
         return;
@@ -506,7 +506,7 @@ void MainWindow::fillList(const QString &nodeName) {
     listChildServerObjects->setRowCount(0);
 
     if (nodeName == "ServerName"){
-        ServeResponse::loadTableFromJson(listChildServerObjects, settings.getJsonObject());
+        ServerResponse::loadTableFromJson(listChildServerObjects, settings.getJsonObject());
         //listChildServerObjects->resizeColumnsToContents();
         listChildServerObjects->resizeColumnToContents(0);
         listChildServerObjects->resizeColumnToContents(1);
@@ -551,7 +551,7 @@ void MainWindow::onFillUsers(const QString& resp){
     listChildServerObjects->setColumnCount(0);
     listChildServerObjects->setRowCount(0);
 
-    QJsonDocument doc = ServeResponse::parseResp(resp);
+    QJsonDocument doc = ServerResponse::parseResp(resp);
     if (doc.array().isEmpty())
         return;
     QJsonObject reference = doc.array()[0].toObject();
@@ -563,7 +563,7 @@ void MainWindow::onFillUsers(const QString& resp){
     header.insert("Ref", 3);
     header.insert("channel", 4);
 
-    ServeResponse::loadTableFromJson(listChildServerObjects, doc.array(), header);
+    ServerResponse::loadTableFromJson(listChildServerObjects, doc.array(), header);
 
     setHeaderAliases(listChildServerObjects);
 

@@ -274,7 +274,7 @@ void ws_drv::start() {
 
 void ws_drv::ext_message(const std::string &msg)
 {
-    std::string resp = ServeResponse::base64_decode(msg);
+    std::string resp = ServerResponse::base64_decode(msg);
 
     if(!resp.empty()){
        processServeResponse(resp);
@@ -289,7 +289,7 @@ void ws_drv::status_changed(bool status)
 
 void ws_drv::processServeResponse(const std::string &jsonResp)
 {
-    auto resp = new ServeResponse(jsonResp);
+    auto resp = new ServerResponse(jsonResp);
 
     if(!resp->isParse){
         delete resp;

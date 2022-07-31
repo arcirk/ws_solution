@@ -1,10 +1,10 @@
 //#include <arcirk.h>
 #include "../arcirk/include/arcirk.h"
 
-class ServeResponse
+class ServerResponse
 {
 public:
-    ServeResponse(const std::string& resp);
+    ServerResponse(const std::string& resp);
 
     std::string message;
     std::string command;

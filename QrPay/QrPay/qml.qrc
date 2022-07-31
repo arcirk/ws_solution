@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/setting.png</file>
+        <file>img/setting.svg</file>
+        <file>qml/PageOptions.qml</file>
+        <file>qml/PageStart.qml</file>
+        <file>qml/main.qml</file>
+        <file>img/viewPwd.svg</file>
+        <file>img/viewPwd1.svg</file>
+        <file>img/viewPwd.png</file>
+        <file>img/viewPwd1.png</file>
+        <file>img/itemEdit.png</file>
+        <file>img/lan_check_online.png</file>
+        <file>img/lan_check_online_color.png</file>
+        <file>img/lan_disconnect_offline.png</file>
+        <file>qml/PageQr.qml</file>
+        <file>img/exampleQr.png</file>
+        <file>img/qr16.png</file>
+        <file>img/shareFiles.png</file>
+        <file>img/deleteQr.png</file>
+        <file>img/sberPay.png</file>
+    </qresource>
+</RCC>

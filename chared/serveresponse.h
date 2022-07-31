@@ -9,10 +9,10 @@
 #ifndef  QT_QML_CLIENT_APP
 #include <QTableWidget>
 #endif
-class ServeResponse
+class ServerResponse
 {
 public:
-    ServeResponse(const QString& resp);
+    ServerResponse(const QString& resp);
 
     QString message;
     QString command;

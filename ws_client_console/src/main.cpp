@@ -34,7 +34,7 @@ void connectionSuccess(){
 
 void processServeResponse(const std::string &jsonResp)
 {
-    auto resp = new ServeResponse(jsonResp);
+    auto resp = new ServerResponse(jsonResp);
 
     if(!resp->isParse){
         delete resp;
@@ -153,7 +153,7 @@ void status_changed(bool connected){
 
 void ext_message(const std::string& msg) {
 
-    std::string resp = ServeResponse::base64_decode(msg); arcirk::base64_decode(msg);
+    std::string resp = ServerResponse::base64_decode(msg); arcirk::base64_decode(msg);
 
     if(!resp.empty()){
         processServeResponse(resp);

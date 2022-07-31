@@ -1,13 +1,13 @@
 #include "server_response.h"
 
 
-ServeResponse::ServeResponse(const std::string& resp)
+ServerResponse::ServerResponse(const std::string& resp)
 {
     isParse = false;
     parse(resp);
 }
 
-std::string ServeResponse::base64_decode(const std::string &resp)
+std::string ServerResponse::base64_decode(const std::string &resp)
 {
     std::string json;
     try {
@@ -20,7 +20,7 @@ std::string ServeResponse::base64_decode(const std::string &resp)
     return json;
 }
 
-void ServeResponse::parse(const std::string& resp){
+void ServerResponse::parse(const std::string& resp){
 
 
     arcirk::bJson _doc = arcirk::bJson();
@@ -81,7 +81,7 @@ void ServeResponse::parse(const std::string& resp){
 
 }
 
-std::string ServeResponse::to_string() const
+std::string ServerResponse::to_string() const
 {
     arcirk::bJson msg = arcirk::bJson();
     msg.set_object();
@@ -100,7 +100,7 @@ std::string ServeResponse::to_string() const
     return msg.to_string();
 }
 
-arcirk::bJson ServeResponse::parseResp(const std::string &resp){
+arcirk::bJson ServerResponse::parseResp(const std::string &resp){
 
     arcirk::bJson _doc = arcirk::bJson();
     _doc.parse(resp);

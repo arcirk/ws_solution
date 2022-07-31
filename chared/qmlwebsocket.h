@@ -158,7 +158,7 @@ private:
     QString os_user_name;
 
     QMap<QString,QString> m_agentClients;
-    void joinClientToAgent(ServeResponse * resp);
+    void joinClientToAgent(ServerResponse * resp);
     QStringList getImageMimeType();
 
     QWebdav * qWebdav;
@@ -167,7 +167,7 @@ private:
     bool m_hidden;
     QString uuidSessionAgent;
 
-    void responseCommand(ServeResponse * resp);
+    void responseCommand(ServerResponse * resp);
 
     //QString osUserName();
 

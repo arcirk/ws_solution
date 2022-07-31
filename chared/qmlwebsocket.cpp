@@ -174,7 +174,7 @@ void bWebSocket::ext_message(const std::string &msg)
         return;
     }
 
-    QString resp = ServeResponse::base64_decode(msg);
+    QString resp = ServerResponse::base64_decode(msg);
     //qDebug() << QString::fromStdString(msg);
 
     if(!resp.isEmpty()){
@@ -192,7 +192,7 @@ void bWebSocket::processServeResponse(const QString &jsonResp)
 {
     //qDebug() << jsonResp;
     //QString _tmp = jsonResp;
-    auto resp = new ServeResponse(jsonResp);
+    auto resp = new ServerResponse(jsonResp);
 
     if(!resp->isParse){
         delete resp;
@@ -657,7 +657,7 @@ void bWebSocket::agentClientShow() {
 }
 
 
-void bWebSocket::joinClientToAgent(ServeResponse *resp) {
+void bWebSocket::joinClientToAgent(ServerResponse *resp) {
 
     if(resp->uuid_session.isEmpty())
         return;
@@ -684,7 +684,7 @@ QStringList bWebSocket::getImageMimeType()
     return result;
 }
 
-void bWebSocket::responseCommand(ServeResponse * resp)
+void bWebSocket::responseCommand(ServerResponse * resp)
 {
     QJsonDocument doc = QJsonDocument::fromJson(resp->message.toUtf8());
     if(!doc.isObject()){
